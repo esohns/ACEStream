@@ -292,14 +292,13 @@
                             <child>
                               <object class="GtkTable" id="table_information">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="n_rows">3</property>
                                 <property name="n_columns">2</property>
-                                <property name="homogeneous">True</property>
                                 <child>
                                   <object class="GtkLabel" id="label_messages">
                                     <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">messages</property>
                                     <property name="track_visited_links">False</property>
@@ -316,12 +315,11 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_session_messages">
                                         <property name="visible">True</property>
-                                        <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
                                         <property name="has_tooltip">True</property>
-                                        <property name="tooltip_markup" translatable="yes">session messages</property>
                                         <property name="tooltip_text" translatable="yes">session messages</property>
                                         <property name="editable">False</property>
+                                        <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
                                         <property name="caps_lock_warning">False</property>
@@ -337,12 +335,11 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_data_messages">
                                         <property name="visible">True</property>
-                                        <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
                                         <property name="has_tooltip">True</property>
-                                        <property name="tooltip_markup" translatable="yes">data messages</property>
                                         <property name="tooltip_text" translatable="yes">data messages</property>
                                         <property name="editable">False</property>
+                                        <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
                                         <property name="caps_lock_warning">False</property>
@@ -366,7 +363,6 @@
                                 <child>
                                   <object class="GtkLabel" id="label_data">
                                     <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">data</property>
                                     <property name="track_visited_links">False</property>
@@ -379,12 +375,11 @@
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_data">
                                     <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_markup" translatable="yes">bytes</property>
                                     <property name="tooltip_text" translatable="yes">bytes</property>
                                     <property name="editable">False</property>
+                                    <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
                                     <property name="xalign">1</property>
                                     <property name="caps_lock_warning">False</property>
@@ -414,12 +409,11 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_captured_frames">
                                         <property name="visible">True</property>
-                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="has_tooltip">True</property>
-                                        <property name="tooltip_markup" translatable="yes">captured frames</property>
                                         <property name="tooltip_text" translatable="yes">captured frames</property>
                                         <property name="editable">False</property>
+                                        <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
                                         <property name="caps_lock_warning">False</property>
@@ -435,12 +429,11 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_dropped_frames">
                                         <property name="visible">True</property>
-                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="has_tooltip">True</property>
-                                        <property name="tooltip_markup" translatable="yes">dropped frames</property>
                                         <property name="tooltip_text" translatable="yes">dropped frames</property>
                                         <property name="editable">False</property>
+                                        <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
                                         <property name="caps_lock_warning">False</property>
@@ -520,9 +513,9 @@
                                         <property name="can_focus">True</property>
                                         <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="tooltip_markup" translatable="yes">capture device</property>
                                         <property name="tooltip_text" translatable="yes">capture device</property>
                                         <property name="model">liststore_source</property>
+                                        <property name="has_frame">False</property>
                                         <property name="focus_on_click">False</property>
                                         <property name="id_column">0</property>
                                         <signal name="changed" handler="combobox_source_changed_cb" swapped="no"/>
@@ -569,7 +562,6 @@
                                         <property name="can_focus">True</property>
                                         <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="tooltip_markup" translatable="yes">destination file/folder</property>
                                         <property name="tooltip_text" translatable="yes">destination file/folder</property>
                                         <property name="do_overwrite_confirmation">True</property>
                                         <property name="filter">filefilter_avi</property>
@@ -641,9 +633,9 @@
                                                         <property name="can_focus">True</property>
                                                         <property name="can_default">True</property>
                                                         <property name="receives_default">True</property>
-                                                        <property name="tooltip_markup" translatable="yes">format</property>
                                                         <property name="tooltip_text" translatable="yes">format</property>
                                                         <property name="model">liststore_format</property>
+                                                        <property name="has_frame">False</property>
                                                         <property name="focus_on_click">False</property>
                                                         <property name="id_column">0</property>
                                                       </object>
@@ -660,9 +652,9 @@
                                                         <property name="can_focus">True</property>
                                                         <property name="can_default">True</property>
                                                         <property name="receives_default">True</property>
-                                                        <property name="tooltip_markup" translatable="yes">resolution</property>
                                                         <property name="tooltip_text" translatable="yes">resolution</property>
                                                         <property name="model">liststore_resolution</property>
+                                                        <property name="has_frame">False</property>
                                                         <property name="focus_on_click">False</property>
                                                       </object>
                                                       <packing>
@@ -678,9 +670,9 @@
                                                         <property name="can_focus">True</property>
                                                         <property name="can_default">True</property>
                                                         <property name="receives_default">True</property>
-                                                        <property name="tooltip_markup" translatable="yes">frame rate</property>
                                                         <property name="tooltip_text" translatable="yes">frame rate</property>
                                                         <property name="model">liststore_rate</property>
+                                                        <property name="has_frame">False</property>
                                                         <property name="focus_on_click">False</property>
                                                       </object>
                                                       <packing>
@@ -767,6 +759,9 @@
                                                       <placeholder/>
                                                     </child>
                                                     <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
                                                       <object class="GtkHBox" id="hbox_advanced">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
@@ -776,7 +771,6 @@
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
-                                                            <property name="tooltip_markup" translatable="yes">save to a file</property>
                                                             <property name="tooltip_text" translatable="yes">save to a file</property>
                                                             <property name="relief">half</property>
                                                             <property name="focus_on_click">False</property>
@@ -826,7 +820,6 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
                                                     <property name="n_columns">2</property>
-                                                    <property name="homogeneous">True</property>
                                                     <child>
                                                       <object class="GtkLabel" id="label_buffersize">
                                                         <property name="visible">True</property>
@@ -842,8 +835,8 @@
                                                         <property name="can_default">True</property>
                                                         <property name="receives_default">True</property>
                                                         <property name="has_tooltip">True</property>
-                                                        <property name="tooltip_markup" translatable="yes">bytes</property>
                                                         <property name="tooltip_text" translatable="yes">bytes</property>
+                                                        <property name="has_frame">False</property>
                                                         <property name="invisible_char">●</property>
                                                         <property name="xalign">1</property>
                                                         <property name="caps_lock_warning">False</property>
@@ -895,7 +888,6 @@
                                                 <property name="can_focus">True</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
-                                                <property name="tooltip_markup" translatable="yes">settings</property>
                                                 <property name="tooltip_text" translatable="yes">settings</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_stock">True</property>
@@ -914,7 +906,6 @@
                                                 <property name="can_focus">True</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
-                                                <property name="tooltip_markup" translatable="yes">reset</property>
                                                 <property name="tooltip_text" translatable="yes">reset</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_stock">True</property>
@@ -928,7 +919,7 @@
                                             </child>
                                           </object>
                                           <packing>
-                                            <property name="expand">True</property>
+                                            <property name="expand">False</property>
                                             <property name="fill">True</property>
                                             <property name="position">3</property>
                                           </packing>

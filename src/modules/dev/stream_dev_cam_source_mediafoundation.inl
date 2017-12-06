@@ -117,13 +117,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   HRESULT result = E_FAIL;
 
-  if (symbolicLinkSize_)
+  if (unlikely (symbolicLinkSize_))
     CoTaskMemFree (symbolicLink_);
 
-  if (presentationClock_)
+  if (unlikely (presentationClock_))
     presentationClock_->Release ();
 
-  if (mediaSession_)
+  if (unlikely (mediaSession_))
   {
     result = mediaSession_->Shutdown ();
     if (FAILED (result) &&
@@ -172,7 +172,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // initialize COM ?
   static bool first_run = true;
   bool COM_initialized = false;
-  if (first_run)
+  if (likely (first_run))
   {
     first_run = false;
 
@@ -180,7 +180,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                (COINIT_MULTITHREADED    |
                                 COINIT_DISABLE_OLE1DDE  |
                                 COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2))
+    if (unlikely (FAILED (result_2)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
@@ -190,7 +190,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     COM_initialized = true;
   } // end IF
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     baseTimeStamp_ = 0;
 
@@ -225,7 +225,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   result = inherited::initialize (configuration_in,
                                   allocator_in);
-  if (!result)
+  if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n"),
@@ -393,7 +393,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       HRESULT result_2 = E_FAIL;
       ULONG reference_count = 0;
 
-      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval !=
+          ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerId_ == -1);
@@ -402,7 +403,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                             NULL,                                                                     // asynchronous completion token
                                             COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
                                             inherited::configuration_->statisticCollectionInterval);                  // interval
-        if (inherited::timerId_ == -1)
+        if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(): \"%m\", aborting\n"),
@@ -420,7 +421,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                   COINIT_DISABLE_OLE1DDE  |
                                   COINIT_SPEED_OVER_MEMORY));
 
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
@@ -461,7 +462,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       //    goto error;
       //  } // end IF
 
-      if (inherited::configuration_->session)
+      if (unlikely (inherited::configuration_->session))
       {
         reference_count = inherited::configuration_->session->AddRef ();
         mediaSession_ = inherited::configuration_->session;
@@ -505,15 +506,15 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (inherited::configuration_->device,
-                                                                                    inherited::configuration_->format,
-                                                                                    //session_data_r.format,
-                                                                                    this,
-                                                                                    //inherited::configuration_->window,
-                                                                                    NULL,
-                                                                                    sampleGrabberSinkNodeId_,
-                                                                                    session_data_r.rendererNodeId,
-                                                                                    topology_p))
+        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (inherited::configuration_->device,
+                                                                                              inherited::configuration_->format,
+                                                                                              //session_data_r.format,
+                                                                                              this,
+                                                                                              //inherited::configuration_->window,
+                                                                                              NULL,
+                                                                                              sampleGrabberSinkNodeId_,
+                                                                                              session_data_r.rendererNodeId,
+                                                                                              topology_p)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(), aborting\n")));
@@ -521,8 +522,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         } // end IF
         ACE_ASSERT (topology_p);
 
-        if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                           inherited::configuration_->format))
+        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                                     inherited::configuration_->format)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
@@ -540,7 +541,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
@@ -561,7 +562,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (SUCCEEDED (result_2));
         result_2 = MFCreateMediaSession (attributes_p,
                                          &mediaSession_);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
@@ -580,7 +581,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                 //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
         result_2 = mediaSession_->SetTopology (topology_flags,
                                                topology_p);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
@@ -592,7 +593,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
       } // end ELSE
-      if (direct3D_manager_p)
+      if (likely (direct3D_manager_p))
       {
         direct3D_manager_p->Release ();
         direct3D_manager_p = NULL;
@@ -656,12 +657,19 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *NOTE*: only process the first 'session end' message (see above: 2566)
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+        if (unlikely (inherited::sessionEndProcessed_))
+          break; // done
+        inherited::sessionEndProcessed_ = true;
+      } // end lock scope
+
       if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (inherited::timerId_,
                                                  &act_p);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
@@ -675,7 +683,7 @@ error:
                                           COINIT_DISABLE_OLE1DDE  |
                                           COINIT_SPEED_OVER_MEMORY));
 
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
@@ -684,7 +692,8 @@ error:
       } // end IF
       COM_initialized = true;
 
-      if (!mediaSession_)
+      bool close_session = true;
+      if (unlikely (!mediaSession_))
         goto continue_;
 
       //IMFMediaSource* media_source_p = NULL;
@@ -702,15 +711,15 @@ error:
       //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       //media_source_p->Release ();
 continue_:
-      if (presentationClock_)
+      if (likely (presentationClock_))
       {
         presentationClock_->Release ();
         presentationClock_ = NULL;
       } // end IF
 
-      if (session_data_r.format)
+      if (likely (session_data_r.format))
         Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
-      if (session_data_r.session)
+      if (likely (session_data_r.session))
       {
         result_2 = session_data_r.session->Close ();
         if (FAILED (result_2))
@@ -743,38 +752,30 @@ continue_:
         //    received_topology_set_event = true;
         //  media_event_p->Release ();
         //} while (!received_topology_set_event);
-
-        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-        //result_2 = session_data_r.session->Shutdown ();
-        //if (FAILED (result_2))
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-        //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+        close_session = false;
         session_data_r.session->Release ();
         session_data_r.session = NULL;
       } // end IF
-      if (mediaSession_)
+      if (likely (mediaSession_))
       {
-        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-        //result = mediaSession_->Shutdown ();
-        //if (FAILED (result))
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-        //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        if (close_session)
+        {
+          result_2 = mediaSession_->Close ();
+          if (FAILED (result_2))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                        ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+        } // end IF
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
 
-      if (COM_initialized)
+      if (likely (COM_initialized))
         CoUninitialize ();
 
-      // *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
-      //         running svc()
-      //         --> do not signal completion in this case
-      // *TODO*: remove type inference
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::stop (false,  // wait for completion ?
-                         false); // N/A
+      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+        COMMON_TASK_BASE_T::stop (false, // wait for completion ?
+                                  true); // N/A
 
       break;
     }
@@ -1209,9 +1210,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (systemClockTime_in);
   ACE_UNUSED_ARG (clockStartOffset_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -1279,9 +1278,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -1315,9 +1312,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -1353,9 +1348,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (systemClockTime_in);
   ACE_UNUSED_ARG (playbackRate_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -1447,7 +1440,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   int result = -1;
   //HRESULT result_2 = E_FAIL;
 
-  if (isFirst_)
+  if (unlikely (isFirst_))
   {
     isFirst_ = false;
     baseTimeStamp_ = timeStamp_in;
@@ -1462,7 +1455,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   message_p =
     inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::allocateMessage(%d): \"%m\", aborting\n"),
@@ -1470,14 +1463,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
-  ACE_ASSERT (message_p);
   ACE_ASSERT (message_p->capacity () >= bufferSize_in);
 
-  // *TODO*: apparently there is no way to retrieve the media sample, so a
-  //         memcpy is unavoidable...
+  // *TODO*: forward the buffer itself to avoid the copy
   result = message_p->copy (reinterpret_cast<const char*> (buffer_in),
                             bufferSize_in);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1486,7 +1477,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   } // end IF
 
   result = inherited::putq (message_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
     if (error != ESHUTDOWN)
@@ -1535,13 +1526,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnSetPresentationClock"));
 
   // sanity check(s)
-  if (presentationClock_)
+  if (likely (presentationClock_))
   {
     presentationClock_->Release ();
     presentationClock_ = NULL;
   } // end IF
 
-  if (presentationClock_in)
+  if (likely (presentationClock_in))
   {
     ULONG reference_count = presentationClock_in->AddRef ();
     ACE_UNUSED_ARG (reference_count);
@@ -1968,12 +1959,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (!IMFTopology_out);
 
-  if (!IMFMediaSource_inout)
+  if (likely (!IMFMediaSource_inout))
   {
-    if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                     IMFMediaSource_inout,
-                                                     symbolicLink_out,
-                                                     symbolicLinkSize_out))
+    if (unlikely (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+                                                               IMFMediaSource_inout,
+                                                               symbolicLink_out,
+                                                               symbolicLinkSize_out)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
@@ -1997,11 +1988,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   //  goto error;
   //} // end IF
   //ACE_ASSERT (IMFSourceReaderEx_out);
-  if (!Stream_Module_Device_Tools::loadRendererTopology (deviceName_in,
-                                                         IMFMediaType_in,
-                                                         IMFSampleGrabberSinkCallback_in,
-                                                         windowHandle_in,
-                                                         IMFTopology_out))
+  if (unlikely (!Stream_Module_Device_Tools::loadRendererTopology (deviceName_in,
+                                                                   IMFMediaType_in,
+                                                                   IMFSampleGrabberSinkCallback_in,
+                                                                   windowHandle_in,
+                                                                   IMFTopology_out)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));

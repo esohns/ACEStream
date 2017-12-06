@@ -35,66 +35,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::Stream_StateMachine_Control_T (ACE
 }
 
 template <ACE_SYNCH_DECL>
-void
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::initialize ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::initialize"));
-
-  if (!change (STREAM_STATE_INITIALIZED))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_StateMachine_Control_T::change(STREAM_STATE_INITIALIZED), continuing\n")));
-}
-
-template <ACE_SYNCH_DECL>
-bool
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (enum Stream_StateMachine_ControlState state_in,
-                                                    const ACE_Time_Value* timeout_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::wait"));
-
-  bool result = false;
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::stateLock_);
-
-  int result_2 = -1;
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_, false);
-    while (inherited::state_ < state_in)
-    { ACE_ASSERT (inherited::condition_);
-      result_2 = inherited::condition_->wait (timeout_in);
-      if (result_2 == -1)
-      {
-        int error = ACE_OS::last_error ();
-        if (error != ETIME) // 137: timed out
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
-                      timeout_in));
-        goto continue_; // timed out ?
-      } // end IF
-    } // end WHILE
-    if (inherited::state_ != state_in)
-    {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("reached state \"%s\" (requested: \"%s\"), continuing\n"),
-                  ACE_TEXT (stateToString (inherited::state_).c_str ()),
-                  ACE_TEXT (stateToString (state_in).c_str ())));
-    } // end IF
-    //else
-    //{
-    //  ACE_DEBUG ((LM_DEBUG,
-    //              ACE_TEXT ("reached state \"%s\"\n"),
-    //              ACE_TEXT (stateToString (state_in).c_str ())));
-    //} // end ELSE
-  } // end lock scope
-  result = true;
-
-continue_:
-  return result;
-}
-
-template <ACE_SYNCH_DECL>
 bool
 Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_ControlState newState_in)
 {

@@ -20,7 +20,7 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
-#include "ace/OS.h"
+//#include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -57,68 +57,68 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
-
-  message_block_p = inherited::head_;
-  while (message_block_p)
-  {
-    switch (message_block_p->msg_type ())
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+    message_block_p = inherited::head_;
+    while (message_block_p)
     {
-      case ACE_Message_Block::MB_USER:
+      switch (message_block_p->msg_type ())
       {
-        // *NOTE*: currently, all of these are 'session' messages
-        SessionMessageType* session_message_p =
-          dynamic_cast<SessionMessageType*> (message_block_p);
-        if (likely (session_message_p &&
-                    !flushSessionMessages_in))
+        case ACE_Message_Block::MB_USER:
+        {
+          // *NOTE*: currently, all of these are 'session' messages
+          SessionMessageType* session_message_p =
+              dynamic_cast<SessionMessageType*> (message_block_p);
+          if (likely (session_message_p &&
+                      !flushSessionMessages_in))
+            break;
+        } // *WARNING*: control falls through here
+        case ACE_Message_Block::MB_DATA:
+        {
+          // remove this block
+          if (message_block_p == inherited::head_)
+            inherited::head_ = message_block_p->next ();
+          else
+            message_block_p->prev ()->next (message_block_p->next ());
+          if (message_block_p == inherited::tail_)
+            inherited::tail_ = message_block_p->prev ();
+
+          temp_p = message_block_p;
+          message_block_p = message_block_p->next ();
+
+          // clean up
+          temp_p->total_size_and_length (bytes,
+                                         length);
+          inherited::cur_bytes_ -= bytes;
+          inherited::cur_length_ -= length;
+          --inherited::cur_count_;
+          temp_p->release ();
+
+          ++result;
+
+          continue;
+        }
+        default:
+        {
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("retaining message (type was: %d)\n"),
+          //            message_block_p->msg_type ()));
           break;
-      } // *WARNING*: control falls through here
-      case ACE_Message_Block::MB_DATA:
-      {
-        // remove this block
-        if (message_block_p == inherited::head_)
-          inherited::head_ = message_block_p->next ();
-        else
-          message_block_p->prev ()->next (message_block_p->next ());
-        if (message_block_p == inherited::tail_)
-          inherited::tail_ = message_block_p->prev ();
+        }
+      } // end SWITCH
 
-        temp_p = message_block_p;
-        message_block_p = message_block_p->next ();
+      message_block_p = message_block_p->next ();
+    } // end WHILE
 
-        // clean up
-        temp_p->total_size_and_length (bytes,
-                                       length);
-        inherited::cur_bytes_ -= bytes;
-        inherited::cur_length_ -= length;
-        --inherited::cur_count_;
-        temp_p->release ();
-
-        ++result;
-
-        continue;
-      }
-      default:
-      {
-        //ACE_DEBUG ((LM_DEBUG,
-        //            ACE_TEXT ("retaining message (type was: %d)\n"),
-        //            message_block_p->msg_type ()));
-        break;
-      }
-    } // end SWITCH
-
-    message_block_p = message_block_p->next ();
-  } // end WHILE
-
-  // signal waiters ?
-  if (unlikely (result &&
-                (inherited::cur_bytes_ <= inherited::low_water_mark_)))
-  {
-    result_2 = inherited::signal_enqueue_waiters ();
-    if (result_2 == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue::signal_enqueue_waiters(): \"%m\", continuing\n")));
-  } // end IF
+    // signal waiters ?
+    if (unlikely (result &&
+                  (inherited::cur_bytes_ <= inherited::low_water_mark_)))
+    {
+      result_2 = inherited::signal_enqueue_waiters ();
+      if (result_2 == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Message_Queue::signal_enqueue_waiters(): \"%m\", continuing\n")));
+    } // end IF
+  } // end lock scope
 
   return result;
 }

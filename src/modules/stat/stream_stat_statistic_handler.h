@@ -25,10 +25,11 @@
 #include "ace/Time_Value.h"
 
 #include "common_istatistic.h"
-#include "common_itimerhandler.h"
-#include "common_timerhandler.h"
 
-enum Stream_StatisticActionType
+#include "common_itimerhandler.h"
+#include "common_timer_handler.h"
+
+enum Stream_StatisticActionType : int
 {
   ACTION_COLLECT = 0,
   ACTION_REPORT,

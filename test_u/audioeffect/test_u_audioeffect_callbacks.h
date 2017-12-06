@@ -111,6 +111,7 @@ extern "C"
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #if defined (GTKGL_SUPPORT)
+  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
@@ -119,7 +120,6 @@ extern "C"
 #else
   G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
 #endif
 #else
 #if defined (GTKGLAREA_SUPPORT)

@@ -75,10 +75,24 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::Stream_Dev_Mic_Source_DirectShow_T"));
 
-  // *NOTE*: there are two threads running svc(): the invoking thread (this is a
-  //         'passive' module) and a thread processing DirectShow filter graph
-  //         events (spawned in handleSessionMessage())
+  // *NOTE*: there are two threads running svc(): the invoking thread ('this' is
+  //         a 'passive' module by default) and a thread processing DirectShow
+  //         filter graph events (spawned in handleSessionMessage()). Currently,
+  //         this hybrid mode of operation inflects a specific configuration
+  //         setup.
+  //         Specifically, ACE_Task_Base::thr_count_ and
+  //         Common_Task_Base_T::threadCount_ need to be coordinated to maintain
+  //         a consistent control flow:
+  //         - increase ACE_Task_Base::thr_count_ so the first thread leaving
+  //           svc() does not shut down the message queue (see: svc() below)
+  //         - increase the threadCount_ so start() will actually spawn a new
+  //           thread
   inherited::threadCount_ = 2;
+
+  //         Note that as this module is a 'live' source, it is stop()ped by the
+  //         user.. The first thread leaving svc() is the calling thread, which
+  //         joins the DirectShow event processing thread (see:
+  //         handleSessionMessage() below).
 }
 
 template <ACE_SYNCH_DECL,
@@ -110,11 +124,11 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   HRESULT result = E_FAIL;
 
-  if (ROTID_)
+  if (unlikely (ROTID_))
     Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
 
 //continue_:
-  if (IMediaEventEx_)
+  if (unlikely (IMediaEventEx_))
   {
     result = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
     if (FAILED (result))
@@ -123,7 +137,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     IMediaEventEx_->Release ();
   } // end IF
-  if (IMediaControl_)
+  if (unlikely (IMediaControl_))
   {
     result = IMediaControl_->Stop ();
     if (FAILED (result))
@@ -132,12 +146,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     IMediaControl_->Release ();
   } // end IF
-  if (IAMDroppedFrames_)
+  if (unlikely (IAMDroppedFrames_))
     IAMDroppedFrames_->Release ();
 
-  if (IGraphBuilder_)
+  if (unlikely (IGraphBuilder_))
     IGraphBuilder_->Release ();
-  if (ICaptureGraphBuilder2_)
+  if (unlikely (ICaptureGraphBuilder2_))
     ICaptureGraphBuilder2_->Release ();
 
   //if (manageCOM_)
@@ -169,7 +183,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataContainerType,
                                    StatisticContainerType,
                                    TimerManagerType>::initialize (const ConfigurationType& configuration_in,
-                                                                      Stream_IAllocator* allocator_in)
+                                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::initialize"));
 
@@ -194,10 +208,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   //  } // end IF
   //} // end IF
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
     isFirst_ = false;
 
     //eventHandle_ = ACE_INVALID_HANDLE;
@@ -318,7 +330,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                             NULL,                                                                     // asynchronous completion token
                                             COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
                                             inherited::configuration_->statisticCollectionInterval);                  // interval
-        if (inherited::timerId_ == -1)
+        if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(): \"%m\", aborting\n"),
@@ -405,11 +417,11 @@ error_3:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (!initialize_DirectShow (inherited::configuration_->device,
-                                  inherited::configuration_->audioOutput,
-                                  ICaptureGraphBuilder2_,
-                                  IAMDroppedFrames_,
-                                  sample_grabber_p))
+      if (unlikely (!initialize_DirectShow (inherited::configuration_->device,
+                                            inherited::configuration_->audioOutput,
+                                            ICaptureGraphBuilder2_,
+                                            IAMDroppedFrames_,
+                                            sample_grabber_p)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
@@ -419,7 +431,7 @@ error_3:
       ACE_ASSERT (IAMDroppedFrames_);
 
       result_2 = ICaptureGraphBuilder2_->GetFiltergraph (&IGraphBuilder_);
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
@@ -432,7 +444,7 @@ continue_:
       ACE_ASSERT (sample_grabber_p);
 
       result_2 = sample_grabber_p->SetBufferSamples (false);
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
@@ -440,7 +452,7 @@ continue_:
         goto error;
       } // end IF
       result_2 = sample_grabber_p->SetCallback (this, 0);
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
@@ -452,11 +464,11 @@ continue_:
       // retrieve interfaces for media control and the video window
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
         goto error_2;
       result_2 =
         IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
         goto error_2;
 
       //result = IMediaEventEx_->GetEventHandle ((OAEVENT*)&eventHandle_);
@@ -508,7 +520,7 @@ continue_2:
 
       // start audio data capture
       result_2 = IMediaControl_->Run ();
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
@@ -521,8 +533,8 @@ continue_2:
                   inherited::mod_->name ()));
 
       // register graph in the ROT (graphedt.exe)
-      if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
-                                                            ROTID_))
+      if (unlikely (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                                      ROTID_)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
@@ -537,7 +549,8 @@ continue_2:
       break;
 
 error:
-      if (is_active) inherited::stop ();
+      if (is_active)
+        inherited::TASK_BASE_T::stop ();
       if (is_running)
       {
         result_2 = IMediaControl_->Stop ();
@@ -583,12 +596,12 @@ error:
         sessionEndProcessed_ = true;
       } // end lock scope
 
-      if (inherited::timerId_ != -1)
+      if (likely (inherited::timerId_ != -1))
       {
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (inherited::timerId_,
                                                  &act_p);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
@@ -616,25 +629,25 @@ error:
       //} // end IF
 
       // deregister graph from the ROT (GraphEdit.exe) ?
-      if (ROTID_)
+      if (likely (ROTID_))
       {
         Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
         ROTID_ = 0;
       } // end IF
 
 //continue_3:
-      if (IMediaEventEx_)
+      if (likely (IMediaEventEx_))
       {
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL,
                                                     0,
                                                     NULL);
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       } // end IF
 
-      if (IMediaControl_)
+      if (likely (IMediaControl_))
       {
         // stop capturing audio data
         // *NOTE*: this tries to block until the graph has stopped, so that no
@@ -642,12 +655,12 @@ error:
         //         see also: https://msdn.microsoft.com/en-us/library/ee493380.aspx
         //result_2 = IMediaControl_->Stop ();
         result_2 = IMediaControl_->Pause ();
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::Pause(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         result_2 = IMediaControl_->StopWhenReady ();
-        if (FAILED (result_2))
+        if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::StopWhenReady(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
@@ -666,7 +679,7 @@ error:
 
       IMediaEventSink* event_sink_p = NULL;
       result_2 = IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&event_sink_p));
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaEventSink): \"%s\", aborting\n"),
@@ -677,7 +690,7 @@ error:
       result_2 = event_sink_p->Notify (EC_USERABORT,
                                        NULL,
                                        NULL);
-      if (FAILED (result_2))
+      if (unlikely (FAILED (result_2)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaEventSink::Notify(EC_USERABORT): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
@@ -688,27 +701,27 @@ error:
       //              eventHandle_,
       //              ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
 
-      inherited::TASK_BASE_T::wait ();
+      inherited::TASK_BASE_T::wait (false); // do not wait for the message queue
 
-      if (IMediaEventEx_)
+      if (likely (IMediaEventEx_))
       {
         IMediaEventEx_->Release ();
         IMediaEventEx_ = NULL;
       } // end IF
 
 continue_4:
-      if (IAMDroppedFrames_)
+      if (likely (IAMDroppedFrames_))
       {
         IAMDroppedFrames_->Release ();
         IAMDroppedFrames_ = NULL;
       } // end IF
 
-      if (IGraphBuilder_)
+      if (likely (IGraphBuilder_))
       {
         IGraphBuilder_->Release ();
         IGraphBuilder_ = NULL;
       } // end IF
-      if (ICaptureGraphBuilder2_)
+      if (likely (ICaptureGraphBuilder2_))
       {
         ICaptureGraphBuilder2_->Release ();
         ICaptureGraphBuilder2_ = NULL;
@@ -717,8 +730,10 @@ continue_4:
       //if (manageCOM_ && COM_initialized)
       //  CoUninitialize ();
 
-      inherited::stop (false,  // wait for completion ?
-                       false); // N/A
+      // *NOTE*: there already is a MB_STOP message left in the queue
+      //if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
+      //  inherited::TASK_BASE_T::stop (false, // wait for completion ?
+      //                                true); // N/A
 
       break;
     }
@@ -769,7 +784,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   // *NOTE*: "...Some filters that expose this interface do not implement the
   //         GetDroppedInfo or GetAverageFrameSize method."
   result = IAMDroppedFrames_->GetAverageFrameSize (&average_frame_size);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetAverageFrameSize(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
@@ -778,13 +793,13 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   long captured_frames = 0;
   result = IAMDroppedFrames_->GetNumNotDropped (&captured_frames);
   //result = IAMDroppedFrames_->GetNumNotDropped (reinterpret_cast<long*> (&(data_out.capturedFrames)));
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumNotDropped(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   result =
     IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedFrames)));
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumDropped(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
@@ -944,7 +959,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     //            IMediaSample_in));
     message_p = NULL;
   }
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     // *TODO*: remove type inference
     message_p =
@@ -997,7 +1012,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
 
   result = inherited::put_next (message_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     int error = ACE_OS::last_error ();
     if (error != ESHUTDOWN)
@@ -1136,59 +1151,67 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::svc"));
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
+  int result = -1;
 
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
     if (!isFirst_)
       goto continue_;
     isFirst_ = false;
   } // end lock scope
 
-  // *NOTE*: this prevents the deactivation of the message queue when the event
+  // *NOTE*: prevent the deactivation of the message queue when the event
   //         processing thread joins (see: Stream_HeadModuleTaskBase_T::close())
-  inherited::thr_count_ = 1;
+  inherited::thr_count_++;
 
-  return inherited::svc ();
+  // *NOTE*: use the calling threads' context (start() blocks)
+  result = inherited::svc ();
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::svc(): \"%m\"\n"),
+                inherited::mod_->name ()));
+
+  inherited::thr_count_--;
+
+  return result;
 
 continue_:
-  HRESULT result = E_FAIL;
+  HRESULT result_2 = E_FAIL;
   long event_code = -1;
   LONG_PTR parameter_1, parameter_2;
   bool done = false;
-  int result_2 = -1;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (IMediaEventEx_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: event processing worker thread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: event processing worker thread (id: %t) starting...\n"),
               inherited::mod_->name ()));
 
   // process DirectShow events
 
   // *NOTE*: (this being a 'live' source,) EC_COMPLETE is never sent
   //         --> process EC_COMPLETE from any renderer(s)
-  result = IMediaEventEx_->CancelDefaultHandling (EC_COMPLETE);
-  if (FAILED (result))
+  result_2 = IMediaEventEx_->CancelDefaultHandling (EC_COMPLETE);
+  if (unlikely (FAILED (result_2)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaEventEx::CancelDefaultHandling(EC_COMPLETE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     return -1;
   } // end IF
 
   do
   {
-    result = IMediaEventEx_->GetEvent (&event_code,
-                                       &parameter_1,
-                                       &parameter_2,
-                                       INFINITE);
-    if (FAILED (result))
+    result_2 = IMediaEventEx_->GetEvent (&event_code,
+                                         &parameter_1,
+                                         &parameter_2,
+                                         INFINITE);
+    if (unlikely (FAILED (result_2)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaEventEx::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       break;
     } // end IF
 
@@ -1199,8 +1222,8 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_COMPLETE (final status: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString ((HRESULT)parameter_1).c_str ())));
-        result_2 = 0;
+                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
+        result = 0;
         done = true;
         break;
       }
@@ -1209,6 +1232,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_USERABORT, returning\n"),
                     inherited::mod_->name ()));
+        result = 0;
         done = true;
         break;
       }
@@ -1217,7 +1241,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_ERRORABORT (status was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString ((HRESULT)parameter_1).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
         done = true;
         break;
       }
@@ -1230,7 +1254,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_PAUSED (status was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString ((HRESULT)parameter_1).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
         break;
       case EC_TIME:
       case EC_REPAINT:
@@ -1296,21 +1320,22 @@ continue_:
       }
     } // end SWITCH
 
-    result = IMediaEventEx_->FreeEventParams (event_code,
-                                              parameter_1,
-                                              parameter_2);
-    if (FAILED (result))
+    result_2 = IMediaEventEx_->FreeEventParams (event_code,
+                                                parameter_1,
+                                                parameter_2);
+    if (unlikely (FAILED (result_2)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaEventEx::FreeEventParams(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       break;
     } // end IF
 
-    if (done) break;
+    if (unlikely (done))
+      break;
   } while (true);
 
-  return result_2;
+  return result;
 }
 
 template <ACE_SYNCH_DECL,

@@ -5636,15 +5636,22 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::string module_name =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DEFAULT_NAME_STRING);
+  std::string module_name;
   Stream_Module_t* module_p = NULL;
   if (data_p->useMediaFoundation)
+  {
+    module_name =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
     module_p =
       const_cast<Stream_Module_t*> (mediafoundation_data_p->stream->find (module_name));
+  } // end IF
   else
+  {
+    module_name =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);
     module_p =
       const_cast<Stream_Module_t*> (directshow_data_p->stream->find (module_name));
+  } // end ELSE
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -686,7 +686,9 @@ do_work (unsigned int bufferSize_in,
 #endif
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
-  if (statisticReportingInterval_in != 0)
+  modulehandler_configuration.pixelBufferLock =
+    CBData_in.pixelBufferLock;
+  if (statisticReportingInterval_in)
   {
     modulehandler_configuration.statisticCollectionInterval.set (0,
                                                                  MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
@@ -696,9 +698,10 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = targetFilename_in;
 
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                configuration.streamConfiguration.allocatorConfiguration_,
+                                                configuration.streamConfiguration.configuration_);
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator =
     configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());

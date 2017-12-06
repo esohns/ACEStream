@@ -54,6 +54,7 @@
 // GTK info widget updates
 #define TEST_U_STREAM_UI_GTK_SIGNAL_TOOLTIP_DELAY            100 // ms
 #define TEST_U_STREAM_UI_GTK_EVENT_RESOLUTION                200 // ms --> 5 FPS
+#define TEST_U_STREAM_UI_GTK_VIDEO_RESOLUTION                33  // ms --> ~30 FPS
 
 // GTK progress/status-bar
 //#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)

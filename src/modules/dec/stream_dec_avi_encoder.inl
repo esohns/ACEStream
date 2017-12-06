@@ -25,7 +25,7 @@
 #include <dvdmedia.h>
 #include <fourcc.h>
 #include <mfobjects.h>
-//#include <uuids.h>
+#include <uuids.h>
 #else
 #include "linux/videodev2.h"
 
@@ -36,6 +36,7 @@ extern "C"
 #include "libavformat/avio.h"
 //#include "libavformat/raw.h"
 //#include "libavformat/riff.h"
+#include "libswscale/swscale.h"
 }
 #endif
 extern "C"
@@ -2517,6 +2518,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
+  message_inout = NULL;
 
   return;
 

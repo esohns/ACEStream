@@ -165,9 +165,6 @@ class Stream_HeadModuleTaskBase_T
   // convenient types
   typedef ACE_Singleton<TimerManagerType,
                         ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
-  typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
-  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
-  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -178,6 +175,13 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
+  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
+  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
+  typedef Stream_IStreamControl_T<SessionControlType,
+                                  SessionEventType,
+                                  enum Stream_StateMachine_ControlState,
+                                  StreamStateType> ISTREAM_CONTROL_T;
+  typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -251,10 +255,6 @@ class Stream_HeadModuleTaskBase_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> OWN_TYPE_T;
-  typedef Stream_IStreamControl_T<SessionControlType,
-                                  SessionEventType,
-                                  enum Stream_StateMachine_ControlState,
-                                  StreamStateType> ISTREAM_CONTROL_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))

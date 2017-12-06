@@ -83,12 +83,10 @@ class Stream_TaskBase_T
 
   using inherited::finished;
 
-
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
-  inline virtual void handleControlMessage (ControlMessageType&) {};
-  inline virtual void handleDataMessage (DataMessageType*&,
-                                         bool&) {};
+  inline virtual void handleControlMessage (ControlMessageType&) {}
+  inline virtual void handleDataMessage (DataMessageType*&, bool&) {}
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
@@ -96,13 +94,11 @@ class Stream_TaskBase_T
   // implement Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
-  inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
-                                            TimePolicyType>*,    // handle of 'original' module
-                                 bool = false) { return true; }; // initialize from 'original' ?
+  inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE, TimePolicyType>*, bool = false) { return true; }
 
   // implement Common_IGet_T
   virtual const ISTREAM_T* const getP () const;
-  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; };
+  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; }
 
 //  // implement Common_IDumpState
 //  inline virtual void dump_state () const {};
@@ -111,6 +107,9 @@ class Stream_TaskBase_T
   // convenient types
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
+  typedef Common_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE> > COMMON_TASK_BASE_T;
   typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
@@ -179,7 +178,7 @@ class Stream_TaskBase_T
 
   // override/hide ACE_Task_Base members
   //virtual void next (typename inherited::TASK_T*); // downstream task handle
-  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); };
+  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;
 };

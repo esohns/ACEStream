@@ -40,7 +40,7 @@ endif ()
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
 else ()
- message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
+ #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
@@ -173,7 +173,9 @@ if (UNIX)
   endif ()
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/gl)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
 elseif (WIN32)
  # *NOTE*: workaround
@@ -215,7 +217,9 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/gl)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
@@ -346,13 +350,16 @@ elseif (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonOpenGL)
 target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonMath)
+target_link_libraries (${EXECUTABLE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
+
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
@@ -398,7 +405,9 @@ elseif (WIN32)
 #                        FORWARD_ARGS
                           RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                                ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                                                ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
                                                ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                                                G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
@@ -409,6 +418,9 @@ elseif (WIN32)
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
                           ENVIRONMENT foo=bar)
@@ -418,7 +430,9 @@ elseif (WIN32)
 #                        FORWARD_ARGS
                           RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                                ${PROJECT_SOURCE_DIR}/../gtk2/bin
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                                                ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
                                                ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                                                G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
@@ -429,6 +443,9 @@ elseif (WIN32)
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
                           ENVIRONMENT foo=bar)

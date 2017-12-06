@@ -22,6 +22,7 @@
 #define STREAM_MODULE_DEV_MEDIAFOUNDATION_TOOLS_H
 
 #include <map>
+#include <list>
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -73,7 +74,7 @@ class Stream_Dev_Export Stream_Module_Device_MediaFoundation_Tools
                                 const IMFMediaType*); // media type
   //static bool getOutputFormat (IMFSourceReader*, // source handle
   //                             IMFMediaType*&);  // return value: media type
-  // *NOTE*: 
+  // *NOTE*: returns the first RGB or Chroma-Luminance format
   static bool getOutputFormat (IMFTransform*,   // MFT handle
                                IMFMediaType*&); // return value: media type
   // *NOTE*: returns the first available output type of the first output node
@@ -171,6 +172,7 @@ class Stream_Dev_Export Stream_Module_Device_MediaFoundation_Tools
   static std::string mediaTypeToString (const IMFMediaType*); // media type
   static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
   static std::string activateToString (IMFActivate*); // activate handle
+  //static std::string transformToString (IMFTransform*); // transform handle
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools ())
@@ -179,20 +181,12 @@ class Stream_Dev_Export Stream_Module_Device_MediaFoundation_Tools
 
   struct less_guid
   {
-    bool operator () (const struct _GUID& lhs_in,
-                      const struct _GUID& rhs_in) const
-    {
-      //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
-      //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
-      //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
-
-      return (lhs_in.Data1 < rhs_in.Data1);
-    }
+    inline bool operator () (const struct _GUID& lhs_in, const struct _GUID& rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
   };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
-  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
-  static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
-  static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
+  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
+  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
+  static GUID_TO_STRING_MAP_T Stream_MediaMajorTypeToStringMap;
+  static GUID_TO_STRING_MAP_T Stream_MediaSubTypeToStringMap;
 
   static bool enableDirectXAcceleration (IMFTopology*); // topology handle
   static bool setCaptureFormat (IMFMediaSource*,      // source handle

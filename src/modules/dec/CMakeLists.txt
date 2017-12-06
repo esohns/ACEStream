@@ -109,7 +109,9 @@ set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
      scripts/avi_parser.y
      scripts/h264_nal_bisector.l)
 
-if (WIN32)
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+elseif (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
  add_definitions (-DWIN32)
 endif ()
@@ -152,10 +154,12 @@ elseif (WIN32)
 #  endif ()
 # endif ()
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
+
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
+
+ target_link_libraries (${PROJECT_NAME}_Decoder Common)
 endif ()
-#target_link_libraries (${PROJECT_NAME}_Decoder Common)
 
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

@@ -38,7 +38,7 @@
 
 #include "stream_dev_exports.h"
 
-extern Stream_Dev_Export const char libacestream_default_dev_cam_source_module_name_string[];
+extern Stream_Dev_Export const char libacestream_default_dev_cam_source_mediafoundation_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -78,6 +78,22 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
  , public IMFSampleGrabberSinkCallback2
  //, public IMFAsyncCallback
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      UserDataType> inherited;
+  typedef IMFSampleGrabberSinkCallback2 inherited2;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -115,16 +131,14 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   //virtual void report () const;
 
 //  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  inline virtual ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
-  inline virtual ULONG STDMETHODCALLTYPE Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; };
+  inline virtual ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline virtual ULONG STDMETHODCALLTYPE Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index
@@ -162,21 +176,6 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
 
  private:
   // comvenient types
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      TimerManagerType,
-                                      UserDataType> inherited;
-  typedef IMFSampleGrabberSinkCallback2 inherited2;
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                   ControlMessageType,
                                                   DataMessageType,

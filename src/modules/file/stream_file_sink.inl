@@ -968,41 +968,6 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType>
-const ConfigurationType&
-Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType,
-                            StatisticHandlerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-  return *inherited::configuration_;
-}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

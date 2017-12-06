@@ -199,7 +199,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
   ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
-  GLuint                                                   OpenGLTextureId_;
+  //GLuint                                                   OpenGLTextureId_;
 #if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                                  backgroundColor_;
   GdkRGBA                                                  foregroundColor_;

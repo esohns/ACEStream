@@ -219,7 +219,7 @@ class Stream_Base_T
   inline virtual std::string name () const { std::string name_s = StreamName; return name_s; }
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
-  inline virtual void upstream (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
+  inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual typename ISTREAM_T::STREAM_T* downstream () const;
@@ -272,7 +272,6 @@ class Stream_Base_T
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
-  typedef Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
 
   Stream_Base_T ();

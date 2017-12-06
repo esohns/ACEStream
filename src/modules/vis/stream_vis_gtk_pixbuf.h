@@ -21,6 +21,11 @@
 #ifndef STREAM_MODULE_VIS_GTK_PIXBUF_H
 #define STREAM_MODULE_VIS_GTK_PIXBUF_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <mfobjects.h>
+#include <strmif.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -28,14 +33,10 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <strmif.h>
-#include <mfobjects.h>
-#endif
+#include "gtk/gtk.h"
 
 #include "ace/Global_Macros.h"
-
-#include "gtk/gtk.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -103,21 +104,22 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 #endif
 
  private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 
   // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
+  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #endif
 
+  bool               isFirst_;
+
   ACE_SYNCH_MUTEX_T* lock_;
   struct SwsContext* scaleContext_;
-
-  bool               isFirst_;
   unsigned int       scaleContextHeight_;
   unsigned int       scaleContextWidth_;
 };

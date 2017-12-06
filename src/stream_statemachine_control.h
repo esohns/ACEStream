@@ -35,44 +35,40 @@ class ACE_Time_Value;
 template <ACE_SYNCH_DECL>
 class Stream_StateMachine_Control_T
  : public Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     enum Stream_StateMachine_ControlState>
- , public Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState>
+                                     enum Stream_StateMachine_ControlState,
+                                     Common_IStateMachine_2<enum Stream_StateMachine_ControlState> >
 {
+  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
+                                     enum Stream_StateMachine_ControlState,
+                                     Common_IStateMachine_2<enum Stream_StateMachine_ControlState> > inherited;
+
  public:
   Stream_StateMachine_Control_T (ACE_SYNCH_MUTEX_T*); // lock handle
-  inline virtual ~Stream_StateMachine_Control_T () {};
+  inline virtual ~Stream_StateMachine_Control_T () {}
 
-  // implement (part of) Common_IStateMachine_T
-  virtual void initialize ();
-  inline virtual void reset () { initialize (); };
-  // *NOTE*: users need to provide absolute values (i.e. deadline)
-  // *IMPORTANT NOTE*: STREAM_STATE_FINISHED: processing has completed in the
-  //                   sense that all data has been enqueued onto the stream
-  //                   (e.g. a file has been read). Data processing may still be
-  //                   ongoing at this stage
-  virtual bool wait (enum Stream_StateMachine_ControlState,
-                     const ACE_Time_Value* = NULL) const; // timeout (absolute) ? : block
+  // implement (part of) Common_IStateMachine_2
   virtual std::string stateToString (enum Stream_StateMachine_ControlState) const;
-
-  // implement Stream_StateMachine_IControl_T
-  inline virtual void finished () { change (STREAM_STATE_FINISHED); };
+  inline virtual void finished () { change (STREAM_STATE_FINISHED); }
 
  protected:
   // convenient types
   typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     enum Stream_StateMachine_ControlState> COMMON_STATEMACHINE_T;
-  using COMMON_STATEMACHINE_T::initialize;
+                                     enum Stream_StateMachine_ControlState,
+                                     Common_IStateMachine_2<enum Stream_StateMachine_ControlState> > STATEMACHINE_BASE_T;
 
-  // override (part of) Common_IStateMachine_T
+  using inherited::initialize;
+
+  // implement (part of) Common_IStateMachine_2
+  // *IMPORTANT NOTE*: STREAM_STATE_FINISHED: processing has completed in the
+  //                   sense that all data has been enqueued onto the stream
+  //                   (e.g. a file has been read). Data processing may still be
+  //                   ongoing at this stage
   // *NOTE*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
   //         in the model of a (traditional) tape recorder
   //         --> derived classes must implement the corresponding behavior
   virtual bool change (enum Stream_StateMachine_ControlState); // new state
 
  private:
-  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     enum Stream_StateMachine_ControlState> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T (const Stream_StateMachine_Control_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T& operator= (const Stream_StateMachine_Control_T&))

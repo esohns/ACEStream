@@ -21,9 +21,7 @@
 #ifndef STREAM_STATEMACHINE_COMMON_H
 #define STREAM_STATEMACHINE_COMMON_H
 
-#include "common_istatemachine.h"
-
-enum Stream_StateMachine_ControlState
+enum Stream_StateMachine_ControlState : int
 {
   STREAM_STATE_INVALID = -1,
   // *NOTE*: currently, this simply means that the 'head' module has been
@@ -38,17 +36,5 @@ enum Stream_StateMachine_ControlState
   /////////////////////////////////////
   STREAM_STATE_MAX
 };
-
-template <typename StateType>
-class Stream_StateMachine_IControl_T
- : virtual public Common_IStateMachine_T<enum Stream_StateMachine_ControlState>
-{
- public:
-  // *NOTE*: signal asynchronous completion
-  virtual void finished () = 0;
-};
-
-//// convenience types
-//typedef enum Stream_StateMachine_ControlState Stream_StateType_t;
 
 #endif

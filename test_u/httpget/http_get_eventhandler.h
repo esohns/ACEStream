@@ -41,7 +41,7 @@ class HTTPGet_EventHandler
  public:
   HTTPGet_EventHandler (struct HTTPGet_GtkCBData*, // Gtk state
                         bool = false);             // console mode ?
-  virtual ~HTTPGet_EventHandler ();
+  inline virtual ~HTTPGet_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,                 // session id
@@ -60,7 +60,7 @@ class HTTPGet_EventHandler
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_EventHandler& operator= (const HTTPGet_EventHandler&))
 
   bool                      consoleMode_;
-  struct HTTPGet_GtkCBData* GtkCBData_;
+  struct HTTPGet_GtkCBData* CBData_;
 };
 
 #endif

@@ -19,6 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
+#include "stream_dec_tools.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -27,8 +30,6 @@ extern "C"
 #include "libswscale/swscale.h"
 }
 #endif
-
-#include "stream_dec_tools.h"
 
 #include <cmath>
 
@@ -61,8 +62,8 @@ extern "C"
 
 // initialize statics
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_Module_Decoder_Tools::GUID2STRING_MAP_T Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap;
-Stream_Module_Decoder_Tools::GUID2STRING_MAP_T Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap;
+Stream_Module_Decoder_Tools::GUID_TO_STRING_MAP_T Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap;
+Stream_Module_Decoder_Tools::GUID_TO_STRING_MAP_T Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap;
 #endif
 
 void
@@ -74,345 +75,345 @@ Stream_Module_Decoder_Tools::initialize ()
   // DirectShow
   //////////////////////////////////////// AUDIO
   // uncompressed audio
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
 
   // MPEG-4 and AAC
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_ADTS_AAC")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR("MPEG_HEAAC")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_LOAS, ACE_TEXT_ALWAYS_CHAR("MPEG_LOAS")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_AAC1, ACE_TEXT_ALWAYS_CHAR("RAW_AAC1")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_ADTS_AAC")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR("MPEG_HEAAC")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_LOAS, ACE_TEXT_ALWAYS_CHAR("MPEG_LOAS")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_AAC1, ACE_TEXT_ALWAYS_CHAR("RAW_AAC1")));
 
   // Dolby
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_DDPLUS, ACE_TEXT_ALWAYS_CHAR("DOLBY_DDPLUS")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVM, ACE_TEXT_ALWAYS_CHAR("DVM")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_SPORT, ACE_TEXT_ALWAYS_CHAR("RAW_SPORT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_SPDIF_TAG_241h, ACE_TEXT_ALWAYS_CHAR("SPDIF_TAG_241h")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_DDPLUS, ACE_TEXT_ALWAYS_CHAR("DOLBY_DDPLUS")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVM, ACE_TEXT_ALWAYS_CHAR("DVM")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_SPORT, ACE_TEXT_ALWAYS_CHAR("RAW_SPORT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_SPDIF_TAG_241h, ACE_TEXT_ALWAYS_CHAR("SPDIF_TAG_241h")));
 
   // miscellaneous
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DRM_Audio, ACE_TEXT_ALWAYS_CHAR("DRM_Audio")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS2, ACE_TEXT_ALWAYS_CHAR("DTS2")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_PCMAudio_Obsolete, ACE_TEXT_ALWAYS_CHAR("PCMAudio_Obsolete")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_RAW_AAC")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DRM_Audio, ACE_TEXT_ALWAYS_CHAR("DRM_Audio")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DTS2, ACE_TEXT_ALWAYS_CHAR("DTS2")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_PCMAudio_Obsolete, ACE_TEXT_ALWAYS_CHAR("PCMAudio_Obsolete")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_RAW_AAC")));
 
   /////////////////////////////////////// BDA
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_None, ACE_TEXT_ALWAYS_CHAR("None")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_None, ACE_TEXT_ALWAYS_CHAR("None")));
 
   /////////////////////////////////////// DVD
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_SUBPICTURE, ACE_TEXT_ALWAYS_CHAR("DVD_SUBPICTURE")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_SDDS, ACE_TEXT_ALWAYS_CHAR("SDDS")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_DSI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_DSI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PCI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PCI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PROVIDER, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PROVIDER")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_SUBPICTURE, ACE_TEXT_ALWAYS_CHAR("DVD_SUBPICTURE")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_SDDS, ACE_TEXT_ALWAYS_CHAR("SDDS")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_DSI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_DSI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PCI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PCI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PROVIDER, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PROVIDER")));
 
   /////////////////////////////////////// Line 21
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_BytePair, ACE_TEXT_ALWAYS_CHAR("Line21_BytePair")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_GOPPacket, ACE_TEXT_ALWAYS_CHAR("Line21_GOPPacket")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_VBIRawData, ACE_TEXT_ALWAYS_CHAR("Line21_VBIRawData")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_BytePair, ACE_TEXT_ALWAYS_CHAR("Line21_BytePair")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_GOPPacket, ACE_TEXT_ALWAYS_CHAR("Line21_GOPPacket")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_VBIRawData, ACE_TEXT_ALWAYS_CHAR("Line21_VBIRawData")));
 
   /////////////////////////////////////// MPEG-1
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
 
   /////////////////////////////////////// MPEG-2
   // MPEG-2 (splitter)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_VIDEO, ACE_TEXT_ALWAYS_CHAR("MPEG2_VIDEO")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_VIDEO, ACE_TEXT_ALWAYS_CHAR("MPEG2_VIDEO")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
   // MPEG-2 (demultiplexer)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_PROGRAM, ACE_TEXT_ALWAYS_CHAR("MPEG2_PROGRAM")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT_STRIDE, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT_STRIDE")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ATSC_SI, ACE_TEXT_ALWAYS_CHAR("ATSC_SI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVB_SI, ACE_TEXT_ALWAYS_CHAR("DVB_SI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ISDB_SI, ACE_TEXT_ALWAYS_CHAR("ISDB_SI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2DATA, ACE_TEXT_ALWAYS_CHAR("MPEG2DATA")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_PROGRAM, ACE_TEXT_ALWAYS_CHAR("MPEG2_PROGRAM")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT_STRIDE, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT_STRIDE")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ATSC_SI, ACE_TEXT_ALWAYS_CHAR("ATSC_SI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVB_SI, ACE_TEXT_ALWAYS_CHAR("DVB_SI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ISDB_SI, ACE_TEXT_ALWAYS_CHAR("ISDB_SI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2DATA, ACE_TEXT_ALWAYS_CHAR("MPEG2DATA")));
   // MPEG-2 (kernel)
 
   /////////////////////////////////////// Stream
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AIFF, ACE_TEXT_ALWAYS_CHAR("AIFF")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Asf, ACE_TEXT_ALWAYS_CHAR("Asf")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Avi, ACE_TEXT_ALWAYS_CHAR("Avi")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AU, ACE_TEXT_ALWAYS_CHAR("AU")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DssAudio, ACE_TEXT_ALWAYS_CHAR("DssAudio")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DssVideo, ACE_TEXT_ALWAYS_CHAR("DssVideo")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1SystemStream, ACE_TEXT_ALWAYS_CHAR("MPEG1SystemStream")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WAVE, ACE_TEXT_ALWAYS_CHAR("WAVE")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AIFF, ACE_TEXT_ALWAYS_CHAR("AIFF")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Asf, ACE_TEXT_ALWAYS_CHAR("Asf")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Avi, ACE_TEXT_ALWAYS_CHAR("Avi")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AU, ACE_TEXT_ALWAYS_CHAR("AU")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DssAudio, ACE_TEXT_ALWAYS_CHAR("DssAudio")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DssVideo, ACE_TEXT_ALWAYS_CHAR("DssVideo")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1SystemStream, ACE_TEXT_ALWAYS_CHAR("MPEG1SystemStream")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_WAVE, ACE_TEXT_ALWAYS_CHAR("WAVE")));
 
   /////////////////////////////////////// VBI
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_RAW8, ACE_TEXT_ALWAYS_CHAR("RAW8")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_TELETEXT, ACE_TEXT_ALWAYS_CHAR("TELETEXT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPS, ACE_TEXT_ALWAYS_CHAR("VPS")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WSS, ACE_TEXT_ALWAYS_CHAR("WSS")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_RAW8, ACE_TEXT_ALWAYS_CHAR("RAW8")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_TELETEXT, ACE_TEXT_ALWAYS_CHAR("TELETEXT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_VPS, ACE_TEXT_ALWAYS_CHAR("VPS")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_WSS, ACE_TEXT_ALWAYS_CHAR("WSS")));
 
   /////////////////////////////////////// VIDEO
   // analog video
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_NTSC_M, ACE_TEXT_ALWAYS_CHAR("NTSC_M")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_B, ACE_TEXT_ALWAYS_CHAR("PAL_B")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_D, ACE_TEXT_ALWAYS_CHAR("PAL_D")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_G, ACE_TEXT_ALWAYS_CHAR("PAL_G")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_H, ACE_TEXT_ALWAYS_CHAR("PAL_H")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_I, ACE_TEXT_ALWAYS_CHAR("PAL_I")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_M, ACE_TEXT_ALWAYS_CHAR("PAL_M")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_N, ACE_TEXT_ALWAYS_CHAR("PAL_N")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_B, ACE_TEXT_ALWAYS_CHAR("SECAM_B")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_D, ACE_TEXT_ALWAYS_CHAR("SECAM_D")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_G, ACE_TEXT_ALWAYS_CHAR("SECAM_G")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_H, ACE_TEXT_ALWAYS_CHAR("SECAM_H")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K, ACE_TEXT_ALWAYS_CHAR("SECAM_K")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K1, ACE_TEXT_ALWAYS_CHAR("SECAM_K1")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_L, ACE_TEXT_ALWAYS_CHAR("SECAM_L")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_NTSC_M, ACE_TEXT_ALWAYS_CHAR("NTSC_M")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_B, ACE_TEXT_ALWAYS_CHAR("PAL_B")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_D, ACE_TEXT_ALWAYS_CHAR("PAL_D")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_G, ACE_TEXT_ALWAYS_CHAR("PAL_G")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_H, ACE_TEXT_ALWAYS_CHAR("PAL_H")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_I, ACE_TEXT_ALWAYS_CHAR("PAL_I")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_M, ACE_TEXT_ALWAYS_CHAR("PAL_M")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_N, ACE_TEXT_ALWAYS_CHAR("PAL_N")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_B, ACE_TEXT_ALWAYS_CHAR("SECAM_B")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_D, ACE_TEXT_ALWAYS_CHAR("SECAM_D")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_G, ACE_TEXT_ALWAYS_CHAR("SECAM_G")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_H, ACE_TEXT_ALWAYS_CHAR("SECAM_H")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K, ACE_TEXT_ALWAYS_CHAR("SECAM_K")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K1, ACE_TEXT_ALWAYS_CHAR("SECAM_K1")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_L, ACE_TEXT_ALWAYS_CHAR("SECAM_L")));
 
   // directx video acceleration
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AI44, ACE_TEXT_ALWAYS_CHAR("AI44")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IA44, ACE_TEXT_ALWAYS_CHAR("IA44")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AI44, ACE_TEXT_ALWAYS_CHAR("AI44")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IA44, ACE_TEXT_ALWAYS_CHAR("IA44")));
 
   // DV video
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvsl, ACE_TEXT_ALWAYS_CHAR("dvsl")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvsd, ACE_TEXT_ALWAYS_CHAR("dvsd")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvhd, ACE_TEXT_ALWAYS_CHAR("dvhd")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_dvsl, ACE_TEXT_ALWAYS_CHAR("dvsl")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_dvsd, ACE_TEXT_ALWAYS_CHAR("dvsd")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_dvhd, ACE_TEXT_ALWAYS_CHAR("dvhd")));
 
   // H.264
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AVC1, ACE_TEXT_ALWAYS_CHAR("AVC1")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_H264, ACE_TEXT_ALWAYS_CHAR("H264")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_h264, ACE_TEXT_ALWAYS_CHAR("h264")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_X264, ACE_TEXT_ALWAYS_CHAR("X264")));
-  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_x264, ACE_TEXT_ALWAYS_CHAR("x264")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AVC1, ACE_TEXT_ALWAYS_CHAR("AVC1")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_H264, ACE_TEXT_ALWAYS_CHAR("H264")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_h264, ACE_TEXT_ALWAYS_CHAR("h264")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_X264, ACE_TEXT_ALWAYS_CHAR("X264")));
+  //Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_x264, ACE_TEXT_ALWAYS_CHAR("x264")));
 
   // uncompressed RGB (no alpha)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB1, ACE_TEXT_ALWAYS_CHAR("RGB1")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB4, ACE_TEXT_ALWAYS_CHAR("RGB4")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB8, ACE_TEXT_ALWAYS_CHAR("RGB8")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB555, ACE_TEXT_ALWAYS_CHAR("RGB555")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB565, ACE_TEXT_ALWAYS_CHAR("RGB565")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB24, ACE_TEXT_ALWAYS_CHAR("RGB24")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32, ACE_TEXT_ALWAYS_CHAR("RGB32")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB1, ACE_TEXT_ALWAYS_CHAR("RGB1")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB4, ACE_TEXT_ALWAYS_CHAR("RGB4")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB8, ACE_TEXT_ALWAYS_CHAR("RGB8")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB555, ACE_TEXT_ALWAYS_CHAR("RGB555")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB565, ACE_TEXT_ALWAYS_CHAR("RGB565")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB24, ACE_TEXT_ALWAYS_CHAR("RGB24")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32, ACE_TEXT_ALWAYS_CHAR("RGB32")));
   // uncompressed RGB (alpha)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555, ACE_TEXT_ALWAYS_CHAR("ARGB1555")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32, ACE_TEXT_ALWAYS_CHAR("ARGB32")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444, ACE_TEXT_ALWAYS_CHAR("ARGB4444")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_A2R10G10B10, ACE_TEXT_ALWAYS_CHAR("A2R10G10B10")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_A2B10G10R10, ACE_TEXT_ALWAYS_CHAR("A2B10G10R10")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555, ACE_TEXT_ALWAYS_CHAR("ARGB1555")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32, ACE_TEXT_ALWAYS_CHAR("ARGB32")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444, ACE_TEXT_ALWAYS_CHAR("ARGB4444")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_A2R10G10B10, ACE_TEXT_ALWAYS_CHAR("A2R10G10B10")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_A2B10G10R10, ACE_TEXT_ALWAYS_CHAR("A2B10G10R10")));
 
   // video mixing renderer (VMR-7)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX7_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX7_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX7_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX7_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX7_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX7_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX7_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX7_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX7_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX7_RT")));
   // video mixing renderer (VMR-9)
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX9_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX9_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX9_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX9_RT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX9_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX9_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX9_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX9_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX9_RT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX9_RT")));
 
   // YUV video
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AYUV, ACE_TEXT_ALWAYS_CHAR("AYUV")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YUY2, ACE_TEXT_ALWAYS_CHAR("YUY2")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_UYVY, ACE_TEXT_ALWAYS_CHAR("UYVY")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC1, ACE_TEXT_ALWAYS_CHAR("IMC1")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC2, ACE_TEXT_ALWAYS_CHAR("IMC2")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC3, ACE_TEXT_ALWAYS_CHAR("IMC3")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC4, ACE_TEXT_ALWAYS_CHAR("IMC4")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YV12, ACE_TEXT_ALWAYS_CHAR("YV12")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_NV12, ACE_TEXT_ALWAYS_CHAR("NV12")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_AYUV, ACE_TEXT_ALWAYS_CHAR("AYUV")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_YUY2, ACE_TEXT_ALWAYS_CHAR("YUY2")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_UYVY, ACE_TEXT_ALWAYS_CHAR("UYVY")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IMC1, ACE_TEXT_ALWAYS_CHAR("IMC1")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IMC2, ACE_TEXT_ALWAYS_CHAR("IMC2")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IMC3, ACE_TEXT_ALWAYS_CHAR("IMC3")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IMC4, ACE_TEXT_ALWAYS_CHAR("IMC4")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_YV12, ACE_TEXT_ALWAYS_CHAR("YV12")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_NV12, ACE_TEXT_ALWAYS_CHAR("NV12")));
   // other YUV
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_I420, ACE_TEXT_ALWAYS_CHAR("I420")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IF09, ACE_TEXT_ALWAYS_CHAR("IF09")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IYUV, ACE_TEXT_ALWAYS_CHAR("IYUV")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y211, ACE_TEXT_ALWAYS_CHAR("Y211")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y411, ACE_TEXT_ALWAYS_CHAR("Y411")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y41P, ACE_TEXT_ALWAYS_CHAR("Y41P")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YVU9, ACE_TEXT_ALWAYS_CHAR("YVU9")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YVYU, ACE_TEXT_ALWAYS_CHAR("YVYU")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YUYV, ACE_TEXT_ALWAYS_CHAR("YUYV")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_I420, ACE_TEXT_ALWAYS_CHAR("I420")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IF09, ACE_TEXT_ALWAYS_CHAR("IF09")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IYUV, ACE_TEXT_ALWAYS_CHAR("IYUV")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Y211, ACE_TEXT_ALWAYS_CHAR("Y211")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Y411, ACE_TEXT_ALWAYS_CHAR("Y411")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Y41P, ACE_TEXT_ALWAYS_CHAR("Y41P")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_YVU9, ACE_TEXT_ALWAYS_CHAR("YVU9")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_YVYU, ACE_TEXT_ALWAYS_CHAR("YVYU")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_YUYV, ACE_TEXT_ALWAYS_CHAR("YUYV")));
 
   // miscellaneous
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CFCC, ACE_TEXT_ALWAYS_CHAR("CFCC")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CLJR, ACE_TEXT_ALWAYS_CHAR("CLJR")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CPLA, ACE_TEXT_ALWAYS_CHAR("CPLA")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CLPL, ACE_TEXT_ALWAYS_CHAR("CLPL")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IJPG, ACE_TEXT_ALWAYS_CHAR("IJPG")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MDVF, ACE_TEXT_ALWAYS_CHAR("MDVF")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MJPG, ACE_TEXT_ALWAYS_CHAR("MJPG")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Overlay, ACE_TEXT_ALWAYS_CHAR("Overlay")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Plum, ACE_TEXT_ALWAYS_CHAR("Plum")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTJpeg, ACE_TEXT_ALWAYS_CHAR("QTJpeg")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTMovie, ACE_TEXT_ALWAYS_CHAR("QTMovie")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTRle, ACE_TEXT_ALWAYS_CHAR("QTRle")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTRpza, ACE_TEXT_ALWAYS_CHAR("QTRpza")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTSmc, ACE_TEXT_ALWAYS_CHAR("QTSmc")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_TVMJ, ACE_TEXT_ALWAYS_CHAR("TVMJ")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPVBI, ACE_TEXT_ALWAYS_CHAR("VPVBI")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPVideo, ACE_TEXT_ALWAYS_CHAR("VPVideo")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WAKE, ACE_TEXT_ALWAYS_CHAR("WAKE")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_CFCC, ACE_TEXT_ALWAYS_CHAR("CFCC")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_CLJR, ACE_TEXT_ALWAYS_CHAR("CLJR")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_CPLA, ACE_TEXT_ALWAYS_CHAR("CPLA")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_CLPL, ACE_TEXT_ALWAYS_CHAR("CLPL")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_IJPG, ACE_TEXT_ALWAYS_CHAR("IJPG")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MDVF, ACE_TEXT_ALWAYS_CHAR("MDVF")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MJPG, ACE_TEXT_ALWAYS_CHAR("MJPG")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Overlay, ACE_TEXT_ALWAYS_CHAR("Overlay")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_Plum, ACE_TEXT_ALWAYS_CHAR("Plum")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_QTJpeg, ACE_TEXT_ALWAYS_CHAR("QTJpeg")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_QTMovie, ACE_TEXT_ALWAYS_CHAR("QTMovie")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_QTRle, ACE_TEXT_ALWAYS_CHAR("QTRle")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_QTRpza, ACE_TEXT_ALWAYS_CHAR("QTRpza")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_QTSmc, ACE_TEXT_ALWAYS_CHAR("QTSmc")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_TVMJ, ACE_TEXT_ALWAYS_CHAR("TVMJ")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_VPVBI, ACE_TEXT_ALWAYS_CHAR("VPVBI")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_VPVideo, ACE_TEXT_ALWAYS_CHAR("VPVideo")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_WAKE, ACE_TEXT_ALWAYS_CHAR("WAKE")));
 
   ///////////////////////////////////////
   // unknown
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVCS, ACE_TEXT_ALWAYS_CHAR("DVCS")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVSD, ACE_TEXT_ALWAYS_CHAR("DVSD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVCS, ACE_TEXT_ALWAYS_CHAR("DVCS")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVSD, ACE_TEXT_ALWAYS_CHAR("DVSD")));
 
   ///////////////////////////////////////
   // DirectX VA
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeNone, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeNone")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeNone, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeNone")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH261_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH261_A")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH261_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH261_B")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH261_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH261_A")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH261_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH261_B")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_A")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_B")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_C")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_D")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_E, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_E")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH263_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_F")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_A")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_B")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_C")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_D")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_E, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_E")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_F")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG1_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_A")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_VLD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG1_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_A")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_VLD")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG2_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_A")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG2_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_B")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG2_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_C")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG2_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_D")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_A")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_B")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_C")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_D")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG2and1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2and1_VLD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2and1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2and1_VLD")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_FGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_IDCT_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_IDCT_FGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_E, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_FGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_FGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_IDCT_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_IDCT_FGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_E, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_FGT")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_VLD_WithFMOASO_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_WithFMOASO_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_NoFGT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Multiview_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Multiview_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_WithFMOASO_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_WithFMOASO_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_NoFGT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Multiview_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Multiview_NoFGT")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeWMV8_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_PostProc")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeWMV8_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_MoComp")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV8_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_PostProc")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV8_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_MoComp")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeWMV9_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_PostProc")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeWMV9_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_MoComp")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeWMV9_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_IDCT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV9_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_PostProc")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV9_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_MoComp")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV9_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV9_IDCT")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeVC1_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_PostProc")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeVC1_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_MoComp")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeVC1_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_IDCT")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeVC1_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_VLD")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeVC1_D2010, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_D2010")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_PostProc")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_MoComp")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_IDCT")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_VLD")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_D2010, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_D2010")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_Simple, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_Simple")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_Simple, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_Simple")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main")));
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main10, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main10")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main10, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main10")));
 
-  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.insert (std::make_pair (DXVA_NoEncrypt, ACE_TEXT_ALWAYS_CHAR ("DXVA_NoEncrypt")));
+  Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.insert (std::make_pair (DXVA_NoEncrypt, ACE_TEXT_ALWAYS_CHAR ("DXVA_NoEncrypt")));
 
   //////////////////////////////////////////////////////////////////////////////
 
   // Media Foundation
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB32, ACE_TEXT_ALWAYS_CHAR ("RGB32")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_ARGB32, ACE_TEXT_ALWAYS_CHAR ("ARGB32")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB24, ACE_TEXT_ALWAYS_CHAR ("RGB24")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB555, ACE_TEXT_ALWAYS_CHAR ("RGB555")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB565, ACE_TEXT_ALWAYS_CHAR ("RGB565")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB8, ACE_TEXT_ALWAYS_CHAR ("RGB8")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AI44, ACE_TEXT_ALWAYS_CHAR ("AI44")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AYUV, ACE_TEXT_ALWAYS_CHAR ("AYUV")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YUY2, ACE_TEXT_ALWAYS_CHAR ("YUY2")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVYU, ACE_TEXT_ALWAYS_CHAR ("YVYU")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVU9, ACE_TEXT_ALWAYS_CHAR ("YVU9")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_UYVY, ACE_TEXT_ALWAYS_CHAR ("UYVY")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV11, ACE_TEXT_ALWAYS_CHAR ("NV11")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV12, ACE_TEXT_ALWAYS_CHAR ("NV12")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YV12, ACE_TEXT_ALWAYS_CHAR ("YV12")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_I420, ACE_TEXT_ALWAYS_CHAR ("I420")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_IYUV, ACE_TEXT_ALWAYS_CHAR ("IYUV")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y210, ACE_TEXT_ALWAYS_CHAR ("Y210")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y216, ACE_TEXT_ALWAYS_CHAR ("Y216")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y410, ACE_TEXT_ALWAYS_CHAR ("Y410")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y416, ACE_TEXT_ALWAYS_CHAR ("Y416")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41P, ACE_TEXT_ALWAYS_CHAR ("Y41P")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41T, ACE_TEXT_ALWAYS_CHAR ("Y41T")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y42T, ACE_TEXT_ALWAYS_CHAR ("Y42T")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P210, ACE_TEXT_ALWAYS_CHAR ("P210")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P216, ACE_TEXT_ALWAYS_CHAR ("P216")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P010, ACE_TEXT_ALWAYS_CHAR ("P010")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P016, ACE_TEXT_ALWAYS_CHAR ("P016")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v210, ACE_TEXT_ALWAYS_CHAR ("V210")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v216, ACE_TEXT_ALWAYS_CHAR ("V216")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v410, ACE_TEXT_ALWAYS_CHAR ("V410")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP43, ACE_TEXT_ALWAYS_CHAR ("MP43")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4S, ACE_TEXT_ALWAYS_CHAR ("MP4S")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_M4S2, ACE_TEXT_ALWAYS_CHAR ("M4S2")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4V, ACE_TEXT_ALWAYS_CHAR ("MP4V")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV1, ACE_TEXT_ALWAYS_CHAR ("WMV1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV2, ACE_TEXT_ALWAYS_CHAR ("WMV2")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV3, ACE_TEXT_ALWAYS_CHAR ("WMV3")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WVC1, ACE_TEXT_ALWAYS_CHAR ("WVC1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS1, ACE_TEXT_ALWAYS_CHAR ("MSS1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS2, ACE_TEXT_ALWAYS_CHAR ("MSS2")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPG1, ACE_TEXT_ALWAYS_CHAR ("MPG1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSL, ACE_TEXT_ALWAYS_CHAR ("DVSL")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSD, ACE_TEXT_ALWAYS_CHAR ("DVSD")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVHD, ACE_TEXT_ALWAYS_CHAR ("DVHD")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV25, ACE_TEXT_ALWAYS_CHAR ("DV25")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV50, ACE_TEXT_ALWAYS_CHAR ("DV50")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVH1, ACE_TEXT_ALWAYS_CHAR ("DVH1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVC,  ACE_TEXT_ALWAYS_CHAR ("DVC")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264, ACE_TEXT_ALWAYS_CHAR ("H264")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MJPG, ACE_TEXT_ALWAYS_CHAR ("MJPG")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_420O, ACE_TEXT_ALWAYS_CHAR ("420O")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC, ACE_TEXT_ALWAYS_CHAR ("HEVC")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC_ES, ACE_TEXT_ALWAYS_CHAR ("HEVC_ES")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_RGB32, ACE_TEXT_ALWAYS_CHAR ("RGB32")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_ARGB32, ACE_TEXT_ALWAYS_CHAR ("ARGB32")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_RGB24, ACE_TEXT_ALWAYS_CHAR ("RGB24")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_RGB555, ACE_TEXT_ALWAYS_CHAR ("RGB555")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_RGB565, ACE_TEXT_ALWAYS_CHAR ("RGB565")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_RGB8, ACE_TEXT_ALWAYS_CHAR ("RGB8")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_AI44, ACE_TEXT_ALWAYS_CHAR ("AI44")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_AYUV, ACE_TEXT_ALWAYS_CHAR ("AYUV")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_YUY2, ACE_TEXT_ALWAYS_CHAR ("YUY2")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_YVYU, ACE_TEXT_ALWAYS_CHAR ("YVYU")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_YVU9, ACE_TEXT_ALWAYS_CHAR ("YVU9")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_UYVY, ACE_TEXT_ALWAYS_CHAR ("UYVY")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_NV11, ACE_TEXT_ALWAYS_CHAR ("NV11")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_NV12, ACE_TEXT_ALWAYS_CHAR ("NV12")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_YV12, ACE_TEXT_ALWAYS_CHAR ("YV12")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_I420, ACE_TEXT_ALWAYS_CHAR ("I420")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_IYUV, ACE_TEXT_ALWAYS_CHAR ("IYUV")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y210, ACE_TEXT_ALWAYS_CHAR ("Y210")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y216, ACE_TEXT_ALWAYS_CHAR ("Y216")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y410, ACE_TEXT_ALWAYS_CHAR ("Y410")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y416, ACE_TEXT_ALWAYS_CHAR ("Y416")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y41P, ACE_TEXT_ALWAYS_CHAR ("Y41P")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y41T, ACE_TEXT_ALWAYS_CHAR ("Y41T")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_Y42T, ACE_TEXT_ALWAYS_CHAR ("Y42T")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_P210, ACE_TEXT_ALWAYS_CHAR ("P210")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_P216, ACE_TEXT_ALWAYS_CHAR ("P216")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_P010, ACE_TEXT_ALWAYS_CHAR ("P010")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_P016, ACE_TEXT_ALWAYS_CHAR ("P016")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_v210, ACE_TEXT_ALWAYS_CHAR ("V210")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_v216, ACE_TEXT_ALWAYS_CHAR ("V216")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_v410, ACE_TEXT_ALWAYS_CHAR ("V410")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MP43, ACE_TEXT_ALWAYS_CHAR ("MP43")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MP4S, ACE_TEXT_ALWAYS_CHAR ("MP4S")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_M4S2, ACE_TEXT_ALWAYS_CHAR ("M4S2")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MP4V, ACE_TEXT_ALWAYS_CHAR ("MP4V")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_WMV1, ACE_TEXT_ALWAYS_CHAR ("WMV1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_WMV2, ACE_TEXT_ALWAYS_CHAR ("WMV2")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_WMV3, ACE_TEXT_ALWAYS_CHAR ("WMV3")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_WVC1, ACE_TEXT_ALWAYS_CHAR ("WVC1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MSS1, ACE_TEXT_ALWAYS_CHAR ("MSS1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MSS2, ACE_TEXT_ALWAYS_CHAR ("MSS2")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MPG1, ACE_TEXT_ALWAYS_CHAR ("MPG1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVSL, ACE_TEXT_ALWAYS_CHAR ("DVSL")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVSD, ACE_TEXT_ALWAYS_CHAR ("DVSD")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVHD, ACE_TEXT_ALWAYS_CHAR ("DVHD")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DV25, ACE_TEXT_ALWAYS_CHAR ("DV25")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DV50, ACE_TEXT_ALWAYS_CHAR ("DV50")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVH1, ACE_TEXT_ALWAYS_CHAR ("DVH1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVC,  ACE_TEXT_ALWAYS_CHAR ("DVC")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H264, ACE_TEXT_ALWAYS_CHAR ("H264")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MJPG, ACE_TEXT_ALWAYS_CHAR ("MJPG")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_420O, ACE_TEXT_ALWAYS_CHAR ("420O")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC, ACE_TEXT_ALWAYS_CHAR ("HEVC")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC_ES, ACE_TEXT_ALWAYS_CHAR ("HEVC_ES")));
 #if (WINVER >= _WIN32_WINNT_WIN8)
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H263, ACE_TEXT_ALWAYS_CHAR ("H263")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H263, ACE_TEXT_ALWAYS_CHAR ("H263")));
 #endif
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264_ES, ACE_TEXT_ALWAYS_CHAR ("H264_ES")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H264_ES, ACE_TEXT_ALWAYS_CHAR ("H264_ES")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
 
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Float, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3_SPDIF")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV8, ACE_TEXT_ALWAYS_CHAR ("WMAudioV8")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV9, ACE_TEXT_ALWAYS_CHAR ("WMAudioV9")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudio_Lossless, ACE_TEXT_ALWAYS_CHAR ("WMAudio_Lossless")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("WMASPDIF")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MSP1, ACE_TEXT_ALWAYS_CHAR ("MSP1")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MP3, ACE_TEXT_ALWAYS_CHAR ("MP3")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_ADTS, ACE_TEXT_ALWAYS_CHAR ("ADTS")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("AMR_NB")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("AMR_WB")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
-  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Float, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3_SPDIF")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_WMAudioV8, ACE_TEXT_ALWAYS_CHAR ("WMAudioV8")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_WMAudioV9, ACE_TEXT_ALWAYS_CHAR ("WMAudioV9")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_WMAudio_Lossless, ACE_TEXT_ALWAYS_CHAR ("WMAudio_Lossless")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("WMASPDIF")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_MSP1, ACE_TEXT_ALWAYS_CHAR ("MSP1")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_MP3, ACE_TEXT_ALWAYS_CHAR ("MP3")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_ADTS, ACE_TEXT_ALWAYS_CHAR ("ADTS")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("AMR_NB")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("AMR_WB")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
+  Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
 #endif
 }
 
@@ -604,39 +605,39 @@ Stream_Module_Decoder_Tools::isRGB (REFGUID subType_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isRGB"));
 
   if (useMediaFoundation_in)
-    return ((subType_in == MFVideoFormat_RGB32)  ||
-            (subType_in == MFVideoFormat_ARGB32) ||
-            (subType_in == MFVideoFormat_RGB24)  ||
-            (subType_in == MFVideoFormat_RGB555) ||
-            (subType_in == MFVideoFormat_RGB565) ||
-            (subType_in == MFVideoFormat_RGB8));
+    return (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB32)  ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_ARGB32) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_RGB24)  ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_RGB555) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_RGB565) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_RGB8));
 
   return (// uncompressed RGB (no alpha)
-          (subType_in == MEDIASUBTYPE_RGB1)   ||
-          (subType_in == MEDIASUBTYPE_RGB4)   ||
-          (subType_in == MEDIASUBTYPE_RGB8)   ||
-          (subType_in == MEDIASUBTYPE_RGB555) ||
-          (subType_in == MEDIASUBTYPE_RGB565) ||
-          (subType_in == MEDIASUBTYPE_RGB24)  ||
-          (subType_in == MEDIASUBTYPE_RGB32)  ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB1)   ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB4)   ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB8)   ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB555) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB565) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB24)  ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32)  ||
           // uncompressed RGB (alpha)
-          (subType_in == MEDIASUBTYPE_ARGB1555)    ||
-          (subType_in == MEDIASUBTYPE_ARGB32)      ||
-          (subType_in == MEDIASUBTYPE_ARGB4444)    ||
-          (subType_in == MEDIASUBTYPE_A2R10G10B10) ||
-          (subType_in == MEDIASUBTYPE_A2B10G10R10) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32)      ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2R10G10B10) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2B10G10R10) ||
           // video mixing renderer (VMR-7)
-          (subType_in == MEDIASUBTYPE_RGB32_D3D_DX7_RT)    ||
-          (subType_in == MEDIASUBTYPE_RGB16_D3D_DX7_RT)    ||
-          (subType_in == MEDIASUBTYPE_ARGB32_D3D_DX7_RT)   ||
-          (subType_in == MEDIASUBTYPE_ARGB4444_D3D_DX7_RT) ||
-          (subType_in == MEDIASUBTYPE_ARGB1555_D3D_DX7_RT) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX7_RT)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX7_RT)   ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX7_RT) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX7_RT) ||
           // video mixing renderer (VMR-9)
-          (subType_in == MEDIASUBTYPE_RGB32_D3D_DX9_RT)    ||
-          (subType_in == MEDIASUBTYPE_RGB16_D3D_DX9_RT)    ||
-          (subType_in == MEDIASUBTYPE_ARGB32_D3D_DX9_RT)   ||
-          (subType_in == MEDIASUBTYPE_ARGB4444_D3D_DX9_RT) ||
-          (subType_in == MEDIASUBTYPE_ARGB1555_D3D_DX9_RT));
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX9_RT)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX9_RT)    ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX9_RT)   ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX9_RT) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX9_RT));
 }
 bool
 Stream_Module_Decoder_Tools::isChromaLuminance (REFGUID subType_in,
@@ -645,50 +646,50 @@ Stream_Module_Decoder_Tools::isChromaLuminance (REFGUID subType_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isChromaLuminance"));
 
   if (useMediaFoundation_in)
-    return ((subType_in == MFVideoFormat_AYUV) ||
-            (subType_in == MFVideoFormat_YUY2) ||
-            (subType_in == MFVideoFormat_YVYU) ||
-            (subType_in == MFVideoFormat_YVU9) ||
-            (subType_in == MFVideoFormat_UYVY) ||
-            (subType_in == MFVideoFormat_NV11) ||
-            (subType_in == MFVideoFormat_NV12) ||
-            (subType_in == MFVideoFormat_YV12) ||
-            (subType_in == MFVideoFormat_I420) ||
-            (subType_in == MFVideoFormat_IYUV) ||
-            (subType_in == MFVideoFormat_Y210) ||
-            (subType_in == MFVideoFormat_Y216) ||
-            (subType_in == MFVideoFormat_Y410) ||
-            (subType_in == MFVideoFormat_Y416) ||
-            (subType_in == MFVideoFormat_Y41P) ||
-            (subType_in == MFVideoFormat_Y41T) ||
-            (subType_in == MFVideoFormat_Y42T) ||
-            (subType_in == MFVideoFormat_P210) ||
-            (subType_in == MFVideoFormat_P216) ||
-            (subType_in == MFVideoFormat_P010) ||
-            (subType_in == MFVideoFormat_P016) ||
-            (subType_in == MFVideoFormat_v210) ||
-            (subType_in == MFVideoFormat_v216) ||
-            (subType_in == MFVideoFormat_v410));
+    return (InlineIsEqualGUID (subType_in, MFVideoFormat_AYUV) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_YUY2) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_YVYU) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_YVU9) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_UYVY) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_NV11) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_NV12) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_YV12) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_I420) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_IYUV) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y210) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y216) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y410) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y416) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y41P) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y41T) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_Y42T) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_P210) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_P216) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_P010) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_P016) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_v210) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_v216) ||
+            InlineIsEqualGUID (subType_in, MFVideoFormat_v410));
 
-  return ((subType_in == MEDIASUBTYPE_AYUV) ||
-          (subType_in == MEDIASUBTYPE_YUY2) ||
-          (subType_in == MEDIASUBTYPE_UYVY) ||
-          (subType_in == MEDIASUBTYPE_IMC1) ||
-          (subType_in == MEDIASUBTYPE_IMC2) ||
-          (subType_in == MEDIASUBTYPE_IMC3) ||
-          (subType_in == MEDIASUBTYPE_IMC4) ||
-          (subType_in == MEDIASUBTYPE_YV12) ||
-          (subType_in == MEDIASUBTYPE_NV12) ||
+  return (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_AYUV) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUY2) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_UYVY) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IMC1) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IMC2) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IMC3) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IMC4) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YV12) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_NV12) ||
           //
-          (subType_in == MEDIASUBTYPE_I420) ||
-          (subType_in == MEDIASUBTYPE_IF09) ||
-          (subType_in == MEDIASUBTYPE_IYUV) ||
-          (subType_in == MEDIASUBTYPE_Y211) ||
-          (subType_in == MEDIASUBTYPE_Y411) ||
-          (subType_in == MEDIASUBTYPE_Y41P) ||
-          (subType_in == MEDIASUBTYPE_YVU9) ||
-          (subType_in == MEDIASUBTYPE_YVYU) ||
-          (subType_in == MEDIASUBTYPE_YUYV));
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_I420) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IF09) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IYUV) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_Y211) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_Y411) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_Y41P) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YVU9) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YVYU) ||
+          InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUYV));
 }
 
 enum AVCodecID
@@ -840,12 +841,12 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
     return Stream_Module_Decoder_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
   } // end IF
 
-  GUID2STRING_MAP_ITERATOR_T iterator;
+  GUID_TO_STRING_MAP_ITERATOR_T iterator;
   if (useMediaFoundation_in)
   {
     iterator =
-      Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.find (GUID_in);
-    if (iterator == Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.end ())
+      Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.find (GUID_in);
+    if (iterator == Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.end ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
@@ -856,8 +857,8 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
   else
   {
     iterator =
-      Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.find (GUID_in);
-    if (iterator == Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap.end ())
+      Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.find (GUID_in);
+    if (iterator == Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.end ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),

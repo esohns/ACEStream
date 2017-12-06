@@ -28,13 +28,13 @@
 
 extern "C"
 {
-#include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
 }
+
+#include "gtk/gtk.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-
-#include "gtk/gtk.h"
 
 #include "stream_task_base_synch.h"
 
@@ -106,23 +106,21 @@ class Stream_Module_Vis_GTK_Cairo_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 
   // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
+  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #endif
 
-  uint8_t*               buffer_;
-  struct AVCodec*        codec_;
-  struct AVCodecContext* codecContext_;
-  struct AVFrame*        frame_;
+  bool               isFirst_;
+
 //  cairo_t*                   cairoContext_;
 //  cairo_surface_t*           cairoSurface_;
-  ACE_SYNCH_MUTEX_T*     lock_;
-  GdkPixbuf*             pixelBuffer_;
-
-  bool                   isFirst_;
+  ACE_SYNCH_MUTEX_T* lock_;
+  struct SwsContext* scaleContext_;
+  unsigned int       scaleContextHeight_;
+  unsigned int       scaleContextWidth_;
 };
 
 // include template definition

@@ -1401,14 +1401,10 @@ stream_processing_function (void* arg_in)
                                                                                    converter.str ().c_str ())));
   gdk_threads_leave ();
 
+  // *NOTE*: blocks until 'finished'
   data_p->CBData->stream->start ();
-  //if (!data_p->CBData->stream->isRunning ())
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_CamSave_Stream::start(): \"%m\", aborting\n")));
-  //  goto done;
-  //} // end IF
-  data_p->CBData->stream->wait (true, false, false);
+  ACE_ASSERT (!data_p->CBData->stream->isRunning ());
+  //data_p->CBData->stream->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -2368,15 +2364,11 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
+  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    if (data_p->eventStack.empty ())
-      return G_SOURCE_CONTINUE;
-
-    for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
-         iterator_2 != data_p->eventStack.end ();
-         iterator_2++)
+    while (data_p->eventStack.pop (event_e) == 0)
     {
-      switch (*iterator_2)
+      switch (event_e)
       {
         case COMMON_UI_EVENT_STARTED:
         {
@@ -2447,7 +2439,7 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
-                      *iterator_2));
+                      event_e));
           break;
         }
       } // end SWITCH
@@ -2455,9 +2447,7 @@ idle_update_info_display_cb (gpointer userData_in)
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_FORWARD,
                             1.0);
-    } // end FOR
-
-    data_p->eventStack.clear ();
+    } // end WHILE
   } // end lock scope
 
   return G_SOURCE_CONTINUE;
@@ -2689,7 +2679,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
     // step1: stop stream
-    data_p->stream->stop (false, true);
+    data_p->stream->stop (false, // wait ?
+                          true); // locked access ?
 
     return;
   } // end IF
@@ -3668,23 +3659,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s;
-  ACE_OS::memset (&GUID_s, 0, sizeof (struct _GUID));
-  HRESULT result = E_FAIL;
-#if defined (OLE2ANSI)
-  result =
-    CLSIDFromString (g_value_get_string (&value),
-                     &GUID_i);
-#else
-  result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
-                     &GUID_s);
-#endif
-  if (FAILED (result))
+  struct _GUID GUID_s =
+    Common_Tools::StringToGUID (g_value_get_string (&value));
+  if (InlineIsEqualGUID (GUID_s, GUID_NULL))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to Common_Tools::StringToGUID(%s), returning\n"),
+                ACE_TEXT (g_value_get_string (&value))));
 
     // clean up
     g_value_unset (&value);
@@ -3729,11 +3710,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT ((*iterator_2).second.second.format);
   ACE_ASSERT ((*iterator_2).second.second.session);
-  //ACE_ASSERT (data_p->streamConfiguration);
 
+  HRESULT result = E_FAIL;
   //struct _AMMediaType* media_type_p = NULL;
   //result = data_p->streamConfiguration->GetFormat (&media_type_p);
   //if (FAILED (result))
@@ -4052,6 +4032,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->pixelBufferLock);
   if (!data_p->pixelBuffer)
     return FALSE; // --> widget has not been realized yet
 
@@ -4065,7 +4046,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //  // *NOTE*: media foundation capture frames are v-flipped
 //  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
 //#endif
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *data_p->pixelBufferLock, FALSE);
     cairo_paint (context_in);
   } // end lock scope
 
@@ -4153,6 +4134,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   ACE_ASSERT (allocation_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->pixelBufferLock);
 
   //if (!data_p->configuration->moduleHandlerConfiguration.gdkWindow) // <-- window not realized yet ?
   //  return;
@@ -4166,10 +4148,19 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
-  //GtkAllocation allocation;
-  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  //gtk_widget_get_allocation (widget_in,
-  //                           &allocation);
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  if (!window_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_widget_get_window(%@), returning\n"),
+                widget_in));
+    return;
+  } // end IF
+
+  // sanity check(s)
+  if (!gdk_window_is_viewable (window_p))
+    return; // window is not (yet) mapped, nothing to do
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //// sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
@@ -4197,6 +4188,72 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 #else
 #endif
   (*iterator_2).second.second.area = *allocation_in;
+
+#if GTK_CHECK_VERSION (3,0,0)
+#else
+  GdkPixbuf* pixbuf_p =
+    gdk_pixbuf_new (GDK_COLORSPACE_RGB,
+                    TRUE,
+                    8,
+                    (*iterator_2).second.area.width, (*iterator_2).second.area.height);
+  if (!pixbuf_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_new(), returning\n")));
+    return;
+  } // end IF
+#endif
+
+  { ACE_ASSERT (data_p->pixelBufferLock == (*iterator_2).second.second.pixelBufferLock);
+    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *data_p->pixelBufferLock);
+    if (data_p->pixelBuffer)
+    {
+      g_object_unref (data_p->pixelBuffer);
+      data_p->pixelBuffer = NULL;
+    } // end IF
+      //    (*iterator_2).second.pixelBuffer = NULL;
+    data_p->pixelBuffer =
+#if GTK_CHECK_VERSION (3,0,0)
+      gdk_pixbuf_get_from_window (window_p,
+                                  0, 0,
+                                  allocation_in->width, allocation_in->height);
+#else
+      gdk_pixbuf_get_from_drawable (pixbuf_p,
+                                    GDK_DRAWABLE (window_p),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation_in->width, allocation_in->height);
+#endif
+    if (!data_p->pixelBuffer)
+    {
+#if GTK_CHECK_VERSION (3,0,0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
+                  window_p));
+#else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), returning\n"),
+                  GDK_DRAWABLE (window_p)));
+
+      gdk_pixbuf_unref (pixbuf_p);
+#endif
+      return;
+    } // end IF
+    (*iterator_2).second.second.pixelBuffer = data_p->pixelBuffer;
+
+    //    GHashTable* hash_table_p = gdk_pixbuf_get_options (cb_data_p->pixelBuffer);
+    //    GHashTableIter iterator;
+    //    g_hash_table_iter_init (&iterator, hash_table_p);
+    //    gpointer key, value;
+    //    for (unsigned int i = 0;
+    //         g_hash_table_iter_next (iterator, &key, &value);
+    //         ++i)
+    //      ACE_DEBUG ((LM_DEBUG,
+    //                  ACE_TEXT ("%u: \"\" --> \"\"\n"),
+    //                  i,
+    //                  static_cast<gchar*> (key),
+    //                  static_cast<gchar*> (value)));
+  } // end lock scope
 } // drawingarea_size_allocate_cb
 
 void

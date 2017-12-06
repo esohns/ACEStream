@@ -26,7 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-//#include "stream_db_exports.h"
+#include "stream_db_exports.h"
 
 // definitions
 // *TODO*: remove ASAP
@@ -34,8 +34,7 @@
 // *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
 #define STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE   19
 
-//class STREAM_Db_Export Stream_Module_DataBase_Tools
-class Stream_Module_DataBase_Tools
+class STREAM_Db_Export Stream_Module_DataBase_Tools
 {
  public:
   // *IMPORTANT NOTE*: uses localtime() (i.e. returns a 'wall clock'
@@ -46,7 +45,7 @@ class Stream_Module_DataBase_Tools
   //                       [- the DBMS supports timezone configuration]
   //                       [- the application supports timezone configuration]
   //                       so the application can interpret this information
-  static std::string timeStampToDataBaseString (const ACE_Time_Value&); // timestamp
+  static std::string timestampToDatabaseString (const ACE_Time_Value&); // timestamp
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_DataBase_Tools ())

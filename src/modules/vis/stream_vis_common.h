@@ -4,13 +4,13 @@
 #include <deque>
 
 #if defined (GTKGL_SUPPORT)
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #endif
 
 #include "ace/config-lite.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-enum Stream_Module_Visualization_MediaFrameWork
+enum Stream_Module_Visualization_MediaFrameWork : int
 {
   STREAM_MODULE_VIS_FRAMEWORK_DIRECTSHOW,
   STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION,
@@ -20,7 +20,7 @@ enum Stream_Module_Visualization_MediaFrameWork
 };
 #endif
 
-enum Stream_Module_Visualization_AudioRenderer
+enum Stream_Module_Visualization_AudioRenderer : int
 {
   STREAM_MODULE_VIS_AUDIORENDERER_GTK_CAIRO_SPECTRUMANALYZER = 0,
   ////////////////////////////////////////
@@ -28,7 +28,7 @@ enum Stream_Module_Visualization_AudioRenderer
   STREAM_MODULE_VIS_AUDIORENDERER_INVALID
 };
 
-enum Stream_Module_Visualization_VideoRenderer
+enum Stream_Module_Visualization_VideoRenderer : int
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   STREAM_MODULE_VIS_VIDEORENDERER_DIRECT3D = 0,
@@ -46,7 +46,7 @@ enum Stream_Module_Visualization_VideoRenderer
 };
 
 #if defined (GTKGL_SUPPORT)
-enum Stream_Module_Visualization_OpenGLInstructionType
+enum Stream_Module_Visualization_OpenGLInstructionType : int
 {
   STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_BG,
   STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_FG,
@@ -56,7 +56,7 @@ enum Stream_Module_Visualization_OpenGLInstructionType
 };
 struct Stream_Module_Visualization_OpenGLInstruction
 {
-  inline Stream_Module_Visualization_OpenGLInstruction ()
+  Stream_Module_Visualization_OpenGLInstruction ()
    : type (STREAM_MODULE_VIS_OPENGLINSTRUCTION_INVALID)
   {};
 
@@ -76,8 +76,6 @@ typedef Stream_Module_Visualization_OpenGLInstructions_t::const_iterator Stream_
 class Stream_Module_Visualization_IFullscreen
 {
  public:
-  inline ~Stream_Module_Visualization_IFullscreen () {};
-
   virtual void toggle () = 0;
 };
 

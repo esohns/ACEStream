@@ -35,7 +35,7 @@ endif ()
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
 else ()
- message (STATUS "found ACE library \"${ACE_LIBRARY}\"")
+ #message (STATUS "found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
@@ -98,6 +98,7 @@ if (UNIX)
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
@@ -120,7 +121,9 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
@@ -171,76 +174,77 @@ set (filesource_EXE_SRCS
 set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE filesource)
-add_executable (${EXECUTABLE}
+set (EXECUTABLE_SOURCE filesource)
+add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${filesource_EXE_SRCS}
                 etc/resources.rc
                 etc/source.glade)
-set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
  if (NOT ${BUILD_TEST_I})
-  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
+  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
  endif ()
 endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (${EXECUTABLE} rt)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} iw)
- target_link_libraries (${EXECUTABLE} X11)
+ target_link_libraries (${EXECUTABLE_SOURCE} rt)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_SOURCE} iw)
+ target_link_libraries (${EXECUTABLE_SOURCE} X11)
  if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
+  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK3_LIBRARIES})
  else ()
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
+  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE} ntdll.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ntdll.lib)
 
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
+# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
+# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
 
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
 # libglade
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
+# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
-target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE_SOURCE} Common)
+target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE} CommonUI)
+target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_File)
-target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ACEStream_Network)
-target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream)
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_File)
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Network)
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Statistic)
 
-target_link_libraries (${EXECUTABLE} ACENetwork)
-#target_link_libraries (${EXECUTABLE} ACENetwork_Client)
+target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
+#target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
 
 # add PCH
-set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-cotire (${EXECUTABLE})
+set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+cotire (${EXECUTABLE_SOURCE})
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -249,7 +253,7 @@ set (RESOURCE_FILES
 set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 source_group (resources FILES ${RESOURCE_FILES})
 
-install (TARGETS ${EXECUTABLE}
+install (TARGETS ${EXECUTABLE_SOURCE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (WIN32)
@@ -263,7 +267,7 @@ endif ()
 
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
- create_target_launcher (${EXECUTABLE}
+ create_target_launcher (${EXECUTABLE_SOURCE}
 #                         ARGS "-l -t"
                          ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
 #                         FORWARD_ARGS
@@ -278,7 +282,7 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE}
+ create_target_launcher (${EXECUTABLE_SOURCE}
                          ARGS "-f D:\\\\temp\\\\H264_720p.ts -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
@@ -296,7 +300,7 @@ elseif (WIN32)
 endif ()
 
 add_test (NAME filestream_source
-          COMMAND ${EXECUTABLE} -l -t
+          COMMAND ${EXECUTABLE_SOURCE} -l -t
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 set_tests_properties (filestream_source
@@ -336,69 +340,72 @@ set (filetarget_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 
-set (EXECUTABLE filetarget)
-add_executable (${EXECUTABLE}
+set (EXECUTABLE_TARGET filetarget)
+add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
                 ${filetarget_EXE_SRCS}
                 etc/resources.rc
                 etc/target.glade)
-set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT ${BUILD_TEST_I})
- set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+ set_target_properties (${EXECUTABLE_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (${EXECUTABLE} rt)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} iw)
- target_link_libraries (${EXECUTABLE} X11)
+ target_link_libraries (${EXECUTABLE_TARGET} rt)
+ target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_TARGET} iw)
+ target_link_libraries (${EXECUTABLE_TARGET} X11)
  if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
+  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK3_LIBRARIES})
  else ()
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
+  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE} ntdll.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ntdll.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
 # libglade
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
+# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
-target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE_TARGET} Common)
+target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE} CommonUI)
+target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_File)
-target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ACEStream_Network)
-target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream)
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream_File)
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Network)
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Statistic)
 
-target_link_libraries (${EXECUTABLE} ACENetwork)
-#target_link_libraries (${EXECUTABLE} ACENetwork_Client)
+target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
+#target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)
 
 # add PCH
-set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-cotire (${EXECUTABLE})
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#get_target_property (_prefixHeader ${EXECUTABLE_SOURCE} COTIRE_CXX_PREFIX_HEADER)
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${_prefixHeader}")
+set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+cotire (${EXECUTABLE_TARGET})
 
-install (TARGETS ${EXECUTABLE}
+install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (UNIX)
@@ -409,10 +416,9 @@ elseif (WIN32)
           DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()
-
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
- create_target_launcher (${EXECUTABLE}
+ create_target_launcher (${EXECUTABLE_TARGET}
                          ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
@@ -426,7 +432,7 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE}
+ create_target_launcher (${EXECUTABLE_TARGET}
                          ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
@@ -443,10 +449,10 @@ elseif (WIN32)
                          ENVIRONMENT foo=bar)
 endif ()
 
-add_test (NAME ${EXECUTABLE}_test
-          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
+add_test (NAME ${EXECUTABLE_TARGET}_test
+          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE_TARGET} -l -t
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-set_tests_properties (${EXECUTABLE}_test
+set_tests_properties (${EXECUTABLE_TARGET}_test
                       PROPERTIES
                       ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")

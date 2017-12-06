@@ -21,7 +21,7 @@
 #ifndef TEST_U_GTK_COMMON_H
 #define TEST_U_GTK_COMMON_H
 
-#include <deque>
+//#include <deque>
 
 #include "common_ui_gtk_common.h"
 
@@ -45,7 +45,7 @@ struct Test_U_Configuration;
 struct Test_U_GTK_CBData
  : Common_UI_GTKState
 {
-  inline Test_U_GTK_CBData ()
+  Test_U_GTK_CBData ()
    : Common_UI_GTKState ()
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)

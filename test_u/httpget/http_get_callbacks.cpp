@@ -755,95 +755,88 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
-
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
-  // sanity check(s)
-  if (data_p->eventStack.empty ())
-    return G_SOURCE_CONTINUE;
-
-  for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
-       iterator_2 != data_p->eventStack.end ();
-       ++iterator_2)
-  {
-    switch (*iterator_2)
+  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+    while (data_p->eventStack.pop (event_e) == 0)
     {
-      case COMMON_UI_EVENT_CONNECT:
+      switch (event_e)
       {
-        spin_button_p =
+        case COMMON_UI_EVENT_CONNECT:
+        {
+          spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_CONNECTIONS)));
-        if (spin_button_p) // target ?
-          gtk_spin_button_spin (spin_button_p,
-                                GTK_SPIN_STEP_FORWARD,
-                                1.0);
+          if (spin_button_p) // target ?
+            gtk_spin_button_spin (spin_button_p,
+                                  GTK_SPIN_STEP_FORWARD,
+                                  1.0);
 
-        spin_button_p =
-          GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
-        ACE_ASSERT (spin_button_p);
-
-        is_session_message = true;
-        break;
-      }
-      case COMMON_UI_EVENT_DISCONNECT:
-      {
-        spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_CONNECTIONS)));
-        if (spin_button_p) // target ?
-          gtk_spin_button_spin (spin_button_p,
-                                GTK_SPIN_STEP_BACKWARD,
-                                1.0);
-
-        spin_button_p =
-          GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
-        ACE_ASSERT (spin_button_p);
-
-        is_session_message = true;
-        break;
-      }
-      case COMMON_UI_EVENT_DATA:
-      {
-        spin_button_p =
-          GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
-        ACE_ASSERT (spin_button_p);
-        gtk_spin_button_set_value (spin_button_p,
-                                   static_cast<gdouble> (data_p->progressData->statistic.bytes));
-
-        spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
-        ACE_ASSERT (spin_button_p);
-
-        break;
-      }
-      case COMMON_UI_EVENT_CONTROL:
-      {
-        spin_button_p =
+          spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
-        ACE_ASSERT (spin_button_p);
+          ACE_ASSERT (spin_button_p);
 
-        is_session_message = true;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
-                    *iterator_2));
-        break;
-      }
-    } // end SWITCH
-    ACE_UNUSED_ARG (is_session_message);
-    gtk_spin_button_spin (spin_button_p,
-                          GTK_SPIN_STEP_FORWARD,
-                          1.0);
-  } // end FOR
-  data_p->eventStack.clear ();
+          is_session_message = true;
+          break;
+        }
+        case COMMON_UI_EVENT_DISCONNECT:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_CONNECTIONS)));
+          if (spin_button_p) // target ?
+            gtk_spin_button_spin (spin_button_p,
+                                  GTK_SPIN_STEP_BACKWARD,
+                                  1.0);
+
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
+        case COMMON_UI_EVENT_DATA:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p,
+                                     static_cast<gdouble> (data_p->progressData->statistic.bytes));
+
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
+          ACE_ASSERT (spin_button_p);
+
+          break;
+        }
+        case COMMON_UI_EVENT_CONTROL:
+        {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
+          ACE_ASSERT (spin_button_p);
+
+          is_session_message = true;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
+                      event_e));
+          break;
+        }
+      } // end SWITCH
+      ACE_UNUSED_ARG (is_session_message);
+      gtk_spin_button_spin (spin_button_p,
+                            GTK_SPIN_STEP_FORWARD,
+                            1.0);
+    } // end WHILE
+  } // end lock scope
 
   return G_SOURCE_CONTINUE;
 }

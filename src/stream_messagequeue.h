@@ -42,7 +42,7 @@ class Stream_MessageQueue_T
  public:
   Stream_MessageQueue_T (unsigned int,                       // maximum # of queued messages
                          ACE_Notification_Strategy* = NULL); // notification callback handle
-  inline virtual ~Stream_MessageQueue_T () {};
+  inline virtual ~Stream_MessageQueue_T () {}
 
   // implement Stream_IMessageQueue
   virtual unsigned int flush (bool = false);

@@ -178,7 +178,7 @@ endif ()
 option (BUILD_MODULES
         "build (git) sub-modules" OFF)
 
-message (STATUS "compiler id: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER})")
+#message (STATUS "compiler id: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER})")
 if (CMAKE_COMPILER_IS_GNUCXX)
  add_compile_options (-ansi)
  add_compile_options (-std=c++11)
@@ -187,6 +187,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
  add_definitions (-D_GNU_SOURCE)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _GNU_SOURCE)
 endif ()
+
 if (MSVC)
  add_compile_options (/MP)
  add_definitions (-D_CRT_SECURE_NO_WARNINGS)
@@ -225,7 +226,12 @@ set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 if (UNIX)
  include (GNUInstallDirs)
 elseif (WIN32)
- set (CMAKE_SYSTEM_VERSION "10.0.16299.0") # Windows 10
+ if (MSVC)
+  message (STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+  set (CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.16299.0") # set Windows SDK version
+  message (STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+#  add_definitions (-CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
+ endif ()
  include (InstallRequiredSystemLibraries)
 endif ()
 

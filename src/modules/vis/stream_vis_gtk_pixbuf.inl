@@ -20,20 +20,12 @@
 
 #include "ace/Log_Msg.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/imgutils.h"
-}
-#endif
+#include "common_tools.h"
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
 #include "stream_dec_tools.h"
-
-#include "stream_vis_defines.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -54,9 +46,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
+ , isFirst_ (true)
  , lock_ (NULL)
  , scaleContext_ (NULL)
- , isFirst_ (true)
  , scaleContextHeight_ (0)
  , scaleContextWidth_ (0)
 {
@@ -80,12 +72,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                SessionDataContainerType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
-
-//  if (buffer_)
-//    delete [] buffer_;
-
-//  if (pixelBuffer_)
-//    g_object_unref (pixelBuffer_);
 
   if (scaleContext_)
     sws_freeContext (scaleContext_);
@@ -428,8 +414,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleSessionMessage"));
 
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
+  ACE_UNUSED_ARG (passMessageDownstream_out);
 
   switch (message_inout->type ())
   {
@@ -443,21 +428,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    {
-//      if (buffer_)
-//      {
-//        delete [] buffer_;
-//        buffer_ = NULL;
-//      } // end IF
-
-//      if (pixelBuffer_)
-//      {
-//        g_object_unref (pixelBuffer_);
-//        pixelBuffer_ = NULL;
-//      } // end IF
-
       break;
-    }
     default:
       break;
   } // end SWITCH
@@ -484,13 +455,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    isFirst_ = true;
     lock_ = NULL;
     if (scaleContext_)
     {
       sws_freeContext (scaleContext_);
       scaleContext_ = NULL;
     } // end IF
-    isFirst_ = true;
     scaleContextHeight_ = 0;
     scaleContextWidth_ = 0;
   } // end IF

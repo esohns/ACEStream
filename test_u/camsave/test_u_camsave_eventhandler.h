@@ -34,7 +34,7 @@ class Stream_CamSave_EventHandler
 {
  public:
   Stream_CamSave_EventHandler (struct Stream_CamSave_GTK_CBData*); // GTK state
-  virtual ~Stream_CamSave_EventHandler ();
+  inline virtual ~Stream_CamSave_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,

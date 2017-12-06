@@ -54,8 +54,12 @@
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
+    <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
+    <property name="decorated">False</property>
+    <property name="deletable">False</property>
+    <property name="has_resize_grip">False</property>
     <property name="program_name">audioeffect</property>
     <property name="version">0.1</property>
     <property name="copyright" translatable="yes">Copyright (C) 2016</property>
@@ -63,6 +67,7 @@
     <property name="website_label" translatable="yes">github site</property>
     <property name="authors">Erik Sohns</property>
     <property name="logo_icon_name">image-missing</property>
+    <property name="wrap_license">True</property>
     <property name="license_type">lgpl-2-1</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog_vbox">
@@ -86,10 +91,16 @@
       </object>
     </child>
   </object>
-  <object class="GtkFileFilter" id="filefilter_wav"/>
+  <object class="GtkFileFilter" id="filefilter_wav">
+    <patterns>
+      <pattern>*.wav</pattern>
+    </patterns>
+  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
-    <property name="type_hint">dialog</property>
+    <property name="icon_name">widget-gtk-arrow</property>
+    <property name="type_hint">normal</property>
+    <property name="deletable">False</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="vbox_main">
         <property name="can_focus">False</property>
@@ -98,10 +109,6 @@
           <object class="GtkStatusbar" id="statusbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="margin_top">6</property>
-            <property name="margin_bottom">6</property>
             <property name="orientation">vertical</property>
           </object>
           <packing>
@@ -114,6 +121,8 @@
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="buttonbox_main">
             <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="valign">start</property>
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button_about">
@@ -167,6 +176,8 @@
               <object class="GtkBox" id="vbox_controls">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="valign">start</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkBox" id="hbox_action_info">
@@ -1211,6 +1222,8 @@
                       <object class="GtkBox" id="vbox_display">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
                         <property name="orientation">vertical</property>
                         <property name="homogeneous">True</property>
                         <child>
@@ -1220,7 +1233,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="has_tooltip">True</property>
-                            <property name="tooltip_markup" translatable="yes">signal</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
                             <property name="double_buffered">False</property>
                             <signal name="draw" handler="drawingarea_2d_draw_cb" swapped="no"/>
@@ -1253,8 +1265,8 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>

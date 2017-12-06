@@ -106,13 +106,14 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../lib)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 
 ############## next target ################
 if (WIN32)
@@ -191,7 +192,7 @@ if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
+# target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
 
 # gtk
  if (GTK3_SUPPORT)

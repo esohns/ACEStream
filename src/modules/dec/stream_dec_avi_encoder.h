@@ -35,8 +35,8 @@
 extern "C"
 {
 #endif
-#include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
+#include "libavutil/pixfmt.h"
+#include "libavutil/rational.h"
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
@@ -55,6 +55,8 @@ extern "C"
 #include "stream_dec_exports.h"
 
 // forward declaration(s)
+struct AVFormatContext;
+struct SwsContext;
 class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;

@@ -24,7 +24,7 @@
 #include "ace/Global_Macros.h"
 
 #include "common_itimerhandler.h"
-#include "common_timerhandler.h"
+#include "common_timer_handler.h"
 
 //#include "stream_exports.h"
 

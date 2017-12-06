@@ -44,40 +44,37 @@ Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventH
 }
 
 void
-Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_in,
                                                    const struct Test_U_AudioEffect_DirectShow_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::start"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-  ACE_ASSERT (CBData_);
   ACE_ASSERT (!sessionData_);
 
   sessionData_ =
     &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (sessionData_in);
 
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
-  } // end lock scope
+    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+  } // end IF
 }
 
 void
-Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionID_in)
+Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::end"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
+  guint event_source_id = 0;
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_FINISHED);
-
-    guint event_source_id = g_idle_add (idle_session_end_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_session_end_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -85,7 +82,9 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionID_in
       goto continue_;
     } // end IF
     //CBData_->eventSourceIds.insert (event_source_id);
-  } // end lock scope
+
+    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
+  } // end IF
 
 continue_:
   if (sessionData_)
@@ -93,49 +92,47 @@ continue_:
 }
 
 void
-Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                     const Test_U_AudioEffect_DirectShow_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-  ACE_ASSERT (CBData_);
   ACE_ASSERT (sessionData_);
 
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
+    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
 
-    guint event_source_id = g_idle_add (idle_update_display_cb,
-                                        CBData_);
-    if (event_source_id == 0)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-      return;
-    } // end IF
+    //guint event_source_id = g_idle_add (idle_update_display_cb,
+    //                                    CBData_);
+    //if (event_source_id == 0)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
+    //  return;
+    //} // end IF
   //  CBData_->eventSourceIds.insert (event_source_id);
-  } // end lock scope
+  } // end IF
 }
 void
-Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                     const Test_U_AudioEffect_DirectShow_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
+  ACE_UNUSED_ARG (sessionId_in);
 
   enum Common_UI_Event event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (event_e);
-  } // end lock scope
+    CBData_->eventStack.push (event_e);
+  } // end IF
 }
 
 //////////////////////////////////////////
@@ -149,12 +146,12 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::Test_U_AudioEffect_MediaFoundat
 }
 
 void
-Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessionId_in,
                                                         const struct Test_U_AudioEffect_MediaFoundation_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::start"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -164,32 +161,33 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
     &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (sessionData_in);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
+    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
 }
 
 void
-Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t sessionID_in)
+Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::end"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+  guint event_source_id = 0;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_FINISHED);
-
-    guint event_source_id = g_idle_add (idle_session_end_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_session_end_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
       goto continue_;
     } // end IF
-    CBData_->eventSourceIds.insert (event_source_id);
+    //CBData_->eventSourceIds.insert (event_source_id);
+
+    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
 
 continue_:
@@ -198,22 +196,21 @@ continue_:
 }
 
 void
-Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                          const Test_U_AudioEffect_MediaFoundation_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
+  guint event_source_id = 0;
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
+    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
 
-    guint event_source_id = g_idle_add (idle_update_display_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_update_display_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -221,26 +218,23 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
       return;
     } // end IF
 //  CBData_->eventSourceIds.insert (event_source_id);
-  } // end lock scope
+  } // end IF
 }
 void
-Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                                          const Test_U_AudioEffect_MediaFoundation_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
+  ACE_UNUSED_ARG (sessionId_in);
 
   enum Common_UI_Event event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
-
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (event_e);
-  } // end lock scope
+    CBData_->eventStack.push (event_e);
+  } // end IF
 }
 #else
 Test_U_AudioEffect_EventHandler::Test_U_AudioEffect_EventHandler (struct Test_U_AudioEffect_GTK_CBData* CBData_in)
@@ -252,32 +246,32 @@ Test_U_AudioEffect_EventHandler::Test_U_AudioEffect_EventHandler (struct Test_U_
 }
 
 void
-Test_U_AudioEffect_EventHandler::start (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_EventHandler::start (Stream_SessionId_t sessionId_in,
                                         const struct Test_U_AudioEffect_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::start"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
-  ACE_ASSERT (CBData_);
   ACE_ASSERT (!sessionData_);
 
   sessionData_ =
     &const_cast<struct Test_U_AudioEffect_SessionData&> (sessionData_in);
 
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
-  } // end lock scope
+    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+  } // end IF
 }
 
 void
-Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                          const Stream_SessionMessageType& sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionEvent_in);
 
   ACE_ASSERT (false);
@@ -287,28 +281,30 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
 }
 
 void
-Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionID_in)
+Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::end"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+  guint event_source_id = 0;
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_FINISHED);
-
-    guint event_source_id = g_idle_add (idle_session_end_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_session_end_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
       goto continue_;
     } // end IF
-    CBData_->eventSourceIds.insert (event_source_id);
-  } // end lock scope
+    //CBData_->eventSourceIds.insert (event_source_id);
+
+    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
+  } // end IF
 
 continue_:
   if (sessionData_)
@@ -316,22 +312,21 @@ continue_:
 }
 
 void
-Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                          const Test_U_AudioEffect_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionId_in);
 
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
+  guint event_source_id = 0;
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
+    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
 
-    guint event_source_id = g_idle_add (idle_update_display_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_update_display_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -339,18 +334,15 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
       return;
     } // end IF
 //  CBData_->eventSourceIds.insert (event_source_id);
-  } // end lock scope
+  } // end IF
 }
 void
-Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
+Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
                                          const Test_U_AudioEffect_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::notify"));
 
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
+  ACE_UNUSED_ARG (sessionId_in);
 
   enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
@@ -359,9 +351,10 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
     {
       ACE_ASSERT (sessionData_);
 
+      if (CBData_)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
         CBData_->progressData.statistic = sessionData_->statistic;
-      } // end lock scope
+      } // end IF
 
       event_e = COMMON_UI_EVENT_STATISTIC;
 
@@ -371,8 +364,9 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
       return;
   } // end SWITCH
 
+  if (CBData_)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push_back (event_e);
-  } // end lock scope
+    CBData_->eventStack.push (event_e);
+  } // end IF
 }
 #endif

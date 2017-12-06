@@ -34,7 +34,7 @@ endif ()
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
 else ()
- message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
+ #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
@@ -97,6 +97,7 @@ if (UNIX)
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
@@ -126,7 +127,9 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -231,6 +234,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
@@ -325,6 +329,9 @@ elseif (WIN32)
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
                           ENVIRONMENT foo=bar)
@@ -345,6 +352,9 @@ elseif (WIN32)
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
                           ENVIRONMENT foo=bar)

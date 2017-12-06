@@ -66,13 +66,13 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
+                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
+                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
@@ -81,26 +81,26 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
+                                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
   //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
+                                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("MicSource")),
+                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -154,7 +154,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
 
   // ******************* Mic Source ************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("MicSource")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_Dev_Mic_Source_DirectShow* source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_DirectShow*> (module_p->writer ());
@@ -552,7 +552,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (struct Test_U_AudioEffect_Statist
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t*> (module_p->writer ());
@@ -745,13 +745,13 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
+                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
+                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
@@ -760,26 +760,26 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
+                                                                                    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
   //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
+                                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
-                                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR ("MicSource")),
+                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -833,7 +833,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
 
   // ******************* Mic Source ************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("MicSource")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_Dev_Mic_Source_MediaFoundation* source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation*> (module_p->writer ());
@@ -1070,7 +1070,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_St
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t*> (module_p->writer ());
@@ -1422,7 +1422,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
 //  ACE_NEW_RETURN (module_p,
 //                  Test_U_AudioEffect_Module_FileWriter_Module (this,
-//                                                               ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
+//                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
 //                  false);
 //  modules_out.push_back (module_p);
 //  module_p = NULL;
@@ -1430,13 +1430,13 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   //         itself
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
+                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
+                                                                  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
@@ -1444,7 +1444,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback")),
+                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
     module_p = NULL;
@@ -1453,7 +1453,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_SoXEffect_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR ("AudioEffect")),
+                                                         ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
     module_p = NULL;
@@ -1461,18 +1461,18 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_StatisticAnalysis_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
+                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR ("MicSource")),
+                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -1548,7 +1548,7 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // ******************* Mic Source ************************
   module_p =
-    const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("MicSource")));
+    const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_ALSA*> (module_p->writer ());
@@ -1600,7 +1600,7 @@ Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_Statistic& data_ou
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_AudioEffect_Module_Statistic_WriterTask_t* statistic_impl_p =
     dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_t*> (module_p->writer ());

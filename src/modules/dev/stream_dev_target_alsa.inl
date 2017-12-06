@@ -543,8 +543,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!deviceHandle_);
 
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+//      SessionDataType& session_data_r =
+//          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       bool stop_device = false;
       size_t initial_buffer_size = 0;

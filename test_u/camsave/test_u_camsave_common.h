@@ -263,8 +263,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , format (AV_PIX_FMT_RGB24)
 #endif
    , device ()
-   , lock (NULL)
    , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
@@ -319,8 +319,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                      device;
-  ACE_SYNCH_MUTEX*                 lock;
   GdkPixbuf*                       pixelBuffer;
+  ACE_SYNCH_MUTEX*                 pixelBufferLock;
   Stream_CamSave_ISessionNotify_t* subscriber;
   Stream_CamSave_Subscribers_t*    subscribers;
   std::string                      targetFileName;
@@ -459,6 +459,7 @@ struct Stream_CamSave_GTK_CBData
    , configuration (NULL)
    , isFirst (true)
    , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
    , progressData ()
    , progressEventSourceId (0)
    , stream (NULL)
@@ -468,11 +469,14 @@ struct Stream_CamSave_GTK_CBData
 #else
    , device (-1)
 #endif
-  {};
+  {
+    pixelBufferLock = &lock;
+  };
 
   struct Stream_CamSave_Configuration*   configuration;
   bool                                   isFirst; // first activation ?
   GdkPixbuf*                             pixelBuffer;
+  ACE_SYNCH_MUTEX*                       pixelBufferLock;
   struct Stream_CamSave_GTK_ProgressData progressData;
   guint                                  progressEventSourceId;
   Stream_CamSave_Stream*                 stream;

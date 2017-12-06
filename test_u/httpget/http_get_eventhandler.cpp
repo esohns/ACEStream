@@ -33,91 +33,94 @@
 #include "http_get_common.h"
 #include "http_get_callbacks.h"
 
-HTTPGet_EventHandler::HTTPGet_EventHandler (struct HTTPGet_GtkCBData* GtkCBData_in,
+HTTPGet_EventHandler::HTTPGet_EventHandler (struct HTTPGet_GtkCBData* CBData_in,
                                             bool consoleMode_in)
  : consoleMode_ (consoleMode_in)
- , GtkCBData_ (GtkCBData_in)
+ , CBData_ (CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::HTTPGet_EventHandler"));
 
   // sanity check(s)
-  ACE_ASSERT (GtkCBData_);
-}
-
-HTTPGet_EventHandler::~HTTPGet_EventHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::~HTTPGet_EventHandler"));
-
+  ACE_ASSERT (CBData_);
 }
 
 void
-HTTPGet_EventHandler::start (Stream_SessionId_t sessionID_in,
+HTTPGet_EventHandler::start (Stream_SessionId_t sessionId_in,
                              const struct HTTPGet_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::start"));
 
+  ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (sessionData_in);
+
   // sanity check(s)
-  ACE_ASSERT (GtkCBData_);
+  ACE_ASSERT (CBData_);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-
-    guint event_source_id = g_idle_add (idle_session_start_cb,
-                                        GtkCBData_);
+  guint event_source_id = 0;
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    event_source_id = g_idle_add (idle_session_start_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_start_cb): \"%m\", returning\n")));
       return;
     } // end IF
-    GtkCBData_->eventSourceIds.insert (event_source_id);
+    CBData_->eventSourceIds.insert (event_source_id);
   } // end lock scope
 }
 
 void
-HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                              const enum Stream_SessionMessageType& sessionMessage_in)
+HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
+                              const enum Stream_SessionMessageType& messageType_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
 
+  ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (messageType_in);
 }
 
 void
-HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
+HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
                               const HTTPGet_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
 
+  ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (message_in);
+
   // sanity check(s)
-  ACE_ASSERT (GtkCBData_);
+  ACE_ASSERT (CBData_);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-
-    GtkCBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
 
 void
-HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
+HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
                               const HTTPGet_SessionMessage& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
 
+  ACE_UNUSED_ARG (sessionId_in);
+
   // sanity check(s)
-  ACE_ASSERT (GtkCBData_);
-  ACE_ASSERT (GtkCBData_->progressData);
+  ACE_ASSERT (CBData_);
+  ACE_ASSERT (CBData_->progressData);
 
   int result = -1;
-  enum Common_UI_Event event = COMMON_UI_EVENT_INVALID;
+  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   switch (message_in.type ())
   {
     case STREAM_SESSION_MESSAGE_CONNECT:
-      event = COMMON_UI_EVENT_CONNECT; break;
+      event_e = COMMON_UI_EVENT_CONNECT; break;
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-      event = COMMON_UI_EVENT_DISCONNECT; break;
+      event_e = COMMON_UI_EVENT_DISCONNECT; break;
     case STREAM_SESSION_MESSAGE_ABORT:
     case STREAM_SESSION_MESSAGE_LINK:
     case STREAM_SESSION_MESSAGE_UNLINK:
-      event = COMMON_UI_EVENT_CONTROL; break;
+      event_e = COMMON_UI_EVENT_CONTROL; break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       const HTTPGet_SessionData_t& session_data_container_r =
@@ -125,27 +128,27 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
       struct HTTPGet_SessionData& session_data_r =
         const_cast<struct HTTPGet_SessionData&> (session_data_container_r.getR ());
 
-      if (session_data_r.lock)
-      {
-        result = session_data_r.lock->acquire ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-      } // end IF
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+        if (session_data_r.lock)
+        {
+          result = session_data_r.lock->acquire ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+        } // end IF
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-        GtkCBData_->progressData->statistic = session_data_r.statistic;
+        CBData_->progressData->statistic = session_data_r.statistic;
+
+        if (session_data_r.lock)
+        {
+          result = session_data_r.lock->release ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+        } // end IF
       } // end lock scope
 
-      if (session_data_r.lock)
-      {
-        result = session_data_r.lock->release ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
-      } // end IF
-
-      event = COMMON_UI_EVENT_CONTROL;
+      event_e = COMMON_UI_EVENT_CONTROL;
       break;
     }
     default:
@@ -156,26 +159,31 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
       return;
     }
   } // end SWITCH
-  GtkCBData_->eventStack.push_back (event);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->eventStack.push (event_e);
+  } // end lock scope
 }
 
 void
-HTTPGet_EventHandler::end (Stream_SessionId_t sessionID_in)
+HTTPGet_EventHandler::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::end"));
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
+  ACE_UNUSED_ARG (sessionId_in);
 
-    GtkCBData_->eventStack.push_back (COMMON_UI_EVENT_DISCONNECT);
-
-    guint event_source_id = g_idle_add (idle_session_end_cb,
-                                        GtkCBData_);
+  guint event_source_id = 0;
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    event_source_id = g_idle_add (idle_session_end_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", returning\n")));
       return;
     } // end IF
-    GtkCBData_->eventSourceIds.insert (event_source_id);
+    CBData_->eventSourceIds.insert (event_source_id);
+
+    CBData_->eventStack.push (COMMON_UI_EVENT_DISCONNECT);
   } // end lock scope
 }

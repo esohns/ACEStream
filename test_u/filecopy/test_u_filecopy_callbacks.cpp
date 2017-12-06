@@ -652,15 +652,11 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
+  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    if (data_p->eventStack.empty ())
-      return G_SOURCE_CONTINUE;
-
-    for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
-         iterator_2 != data_p->eventStack.end ();
-         iterator_2++)
+    while (data_p->eventStack.pop (event_e) == 0)
     {
-      switch (*iterator_2)
+      switch (event_e)
       {
         case COMMON_UI_EVENT_STARTED:
         {
@@ -711,7 +707,7 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown event type (was: %d), continuing\n"),
-                      *iterator_2));
+                      event_e));
           break;
         }
       } // end SWITCH
@@ -720,8 +716,6 @@ idle_update_info_display_cb (gpointer userData_in)
                             GTK_SPIN_STEP_FORWARD,
                             1.0);
     } // end FOR
-
-    data_p->eventStack.clear ();
   } // end lock scope
 
   return G_SOURCE_CONTINUE;

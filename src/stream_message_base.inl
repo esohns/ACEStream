@@ -21,7 +21,7 @@
 #include <limits>
 
 #include "ace/Log_Msg.h"
-#include "ace/OS.h"
+//#include "ace/OS.h"
 
 #include "stream_iallocator.h"
 #include "stream_macros.h"

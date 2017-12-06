@@ -132,21 +132,13 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct less_guid
   {
-    bool operator () (const struct _GUID& lhs_in,
-                      const struct _GUID& rhs_in) const
-    {
-      //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
-      //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
-      //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
-
-      return (lhs_in.Data1 < rhs_in.Data1);
-    }
+    inline bool operator () (const struct _GUID& lhs_in, const struct _GUID& rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
   };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
-  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
+  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
+  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
 
-  static GUID2STRING_MAP_T Stream_DirectShowMediaSubType2StringMap;
-  static GUID2STRING_MAP_T Stream_MediaFoundationMediaSubType2StringMap;
+  static GUID_TO_STRING_MAP_T Stream_DirectShowMediaSubTypeToStringMap;
+  static GUID_TO_STRING_MAP_T Stream_MediaFoundationMediaSubTypeToStringMap;
 #endif
 };
 

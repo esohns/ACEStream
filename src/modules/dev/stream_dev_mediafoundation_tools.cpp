@@ -60,24 +60,24 @@
 #include "stream_lib_defines.h"
 
 // initialize statics
-Stream_Module_Device_MediaFoundation_Tools::GUID2STRING_MAP_T Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap;
+Stream_Module_Device_MediaFoundation_Tools::GUID_TO_STRING_MAP_T Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap;
 
 void
 Stream_Module_Device_MediaFoundation_Tools::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::initialize"));
 
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Default, ACE_TEXT_ALWAYS_CHAR ("MF default")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Audio, ACE_TEXT_ALWAYS_CHAR ("MF audio")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Video, ACE_TEXT_ALWAYS_CHAR ("MF video")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Protected, ACE_TEXT_ALWAYS_CHAR ("MF protected")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_SAMI, ACE_TEXT_ALWAYS_CHAR ("MF SAMI")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Script, ACE_TEXT_ALWAYS_CHAR ("MF script")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Image, ACE_TEXT_ALWAYS_CHAR ("MF image")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_HTML, ACE_TEXT_ALWAYS_CHAR ("MF HTML")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Binary, ACE_TEXT_ALWAYS_CHAR ("MF binary")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_FileTransfer, ACE_TEXT_ALWAYS_CHAR ("MF file transfer")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Stream, ACE_TEXT_ALWAYS_CHAR ("MF stream")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Default, ACE_TEXT_ALWAYS_CHAR ("MF default")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Audio, ACE_TEXT_ALWAYS_CHAR ("MF audio")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Video, ACE_TEXT_ALWAYS_CHAR ("MF video")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Protected, ACE_TEXT_ALWAYS_CHAR ("MF protected")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_SAMI, ACE_TEXT_ALWAYS_CHAR ("MF SAMI")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Script, ACE_TEXT_ALWAYS_CHAR ("MF script")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Image, ACE_TEXT_ALWAYS_CHAR ("MF image")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_HTML, ACE_TEXT_ALWAYS_CHAR ("MF HTML")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Binary, ACE_TEXT_ALWAYS_CHAR ("MF binary")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_FileTransfer, ACE_TEXT_ALWAYS_CHAR ("MF file transfer")));
+  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorTypeToStringMap.insert (std::make_pair (MFMediaType_Stream, ACE_TEXT_ALWAYS_CHAR ("MF stream")));
 }
 
 //void
@@ -410,11 +410,15 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
         IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[i],
                                                  count,
                                                  &media_type_p);
-      if (FAILED (result)) break; // MF_E_TRANSFORM_TYPE_NOT_SET: 0xC00D6D60L
+      if (FAILED (result))
+        break; // MF_E_TRANSFORM_TYPE_NOT_SET: 0xC00D6D60L
+      ACE_ASSERT (media_type_p);
 
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("#%d: %s\n"),
-                  count + 1,
+                  //ACE_TEXT ("%s: #%d: %s\n"),
+                  //ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::transformToString (IMFTransform_in).c_str ()),
+                  count,
                   ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
 
       // clean up
@@ -2734,6 +2738,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
   IMFStreamSink* stream_sink_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   int i = 0;
+  //bool do_flip = false;
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;
@@ -2836,6 +2841,9 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+
+  //if (sub_type.Data1 == MAKEFOURCC ('M', 'J', 'P', 'G'))
+  //do_flip = true;
 
   // step2: add decoder nodes ?
   mft_register_type_info.guidMajorType = MFMediaType_Video;
@@ -3164,6 +3172,9 @@ transform:
   result = transform_p->GetOutputCurrentType (0,
                                               &media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
+  result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                  &sub_type);
+  ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: output format: \"%s\"...\n"),
               ACE_TEXT (module_string.c_str ()),
@@ -3174,10 +3185,13 @@ transform:
   ACE_ASSERT (SUCCEEDED (result));
   transform_p->Release ();
   transform_p = NULL;
-  // *TODO*: (for some unknown reason,) this does nothing...
-  //result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
-  //result = video_processor_control_p->SetRotation (ROTATION_NORMAL);
-  //ACE_ASSERT (SUCCEEDED (result));
+  ////if (do_flip)
+  ////{
+    // *TODO*: (strangely,) this works for MJPG --> NV12 --> RGB24, but does
+    //         nothing for NV12 --> RGB24 or YUY2 --> RGB24
+    result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
+    ACE_ASSERT (SUCCEEDED (result));
+  //} // end IF
   video_processor_control_p->Release ();
 
   // debug info
@@ -5348,6 +5362,11 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTransform* IMFTr
   DWORD number_of_output_streams = 0;
   DWORD* input_stream_ids_p = NULL;
   DWORD* output_stream_ids_p = NULL;
+  DWORD index = 0;
+  struct _GUID media_subtype = GUID_NULL;
+  bool prefer_rgb = true;
+  bool prefer_chroma = false;
+
   result = IMFTransform_in->GetStreamCount (&number_of_input_streams,
                                             &number_of_output_streams);
   if (FAILED (result))
@@ -5394,16 +5413,69 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTransform* IMFTr
   delete [] input_stream_ids_p;
   input_stream_ids_p = NULL;
 
-  result = IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[0],
-                                                    0,
-                                                    &IMFMediaType_out);
-  if (FAILED (result))
+iterate:
+  do
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTransform::GetOutputAvailableType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    goto error;
+    result = IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[0],
+                                                      index,
+                                                      &IMFMediaType_out);
+    if (FAILED (result))
+    {
+      if (result == MF_E_NO_MORE_TYPES)
+        break;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTransform::GetOutputAvailableType(%d): \"%s\", aborting\n"),
+                  index,
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (IMFMediaType_out);
+
+    result = IMFMediaType_out->GetGUID (MF_MT_SUBTYPE,
+                                        &media_subtype);
+    ACE_ASSERT (SUCCEEDED (result));
+    ACE_DEBUG ((LM_DEBUG,
+                //ACE_TEXT ("%s: output type %d: \"%s\"\n"),
+                //ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::transformToString (IMFTransform_in).c_str ()),
+                ACE_TEXT ("#%d: \"%s\"\n"),
+                index,
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (media_subtype, true).c_str ())));
+
+    if ((prefer_rgb &&
+         Stream_Module_Decoder_Tools::isRGB (media_subtype,
+                                             true))             ||
+        (prefer_chroma &&
+         Stream_Module_Decoder_Tools::isChromaLuminance (media_subtype,
+                                                         true)) ||
+        (!prefer_rgb && !prefer_chroma))
+      break;
+
+    // clean up
+    IMFMediaType_out->Release ();
+    IMFMediaType_out = NULL;
+
+    ++index;
+  } while (true);
+  if (!IMFMediaType_out &&
+      (prefer_rgb || prefer_chroma))
+  {
+    if (prefer_rgb)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("transform has no rgb output type(s), trying chroma-luminance\n")));
+      prefer_rgb = false;
+      prefer_chroma = true;
+    } // end IF
+    else if (prefer_chroma)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("transform has no chroma-luminance output type(s), returning first format\n")));
+      prefer_chroma = false;
+    } // end ELSE IF
+    index = 0;
+    goto iterate;
   } // end IF
+  ACE_ASSERT (IMFMediaType_out);
   delete [] output_stream_ids_p;
 
   return true;
@@ -5801,6 +5873,35 @@ Stream_Module_Device_MediaFoundation_Tools::activateToString (IMFActivate* IMFAc
 error:
   return result;
 }
+//std::string
+//Stream_Module_Device_MediaFoundation_Tools::transformToString (IMFTransform* IMFTransform_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::transformToString"));
+//
+//  std::string result;
+//
+//  IMFAttributes* attributes_p = NULL;
+//  HRESULT result_2 = IMFTransform_in->GetAttributes (&attributes_p);
+//  ACE_ASSERT (SUCCEEDED (result_2));
+//  WCHAR buffer[BUFSIZ];
+//  result_2 = attributes_p->GetString (MFT_FRIENDLY_NAME_Attribute,
+//                                      buffer, sizeof (buffer),
+//                                      NULL);
+//  if (FAILED (result_2)) // MF_E_ATTRIBUTENOTFOUND: 0xC00D36E6L
+//  {
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("failed to IMFAttributes::GetString(MFT_FRIENDLY_NAME_Attribute): \"%s\", aborting\n"),
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+//    goto error;
+//  } // end IF
+//  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer));
+//
+//error:
+//  if (attributes_p)
+//    attributes_p->Release ();
+//
+//  return result;
+//}
 
 //bool
 //Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFSourceReaderEx* IMFSourceReaderEx_in,

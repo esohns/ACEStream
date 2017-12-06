@@ -73,7 +73,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
  , OpenGLInstructions_ (NULL)
  , OpenGLInstructionsLock_ (NULL)
- , OpenGLTextureId_ (0)
+ //, OpenGLTextureId_ (0)
  , backgroundColor_ ()
  , foregroundColor_ ()
  , OpenGLWindow_ (NULL)
@@ -206,7 +206,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
     OpenGLInstructions_ = NULL;
     OpenGLInstructionsLock_ = NULL;
-    OpenGLTextureId_ = 0;
+    //OpenGLTextureId_ = 0;
 #if GTK_CHECK_VERSION (3,0,0)
     backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
     foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
@@ -277,7 +277,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
-  OpenGLTextureId_ = configuration_in.OpenGLTextureId;
+  //OpenGLTextureId_ = configuration_in.OpenGLTextureId;
   OpenGLWindow_ = configuration_in.OpenGLWindow;
 #if GTK_CHECK_VERSION (3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
@@ -307,7 +307,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
   if (OpenGLWindow_)
   {
-    ACE_ASSERT (OpenGLTextureId_ > 0);
+    //ACE_ASSERT (OpenGLTextureId_ > 0);
   } // end IF
 #if GTK_CHECK_VERSION (3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
@@ -315,7 +315,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
   if (OpenGLContext_)
   {
-    ACE_ASSERT (OpenGLTextureId_ > 0);
+    //ACE_ASSERT (OpenGLTextureId_ > 0);
   } // end IF
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -465,7 +465,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       } // end IF
     } // end FOR
     number_of_samples -= samples_to_write;
-    if (number_of_samples == 0) break; // done
+    if (!number_of_samples)
+      break; // done
   } while (true);
 }
 
@@ -690,7 +691,8 @@ error:
       //                   --> join with the renderer thread
       if (inherited::thr_count_ > 0)
       {
-        inherited::stop (true); // wait ?
+        inherited::stop (true,  // wait ?
+                         true); // N/A
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
@@ -715,7 +717,7 @@ error:
         cairoContext_ = NULL;
       } // end IF
 #if defined (GTKGL_SUPPORT)
-      OpenGLTextureId_ = 0;
+      //OpenGLTextureId_ = 0;
       OpenGLWindow_ = NULL;
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -792,6 +794,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
       case ACE_Message_Block::MB_EVENT:
         update ();
+      // *WARNING*: control falls through
       default:
       {
         // clean up
@@ -1330,7 +1333,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   double half_height = height_ / 2.0;
   double x = 0.0;
 
-  if (!cairoContext_) goto unlock;
+  if (!cairoContext_)
+    goto unlock;
 
   if (surfaceLock_)
   {
@@ -1343,7 +1347,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       release_lock = true;
   } // end IF
 
-  // step1: wipe the window(s)
+  // step1: clear the window(s)
   if (*mode2D_ < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX)
   {
     cairo_set_source_rgb (cairoContext_, 0.0, 0.0, 0.0);
@@ -1398,8 +1402,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
     } // end SWITCH
   } // end FOR
-  //cairo_surface_mark_dirty (cairoSurface_);
-  //cairo_surface_flush (cairoSurface_);
+  cairo_surface_mark_dirty (cairoSurface_);
+  cairo_surface_flush (cairoSurface_);
 
 unlock:
   if (release_lock)
@@ -1415,12 +1419,16 @@ unlock:
   struct Stream_Module_Visualization_OpenGLInstruction opengl_instruction;
 
 #if GTK_CHECK_VERSION (3,0,0)
-  if (!OpenGLWindow_ || (OpenGLTextureId_ == 0))
+  if (!OpenGLWindow_)// ||
+      //(OpenGLTextureId_ == 0))
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  if (!OpenGLWindow_ || (OpenGLTextureId_ == 0))
+  if (!OpenGLWindow_)// ||
+      //(OpenGLTextureId_ == 0))
 #else
-  if (!OpenGLContext_ || !OpenGLWindow_ || (OpenGLTextureId_ == 0))
+  if (!OpenGLContext_ ||
+      !OpenGLWindow_)//  ||
+      //(OpenGLTextureId_ == 0))
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
     goto continue_;
@@ -1441,7 +1449,7 @@ unlock:
       //gdk_gl_context_make_current (OpenGLContext_);
 #else /* GTK_CHECK_VERSION (3,16,0) */
 #if defined (GTKGLAREA_SUPPORT)
-      ggla_area_make_current (OpenGLWindow_);
+      //ggla_area_make_current (OpenGLWindow_);
 #else
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,16,0) */
@@ -1450,10 +1458,10 @@ unlock:
 //      gdk_gl_make_current (OpenGLWindow_,
 //                           OpenGLContext_);
 //      ggla_area_make_current (OpenGLWindow_);
-      gtk_gl_area_make_current (OpenGLWindow_);
+      //gtk_gl_area_make_current (OpenGLWindow_);
 #else
-      gdk_gl_drawable_make_current (OpenGLWindow_,
-                                    OpenGLContext_);
+      //gdk_gl_drawable_make_current (OpenGLWindow_,
+      //                              OpenGLContext_);
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 
@@ -1462,7 +1470,6 @@ unlock:
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
-
         opengl_instruction.color = backgroundColor_;
         opengl_instruction.type =
           STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_BG;
@@ -1488,7 +1495,7 @@ unlock:
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
 #else /* GTK_CHECK_VERSION (3,16,0) */
-      ggla_area_swap_buffers (OpenGLWindow_);
+      //ggla_area_swap_buffers (OpenGLWindow_);
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 

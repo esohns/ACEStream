@@ -24,9 +24,13 @@
 #include <deque>
 #include <string>
 
+#include "ace/Module.h"
+#include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Task_T.h"
 
 #include "common_idumpstate.h"
+#include "common_iget.h"
 
 #include "stream_common.h"
 #include "stream_ilock.h"
@@ -90,6 +94,7 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T
  : public Stream_ILock_T<ACE_SYNCH_USE>
+ , public Common_ISetP_T<ACE_Stream<ACE_SYNCH_USE, TimePolicyType> > // set upstream
  , public Common_IDumpState
 {
  public:
@@ -124,9 +129,6 @@ class Stream_IStream_T
   // *IMPORTANT NOTE*: must be invoked on 'downstream' (!) sub-stream(s)
   virtual void _unlink () = 0;
 
-  // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from derived classes
-  //         --> use this API to set/retrieve upstream (if any)
-  virtual void upstream (STREAM_T*) = 0;
   // *WARNING*: these APIs are not thread-safe
   virtual STREAM_T* downstream () const = 0;
   virtual STREAM_T* upstream (bool = false) const = 0; // recurse (if any) ?

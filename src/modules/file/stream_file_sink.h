@@ -178,7 +178,7 @@ class Stream_Module_FileWriterH_T
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual const ConfigurationType& get () const;
+  inline virtual const ConfigurationType& get () const { ACE_ASSERT (inherited::configuration_); return *inherited::configuration_; }
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 

@@ -890,9 +890,12 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-    mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                              std::make_pair (module_configuration,
-                                                                                              mediafoundation_modulehandler_configuration)));
+    mediafoundation_modulehandler_configuration.allocatorConfiguration =
+      allocator_configuration_p;
+    mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
+                                                                  mediafoundation_modulehandler_configuration,
+                                                                  mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
+                                                                  mediafoundation_configuration.streamConfiguration.configuration_);
 
     mediafoundation_modulehandler_iterator =
       mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -913,8 +916,8 @@ do_work (unsigned int bufferSize_in,
       UIDefinitionFile_in.empty ();
     (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-    //(*mediafoundation_modulehandler_iterator).second.subscriber =
-    //  &mediafoundation_ui_event_handler;
+    (*mediafoundation_modulehandler_iterator).second.second.subscriber =
+      &mediafoundation_ui_event_handler;
     (*mediafoundation_modulehandler_iterator).second.second.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
@@ -922,9 +925,12 @@ do_work (unsigned int bufferSize_in,
   else
   {
     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-    directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                         std::make_pair (module_configuration,
-                                                                                         directshow_modulehandler_configuration)));
+    directshow_modulehandler_configuration.allocatorConfiguration =
+      allocator_configuration_p;
+    directshow_configuration.streamConfiguration.initialize (module_configuration,
+                                                             directshow_modulehandler_configuration,
+                                                             directshow_configuration.streamConfiguration.allocatorConfiguration_,
+                                                             directshow_configuration.streamConfiguration.configuration_);
 
     directshow_modulehandler_iterator =
       directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -962,16 +968,19 @@ do_work (unsigned int bufferSize_in,
       UIDefinitionFile_in.empty ();
     (*directshow_modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-    //(*directshow_modulehandler_iterator).second.subscriber =
-    //  &directshow_ui_event_handler;
+    (*directshow_modulehandler_iterator).second.second.subscriber =
+      &directshow_ui_event_handler;
     (*directshow_modulehandler_iterator).second.second.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
   } // end ELSE
 #else
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
+  modulehandler_configuration.allocatorConfiguration =
+    allocator_configuration_p;
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                configuration.streamConfiguration.allocatorConfiguration_,
+                                                configuration.streamConfiguration.configuration_);
 
   modulehandler_iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -998,8 +1007,8 @@ do_work (unsigned int bufferSize_in,
       ACE_Time_Value (statisticReportingInterval_in, 0);
   (*modulehandler_iterator).second.second.streamConfiguration =
       &configuration.streamConfiguration;
-  //(*modulehandler_iterator).second.subscriber =
-  //    &ui_event_handler;
+  (*modulehandler_iterator).second.second.subscriber =
+      &ui_event_handler;
   (*modulehandler_iterator).second.second.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
@@ -1099,7 +1108,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // ********************** module configuration data (part 2) *****************
-  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
   ACE_ASSERT (module_p);
   idispatch_p =
     dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());

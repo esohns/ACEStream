@@ -89,6 +89,10 @@ elseif (WIN32)
       stream_mediafoundation_message_base.inl)
 endif ()
 
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
  add_compile_options (-std=c++11 -fPIC)
 endif ()

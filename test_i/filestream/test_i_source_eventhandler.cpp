@@ -25,7 +25,7 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
