@@ -124,6 +124,7 @@ class Stream_CamSave_Stream
   Stream_CamSave_MediaFoundation_Source_Module     source_;
 #else
   Stream_CamSave_LibAVConverter_Module             converter_;
+  Stream_CamSave_LibAVDecoder_Module               decoder_;
   Stream_CamSave_V4L_Source_Module                 source_;
 #endif
   Stream_CamSave_StatisticReport_Module            statisticReport_;

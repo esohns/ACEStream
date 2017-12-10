@@ -211,12 +211,12 @@
     <signal name="toggled" handler="toggleaction_fullscreen_toggled_cb" swapped="no"/>
   </object>
   <object class="GtkDialog" id="dialog_main">
+    <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
-    <property name="hexpand">True</property>
-    <property name="vexpand">True</property>
+    <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="type_hint">normal</property>
     <property name="deletable">False</property>
+    <property name="has_resize_grip">True</property>
     <signal name="key-press-event" handler="dialog_main_key_press_event_cb" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="vbox_main">
@@ -541,7 +541,7 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_captured_frames">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
+                                        <property name="can_focus">False</property>
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_text" translatable="yes">captured frames</property>
                                         <property name="editable">False</property>
@@ -561,7 +561,7 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_dropped_frames">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
+                                        <property name="can_focus">False</property>
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_text" translatable="yes">dropped frames</property>
                                         <property name="editable">False</property>
@@ -678,6 +678,9 @@
                                           <object class="GtkEntry" id="entry_destination">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="has_frame">False</property>
                                             <property name="text" translatable="yes">output.avi</property>
                                             <property name="truncate_multiline">True</property>
                                             <property name="shadow_type">etched-in</property>
@@ -697,8 +700,10 @@
                                         <child>
                                           <object class="GtkFileChooserButton" id="filechooserbutton_destination">
                                             <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
+                                            <property name="can_focus">True</property>
                                             <property name="focus_on_click">False</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
                                             <property name="tooltip_text" translatable="yes">destination file/folder</property>
                                             <property name="halign">start</property>
                                             <property name="valign">start</property>
@@ -775,6 +780,7 @@
                                                         <property name="model">liststore_format</property>
                                                         <property name="has_frame">False</property>
                                                         <property name="id_column">0</property>
+                                                        <signal name="changed" handler="combobox_format_changed_cb" swapped="no"/>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -793,6 +799,7 @@
                                                         <property name="tooltip_text" translatable="yes">resolution</property>
                                                         <property name="model">liststore_resolution</property>
                                                         <property name="has_frame">False</property>
+                                                        <signal name="changed" handler="combobox_resolution_changed_cb" swapped="no"/>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -811,6 +818,7 @@
                                                         <property name="tooltip_text" translatable="yes">frame rate</property>
                                                         <property name="model">liststore_rate</property>
                                                         <property name="has_frame">False</property>
+                                                        <signal name="changed" handler="combobox_rate_changed_cb" swapped="no"/>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -897,7 +905,8 @@
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="focus_on_click">False</property>
-                                                            <property name="receives_default">False</property>
+                                                            <property name="can_default">True</property>
+                                                            <property name="receives_default">True</property>
                                                             <property name="tooltip_text" translatable="yes">save to a file ?</property>
                                                             <property name="relief">half</property>
                                                             <property name="draw_indicator">False</property>
@@ -918,6 +927,7 @@
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="focus_on_click">False</property>
+                                                        <property name="can_default">True</property>
                                                         <property name="receives_default">True</property>
                                                         <property name="tooltip_text" translatable="yes">fullscreen display ?</property>
                                                         <property name="relief">half</property>
@@ -1125,7 +1135,7 @@
                         <property name="visible">True</property>
                         <property name="app_paintable">True</property>
                         <property name="can_focus">False</property>
-                        <property name="events">GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                        <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
                         <property name="tooltip_text" translatable="yes">video</property>
                         <property name="double_buffered">False</property>
                         <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
@@ -1254,25 +1264,24 @@
     <property name="visible">True</property>
     <property name="app_paintable">True</property>
     <property name="can_focus">True</property>
-    <property name="has_focus">True</property>
-    <property name="is_focus">True</property>
     <property name="can_default">True</property>
-    <property name="has_default">True</property>
     <property name="receives_default">True</property>
-    <property name="events">GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+    <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="no_show_all">True</property>
+    <property name="double_buffered">False</property>
     <property name="resizable">False</property>
-    <property name="modal">True</property>
     <property name="hide_titlebar_when_maximized">True</property>
+    <property name="accept_focus">False</property>
+    <property name="focus_on_map">False</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
     <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
-    <signal name="key-press-event" handler="window_fullscreen_key_press_event_cb" swapped="no"/>
+    <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
     <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
     <child>
       <placeholder/>
     </child>
-    <child type="titlebar">
+    <child>
       <placeholder/>
     </child>
   </object>

@@ -53,8 +53,8 @@ struct SwsContext;
 
 extern Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[];
 
-enum AVPixelFormat Stream_Dec_Export stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
-//void Stream_Dec_Export stream_decoder_libav_nopfree_cb (void*, uint8_t*);
+Stream_Dec_Export enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
+//Stream_Dec_Export void stream_decoder_libav_nopfree_cb (void*, uint8_t*);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -130,8 +130,7 @@ class Stream_Decoder_LibAVDecoder_T
 //  struct AVBuffer        buffer_;
 //  struct AVBufferRef     bufferRef_;
   struct AVCodecContext* codecContext_;
-  enum AVPixelFormat     codecFormat_; // preferred output-
-  unsigned int           codecFormatHeight_; // output-
+  unsigned int           codecFormatHeight_; // codec output-
   unsigned int           codecFrameSize_; // codec output-
   enum AVCodecID         codecId_;
   int                    codecProfile_;
@@ -139,6 +138,7 @@ class Stream_Decoder_LibAVDecoder_T
   struct SwsContext*     decodeContext_;
   enum AVPixelFormat     decodeFormat_; // output-
   unsigned int           decodeFrameSize_; // output-
+  enum AVPixelFormat     format_; // input-
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];

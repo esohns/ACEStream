@@ -27,7 +27,7 @@
 Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
-enum AVPixelFormat
+Stream_Dec_Export enum AVPixelFormat
 stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
                                    const enum AVPixelFormat* formats_in)
 {
@@ -35,8 +35,8 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
 
   // sanity check(s)
   ACE_ASSERT (context_in);
-  ACE_ASSERT (context_in->opaque);
   ACE_ASSERT (formats_in);
+  ACE_ASSERT (context_in->opaque);
 
   enum AVPixelFormat* preferred_format_p =
     reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
@@ -51,8 +51,9 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
     if (*iterator == *preferred_format_p)
       return *iterator;
   ACE_DEBUG ((LM_WARNING,
-              ACE_TEXT ("codec does not support preferred video format (was: %d), falling back\n"),
-              *preferred_format_p));
+              ACE_TEXT ("%s: preferred format (was: %s) not supported, falling back\n"),
+              ACE_TEXT (avcodec_get_name (context_in->codec_id)),
+              ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (*preferred_format_p).c_str ())));
 
   // *TODO*: set context_in->hw_frames_ctx here as well
 
@@ -64,7 +65,8 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
       return *iterator;
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("codec does not support uncompressed video format, aborting\n")));
+              ACE_TEXT ("%s: does not support any uncompressed video format, aborting\n"),
+              ACE_TEXT (avcodec_get_name (context_in->codec_id))));
 
   return result;
 }

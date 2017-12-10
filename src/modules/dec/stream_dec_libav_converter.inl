@@ -240,20 +240,34 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   inputFormat_ =
-    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (configuration_in.format->subtype);
+    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (configuration_in.inputFormat->subtype,
+                                                                  configuration_in.useMediaFoundation);
   if (unlikely (inputFormat_ == AV_PIX_FMT_NONE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat(\"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (inherited::configuration_->format->subtype, false).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (configuration_in.inputFormat->subtype, configuration_in.useMediaFoundation).c_str ())));
+    return false;
+  } // end IF
+  outputFormat_ =
+    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (configuration_in.outputFormat->subtype,
+                                                                  configuration_in.useMediaFoundation);
+  if (unlikely (inputFormat_ == AV_PIX_FMT_NONE))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat(\"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (configuration_in.outputFormat->subtype, configuration_in.useMediaFoundation).c_str ())));
     return false;
   } // end IF
 #else
-  inputFormat_ = configuration_in.format;
+  inputFormat_ = configuration_in.inputFormat;
+  outputFormat_ = configuration_in.outputFormat;
 #endif
 
-  if (likely (inputFormat_ != outputFormat_))
+  if (likely (!Stream_Module_Decoder_Tools::isCompressedVideo (inputFormat_) &&
+              (inputFormat_ != outputFormat_)))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: converting pixel format %s to %s\n"),
                 inherited::mod_->name (),
@@ -362,7 +376,9 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 #else
     FF_INPUT_BUFFER_PADDING_SIZE;
 #endif
+  int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (&data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
 
   try {
@@ -380,7 +396,17 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (buffer_->capacity () >= frameSize_);
   ACE_ASSERT (frame_);
 
-  data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
+  result = av_image_fill_linesizes (line_sizes,
+                                    inputFormat_,
+                                    static_cast<int> (frame_->width));
+  ACE_ASSERT (result >= 0);
+  result =
+      av_image_fill_pointers (data,
+                              inputFormat_,
+                              static_cast<int> (frame_->height),
+                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+                              line_sizes);
+  ACE_ASSERT (result >= 0);
   if (unlikely (!Stream_Module_Decoder_Tools::convert (context_,
                                                        frame_->width, frame_->height, inputFormat_,
                                                        data,

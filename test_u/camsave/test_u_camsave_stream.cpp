@@ -45,6 +45,8 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
 #else
  , converter_ (this,
                ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , decoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
 #endif
@@ -414,6 +416,7 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   modules_out.push_back (&converter_);
+  modules_out.push_back (&decoder_);
 #endif
   modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
@@ -498,7 +501,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_p->format = configuration_p->format;
+  session_data_p->format = configuration_p->inputFormat;
 #endif
   session_data_p->targetFileName = configuration_p->targetFileName;
 

@@ -466,7 +466,9 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_YUV410P:   ///< planar YUV 4:1:0,  9bpp, (1 Cr & Cb sample per 4x4 Y samples)
     case AV_PIX_FMT_YUV411P:   ///< planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples)
     case AV_PIX_FMT_YUVJ420P:  ///< planar YUV 4:2:0, 12bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV420P and setting color_range
-    case AV_PIX_FMT_YUVJ422P:  ///< planar YUV 4:2:2, 16bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV422P and setting color_range
+    // *NOTE*: libav does not specify a pixel format for MJPEG, it is a
+    //         'compressed' format) --> map this deprecated format
+//    case AV_PIX_FMT_YUVJ422P:  ///< planar YUV 4:2:2, 16bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV422P and setting color_range
     case AV_PIX_FMT_YUVJ444P:  ///< planar YUV 4:4:4, 24bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV444P and setting color_range
     case AV_PIX_FMT_UYVY422:   ///< packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1
     case AV_PIX_FMT_UYYVYY411: ///< packed YUV 4:1:1, 12bpp, Cb Y0 Y1 Cr Y2 Y3
@@ -903,12 +905,9 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (enum AVPixelFormat pixelF
 
   enum AVCodecID result = AV_CODEC_ID_NONE;
 
-  // sanity check(s)
-  ACE_ASSERT (!Stream_Module_Decoder_Tools::isRGB (pixelFormat_in) &&
-              !Stream_Module_Decoder_Tools::isChromaLuminance (pixelFormat_in));
-
   switch (pixelFormat_in)
-  { // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
+  { // *NOTE*: libav does not specify a pixel format for MJPEG, it is a
+    //         'compressed' format) --> map this deprecated format
     case AV_PIX_FMT_YUVJ422P:
       result = AV_CODEC_ID_MJPEG; break;
     default:

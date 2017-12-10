@@ -38,6 +38,7 @@
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_decoder.h"
 
 #include "stream_dev_cam_source_v4l.h"
 #endif
@@ -98,6 +99,13 @@ typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Stream_CamSave_Message,
                                         Stream_CamSave_SessionMessage,
                                         Stream_CamSave_SessionData_t> Stream_CamSave_LibAVConverter;
+typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_CamSave_ModuleHandlerConfiguration,
+                                      Test_U_ControlMessage_t,
+                                      Stream_CamSave_Message,
+                                      Stream_CamSave_SessionMessage,
+                                      Stream_CamSave_SessionData_t> Stream_CamSave_LibAVDecoder;
 #endif
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
@@ -226,6 +234,12 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                
                               libacestream_default_dec_libav_converter_module_name_string,
                               Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
                               Stream_CamSave_LibAVConverter);                   // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_converter_module_name_string,
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_LibAVDecoder);                     // writer type
 #endif
 
 DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type

@@ -113,7 +113,6 @@ G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpoin
 G_MODULE_EXPORT void toggleaction_fullscreen_toggled_cb (GtkToggleAction*, gpointer);
 G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
 G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
-G_MODULE_EXPORT gboolean window_fullscreen_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

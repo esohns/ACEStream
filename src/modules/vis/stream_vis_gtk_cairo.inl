@@ -132,7 +132,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   }
 
   unsigned int width, height = 0;
-  unsigned int image_size = 0;
   enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
   unsigned int row_stride = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -160,9 +159,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   width =
     static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biWidth
                                : video_info_header_2->bmiHeader.biWidth);
-  image_size =
-    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
-     : video_info_header_2->bmiHeader.biSizeImage);
+//  image_size =
+//    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
+//     : video_info_header_2->bmiHeader.biSizeImage);
   pixel_format =
     Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.format->subtype);
   //  struct _GUID sub_type = GUID_NULL;
@@ -200,11 +199,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #else
   width = inherited::configuration_->sourceFormat.width;
   height = inherited::configuration_->sourceFormat.height;
-  image_size =
-    av_image_get_buffer_size (session_data_r.format,
-                              width,
-                              height,
-                              1); // *TODO*: linesize alignment
+//  image_size =
+//    av_image_get_buffer_size (session_data_r.format,
+//                              width,
+//                              height,
+//                              1); // *TODO*: linesize alignment
   pixel_format = session_data_r.format;
   row_stride = av_image_get_linesize (session_data_r.format,
                                       width,
@@ -215,11 +214,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   bool release_lock = false;
   int result = -1;
   guchar* data_2 = NULL;
+  enum AVPixelFormat pixel_format_2 = AV_PIX_FMT_RGB24;
 
-  if (lock_)
+  if (likely (lock_))
   {
     result = lock_->acquire ();
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n"),
@@ -232,12 +232,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     //gdk_threads_enter ();
     //leave_gdk = true;
 
-    // sanity check(s)
+  // sanity check(s)
   ACE_ASSERT (GDK_IS_PIXBUF (inherited::configuration_->pixelBuffer));
-  ACE_ASSERT (gdk_pixbuf_get_colorspace (inherited::configuration_->pixelBuffer) == GDK_COLORSPACE_RGB);
   ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (inherited::configuration_->pixelBuffer) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_has_alpha (inherited::configuration_->pixelBuffer));
-  ACE_ASSERT (gdk_pixbuf_get_n_channels (inherited::configuration_->pixelBuffer) == 4);
+  ACE_ASSERT (gdk_pixbuf_get_colorspace (inherited::configuration_->pixelBuffer) == GDK_COLORSPACE_RGB);
+  if (unlikely (gdk_pixbuf_get_has_alpha (inherited::configuration_->pixelBuffer) ||
+                (gdk_pixbuf_get_n_channels (inherited::configuration_->pixelBuffer) == 4)))
+    pixel_format_2 = AV_PIX_FMT_RGBA;
   data_2 = gdk_pixbuf_get_pixels (inherited::configuration_->pixelBuffer);
   ACE_ASSERT (data_2);
 
@@ -248,13 +249,16 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   int pixbuf_row_stride =
     gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
-    ((pixel_format != AV_PIX_FMT_RGBA) ||
+    ((pixel_format != pixel_format_2) ||
      ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
-  if (transform_image &&
-      ((pixbuf_height != static_cast<int> (scaleContextHeight_)) || (pixbuf_width != static_cast<int> (scaleContextWidth_))))
+  if (likely (!transform_image))
+    goto next;
+
+  if ((pixbuf_height != static_cast<int> (scaleContextHeight_)) ||
+      (pixbuf_width  != static_cast<int> (scaleContextWidth_)))
   {
     if (scaleContext_)
     {
@@ -266,7 +270,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     scaleContext_ =
       sws_getCachedContext (NULL,
                             width, height, pixel_format,
-                            pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
+                            pixbuf_width, pixbuf_height, pixel_format_2,
                             flags,                             // flags
                             NULL, NULL,
                             0);                                // parameters
@@ -290,25 +294,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                 pixbuf_width, pixbuf_height));
   } // end IF
 
-  result = 0;
-
   // step3: transform image?
-
-  // *TODO*: this looks wrong...
-  if (!transform_image)
-  {
-    ACE_ASSERT (image_size == message_inout->length ());
-    // *TODO*: GTK requires RGB, not RGBA --> drop transparency
-    ACE_ASSERT (static_cast<unsigned int> (pixbuf_row_stride) == row_stride);
-    for (unsigned int i = 0;
-         i < height;
-         ++i)
-      ACE_OS::memcpy (data_2 + (i * pixbuf_row_stride),
-                      message_inout->rd_ptr () + (i * row_stride),
-                      row_stride);
-    goto unlock; // done
-  } // end IF
-
   ACE_OS::memset (in_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
@@ -316,7 +302,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
                                              width, height, pixel_format,
                                              in_data,
-                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
+                                             pixbuf_width, pixbuf_height, pixel_format_2,
                                              out_data))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -328,18 +314,21 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     goto unlock;
   } // end IF
 
+next:
+  result = 0;
+
 unlock:
-  if (release_lock)
+  if (likely (release_lock))
   {
     ACE_ASSERT (lock_);
     result = lock_->release ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
   } // end IF
 
-  if (result == -1)
+  if (unlikely (result == -1))
     goto error;
 
   //  gdk_threads_enter ();
@@ -400,6 +389,8 @@ unlock:
   //  gtk_widget_queue_draw_area (widget_p,
   //                              allocation.x, allocation.y,
   //                              allocation.width, allocation.height);
+
+  return;
 
 error:
   //  if (leave_gdk)

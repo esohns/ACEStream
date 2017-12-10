@@ -41,6 +41,7 @@
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavcodec/avcodec.h"
 #include "libavutil/pixfmt.h"
 }
 #endif
@@ -200,11 +201,11 @@ struct Stream_CamSave_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IDirect3DDevice9Ex*                 direct3DDevice;
   UINT                                direct3DManagerResetToken;
-  struct _AMMediaType*                format;
+  struct _AMMediaType*                format; // input-
   TOPOID                              rendererNodeId;
   IMFMediaSession*                    session;
 #else
-  enum AVPixelFormat                  format;
+  enum AVPixelFormat                  format; // input-
   GdkRectangle                        sourceFormat; // gtk cairo/pixbuf module
   struct v4l2_format                  v4l2Format;
   struct v4l2_fract                   v4l2FrameRate; // time-per-frame
@@ -253,17 +254,20 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
-   , format (NULL)
+   , inputFormat (NULL)
    , interfaceIdentifier (GUID_NULL)
+   , outputFormat (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
    , session (NULL)
    , windowController (NULL)
 #else
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , codecId (AV_CODEC_ID_NONE)
    , fileDescriptor (-1)
-   , format (AV_PIX_FMT_RGB24)
+   , inputFormat (AV_PIX_FMT_NONE)
    , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
+   , outputFormat (AV_PIX_FMT_RGB24)
 #endif
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
@@ -312,9 +316,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
   //struct _AMMediaType*     format;
-  IMFMediaType*                    format;
+  IMFMediaType*                    inputFormat;
   // *PORTABILITY*: Win32: video interface GUID
   struct _GUID                     interfaceIdentifier;
+  IMFMediaType*                    outputFormat;
   TOPOID                           rendererNodeId;
   TOPOID                           sampleGrabberNodeId;
   IMFMediaSession*                 session;
@@ -322,10 +327,13 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   IMFVideoDisplayControl*          windowController;
 #else
   __u32                            buffers; // v4l device buffers
+  enum AVPixelFormat               codecFormat; // preferred output-
+  enum AVCodecID                   codecId;
   int                              fileDescriptor;
-  enum AVPixelFormat               format; // target-
-  std::string                      interfaceIdentifier;
+  enum AVPixelFormat               inputFormat;
   // *PORTABILITY*: v4l2: device file (e.g. "[/dev/]video0")
+  std::string                      interfaceIdentifier;
+  enum AVPixelFormat               outputFormat;
 #endif
   GdkPixbuf*                       pixelBuffer;
   ACE_SYNCH_MUTEX*                 pixelBufferLock;

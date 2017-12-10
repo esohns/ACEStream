@@ -3494,7 +3494,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  (*iterator_2).second.second.format =
+  (*iterator_2).second.second.inputFormat =
       Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_i);
   (*iterator_2).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
 #endif
@@ -4097,10 +4097,6 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     return; // window is not (yet) realized, nothing to do
   if (!gdk_window_is_viewable (window_p))
     return; // window is not (yet) mapped, nothing to do
-  if (gtk_toggle_action_get_active (toggle_action_p) &&
-      ACE_OS::strcmp (gtk_buildable_get_name (GTK_BUILDABLE (widget_in)),
-                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_WINDOW_FULLSCREEN)))
-    return; // use the fullscreen window, not the applications'
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //// sanity check(s)
@@ -4402,15 +4398,6 @@ dialog_main_key_press_event_cb (GtkWidget* widget_in,
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
-
-  return key_cb (widget_in, event_in, userData_in);
-};
-gboolean
-window_fullscreen_key_press_event_cb (GtkWidget* widget_in,
-                                      GdkEventKey* event_in,
-                                      gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::window_fullscreen_key_press_event_cb"));
 
   return key_cb (widget_in, event_in, userData_in);
 };
