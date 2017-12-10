@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Log_Msg.h"
-
-#include "libv4l2.h"
 #include "linux/videodev2.h"
+#include "libv4l2.h"
+
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -102,16 +102,16 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (!isPassive_)
-    if (captureFileDescriptor_ != -1)
+  if (likely (!isPassive_))
+    if (unlikely (captureFileDescriptor_ != -1))
     {
       result = v4l2_close (captureFileDescriptor_);
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                     captureFileDescriptor_));
     } // end IF
-  if (overlayFileDescriptor_ != -1)
+  if (unlikely (overlayFileDescriptor_ != -1))
   {
     result = v4l2_close (overlayFileDescriptor_);
     if (result == -1)
@@ -172,13 +172,14 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       // sanity check(s)
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (captureFileDescriptor_ != -1);
+//      ACE_ASSERT (session_data_r.format);
 
       int toggle = 1;
 
       // step0: retain current format as session data
-      if (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                  session_data_r.v4l2Format))
+      if (unlikely (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
+                                                            session_data_r.v4l2Format)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
@@ -187,12 +188,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       } // end IF
 
       // step1: fill buffer queue(s)
-      if (captureFileDescriptor_ != -1)
-        if (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (captureFileDescriptor_,
-                                                                             inherited::configuration_->v4l2Method,
-                                                                             inherited::configuration_->buffers,
-                                                                             bufferMap_,
-                                                                             inherited::allocator_))
+      if (likely (captureFileDescriptor_ != -1))
+        if (unlikely (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (captureFileDescriptor_,
+                                                                                       inherited::configuration_->v4l2Method,
+                                                                                       inherited::configuration_->buffers,
+                                                                                       bufferMap_,
+                                                                                       inherited::allocator_)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -201,12 +202,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         } // end IF
 
       // step2: start stream
-      if (captureFileDescriptor_ != -1)
+      if (likely (captureFileDescriptor_ != -1))
       {
         result = v4l2_ioctl (captureFileDescriptor_,
                              VIDIOC_STREAMON,
                              &toggle);
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
@@ -214,7 +215,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
       } // end IF
-      if (overlayFileDescriptor_ != -1)
+      if (unlikely (overlayFileDescriptor_ != -1))
       {
         result = v4l2_ioctl (overlayFileDescriptor_,
                              VIDIOC_OVERLAY,
@@ -247,13 +248,13 @@ error:
       } // end lock scope
 
       // step1: empty buffer queue(s)
-      if (captureFileDescriptor_ != -1)
+      if (likely (captureFileDescriptor_ != -1))
         Stream_Module_Device_Tools::finalizeBuffers<DataMessageType> (captureFileDescriptor_,
                                                                       inherited::configuration_->v4l2Method,
                                                                       bufferMap_);
 
       // step2: stop stream
-      if (overlayFileDescriptor_ != -1)
+      if (unlikely (overlayFileDescriptor_ != -1))
       {
         result = v4l2_ioctl (overlayFileDescriptor_,
                              VIDIOC_OVERLAY,
@@ -263,13 +264,13 @@ error:
                       ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                       overlayFileDescriptor_, ACE_TEXT ("VIDIOC_OVERLAY")));
       } // end IF
-      if (captureFileDescriptor_ != -1)
+      if (likely (captureFileDescriptor_ != -1))
       {
         toggle = 1; // ?
         result = v4l2_ioctl (captureFileDescriptor_,
                              VIDIOC_STREAMOFF,
                              &toggle);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                       captureFileDescriptor_, ACE_TEXT ("VIDIOC_STREAMOFF")));
@@ -284,7 +285,7 @@ error:
       result = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_REQBUFS,
                            &request_buffers);
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_REQBUFS")));
@@ -293,15 +294,15 @@ error:
                     ACE_TEXT ("de-allocated %d device buffer slot(s)\n"),
                     inherited::configuration_->buffers));
 
-//      if (captureFileDescriptor_ != -1)
+//      if (likely (captureFileDescriptor_ != -1))
 //      {
 //        result = v4l2_close (captureFileDescriptor_);
-//        if (result == -1)
+//        if (unlikely (result == -1))
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
 //                      captureFileDescriptor_));
 //      } // end IF
-//      if (overlayFileDescriptor_ != -1)
+//      if (unlikely (overlayFileDescriptor_ != -1))
 //      {
 //        result = v4l2_close (overlayFileDescriptor_);
 //        if (result == -1)
@@ -310,7 +311,7 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+      if (likely (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
         inherited::TASK_BASE_T::stop (false,  // wait for completion ?
                                       false); // N/A
 
@@ -364,7 +365,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
+  if (unlikely (!inherited::putStatisticMessage (data_out)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
@@ -432,7 +433,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     if (!isPassive_)
       if (captureFileDescriptor_ != -1)
@@ -466,51 +467,53 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       ((configuration_in.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
   // *TODO*: remove type inference
   captureFileDescriptor_ = configuration_in.fileDescriptor;
-  if (captureFileDescriptor_ != -1)
+  if (unlikely (captureFileDescriptor_ != -1))
     isPassive_ = true;
   else
   {
     // *TODO*: remove type inference
-    captureFileDescriptor_ = v4l2_open (configuration_in.device.c_str (),
-                                        open_mode);
-    if (captureFileDescriptor_ == -1)
+    captureFileDescriptor_ =
+        v4l2_open (configuration_in.interfaceIdentifier.c_str (),
+                   open_mode);
+    if (unlikely (captureFileDescriptor_ == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_in.device.c_str ()), open_mode));
+                  ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                  open_mode));
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
-                ACE_TEXT (configuration_in.device.c_str ()),
+                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
+                ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
                 captureFileDescriptor_));
-    const_cast<ConfigurationType&> (configuration_in).fileDescriptor =
-        captureFileDescriptor_;
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
 
   // *TODO*: remove type inference
-  if (configuration_in.v4l2Window &&
-      Stream_Module_Device_Tools::canOverlay (captureFileDescriptor_))
+  if (unlikely (configuration_in.v4l2Window &&
+                Stream_Module_Device_Tools::canOverlay (captureFileDescriptor_)))
   {
-    overlayFileDescriptor_ = v4l2_open (configuration_in.device.c_str (),
-                                        open_mode);
+    overlayFileDescriptor_ =
+        v4l2_open (configuration_in.interfaceIdentifier.c_str (),
+                   open_mode);
     if (overlayFileDescriptor_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_in.device.c_str ()), open_mode));
+                  ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                  open_mode));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
-                ACE_TEXT (configuration_in.device.c_str ()),
+                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
+                ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
                 captureFileDescriptor_));
   } // end IF
 
   // *TODO*: remove type inference
-  if (!Stream_Module_Device_Tools::setFormat (captureFileDescriptor_,
-                                              configuration_in.v4l2Format))
+  if (unlikely (!Stream_Module_Device_Tools::setFormat (captureFileDescriptor_,
+                                                        configuration_in.v4l2Format)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(%d): \"%m\", aborting\n"),
@@ -518,8 +521,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   // *TODO*: remove type inference
-  if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                 configuration_in.v4l2FrameRate))
+  if (unlikely (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
+                                                           configuration_in.v4l2FrameRate)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),
@@ -527,17 +530,17 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (Stream_Module_Device_Tools::canStream (captureFileDescriptor_))
-    if (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
-                                                        configuration_in.v4l2Method,
-                                                        const_cast<ConfigurationType&> (configuration_in).buffers))
+  if (likely (Stream_Module_Device_Tools::canStream (captureFileDescriptor_)))
+    if (unlikely (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
+                                                                  configuration_in.v4l2Method,
+                                                                  const_cast<ConfigurationType&> (configuration_in).buffers)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeCapture(%d): \"%m\", aborting\n"),
                   captureFileDescriptor_));
       goto error;
     } // end IF
-  if (overlayFileDescriptor_ != -1)
+  if (unlikely (overlayFileDescriptor_ != -1))
   {
     ACE_ASSERT (configuration_in.v4l2Window);
     if (!Stream_Module_Device_Tools::initializeOverlay (overlayFileDescriptor_,
@@ -611,7 +614,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: worker thread (id: %t) starting...\n"),
               inherited::mod_->name ()));
 
   int error = 0;
@@ -640,7 +643,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     message_block_p = NULL;
     result_2 = inherited::getq (message_block_p,
                                 &no_wait);
-    if (result_2 == -1)
+    if (unlikely (result_2 == -1))
     {
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Linux: 11 | Win32: 10035
@@ -745,7 +748,7 @@ continue_:
 
 #if defined (_DEBUG)
     // log device status to kernel log ?
-    if (debug_)
+    if (unlikely (debug_))
     {
       result = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_LOG_STATUS);
@@ -796,14 +799,14 @@ continue_:
     result_2 = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_DQBUF,
                            &buffer);
-    if (result_2 == -1)
+    if (unlikely (result_2 == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
                   captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQBUF")));
       break;
     } // end IF
-    if (buffer.flags & V4L2_BUF_FLAG_ERROR)
+    if (unlikely (buffer.flags & V4L2_BUF_FLAG_ERROR))
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: streaming error (fd: %d, index: %d), continuing\n"),
                   inherited::mod_->name (),
@@ -816,7 +819,7 @@ continue_:
     message_block_p->wr_ptr (buffer.bytesused);
 
     result_2 = inherited::put_next (message_block_p, NULL);
-    if (result_2 == -1)
+    if (unlikely (result_2 == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));

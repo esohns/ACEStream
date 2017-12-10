@@ -3474,14 +3474,14 @@ idle_finalize_source_UI_cb (gpointer userData_in)
 
   // clean up
   int result = -1;
-  if (v4L2_data_p->device != -1)
+  if (v4L2_data_p->fileDescriptor != -1)
   {
-    result = v4l2_close (v4L2_data_p->device);
+    result = v4l2_close (v4L2_data_p->fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4L2_data_p->device));
-    v4L2_data_p->device = -1;
+                  v4L2_data_p->fileDescriptor));
+    v4L2_data_p->fileDescriptor = -1;
   } // end IF
 #endif
 
@@ -3677,11 +3677,11 @@ idle_update_log_display_cb (gpointer userData_in)
   // step1: convert text
   while (!data_p->logStack.empty ())
   {
-    string_p = Common_UI_Tools::Locale2UTF8 (data_p->logStack.front ());
+    string_p = Common_UI_Tools::LocaleToUTF8 (data_p->logStack.front ());
     if (!string_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to convert message text (was: \"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Common_UI_Tools::LocaleToUTF8(\"%s\"), aborting\n"),
                   ACE_TEXT (data_p->logStack.front ().c_str ())));
       return G_SOURCE_REMOVE;
     } // end IF
@@ -3975,22 +3975,24 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_p->useMediaFoundation)
-      (*mediafoundation_modulehandler_iterator).second.second.device =
-        g_value_get_string (&value);
+      (*mediafoundation_modulehandler_iterator).second.second.interfaceIdentifier =
+        Common_Tools::StringToGUID (g_value_get_string (&value));
     else
-      (*directshow_modulehandler_iterator).second.second.device =
-        g_value_get_string (&value);
+      (*directshow_modulehandler_iterator).second.second.interfaceIdentifier =
+        Common_Tools::StringToGUID (g_value_get_string (&value));
 #else
     iterator_2 =
         v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator_2 != v4l2_data_p->configuration->streamConfiguration.end ());
-    (*iterator_2).second.second.device = g_value_get_string (&value);
+    (*iterator_2).second.second.interfaceIdentifier =
+        g_value_get_string (&value);
 #endif
     g_value_unset (&value);
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  (*iterator_2).second.second.fileDescriptor = v4l2_data_p->device;
+  if (v4l2_data_p->fileDescriptor != -1)
+    (*iterator_2).second.second.fileDescriptor = v4l2_data_p->fileDescriptor;
 #endif
 
   // retrieve port number
@@ -5080,11 +5082,11 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  std::string file_name = Common_UI_Tools::UTF82Locale (string_p, -1);
+  std::string file_name = Common_UI_Tools::UTF8ToLocale (string_p, -1);
   if (file_name.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up
@@ -5175,11 +5177,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  std::string file_name = Common_UI_Tools::UTF82Locale (string_p, -1);
+  std::string file_name = Common_UI_Tools::UTF8ToLocale (string_p, -1);
   if (file_name.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up
@@ -5787,33 +5789,34 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   } // end ELSE
 #else
   int result_3 = -1;
-  if (v4l2_data_p->device != -1)
+  if (v4l2_data_p->fileDescriptor != -1)
   {
-    result_3 = v4l2_close (v4l2_data_p->device);
+    result_3 = v4l2_close (v4l2_data_p->fileDescriptor);
     if (result_3 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4l2_data_p->device));
-    v4l2_data_p->device = -1;
-  } // end IF
-  ACE_ASSERT (v4l2_data_p->device == -1);
+                  v4l2_data_p->fileDescriptor));
+    v4l2_data_p->fileDescriptor = -1;
+  } // end IFs
+  ACE_ASSERT (v4l2_data_p->fileDescriptor == -1);
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_3 =
       v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfiguration.end ());
   int open_mode =
       (((*iterator_3).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                     : O_RDONLY);
-  v4l2_data_p->device = v4l2_open (device_path.c_str (),
-                                   open_mode);
-  if (v4l2_data_p->device == -1)
+  v4l2_data_p->fileDescriptor = v4l2_open (device_path.c_str (),
+                                           open_mode);
+  if (v4l2_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (device_path.c_str ()), open_mode));
+                ACE_TEXT (device_path.c_str ()),
+                open_mode));
     return;
   } // end IF
 
-  result_2 = load_formats (v4l2_data_p->device,
+  result_2 = load_formats (v4l2_data_p->fileDescriptor,
                            list_store_p);
 #endif
   if (!result_2)
@@ -5830,15 +5833,18 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
-    gtk_combo_box_set_active (combo_box_p, 0);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                              true);
+    gtk_combo_box_set_active (combo_box_p,
+                              0);
   } // end IF
 
   toggle_action_p =
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME)));
   ACE_ASSERT (toggle_action_p);
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
+                            true);
 } // combobox_source_changed_cb
 
 void
@@ -5989,7 +5995,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   (*iterator).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
 
   result_2 =
-    load_resolutions (v4l2_data_p->device,
+    load_resolutions (v4l2_data_p->fileDescriptor,
                       format_i,
                       list_store_p);
 #endif
@@ -6253,7 +6259,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   (*iterator).second.second.v4l2Format.fmt.pix.width = width;
   (*iterator).second.second.v4l2Format.fmt.pix.height = height;
 
-  result_2 = load_rates (v4l2_data_p->device,
+  result_2 = load_rates (v4l2_data_p->fileDescriptor,
                          format_i,
                          width, height,
                          list_store_p);

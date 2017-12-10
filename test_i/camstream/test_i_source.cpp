@@ -793,7 +793,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
-         const std::string& deviceFilename_in,
+         const std::string& interfaceIdentifier_in,
 #endif
          bool useUncompressedFormat_in,
          const std::string& UIDefinitionFilename_in,
@@ -1322,15 +1322,18 @@ do_work (unsigned int bufferSize_in,
   //                                                             : v4l2CBData_in.UDPStream);
 //  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
-  (*modulehandler_iterator).second.second.device = deviceFilename_in;
+  (*modulehandler_iterator).second.second.interfaceIdentifier =
+      interfaceIdentifier_in;
   // *TODO*: turn these into an option
   (*modulehandler_iterator).second.second.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   (*modulehandler_iterator).second.second.pixelBufferLock = &v4l2CBData_in.lock;
+  (*modulehandler_iterator).second.second.sourceFormat.height = 240;
+  (*modulehandler_iterator).second.second.sourceFormat.width = 320;
   (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.pixelformat =
       V4L2_PIX_FMT_RGB24;
-  (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.width = 320;
   (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.height = 240;
+  (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.width = 320;
   (*modulehandler_iterator).second.second.v4l2FrameRate.numerator = 30;
   (*modulehandler_iterator).second.second.v4l2FrameRate.denominator = 1;
   (*modulehandler_iterator).second.second.v4l2Method = V4L2_MEMORY_MMAP;

@@ -156,10 +156,9 @@ struct Stream_CamSave_SessionData
    , session (NULL)
 #else
    , format (AV_PIX_FMT_RGB24) // output-
-   , height (0)
+   , sourceFormat ()
    , v4l2Format ()
    , v4l2FrameRate ()
-   , width (0)
 #endif
    , statistic ()
    , userData (NULL)
@@ -172,6 +171,8 @@ struct Stream_CamSave_SessionData
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
     else
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+#else
+    ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
 #endif
   };
 
@@ -204,10 +205,9 @@ struct Stream_CamSave_SessionData
   IMFMediaSession*                    session;
 #else
   enum AVPixelFormat                  format;
-  unsigned int                        height;
+  GdkRectangle                        sourceFormat; // gtk cairo/pixbuf module
   struct v4l2_format                  v4l2Format;
   struct v4l2_fract                   v4l2FrameRate; // time-per-frame
-  unsigned int                        width;
 #endif
   struct Stream_CamSave_StatisticData statistic;
 
@@ -250,9 +250,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , area ()
+   , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
    , format (NULL)
+   , interfaceIdentifier (GUID_NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
    , session (NULL)
@@ -261,11 +263,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_RGB24)
-   , sourceFormat ()
+   , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
 #endif
-   , device ()
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
+   , sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
@@ -294,19 +296,25 @@ struct Stream_CamSave_ModuleHandlerConfiguration
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+    interfaceIdentifier = GUID_NULL;
+
     useMediaFoundation = true;
 #else
     ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
     v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     ACE_OS::memset (&v4l2FrameRate, 0, sizeof (struct v4l2_fract));
 #endif
+    ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
   };
 
   GdkRectangle                     area;
+  bool                             fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
   //struct _AMMediaType*     format;
   IMFMediaType*                    format;
+  // *PORTABILITY*: Win32: video interface GUID
+  struct _GUID                     interfaceIdentifier;
   TOPOID                           rendererNodeId;
   TOPOID                           sampleGrabberNodeId;
   IMFMediaSession*                 session;
@@ -315,14 +323,13 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
   __u32                            buffers; // v4l device buffers
   int                              fileDescriptor;
-  enum AVPixelFormat               format;
-  GdkRectangle                     sourceFormat; // gtk pixbuf module
+  enum AVPixelFormat               format; // target-
+  std::string                      interfaceIdentifier;
+  // *PORTABILITY*: v4l2: device file (e.g. "[/dev/]video0")
 #endif
-  // *PORTABILITY*: Win32: "FriendlyName" property
-  //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string                      device;
   GdkPixbuf*                       pixelBuffer;
   ACE_SYNCH_MUTEX*                 pixelBufferLock;
+  GdkRectangle                     sourceFormat; // gtk cairo/pixbuf module
   Stream_CamSave_ISessionNotify_t* subscriber;
   Stream_CamSave_Subscribers_t*    subscribers;
   std::string                      targetFileName;
@@ -335,10 +342,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   GdkWindow*                       window;
 };
-//typedef std::map<std::string,
-//                 struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_ModuleHandlerConfigurations_t;
-//typedef Stream_CamSave_ModuleHandlerConfigurations_t::const_iterator Stream_CamSave_ModuleHandlerConfigurationsConstIterator_t;
-//typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
 
 struct Stream_CamSave_StreamState
  : Stream_State
@@ -469,7 +472,7 @@ struct Stream_CamSave_GTK_CBData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, streamConfiguration (NULL)
 #else
-   , device (-1)
+   , fileDescriptor (-1)
 #endif
   {
     pixelBufferLock = &lock;
@@ -486,7 +489,7 @@ struct Stream_CamSave_GTK_CBData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IAMStreamConfig*                streamConfiguration;
 #else
-  int                                    device; // (capture) device file descriptor
+  int                                    fileDescriptor; // (capture) device file descriptor
 #endif
 };
 

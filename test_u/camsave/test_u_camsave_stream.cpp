@@ -26,6 +26,12 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_defines.h"
+
+#include "stream_stat_defines.h"
+
+#include "stream_vis_defines.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
@@ -33,20 +39,30 @@
 
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
  : inherited ()
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("CamSource"))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("Display"))
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
+#else
+ , converter_ (this,
+               ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+#endif
+ , statisticReport_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  , displayNull_ (this,
-                 ACE_TEXT_ALWAYS_CHAR ("DisplayNull"))
+                 ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME))
+#else
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 #endif
  , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"))
+             ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileWriter"))
+                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -395,6 +411,10 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (&encoder_);
   //modules_out.push_back (&displayNull_);
   modules_out.push_back (&display_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  modules_out.push_back (&converter_);
+#endif
   modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
 
@@ -415,7 +435,11 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   struct Stream_CamSave_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p = NULL;
-  Stream_CamSave_Source* source_impl_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_CamSave_MediaFoundation_Source* source_impl_p = NULL;
+#else
+  Stream_CamSave_V4L_Source* source_impl_p = NULL;
+#endif
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -452,10 +476,12 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  session_data_p->sourceFormat.height =
+      configuration_p->v4l2Format.fmt.pix.height;
+  session_data_p->sourceFormat.width =
+      configuration_p->v4l2Format.fmt.pix.width;
   session_data_p->v4l2Format = configuration_p->v4l2Format;
   session_data_p->v4l2FrameRate = configuration_p->v4l2FrameRate;
-  session_data_p->height = session_data_p->v4l2Format.fmt.pix.height;
-  session_data_p->width = session_data_p->v4l2Format.fmt.pix.width;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -479,12 +505,23 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
-  source_impl_p = dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
+  source_impl_p =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      dynamic_cast<Stream_CamSave_MediaFoundation_Source*> (source_.writer ());
+#else
+      dynamic_cast<Stream_CamSave_V4L_Source*> (source_.writer ());
+#endif
   if (!source_impl_p)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_CamSource> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_MediaFoundation_CamSource> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_V4L_CamSource> failed, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+#endif
     goto error;
   } // end IF
 

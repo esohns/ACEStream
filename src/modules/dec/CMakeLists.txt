@@ -12,7 +12,6 @@ if (UNIX)
 # include_directories (/usr/local/src/sox-code/src)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/image)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
@@ -52,6 +51,9 @@ if (UNIX)
       stream_dec_h264_nal_decoder.cpp
       stream_dec_h264_nal_decoder.h
       stream_dec_h264_nal_decoder.inl
+      stream_dec_libav_converter.cpp
+      stream_dec_libav_converter.h
+      stream_dec_libav_converter.inl
       stream_dec_libav_decoder.cpp
       stream_dec_libav_decoder.h
       stream_dec_libav_decoder.inl
@@ -90,6 +92,9 @@ elseif (WIN32)
       stream_dec_h264_nal_decoder.cpp
       stream_dec_h264_nal_decoder.h
       stream_dec_h264_nal_decoder.inl
+      stream_dec_libav_converter.cpp
+      stream_dec_libav_converter.h
+      stream_dec_libav_converter.inl
       stream_dec_libav_decoder.cpp
       stream_dec_libav_decoder.h
       stream_dec_libav_decoder.inl
@@ -187,6 +192,8 @@ if (UNIX)
           stream_dec_h264_nal_bisector.h
           stream_dec_h264_nal_decoder.h
           stream_dec_h264_nal_decoder.inl
+          stream_dec_libav_converter.h
+          stream_dec_libav_converter.inl
           stream_dec_libav_decoder.h
           stream_dec_libav_decoder.inl
           stream_dec_mpeg_ts_decoder.h
@@ -212,6 +219,8 @@ elseif (WIN32)
           stream_dec_exports.h
           stream_dec_h264_nal_decoder.h
           stream_dec_h264_nal_decoder.inl
+          stream_dec_libav_converter.h
+          stream_dec_libav_converter.inl
           stream_dec_libav_decoder.h
           stream_dec_libav_decoder.inl
           stream_dec_mpeg_ts_decoder.h

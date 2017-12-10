@@ -582,11 +582,11 @@ idle_update_log_display_cb (gpointer userData_in)
          iterator_2 != data_p->logStack.end ();
          iterator_2++)
     {
-      converted_text = Common_UI_Tools::Locale2UTF8 (*iterator_2);
+      converted_text = Common_UI_Tools::LocaleToUTF8 (*iterator_2);
       if (!converted_text)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to convert message text (was: \"%s\"), aborting\n"),
+                    ACE_TEXT ("failed to Common_UI_Tools::LocaleToUTF8(\"%s\"), aborting\n"),
                     ACE_TEXT ((*iterator_2).c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
@@ -1284,19 +1284,19 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   if (is_source)
   {
     (*iterator_2).second.second.fileName =
-      Common_UI_Tools::UTF82Locale (string_p, -1);
+      Common_UI_Tools::UTF8ToLocale (string_p, -1);
     result = !(*iterator_2).second.second.fileName.empty ();
   } // end IF
   else
   {
     (*iterator_2).second.second.targetFileName =
-      Common_UI_Tools::UTF82Locale (string_p, -1);
+      Common_UI_Tools::UTF8ToLocale (string_p, -1);
     result = !(*iterator_2).second.second.targetFileName.empty ();
   } // end ELSE
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up

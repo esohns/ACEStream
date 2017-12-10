@@ -24,40 +24,14 @@
 
 #include "stream_dec_defines.h"
 
-Stream_Dec_Export const char libacestream_default_dec_libav_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DEFAULT_NAME_STRING);
-
-void
-Stream_Decoder_LibAVDecoder_LoggingCB (void* AVClassStruct_in,
-                                       int level_in,
-                                       const char* formatString_in,
-                                       va_list arguments_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_LoggingCB"));
-
-  ACE_UNUSED_ARG (AVClassStruct_in);
-
-  char buffer[BUFSIZ];
-  int print_prefix = 1;
-
-  av_log_format_line (AVClassStruct_in,
-                      level_in,
-                      formatString_in,
-                      arguments_in,
-                      buffer,
-                      sizeof (buffer),
-                      &print_prefix);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s"),
-              buffer));
-}
+Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
 enum AVPixelFormat
-Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
-                                       const enum AVPixelFormat* formats_in)
+stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
+                                   const enum AVPixelFormat* formats_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_GetFormat"));
+  STREAM_TRACE (ACE_TEXT ("::stream_decoder_libav_getformat_cb"));
 
   // sanity check(s)
   ACE_ASSERT (context_in);
@@ -80,14 +54,14 @@ Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
               ACE_TEXT ("codec does not support preferred video format (was: %d), falling back\n"),
               *preferred_format_p));
 
-  // accept any uncompressed format as a fallback
+  // *TODO*: set context_in->hw_frames_ctx here as well
+
+  // accept first uncompressed format (if any) as a fallback
   for (const enum AVPixelFormat* iterator = formats_in;
        *iterator != -1;
        ++iterator)
     if (!Stream_Module_Decoder_Tools::isCompressedVideo (*iterator))
       return *iterator;
-
-  // *TODO*: set context_in->hw_frames_ctx here as well
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("codec does not support uncompressed video format, aborting\n")));
@@ -95,12 +69,12 @@ Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
   return result;
 }
 
-void
-Stream_Decoder_LibAVDecoder_NOPFree (void* opaque_in,
-                                     uint8_t* data_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_NOPFree"));
+//void
+//stream_decoder_libav_nopfree_cb (void* opaque_in,
+//                                 uint8_t* data_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::stream_decoder_libav_nopfree_cb"));
 
-  ACE_UNUSED_ARG (opaque_in);
-  ACE_UNUSED_ARG (data_in);
-}
+//  ACE_UNUSED_ARG (opaque_in);
+//  ACE_UNUSED_ARG (data_in);
+//}

@@ -47,6 +47,7 @@
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                "drawingarea"
+#define TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME          "entry_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME             "filefilter_avi"
@@ -69,9 +70,11 @@
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME   "spinbutton_dropped_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
+#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME    "toggleaction_fullscreen"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME          "toggleaction_save"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
+#define TEST_U_STREAM_UI_GTK_WINDOW_FULLSCREEN               "window_fullscreen"
 
 // GTK progress/status-bar
 #define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)

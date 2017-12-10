@@ -1792,12 +1792,13 @@ do_work (unsigned int bufferSize_in,
         //              &timeout));
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
+        typename Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
           NULL;
-        Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
+        typename Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
           NULL;
 #else
-        Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p = NULL;
+        typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
+            NULL;
 #endif
         do
         {

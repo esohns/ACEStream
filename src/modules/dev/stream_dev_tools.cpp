@@ -1883,7 +1883,9 @@ Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_SRGGB10DPCM8:
     case V4L2_PIX_FMT_SBGGR16:
       result = AV_PIX_FMT_BAYER_BGGR16; break;
-//    case V4L2_PIX_FMT_MJPEG:
+    case V4L2_PIX_FMT_MJPEG:
+      // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
+      result = AV_PIX_FMT_YUVJ422P; break;
 //    case V4L2_PIX_FMT_JPEG:
 //    case V4L2_PIX_FMT_DV:
 //    case V4L2_PIX_FMT_MPEG:

@@ -1888,18 +1888,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      struct v4l2_fract frame_rate_s;
-//      struct v4l2_format format_s;
+      struct v4l2_fract frame_rate_s = getFrameRate (session_data_r,
+                                                     session_data_r.v4l2Format);
 
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       struct AVCodec* codec_p = NULL;
       struct AVCodecContext* codec_context_p = NULL;
       struct AVStream* stream_p = NULL;
-
-//      format_s = getFormat (session_data_r.v4l2Format);
-      frame_rate_s = getFrameRate (session_data_r,
-                                   session_data_r.v4l2Format);
 
       ACE_ASSERT (formatContext_);
       ACE_ASSERT (formatContext_->oformat);
@@ -1933,16 +1929,15 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         //         have any idea how to decompress the data. The exact table
         //         necessary is given in the OpenDML spec. ..."
         case AV_PIX_FMT_YUVJ422P:
-//        case V4L2_PIX_FMT_MJPEG:
+        case V4L2_PIX_FMT_MJPEG:
           codec_id = AV_CODEC_ID_MJPEG;
           break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %d), returning\n"),
+                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %s), returning\n"),
                       inherited::mod_->name (),
-                      session_data_r.format));
-//                      format_p->fmt.pix.pixelformat));
+                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (session_data_r.format).c_str ())));
           goto error;
         }
       } // end SWITCH
@@ -1979,16 +1974,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       codec_context_p->bit_rate =
           (av_image_get_buffer_size (session_data_r.format,
-                                     session_data_r.width,
-                                     session_data_r.height,
+                                     session_data_r.sourceFormat.width,
+                                     session_data_r.sourceFormat.height,
                                      1) * // *TODO*: linesize alignment
            frame_rate_s.numerator       *
            8);
       codec_context_p->codec_id = codec_id;
-//      codec_context_p->width = format_p->fmt.pix.width;
-//      codec_context_p->height = format_p->fmt.pix.height;
-      codec_context_p->width = session_data_r.width;
-      codec_context_p->height = session_data_r.height;
+      codec_context_p->width = session_data_r.sourceFormat.width;
+      codec_context_p->height = session_data_r.sourceFormat.height;
       codec_context_p->time_base.num = frame_rate_s.denominator;
       codec_context_p->time_base.den = frame_rate_s.numerator;
 //      codec_context_p->gop_size = 10;
@@ -2066,8 +2059,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
           (av_image_get_buffer_size (session_data_r.format,
-                                     session_data_r.width,
-                                     session_data_r.height,
+                                     session_data_r.sourceFormat.width,
+                                     session_data_r.sourceFormat.height,
                                      1) * // *TODO*: linesize alignment
            frame_rate_s.numerator       *
            8);
@@ -2076,8 +2069,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     //  stream_p->codec->codec_type = codec_->type;
 
       stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
-      stream_p->codec->width = session_data_r.width;
-      stream_p->codec->height = session_data_r.height;
+      stream_p->codec->width = session_data_r.sourceFormat.width;
+      stream_p->codec->height = session_data_r.sourceFormat.height;
 
       stream_p->time_base.num = frame_rate_s.denominator;
       stream_p->time_base.den = frame_rate_s.numerator;

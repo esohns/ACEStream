@@ -2899,7 +2899,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     filename_p =
-      Common_UI_Tools::Locale2UTF8 (filename);
+      Common_UI_Tools::LocaleToUTF8 (filename);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
@@ -2938,7 +2938,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     //ACE_ASSERT (file_p);
 
     filename_p =
-      Common_UI_Tools::Locale2UTF8 (Common_File_Tools::getTempDirectory ());
+      Common_UI_Tools::LocaleToUTF8 (Common_File_Tools::getTempDirectory ());
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
@@ -3536,7 +3536,7 @@ continue_:
     //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   } // end ELSE
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.OpenGLWindow);
+//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.OpenGLWindow);
   (*modulehandler_configuration_iterator).second.second.OpenGLWindow =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -5026,7 +5026,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
     if (save_to_file)
       (*modulehandler_configuration_iterator).second.second.targetFileName =
-        Common_UI_Tools::UTF82Locale (filename_p, -1);
+        Common_UI_Tools::UTF8ToLocale (filename_p, -1);
     else
       (*modulehandler_configuration_iterator).second.second.targetFileName.clear ();
 #endif
@@ -8766,6 +8766,8 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   GdkGLContext* result_p = NULL;
 
   GError* error_p = NULL;
+  // *TODO*: this currently fails on Wayland (Gnome 3.22.24)
+  // *WORKAROUND*: set GDK_BACKEND=x11 environment to force XWayland
   result_p =
     gdk_window_create_gl_context (gtk_widget_get_window (GTK_WIDGET (GLArea_in)),
                                   &error_p);

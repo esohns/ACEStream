@@ -48,6 +48,8 @@ extern "C"
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
 
+void Stream_Dec_Export stream_decoder_libav_log_cb (void*, int, const char*, va_list);
+
 class Stream_Dec_Export Stream_Module_Decoder_Tools
 {
  public:
@@ -60,7 +62,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
   static std::string errorToString (int); // libav error
 
-  inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); };
+  inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool isChromaLuminance (REFGUID,       // media subtype
                                  bool = false); // ? media foundation : direct show
@@ -82,7 +84,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
   // *WARNING*: this may crash if the format is 'unknown'
-  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = av_get_pix_fmt_name (format_in); return result; };
+  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = av_get_pix_fmt_name (format_in); return result; }
 
   static bool convert (struct SwsContext*, // context ? : use sws_getCachedContext()
                        unsigned int,       // source width

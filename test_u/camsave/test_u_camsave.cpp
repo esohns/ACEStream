@@ -649,7 +649,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
-         const std::string& deviceFilename_in,
+         const std::string& interfaceIdentifier_in,
 #endif
          const std::string& targetFilename_in,
          const std::string& UIDefinitionFilename_in,
@@ -676,7 +676,7 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  modulehandler_configuration.device = deviceFilename_in;
+  modulehandler_configuration.interfaceIdentifier = interfaceIdentifier_in;
   // *TODO*: turn these into an option
   modulehandler_configuration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;

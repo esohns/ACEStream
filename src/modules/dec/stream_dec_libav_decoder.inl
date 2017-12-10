@@ -21,7 +21,10 @@
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavformat/avformat.h"
+#include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
+#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
@@ -917,7 +920,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //codecContext_->coded_height = height;
       //codecContext_->pix_fmt = AV_PIX_FMT_NONE;
       //codecContext_->draw_horiz_band = NULL;
-      codecContext_->get_format = Stream_Decoder_LibAVDecoder_GetFormat;
+      codecContext_->get_format = stream_decoder_libav_getformat_cb;
       codecContext_->slice_count = 0;
       codecContext_->slice_offset = NULL;
       codecContext_->slice_flags = 0;

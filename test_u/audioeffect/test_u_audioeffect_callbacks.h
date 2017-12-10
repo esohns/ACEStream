@@ -120,7 +120,7 @@ extern "C"
 #else
   G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
-#endif
+#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
   G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
@@ -128,9 +128,9 @@ extern "C"
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
 #else
   G_MODULE_EXPORT gboolean drawingarea_3d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
-#endif
-#endif
-#endif
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTKGL_SUPPORT */
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);

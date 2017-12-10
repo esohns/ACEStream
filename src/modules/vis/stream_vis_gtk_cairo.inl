@@ -122,11 +122,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
   //         tradeoff that may warrant further optimization efforts
-  try
-  {
+  try {
     message_inout->defragment ();
-  } catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
                 inherited::mod_->name ()));
@@ -251,12 +249,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
     ((pixel_format != AV_PIX_FMT_RGBA) ||
-    ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
+     ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
   if (transform_image &&
-    ((pixbuf_height != static_cast<int> (scaleContextHeight_)) || (pixbuf_width != static_cast<int> (scaleContextWidth_))))
+      ((pixbuf_height != static_cast<int> (scaleContextHeight_)) || (pixbuf_width != static_cast<int> (scaleContextWidth_))))
   {
     if (scaleContext_)
     {

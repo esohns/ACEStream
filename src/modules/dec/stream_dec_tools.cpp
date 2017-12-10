@@ -67,6 +67,32 @@ Stream_Module_Decoder_Tools::GUID_TO_STRING_MAP_T Stream_Module_Decoder_Tools::S
 #endif
 
 void
+stream_decoder_libav_log_cb (void* AVClassStruct_in,
+                             int level_in,
+                             const char* formatString_in,
+                             va_list arguments_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::stream_decoder_libav_log_cb"));
+
+  ACE_UNUSED_ARG (AVClassStruct_in);
+
+  char buffer[BUFSIZ];
+  int print_prefix = 1;
+
+  av_log_format_line (AVClassStruct_in,
+                      level_in,
+                      formatString_in,
+                      arguments_in,
+                      buffer,
+                      sizeof (buffer),
+                      &print_prefix);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s"),
+              buffer));
+}
+
+void
 Stream_Module_Decoder_Tools::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
@@ -586,7 +612,7 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
   result_2 = av_strerror (error_in,
                           buffer,
                           sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
-  if (result_2)
+  if (unlikely (result_2))
     ACE_DEBUG ((LM_ERROR,
                 ((result_2 < 0) ? ACE_TEXT ("failed to av_strerror(%d), cannot find error description: \"%m\", continuing\n")
                                 : ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n")),
@@ -846,7 +872,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
   {
     iterator =
       Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.find (GUID_in);
-    if (iterator == Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.end ())
+    if (unlikely (iterator == Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubTypeToStringMap.end ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
@@ -858,7 +884,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
   {
     iterator =
       Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.find (GUID_in);
-    if (iterator == Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.end ())
+    if (unlikely (iterator == Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubTypeToStringMap.end ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
@@ -882,14 +908,14 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (enum AVPixelFormat pixelF
               !Stream_Module_Decoder_Tools::isChromaLuminance (pixelFormat_in));
 
   switch (pixelFormat_in)
-  { // *TODO*: find a better way to do this
+  { // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
     case AV_PIX_FMT_YUVJ422P:
       result = AV_CODEC_ID_MJPEG; break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown pixel format (was: %d), aborting\n"),
-                  pixelFormat_in));
+                  ACE_TEXT ("invalid/unknown pixel format (was: %s), aborting\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
       break;
     }
   } // end SWITCH
@@ -908,11 +934,11 @@ Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_Comp
   switch (format_in)
   {
     case STREAM_COMPRESSION_FORMAT_NONE:
-      result = ACE_TEXT_ALWAYS_CHAR ("None"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("none"); break;
     case STREAM_COMPRESSION_FORMAT_GZIP:
-      result = ACE_TEXT_ALWAYS_CHAR ("GZIP"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("gzip"); break;
     case STREAM_COMPRESSION_FORMAT_ZLIB:
-      result = ACE_TEXT_ALWAYS_CHAR ("ZLIB"); break;
+      result = ACE_TEXT_ALWAYS_CHAR ("zlib"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -928,7 +954,7 @@ Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_Comp
 void
 Stream_Module_Decoder_Tools::sinus (double frequency_in,
                                     unsigned int sampleRate_in,
-                                    unsigned int sampleSize_in, // 'data' sample
+                                    unsigned int sampleSize_in, // 'data'-
                                     unsigned int channels_in,
                                     char* buffer_in,
                                     unsigned int samplesToWrite_in, // #'data' samples
@@ -946,12 +972,12 @@ Stream_Module_Decoder_Tools::sinus (double frequency_in,
   char* pointer_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value = static_cast<int> (sin (phase) * maximum_value);
+    value = static_cast<int> (std::sin (phase) * maximum_value);
     for (unsigned int j = 0; j < channels_in; ++j)
     {
       for (unsigned int k = 0; k < bytes_per_sample; ++k)
       {
-        if (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN)
+        if (likely (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN))
           *(pointer_p + k) = (value >> (k * 8)) & 0xFF;
         else
           *(pointer_p + bytes_per_sample - 1 - k) = (value >> (k * 8)) & 0xFF;
@@ -959,7 +985,8 @@ Stream_Module_Decoder_Tools::sinus (double frequency_in,
       pointer_p += bytes_per_sample;
     } // end FOR
     phase += step;
-    if (phase >= maximum_phase) phase -= maximum_phase;
+    if (unlikely (phase >= maximum_phase))
+      phase -= maximum_phase;
   } // end FOR
   phase_inout = phase;
 }
@@ -991,7 +1018,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                                           flags,                             // flags
                                           NULL, NULL,
                                           0));                               // parameters
-  if (!context_p)
+  if (unlikely (!context_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
@@ -1010,7 +1037,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                                                     targetBuffers_in);
 
   // clean up
-  if (!context_in)
+  if (unlikely (!context_in))
     sws_freeContext (context_p);
 
   return result;
@@ -1041,7 +1068,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                                           flags,                             // flags
                                           NULL, NULL,
                                           0));                               // parameters
-  if (!context_p)
+  if (unlikely (!context_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
@@ -1056,16 +1083,16 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   result_2 = av_image_fill_linesizes (in_linesize,
                                       sourcePixelFormat_in,
                                       static_cast<int> (sourceWidth_in));
-  ACE_ASSERT (result_2 != -1);
+  ACE_ASSERT (result_2 >= 0);
   result_2 = av_image_fill_linesizes (out_linesize,
                                       targetPixelFormat_in,
                                       static_cast<int> (targetWidth_in));
-  ACE_ASSERT (result_2 != -1);
+  ACE_ASSERT (result_2 >= 0);
   result_2 = sws_scale (context_p,
                         sourceBuffers_in, in_linesize,
                         0, sourceHeight_in,
                         targetBuffers_in, out_linesize);
-  if (result_2 <= 0)
+  if (unlikely (result_2 <= 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
@@ -1073,15 +1100,15 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
-  // *TODO*: find out why
-  else if (result_2 != static_cast<int> (targetHeight_in))
+  // *TODO*: find out when and why
+  else if (unlikely (result_2 != static_cast<int> (targetHeight_in)))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("sws_scale() returned: %d (expected: %u), continuing\n"),
                 result_2, targetHeight_in));
   result = true;
 
 clean:
-  if (!context_in)
+  if (unlikely (!context_in))
     sws_freeContext (context_p);
 
   return result;

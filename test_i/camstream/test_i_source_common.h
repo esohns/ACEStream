@@ -293,7 +293,6 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , contextId (0)
-   , device ()
    , format (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -315,8 +314,6 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
-  // *NOTE*: "FriendlyName" property
-  std::string                                          device; // source module
   struct _AMMediaType*                                 format; // source module
   Test_I_Source_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*           subscriber;
@@ -340,7 +337,6 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , device ()
    , format (NULL)
    , mediaSource (NULL)
    , sampleGrabberNodeId (0)
@@ -361,11 +357,9 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  // *NOTE*: "FriendlyName" property
-  std::string                                               device;
+  IMFMediaType*                                             format;
   TOPOID                                                    sampleGrabberNodeId;
   Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
-  IMFMediaType*                                             format;
   IMFMediaSource*                                           mediaSource;
   IMFMediaSession*                                          session;
   Test_I_Source_MediaFoundation_ISessionNotify_t*           subscriber;
@@ -392,7 +386,6 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , device ()
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_RGB24)
    , sourceFormat ()
@@ -416,8 +409,6 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_V4L2_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_V4L2_InetConnectionManager_t*    connectionManager; // TCP IO module
-  // *NOTE*: v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string                                    device;
   int                                            fileDescriptor;
   enum AVPixelFormat                             format; // output-
   GdkRectangle                                   sourceFormat; // gtk pixbuf module
@@ -766,7 +757,7 @@ struct Test_I_Source_V4L2_GTK_CBData
   Test_I_Source_V4L2_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
-   , device (-1)
+   , fileDescriptor (-1)
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
@@ -774,7 +765,7 @@ struct Test_I_Source_V4L2_GTK_CBData
   {};
 
   struct Test_I_Source_V4L2_Configuration* configuration;
-  int                                      device; // (capture) device file descriptor
+  int                                      fileDescriptor; // (capture) device file descriptor
   Test_I_Source_V4L2_StreamBase_t*         stream;
   Test_I_Source_V4L2_Subscribers_t         subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX                subscribersLock;

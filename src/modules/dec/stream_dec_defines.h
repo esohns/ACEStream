@@ -23,7 +23,8 @@
 
 #include "ace/config-lite.h"
 
-#define MODULE_DEC_DECODER_LIBAV_DEFAULT_NAME_STRING                 "LibAVDecoder"
+#define MODULE_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING       "LibAVConverter"
+#define MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING         "LibAVDecoder"
 #define MODULE_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIPDecoder"
 #define MODULE_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEGTSDecoder"
 #define MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVIEncoder"

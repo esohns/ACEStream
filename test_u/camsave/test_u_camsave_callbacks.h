@@ -101,14 +101,19 @@ G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
+G_MODULE_EXPORT gboolean key_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+G_MODULE_EXPORT void toggleaction_fullscreen_toggled_cb (GtkToggleAction*, gpointer);
 G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
 G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
+G_MODULE_EXPORT gboolean window_fullscreen_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

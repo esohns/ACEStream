@@ -202,7 +202,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (sessionId_in);
+//  ACE_ASSERT (sessionId_in);
 
   if (dataBlock_in)
   { ACE_ASSERT (!inherited::data_block_);
