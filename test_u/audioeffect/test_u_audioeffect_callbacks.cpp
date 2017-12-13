@@ -76,7 +76,7 @@
 #include "common_gl_defines.h"
 #include "common_gl_tools.h"
 
-#include "common_image_tools.h"
+//#include "common_image_tools.h"
 
 #include "common_timer_manager_common.h"
 
@@ -8689,32 +8689,14 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
-    unsigned int width = 0, height = 0;
-    bool has_alpha = false;
-    if (!Common_Image_Tools::loadPNG2OpenGL (filename,
-                                             width, height,
-                                             has_alpha,
-                                             image_p))
+    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    if (!*texture_id_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Image_Tools::loadPNG2OpenGL(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), aborting\n"),
                   ACE_TEXT (filename.c_str ())));
       goto error;
     } // end IF
-    ACE_ASSERT (width && height);
-
-    glGenTextures (1, texture_id_p);
-    // *TODO*: find out why this reports GL_INVALID_OPERATION
-    COMMON_GL_PRINT_ERROR;
-    glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-    COMMON_GL_ASSERT;
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA,
-                  GL_UNSIGNED_BYTE, image_p);
-    COMMON_GL_ASSERT;
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    COMMON_GL_ASSERT;
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    COMMON_GL_ASSERT;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("OpenGL texture id: %u\n"),
                 *texture_id_p));
