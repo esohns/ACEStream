@@ -377,10 +377,10 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration
-  struct Stream_Filecopy_Configuration configuration;
-  CBData_in.configuration = &configuration;
+  // sanity check(s)
+  ACE_ASSERT (CBData_in.configuration);
 
+  // step0a: initialize configuration
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   Stream_Filecopy_Stream stream;
   struct Stream_ModuleConfiguration module_configuration;
@@ -397,7 +397,7 @@ do_work (unsigned int bufferSize_in,
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -423,23 +423,24 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
+  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
-  configuration.streamConfiguration.configuration_.module =
+  CBData_in.configuration->streamConfiguration.configuration_.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            moduleheandler_configuration)));
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                       std::make_pair (module_configuration,
+                                                                                       moduleheandler_configuration)));
+  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      true;
 
   // step0e: initialize signal handling
-  configuration.signalHandlerConfiguration.messageAllocator =
+  CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
     &message_allocator;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -497,7 +498,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    if (!stream.initialize (configuration.streamConfiguration))
+    if (!stream.initialize (CBData_in.configuration->streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, aborting\n")));
@@ -666,7 +667,6 @@ ACE_TMAIN (int argc_in,
                             target_file_name))//,
                             //run_stress_test))
   {
-    // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
 
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -711,7 +711,9 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Stream_Filecopy_GTK_CBData gtk_cb_user_data;
+  struct Stream_Filecopy_Configuration configuration;
+  struct Stream_Filecopy_GTK_CBData gtk_cb_user_data;
+  gtk_cb_user_data.configuration = &configuration;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_user_data.logStack,
@@ -787,7 +789,9 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Filecopy_SignalHandler signal_handler;
+  Stream_Filecopy_SignalHandler signal_handler ((configuration.signalHandlerConfiguration.useReactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                     : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                &gtk_cb_user_data.lock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -840,9 +844,9 @@ ACE_TMAIN (int argc_in,
                                                         argv_in);
   if (!UI_definition_file.empty ())
     FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              &gtk_cb_user_data,
-                                                              &ui_definition);
+                                                                argv_in,
+                                                                &gtk_cb_user_data,
+                                                                &ui_definition);
 
   ACE_High_Res_Timer timer;
   timer.start ();

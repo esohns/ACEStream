@@ -29,18 +29,20 @@
 #include "test_u_camsave_common.h"
 
 class Stream_CamSave_SignalHandler
- : public Common_SignalHandler_T<Stream_CamSave_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration>
 {
  public:
-  Stream_CamSave_SignalHandler ();
-  inline virtual ~Stream_CamSave_SignalHandler () {};
+  Stream_CamSave_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                                ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~Stream_CamSave_SignalHandler () {}
 
   // implement Common_ISignal
-  virtual void handle (int); // signal
+  virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<Stream_CamSave_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<struct Stream_CamSave_SignalHandlerConfiguration> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler (const Stream_CamSave_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SignalHandler& operator= (const Stream_CamSave_SignalHandler&))
 };

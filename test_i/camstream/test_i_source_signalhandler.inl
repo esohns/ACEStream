@@ -25,8 +25,11 @@
 #include "test_i_source_common.h"
 
 template <typename ConfigurationType>
-Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T ()
-  : inherited (this) // event handler handle
+Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
+                                                                                 ACE_SYNCH_MUTEX* lock_in)
+ : inherited (dispatchMode_in,
+              lock_in,
+              this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::Test_I_Source_SignalHandler_T"));
 
@@ -34,7 +37,7 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T 
 
 template <typename ConfigurationType>
 void
-Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
+Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::handle"));
 
@@ -45,7 +48,7 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
 
   bool statistic = false;
   bool shutdown = false;
-  switch (signal_in)
+  switch (signal_in.signal)
   {
     case SIGINT:
       // *PORTABILITY*: on Windows SIGQUIT is not defined

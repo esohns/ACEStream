@@ -32,8 +32,11 @@
 template <typename ConfigurationType,
           typename ConnectionManagerType>
 Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::Test_I_Target_SignalHandler_T ()
- : inherited (this) // event handler handle
+                              ConnectionManagerType>::Test_I_Target_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
+                                                                                     ACE_SYNCH_MUTEX* lock_in)
+ : inherited (dispatchMode_in,
+              lock_in,
+              this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::Test_I_Target_SignalHandler_T"));
 
@@ -43,7 +46,7 @@ template <typename ConfigurationType,
           typename ConnectionManagerType>
 void
 Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::handle (int signal_in)
+                              ConnectionManagerType>::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::handle"));
 
@@ -54,7 +57,7 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
   bool close_all = false;
   bool shutdown = false;
   bool statistic = false;
-  switch (signal_in)
+  switch (signal_in.signal)
   {
 // *PORTABILITY*: on Windows SIGQUIT is not defined
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

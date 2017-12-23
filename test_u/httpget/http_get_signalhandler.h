@@ -32,15 +32,17 @@ class HTTPGet_SignalHandler
  : public Common_SignalHandler_T<struct HTTPGet_SignalHandlerConfiguration>
 {
  public:
-  HTTPGet_SignalHandler ();
-  inline virtual ~HTTPGet_SignalHandler () {};
+  HTTPGet_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                         ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~HTTPGet_SignalHandler () {}
 
   // implement Common_ISignal
-  virtual void handle (int); // signal
+  virtual void handle (const struct Common_Signal&); // signal
 
  private:
   typedef Common_SignalHandler_T<struct HTTPGet_SignalHandlerConfiguration> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (HTTPGet_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_SignalHandler (const HTTPGet_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_SignalHandler& operator= (const HTTPGet_SignalHandler&))
 };

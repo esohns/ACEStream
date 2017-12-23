@@ -979,9 +979,9 @@ ACE_TMAIN (int argc_in,
   HTTPGet_GtkBuilderDefinition_t ui_definition (argc_in,
                                                 argv_in);
   struct HTTPGet_GtkProgressData gtk_progress_data;
-  HTTPGet_SignalHandler signal_handler;
   struct HTTPGet_Configuration configuration;
-  //struct HTTPGet_UserData user_data;
+  HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                        &gtk_cb_data.lock);
   ACE_Profile_Timer process_profile;
   ACE_High_Res_Timer timer;
   std::string working_time_string;

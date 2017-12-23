@@ -22,24 +22,27 @@
 #define TEST_I_SOURCE_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include "common_isignal.h"
+#include "common.h"
 #include "common_signalhandler.h"
 
 template <typename ConfigurationType>
 class Test_I_Source_SignalHandler_T
  : public Common_SignalHandler_T<ConfigurationType>
 {
- public:
-  Test_I_Source_SignalHandler_T ();
-  inline virtual ~Test_I_Source_SignalHandler_T () {};
-
-  // implement Common_ISignal
-  virtual void handle (int); // signal
-
- private:
   typedef Common_SignalHandler_T<ConfigurationType> inherited;
 
+ public:
+  Test_I_Source_SignalHandler_T (enum Common_SignalDispatchType, // dispatch mode
+                                 ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~Test_I_Source_SignalHandler_T () {}
+
+  // implement Common_ISignal
+  virtual void handle (const struct Common_Signal&); // signal
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler_T (const Test_I_Source_SignalHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler_T& operator= (const Test_I_Source_SignalHandler_T&))
 };

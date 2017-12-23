@@ -31,15 +31,18 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
- : inherited (this) // event handler handle
+Stream_Target_SignalHandler::Stream_Target_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
+                                                          ACE_SYNCH_MUTEX* lock_in)
+ : inherited (dispatchMode_in,
+              lock_in,
+              this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::Stream_Target_SignalHandler"));
 
 }
 
 void
-Stream_Target_SignalHandler::handle (int signal_in)
+Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handle"));
 
@@ -50,7 +53,7 @@ Stream_Target_SignalHandler::handle (int signal_in)
   bool close_all = false;
   bool shutdown = false;
   bool statistic = false;
-  switch (signal_in)
+  switch (signal_in.signal)
   {
 // *PORTABILITY*: on Windows SIGQUIT is not defined
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

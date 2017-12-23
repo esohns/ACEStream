@@ -99,9 +99,11 @@ struct Stream_Filecopy_SessionData
 typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
 struct Stream_Filecopy_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   Stream_Filecopy_SignalHandlerConfiguration ()
-   : actionTimerId (-1)
+   : Common_SignalHandlerConfiguration ()
+   , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
   {};

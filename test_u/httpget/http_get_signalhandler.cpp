@@ -32,15 +32,18 @@
 
 #include "http_get_connection_manager_common.h"
 
-HTTPGet_SignalHandler::HTTPGet_SignalHandler ()
- : inherited (this) // event handler handle
+HTTPGet_SignalHandler::HTTPGet_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
+                                              ACE_SYNCH_MUTEX* lock_in)
+: inherited (dispatchMode_in,
+             lock_in,
+             this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_SignalHandler::HTTPGet_SignalHandler"));
 
 }
 
 void
-HTTPGet_SignalHandler::handle (int signal_in)
+HTTPGet_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_SignalHandler::handle"));
 
@@ -48,7 +51,7 @@ HTTPGet_SignalHandler::handle (int signal_in)
 
   bool statistic = false;
   bool shutdown = false;
-  switch (signal_in)
+  switch (signal_in.signal)
   {
     case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined

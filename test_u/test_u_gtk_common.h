@@ -67,13 +67,13 @@ struct Test_U_GTK_CBData
 //   : Common_UI_GTKGLState ()
 //   , allowUserRuntimeStatistic (true)
 //   , configuration (NULL)
-//   , contextID (0)
+//   , contextId (0)
 //   , eventStack ()
 //  {};
 //
 //  bool                  allowUserRuntimeStatistic;
 //  Test_U_Configuration* configuration;
-//  guint                 contextID; // statusbar
+//  guint                 contextId; // statusbar
 //  Test_U_GTK_Events_t   eventStack;
 //};
 //#endif

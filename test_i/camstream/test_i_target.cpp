@@ -2323,10 +2323,16 @@ ACE_TMAIN (int argc_in,
 
   // step1e: pre-initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler;
-  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
+  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                                      &directshow_gtk_cb_user_data.lock);
+  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                                                &mediafoundation_gtk_cb_user_data.lock);
 #else
-  Test_I_Target_SignalHandler_t signal_handler;
+  Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                &gtk_cb_user_data.lock);
 #endif
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);

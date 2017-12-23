@@ -22,25 +22,28 @@
 #define TEST_I_TARGET_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include "common_isignal.h"
+#include "common.h"
 #include "common_signalhandler.h"
 
 #include "test_i_target_common.h"
 
 class Stream_Target_SignalHandler
- : public Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration>
 {
+  typedef Common_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration> inherited;
+
  public:
-  Stream_Target_SignalHandler ();
-  inline virtual ~Stream_Target_SignalHandler () {};
+  Stream_Target_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                               ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~Stream_Target_SignalHandler () {}
 
   // implement Common_ISignal
-  virtual void handle (int); // signal
+  virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration> inherited;
-
+  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
 };

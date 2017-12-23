@@ -22,8 +22,9 @@
 #define TEST_I_SOURCE_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include "common_isignal.h"
+#include "common.h"
 #include "common_signalhandler.h"
 
 #include "test_i_http_get_common.h"
@@ -31,16 +32,18 @@
 class Stream_Source_SignalHandler
  : public Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration>
 {
- public:
-  Stream_Source_SignalHandler ();
-  inline virtual ~Stream_Source_SignalHandler () {};
-
-  // implement Common_ISignal
-  virtual void handle (int); // signal
-
- private:
   typedef Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration> inherited;
 
+ public:
+  Stream_Source_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                               ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~Stream_Source_SignalHandler () {}
+
+  // implement Common_ISignal
+  virtual void handle (const struct Common_Signal&); // signal
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler (const Stream_Source_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler& operator= (const Stream_Source_SignalHandler&))
 };

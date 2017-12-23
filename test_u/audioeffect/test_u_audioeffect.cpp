@@ -802,7 +802,6 @@ do_work (unsigned int bufferSize_in,
 
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
-  struct Test_U_AudioEffect_Configuration configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Common_IRecursiveTaskControl_t* itask_control_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -848,17 +847,12 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
-  directShowCBData_in.configuration = &directshow_configuration;
-  Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
-  mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
   allocator_configuration_p =
-    (useMediaFoundation_in ? &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_
-                           : &directshow_configuration.streamConfiguration.allocatorConfiguration_);
+    (useMediaFoundation_in ? &mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_
+                           : &directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_);
 #else
-  CBData_in.configuration = &configuration;
   allocator_configuration_p =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+    &CBData_in.configuration->streamConfiguration.allocatorConfiguration_;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -892,10 +886,10 @@ do_work (unsigned int bufferSize_in,
     struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
     mediafoundation_modulehandler_configuration.allocatorConfiguration =
       allocator_configuration_p;
-    mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
-                                                                  mediafoundation_modulehandler_configuration,
-                                                                  mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
-                                                                  mediafoundation_configuration.streamConfiguration.configuration_);
+    mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                                            mediafoundation_modulehandler_configuration,
+                                                                            mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
+                                                                            mediafoundation_configuration.streamConfiguration.configuration_);
 
     mediafoundation_modulehandler_iterator =
       mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -927,10 +921,10 @@ do_work (unsigned int bufferSize_in,
     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
     directshow_modulehandler_configuration.allocatorConfiguration =
       allocator_configuration_p;
-    directshow_configuration.streamConfiguration.initialize (module_configuration,
-                                                             directshow_modulehandler_configuration,
-                                                             directshow_configuration.streamConfiguration.allocatorConfiguration_,
-                                                             directshow_configuration.streamConfiguration.configuration_);
+    directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                                       directshow_modulehandler_configuration,
+                                                                       directshow_configuration.streamConfiguration.allocatorConfiguration_,
+                                                                       directshow_configuration.streamConfiguration.configuration_);
 
     directshow_modulehandler_iterator =
       directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -977,19 +971,19 @@ do_work (unsigned int bufferSize_in,
 #else
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
-  configuration.streamConfiguration.initialize (module_configuration,
-                                                modulehandler_configuration,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
-                                                configuration.streamConfiguration.configuration_);
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           modulehandler_configuration,
+                                                           CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
+                                                           CBData_in.configuration->streamConfiguration.configuration_);
 
   modulehandler_iterator =
-      configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != configuration.streamConfiguration.end ());
+      CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != CBData_in.configuration->streamConfiguration.end ());
 
 //  (*modulehandler_iterator).second.device = device_in;
   (*modulehandler_iterator).second.second.effect = effectName_in;
   (*modulehandler_iterator).second.second.format =
-    &configuration.ALSAConfiguration;
+    &CBData_in.configuration->ALSAConfiguration;
   (*modulehandler_iterator).second.second.messageAllocator = &message_allocator;
   (*modulehandler_iterator).second.second.mute = mute_in;
   (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
@@ -1006,7 +1000,7 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
   (*modulehandler_iterator).second.second.streamConfiguration =
-      &configuration.streamConfiguration;
+      &CBData_in.configuration->streamConfiguration;
   (*modulehandler_iterator).second.second.subscriber =
       &ui_event_handler;
   (*modulehandler_iterator).second.second.targetFileName =
@@ -1045,15 +1039,16 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
+  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
     &message_allocator;
-  configuration.streamConfiguration.configuration_.module =
+  CBData_in.configuration->streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      true;
 #endif
 
   // intialize timers
@@ -1098,7 +1093,7 @@ do_work (unsigned int bufferSize_in,
     result =
       directshow_stream.initialize (directshow_configuration.streamConfiguration);
 #else
-  result = stream.initialize (configuration.streamConfiguration);
+  result = stream.initialize (CBData_in.configuration->streamConfiguration);
 #endif
   if (!result)
   {
@@ -1142,11 +1137,11 @@ do_work (unsigned int bufferSize_in,
     signalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
   } // end ELSE
 #else
-  configuration.signalHandlerConfiguration.hasUI =
+  CBData_in.configuration->signalHandlerConfiguration.hasUI =
     !UIDefinitionFile_in.empty ();
-  configuration.signalHandlerConfiguration.messageAllocator =
+  CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
     &message_allocator;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
 #endif
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
@@ -1491,7 +1486,9 @@ ACE_TMAIN (int argc_in,
 
   struct Test_U_AudioEffect_GTK_CBDataBase* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
   struct Test_U_AudioEffect_DirectShow_GTK_CBData directshow_gtk_cb_data;
+  struct Test_U_AudioEffect_MediaFoundation_Configuration mediafoundation_configuration;
   struct Test_U_AudioEffect_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
   if (use_mediafoundation)
   {
@@ -1499,19 +1496,24 @@ ACE_TMAIN (int argc_in,
       &mediafoundation_gtk_cb_data;
     gtk_cb_data_p = &mediafoundation_gtk_cb_data;
     gtk_cb_data_p->useMediaFoundation = true;
+    mediafoundation_gtk_cb_data.configuration = &mediafoundation_configuration;
   } // end IF
   else
   {
     directshow_gtk_cb_data.progressData.GTKState =
       &directshow_gtk_cb_data;
     gtk_cb_data_p = &directshow_gtk_cb_data;
+    directshow_gtk_cb_data.configuration = &directshow_configuration;
   } // end ELSE
 #else
+  struct Test_U_AudioEffect_Configuration configuration;
   struct Test_U_AudioEffect_GTK_CBData gtk_cb_data;
   gtk_cb_data.progressData.GTKState = &gtk_cb_data;
   gtk_cb_data_p = &gtk_cb_data;
+  gtk_cb_data.configuration = &configuration;
 #endif
   ACE_ASSERT (gtk_cb_data_p);
+  gtk_cb_data_p->configuration = &configuration;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   if (!UI_CSS_file.empty ())
     gtk_cb_data_p->CSSProviders[UI_CSS_file] = NULL;
@@ -1590,7 +1592,9 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Test_U_AudioEffect_SignalHandler signal_handler;
+  Test_U_AudioEffect_SignalHandler signal_handler ((gtk_cb_data_p->configuration->signalHandlerConfiguration.useReactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                   &gtk_cb_data_p->lock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

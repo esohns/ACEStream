@@ -662,9 +662,9 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration
-  struct Stream_CamSave_Configuration configuration;
-  CBData_in.configuration = &configuration;
+  // sanity check(s)
+  ACE_ASSERT (CBData_in.configuration);
+
   Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
 
   // ********************** module configuration data **************************
@@ -685,7 +685,7 @@ do_work (unsigned int bufferSize_in,
 //  modulehandler_configuration.lock = &CBData_in.lock;
 #endif
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+    &CBData_in.configuration->streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.pixelBufferLock =
     CBData_in.pixelBufferLock;
   if (statisticReportingInterval_in)
@@ -698,13 +698,13 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = targetFilename_in;
 
-  configuration.streamConfiguration.initialize (module_configuration,
-                                                modulehandler_configuration,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
-                                                configuration.streamConfiguration.configuration_);
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           modulehandler_configuration,
+                                                           CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
+                                                           CBData_in.configuration->streamConfiguration.configuration_);
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator =
-    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
@@ -745,7 +745,7 @@ do_work (unsigned int bufferSize_in,
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -764,22 +764,23 @@ do_work (unsigned int bufferSize_in,
 #endif
 
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
+  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
-  configuration.streamConfiguration.configuration_.module =
+  CBData_in.configuration->streamConfiguration.configuration_.module =
       (!UIDefinitionFilename_in.empty () ? &event_handler
                                          : NULL);
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      true;
 
   // step0e: initialize signal handling
-  configuration.signalHandlerConfiguration.hasUI =
+  CBData_in.configuration->signalHandlerConfiguration.hasUI =
       !UIDefinitionFilename_in.empty ();
-  configuration.signalHandlerConfiguration.messageAllocator =
+  CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
       &message_allocator;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -847,7 +848,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    if (!stream.initialize (configuration.streamConfiguration))
+    if (!stream.initialize (CBData_in.configuration->streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
@@ -1059,7 +1060,9 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
+  struct Stream_CamSave_Configuration configuration;
   struct Stream_CamSave_GTK_CBData gtk_cb_user_data;
+  gtk_cb_user_data.configuration = &configuration;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_user_data.logStack,
@@ -1135,7 +1138,9 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_CamSave_SignalHandler signal_handler;
+  Stream_CamSave_SignalHandler signal_handler ((gtk_cb_user_data.configuration->signalHandlerConfiguration.useReactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                                      : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                               &gtk_cb_user_data.lock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

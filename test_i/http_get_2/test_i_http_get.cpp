@@ -1110,7 +1110,9 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (0);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  Test_I_SignalHandler signal_handler;
+  ACE_SYNCH_MUTEX signal_lock;
+  Test_I_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                       &signal_lock);
 
   ACE_High_Res_Timer timer;
   ACE_Profile_Timer::ACE_Elapsed_Time elapsed_time;

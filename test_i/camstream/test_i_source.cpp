@@ -1128,8 +1128,12 @@ do_work (unsigned int bufferSize_in,
   ACE_Event_Handler* event_handler_p = NULL;
 //  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler;
-  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
+  Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                     : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                                      &directShowCBData_in.lock);
+  Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                                                &mediaFoundationCBData_in.lock);
 
   if (useMediaFoundation_in)
     mediafoundation_event_handler_p =
@@ -1138,7 +1142,9 @@ do_work (unsigned int bufferSize_in,
     directshow_event_handler_p =
       dynamic_cast<Test_I_Source_DirectShow_EventHandler*> (directshow_event_handler.writer ());
 #else
-  Test_I_Source_V4L2_SignalHandler_t signal_handler;
+  Test_I_Source_V4L2_SignalHandler_t signal_handler ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                    : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                     &v4l2CBData_in.lock);
   struct Test_I_Source_V4L2_ConnectionConfiguration connection_configuration;
 
   module_event_handler_p =

@@ -29,18 +29,20 @@
 #include "test_u_filecopy_common.h"
 
 class Stream_Filecopy_SignalHandler
- : public Common_SignalHandler_T<Stream_Filecopy_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Stream_Filecopy_SignalHandlerConfiguration>
 {
  public:
-  Stream_Filecopy_SignalHandler ();
-  inline virtual ~Stream_Filecopy_SignalHandler () {};
+  Stream_Filecopy_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
+                                 ACE_SYNCH_MUTEX*);              // lock handle
+  inline virtual ~Stream_Filecopy_SignalHandler () {}
 
   // implement Common_ISignal
-  virtual void handle (int); // signal
+  virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<Stream_Filecopy_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<struct Stream_Filecopy_SignalHandlerConfiguration> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler (const Stream_Filecopy_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler& operator= (const Stream_Filecopy_SignalHandler&))
 };
