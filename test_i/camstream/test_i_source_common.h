@@ -42,6 +42,8 @@ extern "C"
 
 #include "gtk/gtk.h"
 
+#include "common_statistic_handler.h"
+
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 
@@ -53,7 +55,6 @@ extern "C"
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-#include "stream_stat_statistic_handler.h"
 
 #include "test_i_camstream_common.h"
 #include "test_i_camstream_network.h"
@@ -500,7 +501,7 @@ struct Test_I_Source_Stream_StatisticData
 #endif
 };
 typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
+typedef Common_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration

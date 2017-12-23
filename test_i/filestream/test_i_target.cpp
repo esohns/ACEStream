@@ -605,7 +605,7 @@ do_work (unsigned int bufferSize_in,
   struct Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Test_I_StatisticHandler_t statistic_handler (ACTION_REPORT,
+  Test_I_StatisticHandler_t statistic_handler (STATISTIC_ACTION_REPORT,
                                                connection_manager_p,
                                                false);
   long timer_id = -1;
@@ -640,7 +640,7 @@ do_work (unsigned int bufferSize_in,
     useReactor_in;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
       connection_manager_p;
-  CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerID =
+  CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerId =
       timer_id;
   if (!signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration))
   {

@@ -35,6 +35,7 @@
 #include "common.h"
 #endif
 #include "common_istatistic.h"
+#include "common_statistic_handler.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -48,8 +49,6 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
-#include "stream_stat_statistic_handler.h"
-
 #include "test_u_defines.h"
 
 // forward declarations
@@ -61,9 +60,8 @@ class ACE_Message_Queue_Base;
 struct Test_U_Configuration;
 
 typedef Stream_Statistic Test_U_Statistic_t;
-
 typedef Common_IStatistic_T<Test_U_Statistic_t> Test_U_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_T<Test_U_Statistic_t> Test_U_StatisticHandler_t;
+typedef Common_StatisticHandler_T<Test_U_Statistic_t> Test_U_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_DirectShow_MessageData

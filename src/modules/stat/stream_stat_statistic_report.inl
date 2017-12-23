@@ -66,11 +66,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  /////////////////////////////////////////
  , inbound_ (true)
  , resetTimeoutHandler_ (this)
- , resetTimeoutHandlerID_ (-1)
- , localReportingHandler_ (ACTION_REPORT,
+ , resetTimeoutHandlerId_ (-1)
+ , localReportingHandler_ (STATISTIC_ACTION_REPORT,
                            this,
                            false)
- , localReportingHandlerID_ (-1)
+ , localReportingHandlerId_ (-1)
  , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
  , printFinalReport_ (false)
  , pushStatisticMessages_ (false)
@@ -163,12 +163,12 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                        : TIMER_MANAGER_SINGLETON_T::instance ());
     ACE_ASSERT (itimer_manager_p);
     ACE_Time_Value one_second (1, 0); // one-second interval
-    resetTimeoutHandlerID_ =
+    resetTimeoutHandlerId_ =
       itimer_manager_p->schedule_timer (&resetTimeoutHandler_,        // event handler handle
                                         NULL,                         // asynchronous completion token
                                         COMMON_TIME_NOW + one_second, // first wakeup time
                                         one_second);                  // interval
-    if (resetTimeoutHandlerID_ == -1)
+    if (resetTimeoutHandlerId_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -318,18 +318,18 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       {
         // schedule the reporting interval timer
         ACE_ASSERT (inherited::configuration_);
-        ACE_ASSERT (localReportingHandlerID_ == -1);
+        ACE_ASSERT (localReportingHandlerId_ == -1);
 
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                      : TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
-        localReportingHandlerID_ =
+        localReportingHandlerId_ =
           itimer_manager_p->schedule_timer (&localReportingHandler_,              // event handler handle
                                             NULL,                                 // asynchronous completion token
                                             COMMON_TIME_NOW + reportingInterval_, // first wakeup time
                                             reportingInterval_);                  // interval
-        if (localReportingHandlerID_ == -1)
+        if (localReportingHandlerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -340,7 +340,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled (local) reporting timer (id: %d, interval: %#T)\n"),
                     inherited::mod_->name (),
-                    localReportingHandlerID_,
+                    localReportingHandlerId_,
                     &reportingInterval_));
       } // end IF
       // *NOTE*: even if 'this' doesn't report, it might still be triggered from
@@ -802,30 +802,30 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   if (cancelAllTimers_in)
   {
-    if (resetTimeoutHandlerID_ != -1)
+    if (resetTimeoutHandlerId_ != -1)
     {
-      result = itimer_manager_p->cancel_timer (resetTimeoutHandlerID_,
+      result = itimer_manager_p->cancel_timer (resetTimeoutHandlerId_,
                                                &act_p);
       if (result <= 0)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    resetTimeoutHandlerID_));
-      resetTimeoutHandlerID_ = -1;
+                    resetTimeoutHandlerId_));
+      resetTimeoutHandlerId_ = -1;
     } // end IF
   } // end IF
 
-  if (localReportingHandlerID_ != -1)
+  if (localReportingHandlerId_ != -1)
   {
     act_p = NULL;
-    result = itimer_manager_p->cancel_timer (localReportingHandlerID_,
+    result = itimer_manager_p->cancel_timer (localReportingHandlerId_,
                                              &act_p);
     if (result <= 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                   inherited::mod_->name (),
-                  localReportingHandlerID_));
-    localReportingHandlerID_ = -1;
+                  localReportingHandlerId_));
+    localReportingHandlerId_ = -1;
   } // end IF
 }
 

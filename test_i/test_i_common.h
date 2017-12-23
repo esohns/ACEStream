@@ -30,6 +30,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common.h"
+#include "common_statistic_handler.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -41,7 +42,6 @@
 #else
 #include "stream_dev_defines.h"
 #endif
-#include "stream_stat_statistic_handler.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -56,9 +56,8 @@ typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
 typedef Stream_Statistic Test_I_Statistic_t;
-
-typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_T<Test_I_Statistic_t> Test_I_StatisticHandler_t;
+typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_IStatisticHandler_t;
+typedef Common_StatisticHandler_T<Test_I_Statistic_t> Test_I_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_MessageData

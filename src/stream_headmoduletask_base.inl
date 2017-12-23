@@ -76,7 +76,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       NULL) // attributes
  , streamLock_ (stream_in)
  , streamState_ (NULL)
- , statisticHandler_ (ACTION_COLLECT,
+ , statisticHandler_ (STATISTIC_ACTION_COLLECT,
                       this,
                       false)
  , timerId_ (-1)

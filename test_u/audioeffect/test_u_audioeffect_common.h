@@ -63,6 +63,7 @@
 #endif
 
 #include "common_isubscribe.h"
+#include "common_statistic_handler.h"
 #include "common_tools.h"
 
 #include "common_ui_gtk_builder_definition.h"
@@ -84,8 +85,6 @@
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
-
-#include "stream_stat_statistic_handler.h"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -411,7 +410,7 @@ struct Test_U_AudioEffect_Statistic
   double       volumeAverage;
   double       volumeVariance;
 };
-typedef Stream_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandler_t;
+typedef Common_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandler_t;
 
 struct Test_U_AudioEffect_SessionData
  : Test_U_SessionData

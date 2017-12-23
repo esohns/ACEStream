@@ -708,7 +708,7 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
     TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  Test_I_StatisticHandler_t statistic_handler (ACTION_REPORT,
+  Test_I_StatisticHandler_t statistic_handler (STATISTIC_ACTION_REPORT,
                                                connection_manager_p,
                                                false);
   Common_Timer_Manager_t* timer_manager_p = NULL;

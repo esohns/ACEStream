@@ -19,9 +19,6 @@ if (WIN32)
       stream_stat_statistic_analysis.cpp
       stream_stat_statistic_analysis.h
       stream_stat_statistic_analysis.inl
-      stream_stat_statistic_handler.cpp
-      stream_stat_statistic_handler.h
-      stream_stat_statistic_handler.inl
       stream_stat_statistic_report.cpp
       stream_stat_statistic_report.h
       stream_stat_statistic_report.inl
@@ -36,9 +33,6 @@ elseif (UNIX)
       stream_stat_statistic_analysis.cpp
       stream_stat_statistic_analysis.h
       stream_stat_statistic_analysis.inl
-      stream_stat_statistic_handler.cpp
-      stream_stat_statistic_handler.h
-      stream_stat_statistic_handler.inl
       stream_stat_statistic_report.cpp
       stream_stat_statistic_report.h
       stream_stat_statistic_report.inl)
@@ -82,8 +76,6 @@ if (WIN32)
           stream_stat_exports.h
           stream_stat_statistic_analysis.h
           stream_stat_statistic_analysis.inl
-          stream_stat_statistic_handler.h
-          stream_stat_statistic_handler.inl
           stream_stat_statistic_report.h
           stream_stat_statistic_report.inl
           targetver.h
@@ -96,8 +88,6 @@ elseif (UNIX)
           stream_stat_exports.h
           stream_stat_statistic_analysis.h
           stream_stat_statistic_analysis.inl
-          stream_stat_statistic_handler.h
-          stream_stat_statistic_handler.inl
           stream_stat_statistic_report.h
           stream_stat_statistic_report.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

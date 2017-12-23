@@ -32,6 +32,7 @@
 
 #include "common_icounter.h"
 #include "common_istatistic.h"
+#include "common_statistic_handler.h"
 
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
@@ -40,7 +41,6 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_stat_exports.h"
-#include "stream_stat_statistic_handler.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -239,7 +239,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                         TimerManagerType,
                                                         SessionDataType,          // session data
                                                         SessionDataContainerType> OWN_TYPE_T;
-  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
+  typedef Common_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         ConfigurationType,
@@ -273,9 +273,9 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
   // timer
   Stream_ResetCounterHandler resetTimeoutHandler_;
-  long                       resetTimeoutHandlerID_;
+  long                       resetTimeoutHandlerId_;
   STATISTIC_HANDLER_T        localReportingHandler_;
-  long                       localReportingHandlerID_;
+  long                       localReportingHandlerId_;
   ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]
   bool                       printFinalReport_;
   bool                       pushStatisticMessages_; // 1-second interval

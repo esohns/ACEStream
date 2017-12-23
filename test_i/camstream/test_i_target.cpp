@@ -1167,7 +1167,7 @@ do_work (unsigned int bufferSize_in,
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Test_I_StatisticHandler_t statistic_handler (ACTION_REPORT,
+  Test_I_StatisticHandler_t statistic_handler (STATISTIC_ACTION_REPORT,
                                                report_handler_p,
                                                false);
   ACE_Event_Handler* event_handler_2 = NULL;

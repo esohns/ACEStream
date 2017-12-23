@@ -21,11 +21,11 @@
 #ifndef STREAM_STAT_COMMON_H
 #define STREAM_STAT_COMMON_H
 
+#include "common_statistic_handler.h"
+
 #include "stream_common.h"
 
-#include "stream_stat_statistic_handler.h"
-
-//enum Stream_Statistic_AnalysisModeType
+//enum Stream_Statistic_AnalysisModeType : int
 //{
 //  STREAM_STATISTIC_ANALYSIS_MODE_SLIDINGAVERAGE = 0,
 //  ////////////////////////////////////////
@@ -33,7 +33,7 @@
 //  STREAM_STATISTIC_ANALYSIS_MODE_INVALID
 //};
 
-enum Stream_Statistic_AnalysisEventType
+enum Stream_Statistic_AnalysisEventType : int
 {
   STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY = 0,
   STREAM_STATISTIC_ANALYSIS_EVENT_PEAK,
@@ -44,6 +44,6 @@ enum Stream_Statistic_AnalysisEventType
 
 //////////////////////////////////////////
 
-typedef Stream_StatisticHandler_T<struct Stream_Statistic> Stream_StatisticHandler_t;
+typedef Common_StatisticHandler_T<struct Stream_Statistic> Stream_StatisticHandler_t;
 
 #endif

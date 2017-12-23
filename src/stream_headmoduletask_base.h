@@ -29,6 +29,7 @@
 
 #include "common_iget.h"
 #include "common_istatistic.h"
+#include "common_statistic_handler.h"
 
 #include "stream_ilink.h"
 #include "stream_ilock.h"
@@ -37,8 +38,6 @@
 #include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
-
-#include "stream_stat_statistic_handler.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -165,6 +164,7 @@ class Stream_HeadModuleTaskBase_T
   // convenient types
   typedef ACE_Singleton<TimerManagerType,
                         ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
+  typedef Common_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -176,7 +176,6 @@ class Stream_HeadModuleTaskBase_T
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
-  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_IStreamControl_T<SessionControlType,
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
