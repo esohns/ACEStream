@@ -38,7 +38,7 @@
 //#include <mtype.h>
 #include <streams.h>
 
-#include <gdk/gdkwin32.h>
+#include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
 
@@ -49,10 +49,10 @@
 #include "common_file_tools.h"
 #include "common_timer_manager.h"
 
-#include "common_ui_common.h"
-#include "common_ui_defines.h"
+#include "common_ui_gtk_common.h"
+#include "common_ui_gtk_defines.h"
 #include "common_ui_gtk_manager_common.h"
-#include "common_ui_tools.h"
+#include "common_ui_gtk_tools.h"
 
 #include "stream_macros.h"
 
@@ -3677,11 +3677,11 @@ idle_update_log_display_cb (gpointer userData_in)
   // step1: convert text
   while (!data_p->logStack.empty ())
   {
-    string_p = Common_UI_Tools::LocaleToUTF8 (data_p->logStack.front ());
+    string_p = Common_UI_GTK_Tools::localeToUTF8 (data_p->logStack.front ());
     if (!string_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_UI_Tools::LocaleToUTF8(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
                   ACE_TEXT (data_p->logStack.front ().c_str ())));
       return G_SOURCE_REMOVE;
     } // end IF
@@ -5082,11 +5082,11 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  std::string file_name = Common_UI_Tools::UTF8ToLocale (string_p, -1);
+  std::string file_name = Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
   if (file_name.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up
@@ -5177,11 +5177,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  std::string file_name = Common_UI_Tools::UTF8ToLocale (string_p, -1);
+  std::string file_name = Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
   if (file_name.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up

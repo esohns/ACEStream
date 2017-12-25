@@ -30,10 +30,10 @@
 #include "ace/Synch.h"
 #include "common_timer_manager.h"
 
-#include "common_ui_common.h"
-#include "common_ui_defines.h"
+#include "common_ui_gtk_common.h"
+#include "common_ui_gtk_defines.h"
 #include "common_ui_gtk_manager_common.h"
-#include "common_ui_tools.h"
+#include "common_ui_gtk_tools.h"
 
 #include "stream_macros.h"
 
@@ -571,22 +571,21 @@ idle_update_log_display_cb (gpointer userData_in)
                                 &text_iterator);
 
   gchar* converted_text = NULL;
-  { // synch access
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
     // sanity check
-    if (data_p->logStack.empty ()) return G_SOURCE_CONTINUE;
+    if (data_p->logStack.empty ())
+      return G_SOURCE_CONTINUE;
 
     // step1: convert text
     for (Common_MessageStackConstIterator_t iterator_2 = data_p->logStack.begin ();
          iterator_2 != data_p->logStack.end ();
          iterator_2++)
     {
-      converted_text = Common_UI_Tools::LocaleToUTF8 (*iterator_2);
+      converted_text = Common_UI_GTK_Tools::localeToUTF8 (*iterator_2);
       if (!converted_text)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_UI_Tools::LocaleToUTF8(\"%s\"), aborting\n"),
+                    ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
                     ACE_TEXT ((*iterator_2).c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
@@ -1284,19 +1283,19 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   if (is_source)
   {
     (*iterator_2).second.second.fileName =
-      Common_UI_Tools::UTF8ToLocale (string_p, -1);
+      Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
     result = !(*iterator_2).second.second.fileName.empty ();
   } // end IF
   else
   {
     (*iterator_2).second.second.targetFileName =
-      Common_UI_Tools::UTF8ToLocale (string_p, -1);
+      Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
     result = !(*iterator_2).second.second.targetFileName.empty ();
   } // end ELSE
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up

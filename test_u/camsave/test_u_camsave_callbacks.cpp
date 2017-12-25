@@ -44,17 +44,17 @@
 
 #include "gdk/gdkwin32.h"
 #else
-#include "ace/Dirent_Selector.h"
-
-#include "libv4l2.h"
 #include "linux/videodev2.h"
+#include "libv4l2.h"
+
+#include "ace/Dirent_Selector.h"
 #endif
 
 #include "common_timer_manager.h"
 
-#include "common_ui_common.h"
-#include "common_ui_defines.h"
-#include "common_ui_tools.h"
+#include "common_ui_gtk_common.h"
+#include "common_ui_gtk_defines.h"
+#include "common_ui_gtk_tools.h"
 
 #include "stream_macros.h"
 
@@ -1697,21 +1697,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     //  data_p->configuration->moduleHandlerConfiguration.targetFileName;
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
-    filename_p =
-      Common_UI_Tools::LocaleToUTF8 ((*iterator_2).second.second.targetFileName);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                        filename_p))
+                                        (*iterator_2).second.second.targetFileName.c_str ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ())));
-
-      // clean up
-      g_free (filename_p);
-
       return G_SOURCE_REMOVE;
     } // end IF
-    g_free (filename_p);
 
     //if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
     //                                   file_p,
@@ -1735,22 +1728,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     //file_p =
     //  g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
     //ACE_ASSERT (file_p);
-
-    filename_p =
-      Common_UI_Tools::LocaleToUTF8 (Common_File_Tools::getTempDirectory ());
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                        filename_p))
+                                        Common_File_Tools::getTempDirectory ().c_str ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (Common_File_Tools::getTempDirectory ().c_str ())));
-
-      // clean up
-      g_free (filename_p);
-
       return G_SOURCE_REMOVE;
     } // end IF
-    g_free (filename_p);
     //g_object_unref (file_p);
   } // end ELSE
 
@@ -2166,11 +2151,11 @@ idle_update_log_display_cb (gpointer userData_in)
          iterator_2 != data_p->logStack.end ();
          iterator_2++)
     {
-      converted_text = Common_UI_Tools::LocaleToUTF8 (*iterator_2);
+      converted_text = Common_UI_GTK_Tools::localeToUTF8 (*iterator_2);
       if (!converted_text)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_UI_Tools::LocaleToUTF8(\"%s\"), aborting\n"),
+                    ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
                     ACE_TEXT ((*iterator_2).c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
@@ -2639,7 +2624,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   //  } // end IF
   //  g_object_unref (file_p);
   //  data_p->configuration->moduleHandlerConfiguration.targetFileName =
-  //    Common_UI_Tools::UTF82Locale (filename_p, -1);
+  //    Common_UI_GTK_Tools::UTF82Locale (filename_p, -1);
   //  g_free (filename_p);
   //} // end IF
   spin_button_p =
@@ -4285,11 +4270,11 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   g_object_unref (file_p);
 
   (*iterator_2).second.second.targetFileName =
-    Common_UI_Tools::UTF8ToLocale (string_p, -1);
+    Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
   if ((*iterator_2).second.second.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
+                ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (string_p)));
 
     // clean up
@@ -4299,13 +4284,13 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   } // end IF
   g_free (string_p);
 
-  string_2 =
-      Common_UI_Tools::LocaleToUTF8 ((*iterator_2).second.second.targetFileName);
-  ACE_ASSERT (string_2);
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
   ACE_ASSERT (entry_p);
+  string_2 =
+      Common_UI_GTK_Tools::localeToUTF8 ((*iterator_2).second.second.targetFileName);
+  ACE_ASSERT (string_2);
   gtk_entry_set_text (entry_p,
                       string_2);
   g_free (string_2);

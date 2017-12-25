@@ -177,6 +177,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
 elseif (WIN32)
  # *NOTE*: workaround
  set(_PF86 "ProgramFiles(x86)")
@@ -221,6 +222,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -238,8 +240,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (audioeffect_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     ../test_u_common.h
-     ../test_u_defines.h
      targetver.h
      test_u_audioeffect.cpp
      test_u_audioeffect_callbacks.cpp
@@ -358,7 +358,8 @@ if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE} CommonUI)
+#target_link_libraries (${EXECUTABLE} CommonUI)
+target_link_libraries (${EXECUTABLE} CommonUI_GTK)
 
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)

@@ -541,7 +541,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     //  return G_SOURCE_REMOVE;
     //} // end ELSE
     // schedule asynchronous updates of the info view
-    event_source_id = g_timeout_add (COMMON_UI_GTK_WIDGET_UPDATE_INTERVAL,
+    event_source_id = g_timeout_add (COMMON_UI_GTK_UPDATE_WIDGET_INTERVAL,
                                      idle_update_info_display_cb,
                                      cb_data_p);
     if (event_source_id > 0)
@@ -1218,14 +1218,13 @@ continue_:
   //         early
   ACE_ASSERT (!cb_data_p->progressData->eventSourceId);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock);
-
     cb_data_p->progressData->eventSourceId =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
         //                 &data_p->progressData,
         //                 NULL);
         g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                   // _LOW doesn't work (on Win32)
-                            COMMON_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+                            COMMON_UI_GTK_UPDATE_PROGRESSBAR_INTERVAL, // ms (?)
                             idle_update_progress_cb,
                             cb_data_p->progressData,
                             NULL);
