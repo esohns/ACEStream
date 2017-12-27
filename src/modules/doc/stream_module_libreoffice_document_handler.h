@@ -23,6 +23,10 @@
 
 #include "ace/Global_Macros.h"
 
+// *IMPORTANT NOTE*: the SAL_THROW macro appears to be missing from recent
+//                   libreoffice/openoffice distributions
+//                   --> the current solution is to add it manually to
+//                       sal/types.h (see sal/types.h:352)
 #include "sal/types.h"
 
 #include "com/sun/star/task/XInteractionHandler.hpp"
