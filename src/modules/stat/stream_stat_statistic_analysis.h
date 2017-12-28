@@ -91,7 +91,7 @@ class Stream_Statistic_StatisticAnalysis_T
 #else
   Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Stream_Statistic_StatisticAnalysis_T ();
+  inline virtual ~Stream_Statistic_StatisticAnalysis_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

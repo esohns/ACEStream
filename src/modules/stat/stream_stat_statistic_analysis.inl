@@ -42,19 +42,19 @@ template <ACE_SYNCH_DECL,
           typename ValueType,
           unsigned int Aggregation>
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  Aggregation>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
+                                     Aggregation>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
 #else
-                                  Aggregation>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
+                                     Aggregation>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
  , inherited2 (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE,
@@ -90,50 +90,23 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename ValueType,
           unsigned int Aggregation>
-Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::~Stream_Statistic_StatisticAnalysis_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::~Stream_Statistic_StatisticAnalysis_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ValueType,
-          unsigned int Aggregation>
 bool
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::initialize (const ConfigurationType& configuration_in,
-                                                            Stream_IAllocator* allocator_in)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::initialize (const ConfigurationType& configuration_in,
+                                                               Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::initialize"));
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     // (re-)activate() the message queue
     // *NOTE*: as this is a 'passive' object, the queue needs to be explicitly
@@ -161,8 +134,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   eventDispatcher_ = configuration_in.dispatch;
 
-  if (!inherited::initialize (configuration_in,
-                              allocator_in))
+  if (unlikely (!inherited::initialize (configuration_in,
+                                        allocator_in)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize(), aborting\n"),
@@ -172,7 +145,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
-  if (!media_type_p)
+  if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
@@ -223,17 +196,17 @@ template <ACE_SYNCH_DECL,
           unsigned int Aggregation>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::handleDataMessage (DataMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::handleDataMessage (DataMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::handleDataMessage"));
 
@@ -278,7 +251,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     } // end FOR
 
     number_of_samples -= samples_to_write;
-    if (number_of_samples == 0) break; // done
+    if (number_of_samples == 0)
+      break; // done
   } while (true);
 }
 
@@ -295,17 +269,17 @@ template <ACE_SYNCH_DECL,
           unsigned int Aggregation>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::handleSessionMessage"));
 
@@ -336,7 +310,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* media_type_p = NULL;
       media_type_p = getFormat (session_data_r.format);
-      if (!media_type_p)
+      if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
@@ -376,7 +350,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                        sub_sample_size,
                                        true,
                                        sample_byte_order);
-      if (!result_2)
+      if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
@@ -387,7 +361,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       result_2 =
         inherited2::Initialize (inherited::configuration_->spectrumAnalyzerResolution,
                                 sample_rate);
-      if (!result_2)
+      if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_Math_Sample_T::initialize(), aborting\n"),
@@ -433,10 +407,13 @@ error:
       //                   --> join with the renderer thread
       if (inherited::thr_count_ > 0)
       {
-        inherited::stop (true); // wait ?
+        inherited::stop (true,  // wait ?
+                         true); // N/A
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
+#endif
       } // end IF
 
       break;
@@ -525,7 +502,7 @@ error:
 //  {
 //    message_block_p = NULL;
 //    result_2 = inherited::getq (message_block_p, NULL);
-//    if (result_2 == -1)
+//    if (unlikely (result_2 == -1))
 //    {
 //      error = ACE_OS::last_error ();
 //      if (error != EWOULDBLOCK) // Win32: 10035
@@ -595,8 +572,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
+  if (unlikely (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                                       result_p)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
@@ -642,7 +619,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
                                         GUID_NULL,
                                         &result_p);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
@@ -719,29 +696,35 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       was_in_peak = in_peak;
       in_peak =
           (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
+#if defined (_DEBUG)
 //      if (in_peak && !was_in_peak)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected peak...\n")));
+#endif
 
       // step2: 'sustain' detection
       static bool in_streak = false;
       static bool was_in_streak = false;
       static bool in_volume = false;
       static bool was_in_volume = false;
-      if (difference <= 0)
+      if (unlikely (difference <= 0))
       {
         if (in_streak)
         {
+#if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("detected streak end...\n")));
+#endif
           ++streakCount_;
         } // end IF
         streak_ = 0;
         in_streak = false;
 
+#if defined (_DEBUG)
 //        if (in_volume)
 //          ACE_DEBUG ((LM_DEBUG,
 //                      ACE_TEXT ("detected volume end...\n")));
+#endif
         volume_ = 0;
         in_volume = false;
 
@@ -761,21 +744,25 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       was_in_streak = in_streak;
       in_streak =
           (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (streakVariance_)));
-      if (in_streak)
+      if (unlikely (in_streak))
       {
         if (!was_in_streak)
         {
+#if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("detected noise (streak)...\n")));
+#endif
           //        goto continue_2;
         } // end IF
 
         goto continue_2;
       } // end IF
-      if (was_in_streak)
+      if (unlikely (was_in_streak))
       {
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("detected streak end...\n")));
+#endif
         streak_ = 0;
         ++streakCount_;
         was_in_streak = false;
@@ -801,30 +788,33 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       was_in_volume = in_volume;
       in_volume =
           (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (volumeVariance_)));
-      if (in_volume)
+      if (unlikely (in_volume))
       {
         if (!was_in_volume)
         {
+#if defined (_DEBUG)
 //          ACE_DEBUG ((LM_DEBUG,
 //                      ACE_TEXT ("detected noise (volume)...\n")));
+#endif
           //        goto continue_2;
         } // end IF
 
         goto continue_2;
       } // end IF
-      if (was_in_volume)
+      if (unlikely (was_in_volume))
       {
+#if defined (_DEBUG)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected volume end...\n")));
-
+#endif
         volume_ = 0;
         in_volume = false;
         was_in_volume = false;
       } // end IF
 
 continue_2:
-      if ((in_streak || in_volume) &&  // <-- 'activity' ?
-          eventDispatcher_)
+      if (unlikely ((in_streak || in_volume) &&  // <-- 'activity' ?
+                    eventDispatcher_))
       {
         try {
           eventDispatcher_->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY);
@@ -836,8 +826,8 @@ continue_2:
       } // end IF
 
 continue_:
-      if ((in_peak && !was_in_peak) && // <-- 'peak' ?
-          eventDispatcher_)
+      if (unlikely ((in_peak && !was_in_peak) && // <-- 'peak' ?
+                    eventDispatcher_))
       {
         try {
           eventDispatcher_->dispatch (STREAM_STATISTIC_ANALYSIS_EVENT_PEAK);

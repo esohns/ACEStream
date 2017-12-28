@@ -91,9 +91,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , height_ (0)
  , width_ (0)
  , mode2D_ (NULL)
-#if defined (GTKGL_SUPPORT)
  , mode3D_ (NULL)
-#endif
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
@@ -142,13 +140,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
 #if GTK_CHECK_VERSION (3,10,0)
-  if (cairoSurface_)
+  if (unlikely (cairoSurface_))
     cairo_surface_destroy (cairoSurface_);
 #else
-  if (pixelBuffer_)
+  if (unlikely (pixelBuffer_))
     g_object_unref (pixelBuffer_);
 #endif
-  if (cairoContext_)
+  if (unlikely (cairoContext_))
     cairo_destroy (cairoContext_);
 }
 
@@ -177,7 +175,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
 //  int result = -1;
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     // (re-)activate() the message queue
     // *NOTE*: as this is a 'passive' object, the queue needs to be explicitly
@@ -227,10 +225,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     height_ = width_ = 0;
 
     mode2D_ = NULL;
-#if defined (GTKGL_SUPPORT)
     mode3D_ = NULL;
-#endif /* GTKGL_SUPPORT */
   } // end IF
+
+  mode2D_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer2DMode;
+
+  // initialize cairo ?
+  if (!configuration_in.GdkWindow2D)
+    goto continue_;
 
   surfaceLock_ = configuration_in.surfaceLock;
 #if GTK_CHECK_VERSION (3,10,0)
@@ -250,9 +253,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                          cairoContext_,
                          cairoSurface_))
 #else
-  if (!initialize_Cairo (configuration_in.GdkWindow2D,
-                         cairoContext_,
-                         pixelBuffer_))
+  if (unlikely (!initialize_Cairo (configuration_in.GdkWindow2D,
+                                   cairoContext_,
+                                   pixelBuffer_)))
 #endif
   {
     ACE_DEBUG ((LM_ERROR,
@@ -274,7 +277,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (height_);
   //ACE_ASSERT (width_);
 
+continue_:
+  mode3D_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
+
 #if defined (GTKGL_SUPPORT)
+  // initialize OpenGL ?
+  if (!configuration_in.OpenGLWindow)
+    goto continue_2;
+
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
   //OpenGLTextureId_ = configuration_in.OpenGLTextureId;
@@ -287,22 +298,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
-
-  mode2D_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer2DMode;
-#if defined (GTKGL_SUPPORT)
-  mode3D_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
-  if (!mode2D_ || !mode3D_)
-#else /* GTKGL_SUPPORT */
-  if (!mode2D_)
-#endif /* GTKGL_SUPPORT */
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid mode, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
 
 #if defined (GTKGL_SUPPORT)
   if (OpenGLWindow_)
@@ -321,8 +316,16 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
-  if (!inherited::initialize (configuration_in,
-                              allocator_in))
+continue_2:
+#if defined (_DEBUG)
+  if (unlikely (!mode2D_ && !mode3D_))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: no graphics output\n"),
+                inherited::mod_->name ()));
+#endif
+
+  if (unlikely (!inherited::initialize (configuration_in,
+                                        allocator_in)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize(), aborting\n"),
@@ -333,7 +336,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType* media_type_p =
     getFormat (configuration_in.format);
-  if (!media_type_p)
+  if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
@@ -345,7 +348,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (media_type_p->pbFormat);
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
-  ACE_ASSERT (waveformatex_p);
 #endif
 
   // *TODO*: remove type inferences
@@ -355,8 +357,11 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   bool result_2 = false;
   unsigned int channels, sample_rate;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (waveformatex_p);
   channels = waveformatex_p->nChannels;
   sample_rate = waveformatex_p->nSamplesPerSec;
+
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
   channels = configuration_in.format->channels;
   sample_rate = configuration_in.format->rate;
@@ -365,14 +370,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     inherited2::Initialize (channels,
                             configuration_in.spectrumAnalyzerResolution,
                             sample_rate);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (media_type_p)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
-#endif
-
-  // *TODO*: remove type inference
-  const_cast<ConfigurationType&> (configuration_in).dispatch = this;
 
   return result_2;
 }
@@ -522,7 +519,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* media_type_p = NULL;
       media_type_p = getFormat (session_data_r.format);
-      if (!media_type_p)
+      if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve media type, returning\n"),
@@ -564,7 +561,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                              sound_sample_size,
                                              true,
                                              sample_byte_order);
-      if (!result_2)
+      if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
@@ -576,7 +573,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         inherited2::Initialize (channels,
                                 inherited::configuration_->spectrumAnalyzerResolution,
                                 sample_rate);
-      if (!result_2)
+      if (unlikely (!result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_Math_FFT::initialize(), aborting\n"),
@@ -615,7 +612,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                             NULL,                               // asynchronous completion token
                                             COMMON_TIME_NOW + refresh_interval, // first wakeup time
                                             refresh_interval);                  // interval
-        if (renderHandlerTimerId_ == -1)
+        if (unlikely (renderHandlerTimerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -623,10 +620,12 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                       &refresh_interval));
           goto error;
         } // end IF
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
                     inherited::mod_->name (),
                     renderHandlerTimerId_));
+#endif
 
         inherited::start ();
         shutdown = true;
@@ -673,16 +672,18 @@ error:
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (renderHandlerTimerId_,
                                                  &act_p);
-        if (result <= 0)
+        if (unlikely (result <= 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       renderHandlerTimerId_));
+#if defined (_DEBUG)
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
                       inherited::mod_->name (),
                       renderHandlerTimerId_));
+#endif
         renderHandlerTimerId_ = -1;
       } // end IF
 
@@ -693,9 +694,11 @@ error:
       {
         inherited::stop (true,  // wait ?
                          true); // N/A
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
+#endif
       } // end IF
 
 #if GTK_CHECK_VERSION (3,10,0)
@@ -771,7 +774,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     message_block_p = NULL;
     result_2 = inherited::getq (message_block_p, NULL);
-    if (result_2 == -1)
+    if (unlikely (result_2 == -1))
     {
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
@@ -837,6 +840,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
 
   // sanity check(s)
+  ACE_ASSERT (window_in);
   ACE_ASSERT (!cairoContext_out);
   //ACE_ASSERT (!cairoSurface_out);
 
@@ -845,9 +849,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //cairoSurface_out = NULL;
 
   int width, height;
-
   //gdk_threads_enter ();
-
   width = gdk_window_get_width (window_in);
   height = gdk_window_get_height (window_in);
 
@@ -866,7 +868,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //    cairo_surface_type_t type = cairo_surface_get_type (cairoSurface_out);
 //    ACE_ASSERT (type == CAIRO_SURFACE_TYPE_IMAGE);
 #endif
-    if (!cairoSurface_out)
+    if (unlikely (!cairoSurface_out))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to gdk_window_create_similar_surface(), aborting\n"),
@@ -882,7 +884,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 
   cairoContext_out = cairo_create (cairoSurface_out);
-  if (!cairoContext_out)
+  if (unlikely (!cairoContext_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to cairo_create(), aborting\n"),
@@ -974,7 +976,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   cairoContext_out = gdk_cairo_create (window_in);
 //  cairoContext_out = cairo_create ();
-  if (!cairoContext_out)
+  if (unlikely (!cairoContext_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
@@ -1136,7 +1138,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   if (surfaceLock_)
   {
     result = surfaceLock_->acquire ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1153,9 +1155,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     cairo_destroy (cairoContext_);
     cairoContext_ = NULL;
   } // end IF
-  if (!initialize_Cairo (NULL,
-                         cairoContext_,
-                         cairoSurface_))
+  if (unlikely (!initialize_Cairo (NULL,
+                                   cairoContext_,
+                                   cairoSurface_)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize_Cairo(), aborting\n"),
@@ -1181,7 +1183,7 @@ unlock:
   {
     ACE_ASSERT (surfaceLock_);
     result = surfaceLock_->release ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1222,7 +1224,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   if (surfaceLock_)
   {
     result = surfaceLock_->acquire ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1251,7 +1253,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType* media_type_p = NULL;
   media_type_p = getFormat (session_data_r.format);
-  if (!media_type_p)
+  if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve media type, returning\n"),
@@ -1265,9 +1267,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
   ACE_ASSERT (waveformatex_p);
+
   data_sample_size = waveformatex_p->nBlockAlign;
-  sound_sample_size = (data_sample_size * 8) /
-                       waveformatex_p->wBitsPerSample;
+  sound_sample_size = (data_sample_size * 8) / waveformatex_p->wBitsPerSample;
 
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
@@ -1292,7 +1294,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     ACE_ASSERT (surfaceLock_);
     result = surfaceLock_->release ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1339,7 +1341,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   if (surfaceLock_)
   {
     result = surfaceLock_->acquire ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1409,7 +1411,7 @@ unlock:
   if (release_lock)
   { ACE_ASSERT (surfaceLock_);
     result = surfaceLock_->release ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -1545,8 +1547,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
+  if (unlikely (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                                       result_p)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
@@ -1588,7 +1590,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
                                         GUID_NULL,
                                         &result_p);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),

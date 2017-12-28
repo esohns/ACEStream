@@ -66,7 +66,7 @@ typedef Common_StatisticHandler_T<Test_U_Statistic_t> Test_U_StatisticHandler_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_DirectShow_MessageData
 {
-  inline Test_U_DirectShow_MessageData ()
+  Test_U_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -77,7 +77,7 @@ struct Test_U_DirectShow_MessageData
 typedef Stream_DataBase_T<struct Test_U_DirectShow_MessageData> Test_U_DirectShow_MessageData_t;
 struct Test_U_MediaFoundation_MessageData
 {
-  inline Test_U_MediaFoundation_MessageData ()
+  Test_U_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -89,14 +89,14 @@ typedef Stream_DataBase_T<struct Test_U_MediaFoundation_MessageData> Test_U_Medi
 #else
 struct Test_U_V4L2_MessageData
 {
-  inline Test_U_V4L2_MessageData ()
-   : device (-1)
+  Test_U_V4L2_MessageData ()
+   : fileDescriptor (-1)
    , index (0)
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {};
 
-  int         device; // (capture) device file descriptor
+  int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
   v4l2_memory method;
   bool        release;
@@ -107,7 +107,7 @@ typedef Stream_DataBase_T<struct Test_U_V4L2_MessageData> Test_U_V4L2_MessageDat
 struct Test_U_UserData
  : Stream_UserData
 {
-  inline Test_U_UserData ()
+  Test_U_UserData ()
    : Stream_UserData ()
    //, configuration (NULL)
   {};
@@ -118,7 +118,7 @@ struct Test_U_UserData
 struct Test_U_SessionData
  : Stream_SessionData
 {
-  inline Test_U_SessionData ()
+  Test_U_SessionData ()
    : Stream_SessionData ()
    //, currentStatistic ()
    , targetFileName ()
@@ -167,7 +167,7 @@ typedef int Stream_CommandType_t;
 struct Test_U_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline Test_U_ModuleHandlerConfiguration ()
+  Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , fileName ()
    , inbound (false)
@@ -196,7 +196,7 @@ struct Test_U_ModuleHandlerConfiguration
 struct Test_U_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_U_StreamConfiguration ()
+  Test_U_StreamConfiguration ()
    : Stream_Configuration ()
   {};
 };
@@ -204,7 +204,7 @@ struct Test_U_StreamConfiguration
 struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_U_SignalHandlerConfiguration ()
+  Test_U_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
@@ -218,7 +218,7 @@ struct Test_U_SignalHandlerConfiguration
 
 struct Test_U_Configuration
 {
-  inline Test_U_Configuration ()
+  Test_U_Configuration ()
    : signalHandlerConfiguration ()
 //   , streamConfiguration ()
    , userData ()

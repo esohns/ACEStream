@@ -819,7 +819,7 @@ do_work (unsigned int bufferSize_in,
 
     CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_INITIALIZATION * 1000);
+                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     int result = ACE_OS::sleep (timeout);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,

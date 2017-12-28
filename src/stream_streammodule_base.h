@@ -278,9 +278,9 @@ class Stream_StreamModuleOutputOnly_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleOutputOnly_T (const Stream_StreamModuleOutputOnly_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleOutputOnly_T& operator= (const Stream_StreamModuleOutputOnly_T&))
 
+  TaskType                      reader_;
   ACE_Thru_Task<ACE_SYNCH_USE,
                 TimePolicyType> writer_;
-  TaskType                      reader_;
 };
 
 //////////////////////////////////////////

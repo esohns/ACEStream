@@ -387,18 +387,35 @@ endif ()
 
 cmake_policy (SET CMP0053 OLD)
 if (UNIX)
- create_target_launcher (${EXECUTABLE}
-                         ARGS "-g./etc/audioeffect.gtk3 -l -t"
+ if (GTK3_SUPPORT)
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g./etc/audioeffect.gtk3 -l -t"
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              /usr/local/lib
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
-                         ENVIRONMENT foo=bar)
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+#                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/gtk
+                                               ${PROJECT_SOURCE_DIR}/cmake/src
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev
+#                                              /usr/local/lib
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
+                          ENVIRONMENT GDK_BACKEND=x11)
+ else ()
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g./etc/audioeffect.gtk2 -l -t"
+#                         FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+#                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/gtk
+                                               ${PROJECT_SOURCE_DIR}/cmake/src
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev
+#                                              /usr/local/lib
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
+                          ENVIRONMENT GDK_BACKEND=x11)
+ endif ()
 elseif (WIN32)
  if (GTK3_SUPPORT)
   create_target_launcher (${EXECUTABLE}
@@ -427,7 +444,7 @@ elseif (WIN32)
                           ENVIRONMENT foo=bar)
  else ()
   create_target_launcher (${EXECUTABLE}
-                          ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t"
+                          ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t"
 #                        FORWARD_ARGS
                           RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                                ${PROJECT_SOURCE_DIR}/../gtk2/bin

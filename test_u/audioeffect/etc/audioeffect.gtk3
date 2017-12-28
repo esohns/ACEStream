@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.2 -->
 <interface>
-  <!-- interface-requires gtk+ 3.12 -->
+  <requires lib="gtk+" version="3.12"/>
   <object class="GtkAction" id="action_cut">
     <property name="tooltip" translatable="yes">cut</property>
     <property name="stock_id">gtk-cut</property>
@@ -47,11 +48,6 @@
     <property name="step_increment">10</property>
     <property name="page_increment">100</property>
   </object>
-  <object class="GtkToggleAction" id="toggleaction_record">
-    <property name="tooltip" translatable="yes">record</property>
-    <property name="stock_id">gtk-media-record</property>
-    <signal name="toggled" handler="toggleaction_record_toggled_cb" swapped="no"/>
-  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
@@ -59,7 +55,6 @@
     <property name="type_hint">dialog</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
-    <property name="has_resize_grip">False</property>
     <property name="program_name">audioeffect</property>
     <property name="version">0.1</property>
     <property name="copyright" translatable="yes">Copyright (C) 2016</property>
@@ -90,11 +85,69 @@
         </child>
       </object>
     </child>
+    <child>
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkFileFilter" id="filefilter_wav">
     <patterns>
       <pattern>*.wav</pattern>
     </patterns>
+  </object>
+  <object class="GtkListStore" id="liststore_channels">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name channels -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_effect">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_format">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+      <!-- column-name format -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_frequency">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name frequency -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name resolution -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkToggleAction" id="toggleaction_record">
+    <property name="tooltip" translatable="yes">record</property>
+    <property name="stock_id">gtk-media-record</property>
+    <signal name="toggled" handler="toggleaction_record_toggled_cb" swapped="no"/>
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
@@ -105,19 +158,6 @@
       <object class="GtkBox" id="vbox_main">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkStatusbar" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="buttonbox_main">
             <property name="can_focus">False</property>
@@ -129,11 +169,11 @@
                 <property name="label">gtk-about</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
                 <property name="relief">half</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="button_about_clicked_cb" swapped="no"/>
               </object>
               <packing>
@@ -147,11 +187,11 @@
                 <property name="label">gtk-quit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
                 <property name="relief">half</property>
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="button_quit_clicked_cb" swapped="no"/>
               </object>
               <packing>
@@ -160,6 +200,19 @@
                 <property name="position">1</property>
               </packing>
             </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -205,6 +258,7 @@
                                     <property name="related_action">toggleaction_record</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="focus_on_click">False</property>
                                     <property name="can_default">True</property>
                                     <property name="has_default">True</property>
                                     <property name="receives_default">True</property>
@@ -213,7 +267,6 @@
                                     <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
-                                    <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
                                   </object>
@@ -229,6 +282,7 @@
                                     <property name="related_action">action_cut</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="focus_on_click">False</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="has_tooltip">True</property>
@@ -236,7 +290,6 @@
                                     <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
-                                    <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
                                   </object>
@@ -252,6 +305,7 @@
                                     <property name="related_action">action_report</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="focus_on_click">False</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="has_tooltip">True</property>
@@ -259,7 +313,6 @@
                                     <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
-                                    <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
                                   </object>
@@ -310,8 +363,6 @@
                                   <packing>
                                     <property name="left_attach">0</property>
                                     <property name="top_attach">0</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -326,8 +377,6 @@
                                   <packing>
                                     <property name="left_attach">0</property>
                                     <property name="top_attach">1</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -342,8 +391,6 @@
                                   <packing>
                                     <property name="left_attach">0</property>
                                     <property name="top_attach">2</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -357,8 +404,6 @@
                                   <packing>
                                     <property name="left_attach">0</property>
                                     <property name="top_attach">3</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -378,7 +423,6 @@
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="adjustment">adjustment_captured_frames</property>
                                         <property name="numeric">True</property>
@@ -400,7 +444,6 @@
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="adjustment">adjustment_dropped_frames</property>
                                         <property name="numeric">True</property>
@@ -415,8 +458,6 @@
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="top_attach">0</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -436,7 +477,6 @@
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="adjustment">adjustment_session_messages</property>
                                         <property name="numeric">True</property>
@@ -458,7 +498,6 @@
                                         <property name="has_frame">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="xalign">1</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="adjustment">adjustment_data_messages</property>
                                         <property name="numeric">True</property>
@@ -473,8 +512,6 @@
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="top_attach">1</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -489,7 +526,6 @@
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
                                     <property name="xalign">1</property>
-                                    <property name="invisible_char_set">True</property>
                                     <property name="caps_lock_warning">False</property>
                                     <property name="adjustment">adjustment_data</property>
                                     <property name="numeric">True</property>
@@ -497,8 +533,6 @@
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="top_attach">2</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -513,7 +547,6 @@
                                     <property name="has_frame">False</property>
                                     <property name="invisible_char">●</property>
                                     <property name="xalign">1</property>
-                                    <property name="invisible_char_set">True</property>
                                     <property name="caps_lock_warning">False</property>
                                     <property name="adjustment">adjustment_buffersize</property>
                                     <property name="numeric">True</property>
@@ -521,8 +554,6 @@
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="top_attach">3</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
                                   </packing>
                                 </child>
                               </object>
@@ -578,12 +609,12 @@
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">capture device</property>
                                             <property name="model">liststore_source</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="id_column">0</property>
                                             <signal name="changed" handler="combobox_source_changed_cb" swapped="no"/>
                                           </object>
@@ -604,6 +635,7 @@
                                                 <property name="label">gtk-properties</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
@@ -611,7 +643,6 @@
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
                                                 <property name="use_stock">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <signal name="clicked" handler="button_settings_clicked_cb" swapped="no"/>
                                               </object>
                                               <packing>
@@ -625,6 +656,7 @@
                                                 <property name="label">gtk-revert-to-saved</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
@@ -632,7 +664,6 @@
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
                                                 <property name="use_stock">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <signal name="clicked" handler="button_reset_clicked_cb" swapped="no"/>
                                               </object>
                                               <packing>
@@ -682,13 +713,13 @@
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">format</property>
                                             <property name="model">liststore_format</property>
                                             <property name="has_frame">False</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="id_column">0</property>
                                             <signal name="changed" handler="combobox_format_changed_cb" swapped="no"/>
                                           </object>
@@ -703,13 +734,13 @@
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">sampling frequency</property>
                                             <property name="model">liststore_frequency</property>
                                             <property name="has_frame">False</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="id_column">0</property>
                                             <signal name="changed" handler="combobox_frequency_changed_cb" swapped="no"/>
                                           </object>
@@ -724,13 +755,13 @@
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">sample resolution</property>
                                             <property name="model">liststore_resolution</property>
                                             <property name="has_frame">False</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="id_column">0</property>
                                             <signal name="changed" handler="combobox_resolution_changed_cb" swapped="no"/>
                                           </object>
@@ -745,13 +776,13 @@
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">number of channels</property>
                                             <property name="model">liststore_channels</property>
                                             <property name="has_frame">False</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="id_column">0</property>
                                             <signal name="changed" handler="combobox_channels_changed_cb" swapped="no"/>
                                           </object>
@@ -821,13 +852,13 @@
                                             <property name="label">gtk-save</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="receives_default">False</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">save to a file</property>
                                             <property name="relief">half</property>
                                             <property name="use_underline">True</property>
                                             <property name="use_stock">True</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">False</property>
                                             <signal name="toggled" handler="checkbutton_save_toggled_cb" swapped="no"/>
@@ -839,7 +870,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkBox" id="hbox_save_2">
+                                          <object class="GtkBox" id="box_save_2">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <property name="hexpand">True</property>
@@ -848,6 +879,7 @@
                                               <object class="GtkFileChooserButton" id="filechooserbutton_destination">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
@@ -857,7 +889,6 @@
                                                 <property name="filter">filefilter_wav</property>
                                                 <property name="local_only">False</property>
                                                 <property name="show_hidden">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <property name="title" translatable="yes">choose a file</property>
                                                 <signal name="file-set" handler="filechooserbutton_destination_file_set_cb" swapped="no"/>
                                               </object>
@@ -906,12 +937,12 @@
                                             <property name="label" translatable="yes">Sinu_s</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="receives_default">False</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">generate sinus</property>
                                             <property name="relief">half</property>
                                             <property name="use_underline">True</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">False</property>
                                             <signal name="toggled" handler="checkbutton_sinus_toggled_cb" swapped="no"/>
@@ -923,7 +954,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkBox" id="hbox_sinus_2">
+                                          <object class="GtkBox" id="box_sinus_2">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <property name="orientation">vertical</property>
@@ -986,12 +1017,12 @@
                                             <property name="label" translatable="yes">Ef_fect</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="receives_default">False</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">add sound effect</property>
                                             <property name="relief">half</property>
                                             <property name="use_underline">True</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">False</property>
                                             <signal name="toggled" handler="checkbutton_effect_toggled_cb" swapped="no"/>
@@ -1003,7 +1034,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkBox" id="hbox_effect_2">
+                                          <object class="GtkBox" id="box_effect_2">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <child>
@@ -1011,12 +1042,12 @@
                                                 <property name="visible">True</property>
                                                 <property name="sensitive">False</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">sound effect</property>
                                                 <property name="model">liststore_effect</property>
-                                                <property name="focus_on_click">False</property>
                                                 <property name="id_column">0</property>
                                                 <signal name="changed" handler="combobox_effect_changed_cb" swapped="no"/>
                                               </object>
@@ -1031,12 +1062,12 @@
                                                 <property name="label" translatable="yes">_Mute</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">mute</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <signal name="toggled" handler="togglebutton_mute_toggled_cb" swapped="no"/>
                                               </object>
                                               <packing>
@@ -1084,12 +1115,12 @@
                                             <property name="label" translatable="yes">_Visualization</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="focus_on_click">False</property>
                                             <property name="receives_default">False</property>
                                             <property name="has_tooltip">True</property>
                                             <property name="tooltip_text" translatable="yes">show visualization</property>
                                             <property name="relief">half</property>
                                             <property name="use_underline">True</property>
-                                            <property name="focus_on_click">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">False</property>
                                             <signal name="toggled" handler="checkbutton_visualization_toggled_cb" swapped="no"/>
@@ -1101,7 +1132,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkBox" id="hbox_visualization_2">
+                                          <object class="GtkBox" id="box_visualization_2">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <child>
@@ -1109,12 +1140,12 @@
                                                 <property name="label" translatable="yes">Oscill_oscope</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="receives_default">False</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">show oscilloscope</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <property name="xalign">0</property>
                                                 <property name="active">True</property>
                                                 <property name="draw_indicator">False</property>
@@ -1131,12 +1162,12 @@
                                                 <property name="label" translatable="yes">S_pectrum</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="receives_default">False</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">show spectrum</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <property name="xalign">0</property>
                                                 <property name="draw_indicator">False</property>
                                                 <property name="group">radiobutton_oscilloscope</property>
@@ -1153,12 +1184,12 @@
                                                 <property name="label" translatable="yes">_3D</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="focus_on_click">False</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">show 3D</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
-                                                <property name="focus_on_click">False</property>
                                                 <signal name="toggled" handler="togglebutton_3d_toggled_cb" swapped="no"/>
                                               </object>
                                               <packing>
@@ -1235,10 +1266,10 @@
                             <property name="has_tooltip">True</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
                             <property name="double_buffered">False</property>
-                            <signal name="draw" handler="drawingarea_2d_draw_cb" swapped="no"/>
                             <signal name="configure-event" handler="drawingarea_2d_configure_event_cb" swapped="no"/>
-                            <signal name="size-allocate" handler="drawingarea_2d_size_allocate_cb" swapped="no"/>
+                            <signal name="draw" handler="drawingarea_2d_draw_cb" swapped="no"/>
                             <signal name="query-tooltip" handler="drawingarea_2d_query_tooltip_cb" swapped="no"/>
+                            <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -1276,55 +1307,8 @@
       <action-widget response="0">button_about</action-widget>
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkListStore" id="liststore_channels">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name channels -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_effect">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_format">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-      <!-- column-name format -->
-      <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_frequency">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name frequency -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name resolution -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
+    <child>
+      <placeholder/>
+    </child>
   </object>
 </interface>

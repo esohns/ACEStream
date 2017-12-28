@@ -708,13 +708,13 @@ struct Test_U_AudioEffect_GTK_CBData
   Test_U_AudioEffect_GTK_CBData ()
    : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
-   , device (NULL)
+   , handle (NULL)
    , stream (NULL)
    , subscribers ()
   {};
 
   struct Test_U_AudioEffect_Configuration* configuration;
-  struct _snd_pcm*                         device; // (capture) device handle
+  struct _snd_pcm*                         handle; // (capture) device handle
   Test_U_AudioEffect_Stream*               stream;
   Test_U_AudioEffect_Subscribers_t         subscribers;
 };

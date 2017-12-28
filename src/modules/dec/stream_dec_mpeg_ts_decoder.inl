@@ -218,7 +218,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   unsigned int skipped_bytes = 0;
   struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader* pes_header_p =
     NULL;
-  unsigned short pes_packet_length = 0;
+//  unsigned short pes_packet_length = 0;
   struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader* optional_pes_header_p =
     NULL;
   do
@@ -353,8 +353,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
   const SessionDataContainerType& session_data_container_r =
     message_inout->getR ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+//  typename SessionDataContainerType::DATA_T& session_data_r =
+//    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
   switch (message_inout->type ())
   {

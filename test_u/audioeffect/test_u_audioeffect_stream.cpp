@@ -1494,8 +1494,16 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
   bool reset_setup_pipeline = false;
   struct Test_U_AudioEffect_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* directshow_configuration_p =
+      NULL;
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration* mediafoundation_configuration_p =
+      NULL;
+#else
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p = NULL;
+#endif
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
+  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
   Test_U_Dev_Mic_Source_ALSA* source_impl_p = NULL;
 
 //  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->deviceHandle);
@@ -1535,14 +1543,52 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (configuration_in.useMediaFoundation)
+  {
+    mediafoundation_configuration_p =
+        dynamic_cast<struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration*> (&((*iterator).second.second));
+    ACE_ASSERT (mediafoundation_configuration_p);
+  } // end IF
+  else
+  {
+    directshow_configuration_p =
+        dynamic_cast<struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> (&((*iterator).second.second));
+    ACE_ASSERT (directshow_configuration_p);
+  } // end ELSE
+#else
   configuration_p =
       dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
+#endif
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (configuration_in.useMediaFoundation)
+    session_data_p->targetFileName = mediafoundation_configuration_p->fileName;
+  else
+    session_data_p->targetFileName = directshow_configuration_p->fileName;
+#else
   session_data_p->targetFileName = configuration_p->fileName;
+#endif
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // ---------------------------------------------------------------------------
+
+  // ********************** Spectrum Analyzer *****************
+  module_p =
+      const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+  ACE_ASSERT (module_p);
+  idispatch_p =
+      dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (idispatch_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (configuration_in.useMediaFoundation)
+    mediafoundation_configuration_p->dispatch = idispatch_p;
+  else
+    directshow_configuration_p->dispatch = idispatch_p;
+#else
+  configuration_p->dispatch = idispatch_p;
+#endif
 
   // ---------------------------------------------------------------------------
 

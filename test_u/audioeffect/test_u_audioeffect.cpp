@@ -471,7 +471,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-  signals_out.sig_del (SIGIO);             // 29      /* I/O now possible */
+//  signals_out.sig_del (SIGIO);             // 29      /* I/O now possible */
+  // remove realtime-signals (don't need 'em)
 
 #ifdef ENABLE_VALGRIND_SUPPORT
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
@@ -1084,40 +1085,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #endif
 
-  // step0b: (initialize) processing stream
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    result =
-      mediafoundation_stream.initialize (mediafoundation_configuration.streamConfiguration);
-  else
-    result =
-      directshow_stream.initialize (directshow_configuration.streamConfiguration);
-#else
-  result = stream.initialize (CBData_in.configuration->streamConfiguration);
-#endif
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize processing stream, aborting\n")));
-    goto error;
-  } // end IF
-
-  // ********************** module configuration data (part 2) *****************
-  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-  ACE_ASSERT (module_p);
-  idispatch_p =
-    dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  ACE_ASSERT (idispatch_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    (*mediafoundation_modulehandler_iterator).second.second.dispatch =
-      idispatch_p;
-  else
-    (*directshow_modulehandler_iterator).second.second.dispatch = idispatch_p;
-#else
-  (*modulehandler_iterator).second.second.dispatch = idispatch_p;
-#endif
-
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1155,9 +1122,13 @@ do_work (unsigned int bufferSize_in,
     goto error;
   } // end IF
 
-  // event loop(s):
-  // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
-  // [- signal timer expiration to perform server queries] (see above)
+  // pre-initialize processing stream
+  if (!stream.initialize (CBData_in.configuration->streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize processing stream, aborting\n")));
+    goto error;
+  } // end IF
 
   // step1a: start GTK event loop ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1208,7 +1179,7 @@ do_work (unsigned int bufferSize_in,
 
     itask_control_p->start ();
     ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_INITIALIZATION * 1000);
+                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -1236,10 +1207,7 @@ do_work (unsigned int bufferSize_in,
 #endif
   } // end IF
   else
-  {
-    ACE_ASSERT (istream_control_p);
-
-    // *NOTE*: this will block until the file has been copied...
+  { ACE_ASSERT (istream_control_p);
     istream_control_p->start ();
 //    if (!istream_control_p->isRunning ())
 //    {
@@ -1579,7 +1547,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Tools::preInitializeSignals (signal_set,
-                                           true,
+                                           COMMON_EVENT_USE_REACTOR,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {

@@ -102,8 +102,8 @@ extern "C"
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_2d_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #if GTK_CHECK_VERSION (3,0,0)
+  G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_2d_draw_cb (GtkWidget*, cairo_t*, gpointer);
-  //G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 #else
   G_MODULE_EXPORT gboolean drawingarea_2d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
 #endif

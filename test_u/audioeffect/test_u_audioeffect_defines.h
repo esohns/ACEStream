@@ -51,11 +51,6 @@
 
 //----------------------------------------
 
-// GTK info widget updates
-#define TEST_U_STREAM_UI_GTK_SIGNAL_TOOLTIP_DELAY            100 // ms
-#define TEST_U_STREAM_UI_GTK_EVENT_RESOLUTION                200 // ms --> 5 FPS
-#define TEST_U_STREAM_UI_GTK_VIDEO_RESOLUTION                33  // ms --> ~30 FPS
-
 // GTK progress/status-bar
 //#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
@@ -95,11 +90,11 @@
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                 "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
 #define TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME                  "glarea_3d"
-#define TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME                "hbox_effect_2"
-#define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
-#define TEST_U_STREAM_UI_GTK_HBOX_SAVE_NAME                  "hbox_save_2"
-#define TEST_U_STREAM_UI_GTK_HBOX_SINUS_NAME                 "hbox_sinus_2"
-#define TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME         "hbox_visualization_2"
+#define TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME                 "box_effect_2"
+#define TEST_U_STREAM_UI_GTK_BOX_OPTIONS_NAME                "box_options"
+#define TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME                   "box_save_2"
+#define TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME                  "box_sinus_2"
+#define TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME          "box_visualization_2"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME           "liststore_effect"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME           "liststore_format"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_FREQUENCY_NAME        "liststore_frequency"
