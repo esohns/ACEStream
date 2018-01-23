@@ -276,9 +276,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   defragment_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (configuration_in.format);
+  ACE_ASSERT (configuration_in.inputFormat);
 
-  struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
+  struct _AMMediaType* media_type_p = getFormat (configuration_in.inputFormat);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,

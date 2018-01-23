@@ -285,7 +285,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //ACE_ASSERT (!streamSink_);
       //ACE_ASSERT (!videoDisplayControl_);
       // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
       if (!direct3DDevice_)
       {
@@ -297,7 +297,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                           sizeof (struct _D3DPRESENT_PARAMETERS_));
           IDirect3DDeviceManager9* direct3D_manager_p = NULL;
           if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
-                                                              *session_data_r.format,
+                                                              *session_data_r.inputFormat,
                                                               session_data_r.direct3DDevice,
                                                               presentation_parameters,
                                                               direct3D_manager_p,
@@ -404,12 +404,12 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //  MFSetAttributeRatio (media_type_p, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
       //ACE_ASSERT (SUCCEEDED (result));
       //result =
-      //  Stream_Module_direct3DDevice_Tools::copyAttribute (session_data_r.format,
+      //  Stream_Module_direct3DDevice_Tools::copyAttribute (session_data_r.inputFormat,
       //                                             media_type_p,
       //                                             MF_MT_FRAME_SIZE);
       //ACE_ASSERT (SUCCEEDED (result));
       //result =
-      //  Stream_Module_direct3DDevice_Tools::copyAttribute (session_data_r.format,
+      //  Stream_Module_direct3DDevice_Tools::copyAttribute (session_data_r.inputFormat,
       //                                             media_type_p,
       //                                             MF_MT_FRAME_RATE);
       //result = media_type_handler_p->SetCurrentMediaType (media_type_p);

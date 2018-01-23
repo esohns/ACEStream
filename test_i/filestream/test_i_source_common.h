@@ -21,6 +21,9 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
+#include <list>
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -41,14 +44,16 @@
 #include "net_configuration.h"
 
 #include "test_i_configuration.h"
+#include "test_i_gtk_common.h"
+
 #include "test_i_connection_manager_common.h"
-#include "test_i_defines.h"
-#include "test_i_filestream_common.h"
+//#include "test_i_filestream_common.h"
+#include "test_i_filestream_defines.h"
 #include "test_i_filestream_network.h"
 #include "test_i_message.h"
 
-struct Test_I_Source_ConnectionConfiguration;
-struct Test_I_Source_StreamConfiguration;
+//struct Test_I_Source_ConnectionConfiguration;
+//struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_UserData
  : Stream_UserData
 {
@@ -87,7 +92,7 @@ struct Test_I_Source_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  }
+  };
 
   std::string                    fileName;
   unsigned int                   size;
@@ -111,18 +116,18 @@ struct Test_I_Source_StreamState
   struct Test_I_Source_UserData*    userData;
 };
 
-struct Test_I_Source_ConnectionConfiguration;
-struct Test_I_Source_ConnectionState;
+//struct Test_I_Source_ConnectionConfiguration;
+//struct Test_I_Source_ConnectionState;
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct Test_I_Source_ConnectionConfiguration,
+                          Test_I_Source_ConnectionConfiguration_t,
                           struct Test_I_Source_ConnectionState,
                           Test_I_Statistic_t> Test_I_Source_IConnection_t;
-struct Test_I_Source_StreamConfiguration;
-struct Test_I_Source_ModuleHandlerConfiguration;
+//struct Test_I_Source_StreamConfiguration;
+//struct Test_I_Source_ModuleHandlerConfiguration;
 //static constexpr const char stream_name_string_[] =
 //    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
 //typedef Stream_Configuration_T<stream_name_string_,
-//                               struct Stream_AllocatorConfiguration,
+//                               struct Test_I_AllocatorConfiguration,
 //                               struct Test_I_Source_StreamConfiguration,
 //                               struct Stream_ModuleConfiguration,
 //                               struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_StreamConfiguration_t;
@@ -135,7 +140,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_StreamState,
                       struct Test_I_Source_StreamConfiguration,
                       Test_I_Statistic_t,
-                      struct Stream_AllocatorConfiguration,
+                      struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_ModuleHandlerConfiguration,
                       struct Test_I_Source_SessionData,
@@ -203,7 +208,7 @@ struct Test_I_Source_SignalHandlerConfiguration
   Test_I_StreamBase_t* stream;
 };
 
-struct Test_I_Source_ConnectionConfiguration;
+//struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_Configuration
  : Test_I_Configuration
 {
@@ -229,7 +234,7 @@ struct Test_I_Source_Configuration
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_Source_ControlMessage_t,
                                           Test_I_Source_Message_t,
                                           Test_I_Source_SessionMessage> Test_I_Source_MessageAllocator_t;

@@ -417,7 +417,7 @@ error_3:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (unlikely (!initialize_DirectShow (inherited::configuration_->device,
+      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceName,
                                             inherited::configuration_->audioOutput,
                                             ICaptureGraphBuilder2_,
                                             IAMDroppedFrames_,
@@ -500,13 +500,13 @@ continue_2:
       //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
       //  goto error;
       //} // end IF
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
 #if defined (_DEBUG)
       media_type_string =
-        Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*session_data_r.format);
+        Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*session_data_r.inputFormat);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("output format: \"%s\"...\n"),
+                  ACE_TEXT ("output format: \"%s\"\n"),
                   ACE_TEXT (media_type_string.c_str ())));
 
       log_file_name =
@@ -529,7 +529,7 @@ continue_2:
       } // end IF
       is_running = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: started DirectShow graph...\n"),
+                  ACE_TEXT ("%s: started DirectShow graph\n"),
                   inherited::mod_->name ()));
 
       // register graph in the ROT (graphedt.exe)
@@ -998,10 +998,10 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   if (inherited::configuration_->sinus)
   {
     static double sinus_phase = 0.0;
-    ACE_ASSERT (inherited::configuration_->format);
-    ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_WaveFormatEx);
+    ACE_ASSERT (inherited::configuration_->inputFormat);
+    ACE_ASSERT (inherited::configuration_->inputFormat->formattype == FORMAT_WaveFormatEx);
     struct tWAVEFORMATEX* waveformatex_p =
-      (struct tWAVEFORMATEX*)inherited::configuration_->format->pbFormat;
+      (struct tWAVEFORMATEX*)inherited::configuration_->inputFormat->pbFormat;
     Stream_Module_Decoder_Tools::sinus (inherited::configuration_->sinusFrequency,
                                         waveformatex_p->nSamplesPerSec,
                                         waveformatex_p->nBlockAlign,

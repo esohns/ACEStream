@@ -118,10 +118,6 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h"
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT dev)
 
-set (BUILD_TEST_U TRUE
-     CACHE BOOL "build test_u")
-set (BUILD_TEST_I TRUE
-     CACHE BOOL "build test_i")
 set (DEBUG_DEBUGGER TRUE
      CACHE BOOL "in debugger")
 
@@ -186,9 +182,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
  set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -g")
  add_definitions (-D_GNU_SOURCE)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _GNU_SOURCE)
-endif ()
-
-if (MSVC)
+elseif (MSVC)
  add_compile_options (/MP)
  add_definitions (-D_CRT_SECURE_NO_WARNINGS)
  add_definitions (-D_WINSOCK_DEPRECATED_NO_WARNINGS)
@@ -202,7 +196,7 @@ if (MSVC)
        CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
   mark_as_advanced (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
  endforeach ()
-endif (MSVC)
+endif ()
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cotire/CMake")
 #list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
@@ -224,11 +218,15 @@ set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 ################################################################################
 
 if (UNIX)
+# include (CheckLibraryExists)
+# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  include (GNUInstallDirs)
+
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
 elseif (WIN32)
  if (MSVC)
-  message (STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
-  set (CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.16299.0") # set Windows SDK version
+#  message (STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+#  set (CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.16299.0") # set Windows SDK version
   message (STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
 #  add_definitions (-CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
  endif ()

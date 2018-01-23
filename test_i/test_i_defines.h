@@ -18,21 +18,25 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_NET_DEFINES_H
-#define STREAM_NET_DEFINES_H
+#ifndef TEST_I_DEFINES_H
+#define TEST_I_DEFINES_H
 
-// module
-#define MODULE_NET_IO_DEFAULT_NAME_STRING      "NetIO"
-// *NOTE*: marshalling modules have reader and (!) writer tasks that 'funnel'
-//         PDUs over the network, i.e. serialize the data (reader-side) and
-//         parse the inbound data into data record (object-)instances (writer-
-//         side). These are protocol/implementation-specific
-#define MODULE_NET_MARSHAL_DEFAULT_NAME_STRING "NetMarshal"
-
-#define MODULE_NET_SOURCE_DEFAULT_NAME_STRING  "NetSource"
-#define MODULE_NET_TARGET_DEFAULT_NAME_STRING  "NetTarget"
+#include "ace/config-lite.h"
 
 // stream
-#define STREAM_NET_DEFAULT_NAME_STRING         "NetworkIOStream"
+#define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
+#else
+// *IMPORTANT NOTE*: on Linux, specifying 1 will not work correctly for proactor
+//                   scenarios with the default (rt signal) proactor. The thread
+//                   blocked in sigwaitinfo (see man pages) will not awaken when
+//                   the dispatch set is changed (*TODO*: to be verified)
+#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
+#endif
+
+#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
+#define TEST_I_THREAD_NAME                           "stream processor"
 
 #endif

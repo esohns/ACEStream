@@ -40,7 +40,7 @@ extern "C"
 #include "alsa/asoundlib.h"
 
 #include "sox.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
@@ -70,7 +70,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
                      bool = false); // ? media foundation : direct show
 
   // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
-  static enum AVCodecID mediaTypeSubTypeToAVCodecID (REFGUID,       // media type subtype
+  static enum AVCodecID mediaTypeSubTypeToAVCodecId (REFGUID,       // media type subtype
                                                      bool = false); // ? media foundation : direct show
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaTypeSubTypeToAVPixelFormat (REFGUID,       // media type subtype
@@ -79,8 +79,9 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   static std::string mediaSubTypeToString (REFGUID,       // media subtype
                                            bool = false); // ? media foundation : direct show
 #else
-  static enum AVCodecID AVPixelFormatToAVCodecID (enum AVPixelFormat); // pixel format
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+  static enum AVCodecID AVPixelFormatToAVCodecId (enum AVPixelFormat); // pixel format
+
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
   // *WARNING*: this may crash if the format is 'unknown'
@@ -124,7 +125,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
                          unsigned,                   // channels
                          struct sox_encodinginfo_t&, // return value: format
                          struct sox_signalinfo_t&);  // return value: format
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())
@@ -141,7 +142,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
   static GUID_TO_STRING_MAP_T Stream_DirectShowMediaSubTypeToStringMap;
   static GUID_TO_STRING_MAP_T Stream_MediaFoundationMediaSubTypeToStringMap;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #endif

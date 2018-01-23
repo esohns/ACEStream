@@ -55,7 +55,7 @@ class HTTPGet_SessionMessage;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct HTTPGet_AllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
 
 struct HTTPGet_MessageData
 {
@@ -74,7 +74,6 @@ struct HTTPGet_MessageData
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
 
-struct HTTPGet_ConnectionState;
 struct HTTPGet_SessionData
  : Stream_SessionData
 {
@@ -82,7 +81,6 @@ struct HTTPGet_SessionData
    : Stream_SessionData ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , targetFileName ()
-//   , userData (NULL)
   {};
 
   HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
@@ -99,8 +97,6 @@ struct HTTPGet_SessionData
 
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   std::string                               targetFileName; // file writer module
-
-//  struct Stream_UserData*                   userData;
 };
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 
@@ -113,59 +109,26 @@ typedef std::list<HTTPGet_Notification_t*> HTTPGet_Subscribers_t;
 typedef HTTPGet_Subscribers_t::iterator HTTPGet_SubscribersIterator_t;
 
 // forward declarations
-struct HTTPGet_StreamState;
-struct HTTPGet_StreamConfiguration;
 struct HTTPGet_Configuration;
-struct HTTPGet_ConnectionConfiguration;
-struct HTTPGet_ConnectionState;
-typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct HTTPGet_ConnectionConfiguration,
-                          struct HTTPGet_ConnectionState,
-                          Test_U_Statistic_t> HTTPGet_IConnection_t;
-typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
-                                 struct HTTPGet_ConnectionConfiguration,
-                                 struct HTTPGet_ConnectionState,
-                                 Test_U_Statistic_t,
-                                 struct Stream_UserData> HTTPGet_ConnectionManager_t;
-
-struct HTTPGet_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  HTTPGet_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-    //         'flex's yy_scan_buffer() method
-    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
-  };
-};
-
-extern const char stream_name_string_[];
+//struct HTTPGet_ConnectionConfiguration;
+//struct HTTPGet_ConnectionState;
+//typedef Net_IConnection_T<ACE_INET_Addr,
+//                          HTTPGet_ConnectionConfiguration_t,
+//                          struct HTTPGet_ConnectionState,
+//                          Test_U_Statistic_t> HTTPGet_IConnection_t;
+//typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+//                                 ACE_INET_Addr,
+//                                 HTTPGet_ConnectionConfiguration_t,
+//                                 struct HTTPGet_ConnectionState,
+//                                 Test_U_Statistic_t,
+//                                 struct Stream_UserData> HTTPGet_ConnectionManager_t;
+//extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct HTTPGet_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
-//typedef Stream_Base_T<ACE_MT_SYNCH,
-//                      Common_TimePolicy_t,
-//                      stream_name_string_,
-//                      enum Stream_ControlType,
-//                      enum Stream_SessionMessageType,
-//                      enum Stream_StateMachine_ControlState,
-//                      struct HTTPGet_StreamState,
-//                      struct Stream_Configuration,
-//                      Test_U_Statistic_t,
-//                      Test_U_StatisticHandlerReactor_t,
-//                      struct HTTPGet_AllocatorConfiguration,
-//                      struct Stream_ModuleConfiguration,
-//                      struct HTTPGet_ModuleHandlerConfiguration,
-//                      struct HTTPGet_SessionData,
-//                      HTTPGet_SessionData_t,
-//                      HTTPGet_ControlMessage_t,
-//                      HTTPGet_Message,
-//                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
@@ -191,19 +154,19 @@ struct HTTPGet_ModuleHandlerConfiguration
   };
 
   struct HTTPGet_Configuration*       configuration;
-  HTTPGet_IConnection_t*              connection; // TCP target/IO module
+  HTTPGet_IConnection_t*              connection;               // TCP target/IO module
   HTTPGet_ConnectionConfigurations_t* connectionConfigurations;
-  HTTPGet_ConnectionManager_t*        connectionManager; // TCP IO module
-  HTTP_Form_t                         HTTPForm; // HTTP get module
-  HTTP_Headers_t                      HTTPHeaders; // HTTP get module
-  bool                                inbound; // net io module
-  bool                                printProgressDot; // file writer module
+  HTTPGet_ConnectionManager_t*        connectionManager;        // TCP IO module
+  HTTP_Form_t                         HTTPForm;                 // HTTP get module
+  HTTP_Headers_t                      HTTPHeaders;              // HTTP get module
+  bool                                inbound;                  // net io module
+  bool                                printProgressDot;         // file writer module
   bool                                pushStatisticMessages;
-  HTTPGet_StreamConfiguration_t*      streamConfiguration; // net source module
+  HTTPGet_StreamConfiguration_t*      streamConfiguration;      // net source module
   HTTPGet_Notification_t*             subscriber;
   HTTPGet_Subscribers_t*              subscribers;
-  std::string                         targetFileName; // file writer module
-  std::string                         URL; // HTTP get module
+  std::string                         targetFileName;           // file writer module
+  std::string                         URL;                      // HTTP get module
 };
 
 struct HTTPGet_StreamState
@@ -219,7 +182,5 @@ struct HTTPGet_StreamState
 
   //struct HTTPGet_UserData*    userData;
 };
-
-//typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_IStreamNotify_t;
 
 #endif

@@ -383,7 +383,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     {
       // *TODO*: remove type inference
       //ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      //ACE_ASSERT (session_data_r.format);
+      //ACE_ASSERT (session_data_r.inputFormat);
 
       bool COM_initialized = false;
       bool release_device = false;
@@ -439,7 +439,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       //  // *TODO*: remove type inferences
       //  struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
       //  if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
-      //                                                      session_data_r.format,
+      //                                                      session_data_r.inputFormat,
       //                                                      session_data_r.direct3DDevice,
       //                                                      d3d_presentation_parameters,
       //                                                      direct3D_manager_p,
@@ -478,7 +478,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         //if (!initialize_MediaFoundation (inherited::configuration_->device,
         //                                 inherited::configuration_->window,
         //                                 direct3D_manager_p,
-        //                                 session_data_r.format,
+        //                                 session_data_r.inputFormat,
         //                                 mediaSource_,
         //                                 symbolicLink_,
         //                                 symbolicLinkSize_,
@@ -502,13 +502,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         //ACE_ASSERT (media_source_p);
 
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->format);
+        ACE_ASSERT (inherited::configuration_->inputFormat);
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
-        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (inherited::configuration_->device,
-                                                                                              inherited::configuration_->format,
-                                                                                              //session_data_r.format,
+        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (inherited::configuration_->deviceName,
+                                                                                              inherited::configuration_->inputFormat,
+                                                                                              //session_data_r.inputFormat,
                                                                                               this,
                                                                                               //inherited::configuration_->window,
                                                                                               NULL,
@@ -523,7 +523,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (topology_p);
 
         if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                                     inherited::configuration_->format)))
+                                                                                     inherited::configuration_->inputFormat)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
@@ -535,8 +535,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         } // end IF
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("capture format: \"%s\"...\n"),
-                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
+                    ACE_TEXT ("capture format: \"%s\"\n"),
+                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
 #endif
 
         IMFAttributes* attributes_p = NULL;
@@ -618,8 +618,8 @@ error:
         session_data_r.direct3DDevice = NULL;
         session_data_r.direct3DManagerResetToken = 0;
       } // end IF
-      if (session_data_r.format)
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
+      if (session_data_r.inputFormat)
+        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
       if (session_data_r.session)
       {
         result = session_data_r.session->Shutdown ();
@@ -717,8 +717,8 @@ continue_:
         presentationClock_ = NULL;
       } // end IF
 
-      if (likely (session_data_r.format))
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
+      if (likely (session_data_r.inputFormat))
+        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
       if (likely (session_data_r.session))
       {
         result_2 = session_data_r.session->Close ();

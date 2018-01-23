@@ -1,11 +1,15 @@
-option (GTK3_SUPPORT "enable Gtk3 support"
-        ON)
-option (GTKGL_SUPPORT "enable Gtk OpenGL support"
-        ON)
+include (CMakeDependentOption)
+
+option (GTK_SUPPORT "enable GTK support" ON)
+#option (GTKGL_SUPPORT "enable GTK OpenGL support" ON)
+ # *NOTE*: implies GTK_SUPPORT on
+CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
+                        "GTK_SUPPORT" OFF)
 # *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
 #                   of the project
-option (GTKGLAREA_SUPPORT "enable GtkGLArea support"
-        ON)
+#option (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF)
+CMAKE_DEPENDENT_OPTION (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF
+                        "GTK_SUPPORT; GTKGL_SUPPORT" OFF)
 
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)

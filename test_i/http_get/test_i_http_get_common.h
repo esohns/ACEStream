@@ -25,6 +25,7 @@
 #include "ace/Time_Value.h"
 
 #include "common.h"
+#include "common_configuration.h"
 
 #include "test_i_connection_common.h"
 
@@ -36,7 +37,7 @@
 struct Test_I_HTTPGet_UserData
  : Test_I_UserData
 {
-  inline Test_I_HTTPGet_UserData ()
+  Test_I_HTTPGet_UserData ()
    : Test_I_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
@@ -49,7 +50,7 @@ struct Test_I_HTTPGet_UserData
 struct Stream_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Stream_SignalHandlerConfiguration ()
+  Stream_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    //messageAllocator (NULL)
    , statisticReportingInterval (0)
@@ -61,7 +62,7 @@ struct Stream_SignalHandlerConfiguration
 
 struct Test_I_Configuration
 {
-  inline Test_I_Configuration ()
+  Test_I_Configuration ()
    : signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()

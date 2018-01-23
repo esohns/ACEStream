@@ -216,7 +216,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
-set (http_get_EXE_SRCS
+set (EXECUTABLE HTTP_get)
+set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_i_common_modules.h
@@ -247,13 +248,12 @@ set (http_get_EXE_SRCS
 
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE http_get)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${http_get_EXE_SRCS})
+                ${HTTP_get_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (WIN32)
- if (NOT ${BUILD_TEST_I})
+ if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
  if (CMAKE_BUILD_TYPE STREQUAL Debug)

@@ -32,6 +32,8 @@
 #include "common_iinitialize.h"
 #include "common_istatistic.h"
 
+#include "common_timer_manager_common.h"
+
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_head_task.h"
@@ -42,6 +44,8 @@
 #include "stream_messagequeue.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
+
+#include "stream_stat_statistic_report.h"
 
 // forward declaration(s)
 class ACE_Notification_Strategy;
@@ -54,15 +58,15 @@ static const char default_stream_name_string_[] =
 class Stream_Base
 {
  public:
-  inline virtual ~Stream_Base () {};
+  inline virtual ~Stream_Base () {}
 
  protected:
   Stream_Base ();
 
   // atomic id generator
   typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                        Stream_SessionId_t> ID_GENERATOR_T;
-  static ID_GENERATOR_T currentId;
+                        Stream_SessionId_t> SESSION_ID_GENERATOR_T;
+  static SESSION_ID_GENERATOR_T currentSessionId;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Base (const Stream_Base&))
@@ -239,7 +243,12 @@ class Stream_Base_T
   //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const CONFIGURATION_T&);
+  virtual bool initialize (const typename CONFIGURATION_T&);
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to the statistic report module (if any)
+  virtual bool collect (StatisticContainerType&); // return value: statistic data
+  virtual void report () const;
 
   // override ACE_Stream method(s)
   inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upstream_ ? upstream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
@@ -257,6 +266,10 @@ class Stream_Base_T
 
  protected:
   // convenient types
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            TimePolicyType> QUEUE_T;
+  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
+                          TimePolicyType> TAIL_T;
   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ModuleConfigurationType,
@@ -265,14 +278,21 @@ class Stream_Base_T
                             SessionMessageType,
                             Stream_SessionId_t,
                             Stream_SessionMessageType> HEAD_T;
-  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
-                          TimePolicyType> TAIL_T;
-  typedef ACE_Message_Queue<ACE_SYNCH_USE,
-                            TimePolicyType> QUEUE_T;
+  typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
-  typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
+  typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                                        TimePolicyType,
+                                                        HandlerConfigurationType,
+                                                        ControlMessageType,
+                                                        DataMessageType,
+                                                        SessionMessageType,
+                                                        typename DataMessageType::COMMAND_T,
+                                                        StatisticContainerType,
+                                                        Common_Timer_Manager_t,
+                                                        SessionDataType,
+                                                        SessionDataContainerType> STATISTIC_REPORT_MODULE_WRITER_T;
 
   Stream_Base_T ();
 

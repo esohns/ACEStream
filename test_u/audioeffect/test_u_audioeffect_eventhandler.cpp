@@ -126,7 +126,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  enum Common_UI_Event event_e =
+  enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
   if (CBData_)
@@ -228,7 +228,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  enum Common_UI_Event event_e =
+  enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
   if (CBData_)
@@ -303,7 +303,7 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
     } // end IF
     //CBData_->eventSourceIds.insert (event_source_id);
 
-    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
+    CBData_->eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end IF
 
 continue_:
@@ -344,13 +344,12 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       ACE_ASSERT (sessionData_);
-
       if (CBData_)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
         CBData_->progressData.statistic = sessionData_->statistic;

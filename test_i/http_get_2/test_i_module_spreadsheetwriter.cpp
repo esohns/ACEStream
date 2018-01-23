@@ -41,23 +41,20 @@
 #include "com/sun/star/table/XCellRange.hpp"
 
 #include "common_file_tools.h"
-#include "common_tools.h"
+
+#include "common_timer_tools.h"
 
 #include "stream_macros.h"
 
 #include "stream_document_defines.h"
+
+#include "test_i_http_get_defines.h"
 
 Test_I_Stream_DocumentHandler::Test_I_Stream_DocumentHandler ()
  : inherited ()
  , resolver_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DocumentHandler::Test_I_Stream_DocumentHandler"));
-
-}
-
-Test_I_Stream_DocumentHandler::~Test_I_Stream_DocumentHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DocumentHandler::~Test_I_Stream_DocumentHandler"));
 
 }
 
@@ -528,12 +525,12 @@ error:
         ACE_ASSERT (cell_p.is ());
 
         std::string timestamp_string;
-        if (!Common_Tools::timestampToString ((*iterator).timeStamp,
-                                              false,
-                                              timestamp_string))
+        if (!Common_Timer_Tools::timestampToString ((*iterator).timeStamp,
+                                                    false,
+                                                    timestamp_string))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Tools::timestampToString(), returning\n")));
+                      ACE_TEXT ("%s: failed to Common_Timer_Tools::timestampToString(), returning\n")));
           goto error_2;
         } // end IF
         cell_p->setFormula (::rtl::OUString::createFromAscii (timestamp_string.c_str ()));

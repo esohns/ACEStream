@@ -51,7 +51,7 @@ set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_module_libreoffice_document_writer.h
      stream_module_libreoffice_document_writer.inl)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-std=c++0x -fPIC)
 endif ()
 

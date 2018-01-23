@@ -67,6 +67,7 @@
 #include "common_tools.h"
 
 #include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_gl_common.h"
 #include "common_ui_gtk_manager.h"
 
 #include "stream_common.h"
@@ -191,7 +192,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , asynchPlayback (false)
 #endif
    , audioOutput (0)
-   , device ()
+   , deviceName ()
    , dispatch (NULL)
    , fps (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -257,8 +258,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   int                                                     audioOutput;
   // *PORTABILITY*: Win32: "FriendlyName" property
-  //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                                             device;
+  //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
+  std::string                                             deviceName;
   Test_U_AudioEffect_IDispatch_t*                         dispatch;
   unsigned int                                            fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -333,7 +334,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , builder (NULL)
    , effect (GUID_NULL)
    , effectOptions ()
-   , format (NULL)
+   , inputFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -342,7 +343,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   IGraphBuilder*                                       builder;
   CLSID                                                effect;
   union Stream_Decoder_DirectShow_AudioEffectOptions   effectOptions;
-  struct _AMMediaType*                                 format;
+  struct _AMMediaType*                                 inputFormat;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t* streamConfiguration;
   Test_U_AudioEffect_DirectShow_ISessionNotify_t*      subscriber;
   Test_U_AudioEffect_DirectShow_Subscribers_t*         subscribers;
@@ -363,14 +364,14 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
    , effectOptions ()
-   , format (NULL)
+   , inputFormat (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {
-    HRESULT result = MFCreateMediaType (&format);
+    HRESULT result = MFCreateMediaType (&inputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
@@ -379,7 +380,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 
   CLSID                                                     effect;
   std::string                                               effectOptions;
-  IMFMediaType*                                             format;
+  IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   IMFMediaSession*                                          session;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t* streamConfiguration;
@@ -442,11 +443,11 @@ struct Test_U_AudioEffect_DirectShow_SessionData
   Test_U_AudioEffect_DirectShow_SessionData ()
    : Test_U_AudioEffect_SessionData ()
    , builder (NULL)
-   , format (NULL)
+   , inputFormat (NULL)
   {};
 
   IGraphBuilder*       builder;
-  struct _AMMediaType* format;
+  struct _AMMediaType* inputFormat;
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_SessionData_t;
 struct Test_U_AudioEffect_MediaFoundation_SessionData
@@ -454,12 +455,12 @@ struct Test_U_AudioEffect_MediaFoundation_SessionData
 {
   Test_U_AudioEffect_MediaFoundation_SessionData ()
    : Test_U_AudioEffect_SessionData ()
-   , format (NULL)
+   , inputFormat (NULL)
    , rendererNodeId (0)
    , session (NULL)
   {};
 
-  IMFMediaType*    format;
+  IMFMediaType*    inputFormat;
   TOPOID           rendererNodeId;
   IMFMediaSession* session;
 };
@@ -595,26 +596,15 @@ typedef Common_ISubscribe_T<Test_U_AudioEffect_ISessionNotify_t> Test_U_AudioEff
 
 //////////////////////////////////////////
 
-typedef std::map<guint, ACE_Thread_ID> Test_U_AudioEffect_PendingActions_t;
-typedef Test_U_AudioEffect_PendingActions_t::iterator Test_U_AudioEffect_PendingActionsIterator_t;
-typedef std::set<guint> Test_U_AudioEffect_CompletedActions_t;
-typedef Test_U_AudioEffect_CompletedActions_t::iterator Test_U_AudioEffect_CompletedActionsIterator_t;
-
 struct Test_U_AudioEffect_GTK_ProgressData
+ : Test_U_GTK_ProgressData
 {
   Test_U_AudioEffect_GTK_ProgressData ()
-   : completedActions ()
-//   , cursorType (GDK_LAST_CURSOR)
-   , GTKState (NULL)
-   , pendingActions ()
+   : Test_U_GTK_ProgressData ()
    , statistic ()
   {};
 
-  Test_U_AudioEffect_CompletedActions_t completedActions;
-//  GdkCursorType                      cursorType;
-  struct Common_UI_GTKState*            GTKState;
-  Test_U_AudioEffect_PendingActions_t   pendingActions;
-  struct Test_U_AudioEffect_Statistic   statistic;
+  struct Test_U_AudioEffect_Statistic statistic;
 };
 
 #if GTK_CHECK_VERSION (3,10,0)

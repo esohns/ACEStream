@@ -19,6 +19,7 @@
 ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "stream_lib_directshow_source_filter.h"
 
 ////#include "combase.h"

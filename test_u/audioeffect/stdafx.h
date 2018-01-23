@@ -1,11 +1,7 @@
 // stdafx.h : include file for standard system include files,
-// or project specific include files that are used frequently, but
-// are changed infrequently
+//  or project specific include files that are used frequently, but
+//      are changed infrequently
 //
-#pragma once
-#ifndef STDAFX_H
-#define STDAFX_H
-
 #if defined _MSC_VER
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
@@ -17,31 +13,25 @@
 #endif
 
 // C RunTime Header Files
-#include <algorithm>
-#include <functional>
-//#include <iostream>
-#include <iterator>
-#include <sstream>
+//#include <sstream>
 #include <string>
-#include <vector>
 
 // System Library Header Files
-//#include "ace/streams.h"
-//#include "ace/ACE.h"
-#include "ace/Assert.h"
-//#include "ace/Lock_Adapter_T.h"
-//#include "ace/Log_Msg.h"
-//#include "ace/Malloc_Allocator.h"
-#include "ace/OS.h"
-//#include "ace/Stream.h"
-//#include "ace/Synch.h"
-//#include "ace/Task.h"
+#include "ace/config-lite.h"
+#include "ace/Global_Macros.h"
+#include "ace/Log_Msg.h"
 
-#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-#include <valgrind/valgrind.h>
+//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
+#include "valgrind/valgrind.h"
 #endif
 
 // Local Header Files
+#include "common.h"
+#include "common_macros.h"
+#include "common_pragmas.h"
+
+#include "stream_common.h"
 #include "stream_macros.h"
 
 #if defined _MSC_VER
@@ -49,5 +39,3 @@
 #endif
 
 // *TODO*: reference additional headers your program requires here
-
-#endif

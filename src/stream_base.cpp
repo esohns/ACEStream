@@ -24,7 +24,7 @@
 
  // initialize statics
 ACE_Atomic_Op<ACE_SYNCH_MUTEX, Stream_SessionId_t>
-Stream_Base::currentId = 0;
+Stream_Base::currentSessionId = 0;
 
 Stream_Base::Stream_Base ()
 {

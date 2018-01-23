@@ -242,7 +242,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
-    ACE_ASSERT (session_data_r.format);
+    ACE_ASSERT (session_data_r.inputFormat);
 
     result = resetDevice (window_,
                           presentationParameters_,
@@ -250,7 +250,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                           width_,
                           height_,
                           defaultStride_,
-                          *session_data_r.format,
+                          *session_data_r.inputFormat,
                           format_,
                           IDirect3DDevice9Ex_,
                           IDirect3DSwapChain9_,
@@ -458,14 +458,14 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (!IDirect3DDevice9Ex_);
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
       if (!window_)
       {
-        ACE_ASSERT ((session_data_r.format->formattype == FORMAT_VideoInfo) &&
-                    (session_data_r.format->cbFormat == sizeof (struct tagVIDEOINFOHEADER)));
+        ACE_ASSERT ((session_data_r.inputFormat->formattype == FORMAT_VideoInfo) &&
+                    (session_data_r.inputFormat->cbFormat == sizeof (struct tagVIDEOINFOHEADER)));
         struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
 
         DWORD window_style = (WS_OVERLAPPED     |
                               WS_CAPTION        |
@@ -514,7 +514,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         IDirect3DDevice9Ex_ = session_data_r.direct3DDevice;
 
         result_2 = initialize_Direct3DDevice (window_,
-                                              *session_data_r.format,
+                                              *session_data_r.inputFormat,
                                               IDirect3DDevice9Ex_,
                                               width_,
                                               height_,
@@ -533,7 +533,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       {
         ACE_ASSERT (!IDirect3DDevice9Ex_);
         if (!initialize_Direct3D (window_,
-                                  *session_data_r.format,
+                                  *session_data_r.inputFormat,
                                   IDirect3DDevice9Ex_,
                                   presentationParameters_,
                                   width_,
@@ -662,7 +662,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inference
-  useMediaFoundation_ = configuration_in.useMediaFoundation;
+  useMediaFoundation_ =
+      (configuration_in.mediaFramework == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
   window_ = configuration_in.window;
 
   return inherited::initialize (configuration_in,
@@ -1375,7 +1376,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
-    ACE_ASSERT (session_data_r.format);
+    ACE_ASSERT (session_data_r.inputFormat);
 
     result = inherited::resetDevice (inherited::window_,
                                      inherited::presentationParameters_,
@@ -1383,7 +1384,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
                                      inherited::width_,
                                      inherited::height_,
                                      inherited::defaultStride_,
-                                     *session_data_r.format,
+                                     *session_data_r.inputFormat,
                                      inherited::format_,
                                      inherited::IDirect3DDevice9Ex_,
                                      inherited::IDirect3DSwapChain9_,
@@ -1665,7 +1666,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
-    ACE_ASSERT (session_data_r.format);
+    ACE_ASSERT (session_data_r.inputFormat);
 
     result = resetDevice (inherited::window_,
                           inherited::presentationParameters_,
@@ -1673,7 +1674,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                           inherited::width_,
                           inherited::height_,
                           inherited::defaultStride_,
-                          *session_data_r.format,
+                          *session_data_r.inputFormat,
                           inherited::format_,
                           inherited::IDirect3DDevice9Ex_,
                           inherited::IDirect3DSwapChain9_,
@@ -1942,23 +1943,23 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (media_type_p);
 
-      if (session_data_r.format)
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
-      ACE_ASSERT (!session_data_r.format);
-      session_data_r.format =
+      if (session_data_r.inputFormat)
+        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+      ACE_ASSERT (!session_data_r.inputFormat);
+      session_data_r.inputFormat =
         static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-      if (!session_data_r.format)
+      if (!session_data_r.inputFormat)
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, continuing\n")));
         goto error;
       } // end IF
-      ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
-      ACE_ASSERT (!session_data_r.format->pbFormat);
+      ACE_OS::memset (session_data_r.inputFormat, 0, sizeof (struct _AMMediaType));
+      ACE_ASSERT (!session_data_r.inputFormat->pbFormat);
 
       result_2 = MFInitAMMediaTypeFromMFMediaType (media_type_p,
                                                    GUID_NULL,
-                                                   session_data_r.format);
+                                                   session_data_r.inputFormat);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1968,7 +1969,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end IF
       media_type_p->Release ();
       media_type_p = NULL;
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
       //HWND parent_window_handle = configuration_->window;
       if (!inherited::window_)
@@ -2016,7 +2017,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
 
         result_2 =
           inherited::initialize_Direct3DDevice (inherited::window_,
-                                                *session_data_r.format,
+                                                *session_data_r.inputFormat,
                                                 inherited::IDirect3DDevice9Ex_,
                                                 inherited::width_, inherited::height_,
                                                 inherited::defaultStride_,
@@ -2032,7 +2033,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       else
       {
         if (!initialize_Direct3D (inherited::window_,
-                                  *session_data_r.format,
+                                  *session_data_r.inputFormat,
                                   inherited::IDirect3DDevice9Ex_,
                                   inherited::presentationParameters_,
                                   inherited::width_,

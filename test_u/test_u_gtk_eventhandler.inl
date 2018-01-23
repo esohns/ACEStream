@@ -25,26 +25,22 @@
 
 #include "stream_macros.h"
 
-#include "test_i_camstream_common.h"
-
-#include "test_i_callbacks.h"
-
 template <typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
           typename MessageType,
           typename SessionMessageType,
           typename CallbackDataType>
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::Test_I_Target_EventHandler_T (CallbackDataType* CBData_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::Test_U_GTK_EventHandler_T (CallbackDataType* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::Test_I_Target_EventHandler_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::Test_U_GTK_EventHandler_T"));
 
 }
 
@@ -55,15 +51,15 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-  CallbackDataType>::start (SessionIdType sessionId_in,
-                            const SessionDataType& sessionData_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::start (SessionIdType sessionId_in,
+                                                    const SessionDataType& sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::start"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::start"));
 
   ACE_UNUSED_ARG (sessionId_in);
 
@@ -73,18 +69,8 @@ Test_I_Target_EventHandler_T<SessionIdType,
 
   sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
-  guint event_source_id = 0;
-
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->progressData.transferred = 0;
-    event_source_id = g_idle_add (idle_start_target_UI_cb,
-                                  CBData_);
-    if (!event_source_id)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_start_target_UI_cb): \"%m\", continuing\n")));
-    else
-      CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+    CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
   } // end lock scope
 }
 
@@ -95,15 +81,15 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::notify (SessionIdType sessionId_in,
-                                                        const SessionEventType& sessionEvent_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::notify (SessionIdType sessionId_in,
+                                                    const SessionEventType& sessionEvent_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionEvent_in);
@@ -121,14 +107,14 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::end (SessionIdType sessionId_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::end (SessionIdType sessionId_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::end"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::end"));
 
   ACE_UNUSED_ARG (sessionId_in);
 
@@ -138,14 +124,14 @@ Test_I_Target_EventHandler_T<SessionIdType,
   guint event_source_id = 0;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    event_source_id = g_idle_add (idle_end_target_UI_cb,
+    event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
     else
       CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STOPPED);
+    CBData_->eventStack.push_back (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
 
   if (sessionData_)
@@ -159,15 +145,15 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::notify (SessionIdType sessionId_in,
-                                                        const MessageType& message_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::notify (SessionIdType sessionId_in,
+                                                    const MessageType& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
 
@@ -177,18 +163,16 @@ Test_I_Target_EventHandler_T<SessionIdType,
   guint event_source_id = 0;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->progressData.transferred += message_in.total_length ();
-    event_source_id = g_idle_add (idle_update_video_display_cb,
+    event_source_id = g_idle_add (idle_data_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to g_idle_add(idle_data_cb): \"%m\", continuing\n")));
     //else
-    //  CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+      //  CBData_->eventSourceIds.insert (event_source_id);
+    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
-
 template <typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
@@ -196,15 +180,15 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::notify (SessionIdType sessionId_in,
-                                                        const SessionMessageType& sessionMessage_in)
+Test_U_GTK_EventHandler_T<SessionIdType,
+                          SessionDataType,
+                          SessionEventType,
+                          MessageType,
+                          SessionMessageType,
+                          CallbackDataType>::notify (SessionIdType sessionId_in,
+                                                    const SessionMessageType& sessionMessage_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GTK_EventHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
 
@@ -215,11 +199,10 @@ Test_I_Target_EventHandler_T<SessionIdType,
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
   switch (sessionMessage_in.type ())
   {
-    case STREAM_SESSION_MESSAGE_ABORT:
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
-      return;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
+//      float current_bytes = 0.0F;
+
       // sanity check(s)
       if (!sessionData_)
         goto continue_;
@@ -232,9 +215,13 @@ Test_I_Target_EventHandler_T<SessionIdType,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
+      // *NOTE*: the byte counter is more current than what is received here
+      //         (see above) --> do not update
+      //current_bytes = CBData_->progressData.statistic.bytes;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
         CBData_->progressData.statistic = sessionData_->statistic;
       } // end lock scope
+      //CBData_->progressData.statistic.bytes = current_bytes;
 
       if (sessionData_->lock)
       {
@@ -249,12 +236,7 @@ continue_:
       break;
     }
     default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown session message type (was: %d), returning\n"),
-                  sessionMessage_in.type ()));
       return;
-    }
   } // end SWITCH
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);

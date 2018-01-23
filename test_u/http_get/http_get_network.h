@@ -29,7 +29,9 @@
 
 #include "ace/SSL/SSL_SOCK_Stream.h"
 
+#include "common_configuration.h"
 #include "common_time_common.h"
+
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
@@ -55,23 +57,19 @@
 #include "test_u_common.h"
 
 // forward declarations
-struct HTTPGet_AllocatorConfiguration;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct HTTPGet_AllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
 class HTTPGet_Message;
 class HTTPGet_SessionMessage;
-struct HTTPGet_ConnectionConfiguration;
-struct HTTPGet_ConnectionState;
 struct HTTPGet_SessionData;
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 struct HTTPGet_StreamState;
 //struct HTTPGet_UserData;
 //extern const char stream_name_string_[];
-struct HTTPGet_AllocatorConfiguration;
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct HTTPGet_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
@@ -110,9 +108,13 @@ struct HTTPGet_SocketHandlerConfiguration
   struct Stream_UserData*                 userData;
 };
 
+struct HTTPGet_ConnectionConfiguration;
+typedef Net_StreamConnectionConfiguration_T<struct HTTPGet_ConnectionConfiguration,
+                                            struct Common_FlexParserAllocatorConfiguration,
+                                            HTTPGet_StreamConfiguration_t> HTTPGet_ConnectionConfiguration_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct HTTPGet_ConnectionConfiguration,
+                                 HTTPGet_ConnectionConfiguration_t,
                                  struct HTTPGet_ConnectionState,
                                  Test_U_Statistic_t,
                                  struct Stream_UserData> HTTPGet_IConnectionManager_t;
@@ -123,23 +125,21 @@ struct HTTPGet_ConnectionConfiguration
    : Net_ConnectionConfiguration ()
    , connectionManager (NULL)
    , socketHandlerConfiguration ()
-   , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
   HTTPGet_IConnectionManager_t*             connectionManager;
   struct HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-  HTTPGet_StreamConfiguration_t*            streamConfiguration;
 
   struct Stream_UserData*                   userData;
 };
 typedef std::map<std::string,
-                 struct HTTPGet_ConnectionConfiguration> HTTPGet_ConnectionConfigurations_t;
+                 HTTPGet_ConnectionConfiguration_t> HTTPGet_ConnectionConfigurations_t;
 typedef HTTPGet_ConnectionConfigurations_t::iterator HTTPGet_ConnectionConfigurationIterator_t;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct HTTPGet_ConnectionConfiguration,
+                                 HTTPGet_ConnectionConfiguration_t,
                                  struct HTTPGet_ConnectionState,
                                  Test_U_Statistic_t,
                                  struct Stream_UserData> HTTPGet_ConnectionManager_t;
@@ -158,7 +158,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Stream_Configuration,
                                       Test_U_Statistic_t,
                                       Common_Timer_Manager_t,
-                                      struct HTTPGet_AllocatorConfiguration,
+                                      struct Common_FlexParserAllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct HTTPGet_ModuleHandlerConfiguration,
                                       struct HTTPGet_SessionData,
@@ -173,7 +173,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 //////////////////////////////////////////
 
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct HTTPGet_ConnectionConfiguration,
+                          HTTPGet_ConnectionConfiguration_t,
                           struct HTTPGet_ConnectionState,
                           Test_U_Statistic_t> HTTPGet_IConnection_t;
 
@@ -189,7 +189,7 @@ typedef Net_AsynchTCPSocketHandler_T<struct HTTPGet_SocketHandlerConfiguration> 
 
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 HTTPGet_TCPSocketHandler_t,
-                                struct HTTPGet_ConnectionConfiguration,
+                                HTTPGet_ConnectionConfiguration_t,
                                 struct HTTPGet_ConnectionState,
                                 Test_U_Statistic_t,
                                 struct HTTPGet_SocketHandlerConfiguration,
@@ -199,7 +199,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Stream_UserData> HTTPGet_TCPConnection_t;
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 HTTPGet_SSLTCPSocketHandler_t,
-                                struct HTTPGet_ConnectionConfiguration,
+                                HTTPGet_ConnectionConfiguration_t,
                                 struct HTTPGet_ConnectionState,
                                 Test_U_Statistic_t,
                                 struct HTTPGet_SocketHandlerConfiguration,
@@ -208,7 +208,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Common_Timer_Manager_t,
                                 struct Stream_UserData> HTTPGet_SSLTCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<HTTPGet_AsynchTCPSocketHandler_t,
-                                      struct HTTPGet_ConnectionConfiguration,
+                                      HTTPGet_ConnectionConfiguration_t,
                                       struct HTTPGet_ConnectionState,
                                       Test_U_Statistic_t,
                                       struct HTTPGet_SocketHandlerConfiguration,
@@ -220,7 +220,7 @@ typedef Net_AsynchTCPConnectionBase_T<HTTPGet_AsynchTCPSocketHandler_t,
 /////////////////////////////////////////
 
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         struct HTTPGet_ConnectionConfiguration> HTTPGet_Stream_IInetConnector_t;
+                         HTTPGet_ConnectionConfiguration_t> HTTPGet_Stream_IInetConnector_t;
 
 /////////////////////////////////////////
 
@@ -228,7 +228,7 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                HTTPGet_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               struct HTTPGet_ConnectionConfiguration,
+                               HTTPGet_ConnectionConfiguration_t,
                                struct HTTPGet_ConnectionState,
                                Test_U_Statistic_t,
                                struct Net_TCPSocketConfiguration,
@@ -238,7 +238,7 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
 typedef Net_Client_SSL_Connector_T<HTTPGet_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
-                                   struct HTTPGet_ConnectionConfiguration,
+                                   HTTPGet_ConnectionConfiguration_t,
                                    struct HTTPGet_ConnectionState,
                                    Test_U_Statistic_t,
                                    struct HTTPGet_SocketHandlerConfiguration,
@@ -246,7 +246,7 @@ typedef Net_Client_SSL_Connector_T<HTTPGet_SSLTCPConnection_t,
                                    struct Stream_UserData> HTTPGet_SSLTCPConnector_t;
 typedef Net_Client_AsynchConnector_T<HTTPGet_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
-                                     struct HTTPGet_ConnectionConfiguration,
+                                     HTTPGet_ConnectionConfiguration_t,
                                      struct HTTPGet_ConnectionState,
                                      Test_U_Statistic_t,
                                      struct Net_TCPSocketConfiguration,

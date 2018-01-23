@@ -441,11 +441,11 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         // sanity check(s)
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
-        ACE_ASSERT (inherited::configuration_->format);
+        ACE_ASSERT (inherited::configuration_->inputFormat);
 
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
-                        *inherited::configuration_->format,
+                        *inherited::configuration_->inputFormat,
                         inherited::configuration_->window,
                         IGraphBuilder_))
         {

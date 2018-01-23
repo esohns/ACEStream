@@ -1574,7 +1574,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::Get"));
 
   // sanity check(s)
-  if (guidPropSet_in != AMPROPSETID_Pin)
+  if (!InlineIsEqualGUID (guidPropSet_in, AMPROPSETID_Pin))
     return E_PROP_SET_UNSUPPORTED;
   if (dwPropID_in != AMPROPERTY_PIN_CATEGORY)
     return E_PROP_ID_UNSUPPORTED;
@@ -1607,8 +1607,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::QuerySupported"));
 
   // sanity check(s)
-  if (guidPropSet_in != AMPROPSETID_Pin)
-    return E_PROP_SET_UNSUPPORTED;
+  if (!InlineIsEqualGUID (guidPropSet_in, AMPROPSETID_Pin))
+      return E_PROP_SET_UNSUPPORTED;
   if (dwPropID_in != AMPROPERTY_PIN_CATEGORY)
     return E_PROP_ID_UNSUPPORTED;
 
@@ -1617,6 +1617,43 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     *pTypeSupport_in = KSPROPERTY_SUPPORT_GET;
 
   return S_OK;
+}
+
+//template <typename ConfigurationType,
+//          typename FilterType,
+//          typename MediaType>
+//STDMETHODIMP
+//Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+//                                                           FilterType,
+//                                                           MediaType>::Get (REFGUID rguidPropSet_in,
+//                                                                            ULONG ulId_in,
+//                                                                            LPVOID pInstanceData_in,
+//                                                                            ULONG ulInstanceLength_in,
+//                                                                            LPVOID pPropertyData_in,
+//                                                                            ULONG ulDataLength_in,
+//                                                                            PULONG pulBytesReturned_in)
+//{
+//  return Get (rguidPropSet_in,
+//              static_cast<DWORD> (ulId_in),
+//              pInstanceData_in,
+//              static_cast<DWORD> (ulInstanceLength_in),
+//              pPropertyData_in,
+//              static_cast<DWORD> (ulDataLength_in),
+//              static_cast<DWORD*> (pulBytesReturned_in));
+//}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                           FilterType,
+                                                           MediaType>::QuerySupport (REFGUID rguidPropSet_in,
+                                                                                     ULONG ulId_in,
+                                                                                     PULONG pulTypeSupport_in)
+{
+  return QuerySupported (rguidPropSet_in,
+                         static_cast<DWORD> (ulId_in),
+                         static_cast<DWORD*> (pulTypeSupport_in));
 }
 
 // ------------------------------------

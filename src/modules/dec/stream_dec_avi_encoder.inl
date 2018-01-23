@@ -36,12 +36,12 @@ extern "C"
 #include "libavformat/avio.h"
 //#include "libavformat/raw.h"
 //#include "libavformat/riff.h"
-#include "libswscale/swscale.h"
 }
 #endif
 extern "C"
 {
 #include "libavutil/imgutils.h"
+#include "libswscale/swscale.h"
 }
 
 //#include "ace/FILE_Addr.h"
@@ -575,7 +575,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType* format_p = &getFormat (session_data_r.format);
+      struct _AMMediaType* format_p = &getFormat (session_data_r.inputFormat);
       format_ =
         Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (format_p->subtype,
                                                                       false); // *TODO*: set this correctly
@@ -968,9 +968,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // sanity check(s)
-  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_r.inputFormat);
 
-  struct _AMMediaType& media_type_r = getFormat (session_data_r.format);
+  struct _AMMediaType& media_type_r = getFormat (session_data_r.inputFormat);
   // *NOTE*: needed to reclaim memory (see below)
   struct _AMMediaType* media_type_p = &media_type_r;
   struct _riffchunk RIFF_chunk;
@@ -2713,10 +2713,10 @@ continue_:
       close_file = true;
 
       // sanity check(s)
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
       struct _AMMediaType& media_type_r =
-        inherited::getFormat (session_data_r.format);
+        inherited::getFormat (session_data_r.inputFormat);
       ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
 
       wave_header_size =
@@ -2853,10 +2853,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // sanity check(s)
-  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_r.inputFormat);
 
   struct _AMMediaType& media_type_r =
-    inherited::getFormat (session_data_r.format);
+    inherited::getFormat (session_data_r.inputFormat);
   ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
 
   //ACE_ASSERT (media_type_p->pbFormat);

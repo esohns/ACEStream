@@ -32,7 +32,7 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_html_tools.cpp
      stream_html_tools.h)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 

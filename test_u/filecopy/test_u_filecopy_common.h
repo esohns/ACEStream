@@ -142,27 +142,17 @@ typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_IS
 
 //////////////////////////////////////////
 
-typedef std::map<ACE_thread_t, guint> Stream_Filecopy_PendingActions_t;
-typedef Stream_Filecopy_PendingActions_t::iterator Stream_Filecopy_PendingActionsIterator_t;
-typedef std::set<ACE_thread_t> Stream_Filecopy_CompletedActions_t;
-typedef Stream_Filecopy_CompletedActions_t::iterator Stream_Filecopy_CompletedActionsIterator_t;
 struct Stream_Filecopy_GTK_ProgressData
+ : Test_U_GTK_ProgressData
 {
   Stream_Filecopy_GTK_ProgressData ()
-   : completedActions ()
+   : Test_U_GTK_ProgressData ()
    , copied (0)
-//   , cursorType (GDK_LAST_CURSOR)
-   , GTKState (NULL)
-   , pendingActions ()
    , size (0)
   {};
 
-  Stream_Filecopy_CompletedActions_t completedActions;
-  size_t                             copied; // bytes
-//  GdkCursorType                      cursorType;
-  struct Common_UI_GTKState*         GTKState;
-  Stream_Filecopy_PendingActions_t   pendingActions;
-  size_t                             size; // bytes
+  size_t copied; // bytes
+  size_t size; // bytes
 };
 
 struct Stream_Filecopy_GTK_CBData

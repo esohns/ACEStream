@@ -60,7 +60,7 @@ set (${PROJECT_NAME}_Database_LIB_SRCS
      stream_module_mysqlwriter.h
      stream_module_mysqlwriter.inl)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 

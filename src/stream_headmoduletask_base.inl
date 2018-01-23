@@ -76,7 +76,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       NULL) // attributes
  , streamLock_ (stream_in)
  , streamState_ (NULL)
- , statisticHandler_ (STATISTIC_ACTION_COLLECT,
+ , statisticHandler_ (COMMON_STATISTIC_ACTION_COLLECT,
                       this,
                       false)
  , timerId_ (-1)
@@ -381,16 +381,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case 0:
     {
-      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, result);
-        if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) ||
-            ACE_OS::thr_equal (ACE_OS::thr_self (),
-                               inherited::threads_[0].id ()))
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: %sthread (id was: %t) stopping...\n"),
-                      inherited::mod_->name (),
-                      (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
-                                                                           : ACE_TEXT (""))));
-      } // end lock scope
+//#if defined (_DEBUG)
+      //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, result);
+      //  if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) ||
+      //      ACE_OS::thr_equal (ACE_OS::thr_self (),
+      //                         inherited::threads_[0].id ()))
+      //    ACE_DEBUG ((LM_DEBUG,
+      //                ACE_TEXT ("%s: %sthread (id was: %t) leaving\n"),
+      //                inherited::mod_->name (),
+      //                (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+      //                                                                     : ACE_TEXT (""))));
+      //} // end lock scope
+//#endif
 
       // inherited::thr_count_ has already been decremented at this stage
       // --> there should not be a race condition
@@ -555,11 +557,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Tools::setThreadName (inherited::threadName_,
+                               -1);
+#endif
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %sthread (id: %t) starting...\n"),
+              ACE_TEXT ("%s: %sthread (id: %t) starting\n"),
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT (""))));
+#endif
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
@@ -744,6 +752,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   result = -1;
 
 done:
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %sthread (id: %t) leaving\n"),
+              inherited::mod_->name (),
+              (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+                                                                   : ACE_TEXT (""))));
+#endif
+
   return result;
 }
 

@@ -426,11 +426,11 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       else
       {
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->format);
+        ACE_ASSERT (inherited::configuration_->inputFormat);
 
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (inherited::configuration_->device,
-                                                                                    inherited::configuration_->format,
+        if (!Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (inherited::configuration_->deviceName,
+                                                                                    inherited::configuration_->inputFormat,
                                                                                     this,
                                                                                     (inherited::configuration_->mute ? -1
                                                                                                                       : inherited::configuration_->audioOutput),
@@ -445,7 +445,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (topology_p);
 
         if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                           inherited::configuration_->format))
+                                                                           inherited::configuration_->inputFormat))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
@@ -457,8 +457,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         } // end IF
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("capture format: \"%s\"...\n"),
-                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
+                    ACE_TEXT ("capture format: \"%s\"\n"),
+                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
 #endif
 
         IMFAttributes* attributes_p = NULL;

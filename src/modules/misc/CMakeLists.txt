@@ -37,7 +37,7 @@ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
      stream_misc_splitter.h
      stream_misc_splitter.inl)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
  add_compile_options (-std=c++11 -fPIC)
 endif ()
 

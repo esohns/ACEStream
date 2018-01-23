@@ -140,7 +140,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_ASSERT (CBData_);
 
   int result = -1;
-  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:

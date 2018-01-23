@@ -40,14 +40,14 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
                                       struct Test_I_HTTPGet_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Test_I_AllocatorConfiguration,
+                                                 struct Common_FlexParserAllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
@@ -65,7 +65,7 @@ class Test_I_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
                                       struct Test_I_HTTPGet_UserData> inherited;

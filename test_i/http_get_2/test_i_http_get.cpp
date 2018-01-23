@@ -40,7 +40,10 @@
 #include "common.h"
 #include "common_file_tools.h"
 #include "common_logger.h"
+#include "common_signal_tools.h"
 #include "common_tools.h"
+
+#include "common_timer_tools.h"
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
@@ -708,15 +711,15 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
     TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  Test_I_StatisticHandler_t statistic_handler (STATISTIC_ACTION_REPORT,
-                                               connection_manager_p,
-                                               false);
+  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                            connection_manager_p,
+                                            false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
-  struct Common_DispatchThreadData thread_data;
+  struct Common_EventDispatchThreadData thread_data_s;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_I_AllocatorConfiguration> heap_allocator;
+                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -731,7 +734,7 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
-  struct Test_I_HTTPGet_ConnectionConfiguration connection_configuration;
+  Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator;
@@ -773,10 +776,10 @@ do_work (const std::string& bootstrapFileName_in,
 
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  connection_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
   connection_configuration.userData =
     &configuration.userData;
+  connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
+                                       configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  connection_configuration));
@@ -861,13 +864,13 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0b: initialize event dispatch
-  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data.useReactor = useReactor_in;
+  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data_s.useReactor = useReactor_in;
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
-                                              thread_data.proactorType,
-                                              thread_data.reactorType,
+                                              thread_data_s.proactorType,
+                                              thread_data_s.reactorType,
                                               configuration.streamConfiguration.configuration_.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -917,7 +920,7 @@ do_work (const std::string& bootstrapFileName_in,
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
-  if (!Common_Tools::initializeSignals ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                         signalSet_in,
                                         ignoredSignalSet_in,
@@ -925,7 +928,7 @@ do_work (const std::string& bootstrapFileName_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), aborting\n")));
     goto error;
   } // end IF
 
@@ -937,7 +940,7 @@ do_work (const std::string& bootstrapFileName_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (thread_data,
+  if (!Common_Tools::startEventDispatch (thread_data_s,
                                          group_id))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1294,13 +1297,13 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  if (!Common_Tools::preInitializeSignals (signal_set,
+  if (!Common_Signal_Tools::preInitialize (signal_set,
                                            use_reactor,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
     goto error;
   } // end IF
   finalize_signals = true;
@@ -1349,8 +1352,8 @@ ACE_TMAIN (int argc_in,
 
   // debug info
   timer.elapsed_time (working_time);
-  Common_Tools::periodToString (working_time,
-                                working_time_string);
+  Common_Timer_Tools::periodToString (working_time,
+                                      working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1372,10 +1375,10 @@ ACE_TMAIN (int argc_in,
   process_profile.elapsed_rusage (elapsed_rusage);
   user_time.set (elapsed_rusage.ru_utime);
   system_time.set (elapsed_rusage.ru_stime);
-  Common_Tools::periodToString (user_time,
-                               user_time_string);
-  Common_Tools::periodToString (system_time,
-                               system_time_string);
+  Common_Timer_Tools::periodToString (user_time,
+                                      user_time_string);
+  Common_Timer_Tools::periodToString (system_time,
+                                      system_time_string);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
@@ -1415,7 +1418,7 @@ ACE_TMAIN (int argc_in,
 continue_:
 error:
   if (finalize_signals)
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,

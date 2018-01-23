@@ -92,16 +92,6 @@ typedef Stream_Statistic Test_I_Statistic_t;
 
 typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
 
-struct Test_I_CamStream_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  Test_I_CamStream_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  };
-};
-
 struct Test_I_CamStream_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_CamStream_UserData
@@ -124,17 +114,17 @@ struct Test_I_CamStream_DirectShow_SessionData
   Test_I_CamStream_DirectShow_SessionData ()
    : Test_I_SessionData ()
    , direct3DDevice (NULL)
-   , format (NULL)
+   , inputFormat (NULL)
    , resetToken (0)
    , userData (NULL)
   {
-    format =
+    inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
+    if (!inputFormat)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
     else
-      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
   };
 
   struct Test_I_CamStream_DirectShow_SessionData& operator+= (const struct Test_I_CamStream_DirectShow_SessionData& rhs_in)
@@ -143,12 +133,12 @@ struct Test_I_CamStream_DirectShow_SessionData
     Test_I_SessionData::operator+= (rhs_in);
 
     // sanity check(s)
-    ACE_ASSERT (rhs_in.format);
+    ACE_ASSERT (rhs_in.inputFormat);
 
-    if (format)
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType (format);
-    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.format,
-                                                               format))
+    if (inputFormat)
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (inputFormat);
+    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
+                                                               inputFormat))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), continuing\n")));
 
@@ -158,7 +148,7 @@ struct Test_I_CamStream_DirectShow_SessionData
   };
 
   IDirect3DDevice9Ex*               direct3DDevice;
-  struct _AMMediaType*              format;
+  struct _AMMediaType*              inputFormat;
   UINT                              resetToken; // direct 3D manager 'id'
   struct Test_I_CamStream_UserData* userData;
 };
@@ -170,19 +160,19 @@ struct Test_I_CamStream_MediaFoundation_SessionData
    : Test_I_SessionData ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
-   , format (NULL)
+   , inputFormat (NULL)
    , rendererNodeId (0)
    , session (NULL)
    //, topology (NULL)
    , userData (NULL)
   {
-    format =
+    inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
+    if (!inputFormat)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
     else
-      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
   };
 
   struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
@@ -191,12 +181,12 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     Test_I_SessionData::operator+= (rhs_in);
 
     // sanity check(s)
-    ACE_ASSERT (rhs_in.format);
+    ACE_ASSERT (rhs_in.inputFormat);
 
-    if (format)
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType (format);
-    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.format,
-                                                               format))
+    if (inputFormat)
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (inputFormat);
+    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
+                                                               inputFormat))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), continuing\n")));
 
@@ -207,7 +197,7 @@ struct Test_I_CamStream_MediaFoundation_SessionData
 
   IDirect3DDevice9Ex*               direct3DDevice;
   UINT                              direct3DManagerResetToken;
-  struct _AMMediaType*              format;
+  struct _AMMediaType*              inputFormat;
   TOPOID                            rendererNodeId;
   IMFMediaSession*                  session;
   //IMFTopology*               topology;
@@ -279,15 +269,17 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , interfaceIdentifier (GUID_NULL)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #else
    , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
 #endif
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
-#endif
+   , window ()
+#else
    , window (NULL)
+#endif
   {};
 
   struct Test_I_CamStream_Configuration* configuration;
@@ -297,13 +289,13 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   //                Win32: interface GUID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID                           interfaceIdentifier;
+  enum Stream_MediaFramework_Type        mediaFramework;
 #else
   std::string                            interfaceIdentifier;
 #endif
   GdkPixbuf*                             pixelBuffer;
   ACE_SYNCH_MUTEX*                       pixelBufferLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                   useMediaFoundation;
   HWND                                   window;
 #else
   GdkWindow*                             window;
@@ -340,22 +332,22 @@ struct Test_I_CamStream_GTK_CBData
    : Test_I_GTK_CBData ()
    , configuration (NULL)
    , isFirst (true)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif
    , pixelBuffer (NULL)
    , progressData ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
-#endif
   {
-    progressData.GTKState = this;
+    progressData.state = this;
   };
 
   struct Test_I_CamStream_Configuration*   configuration;
   bool                                     isFirst; // first activation ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type          mediaFramework;
+#endif
   GdkPixbuf*                               pixelBuffer;
   struct Test_I_CamStream_GTK_ProgressData progressData;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                     useMediaFoundation;
-#endif
 };
 
 struct Test_I_CamStream_ThreadData
@@ -365,13 +357,13 @@ struct Test_I_CamStream_ThreadData
    : Test_I_ThreadData ()
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
   {};
 
   struct Test_I_CamStream_GTK_CBData* CBData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                useMediaFoundation;
+  enum Stream_MediaFramework_Type     mediaFramework;
 #endif
 };
 

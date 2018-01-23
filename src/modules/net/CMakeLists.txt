@@ -49,7 +49,7 @@ set (${PROJECT_NAME}_Network_LIB_SRCS
      stream_net_target.h
      stream_net_target.inl)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 

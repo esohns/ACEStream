@@ -21,6 +21,11 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
+//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
+#include "valgrind/valgrind.h"
+#endif
+
 #if defined (_MSC_VER)
 #define uint unsigned int
 #define ulong unsigned long
@@ -32,8 +37,10 @@
 // Local Header Files
 #include "common.h"
 #include "common_macros.h"
+#include "common_pragmas.h"
 
 #include "stream_common.h"
 #include "stream_macros.h"
 
 #include "stream_db_exports.h"
+#include "stream_module_db_common.h"

@@ -152,7 +152,7 @@ struct Stream_CamSave_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
-   , format (NULL)
+   , inputFormat (NULL)
    , rendererNodeId (0)
    , session (NULL)
 #else
@@ -165,13 +165,13 @@ struct Stream_CamSave_SessionData
    , userData (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    format =
+    inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
+    if (!inputFormat)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
     else
-      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 #else
     ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
 #endif
@@ -186,7 +186,7 @@ struct Stream_CamSave_SessionData
     statistic += rhs_in.statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
-    //format = (format ? format : rhs_in.format);
+    //finputFormat = (inputFormat ? inputFormat : rhs_in.inputFormat);
     //rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
     //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
     //session = (session ? session : rhs_in.session);
@@ -201,7 +201,7 @@ struct Stream_CamSave_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IDirect3DDevice9Ex*                 direct3DDevice;
   UINT                                direct3DManagerResetToken;
-  struct _AMMediaType*                format; // input-
+  struct _AMMediaType*                inputFormat; // input-
   TOPOID                              rendererNodeId;
   IMFMediaSession*                    session;
 #else
@@ -254,8 +254,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
+   , deviceName ()
    , inputFormat (NULL)
-   , interfaceIdentifier (GUID_NULL)
    , outputFormat (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
@@ -285,24 +285,22 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , window (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //format =
+    //inputFormat =
     //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    //if (!format)
+    //if (!inputFormat)
     //{
     //  ACE_DEBUG ((LM_CRITICAL,
     //              ACE_TEXT ("failed to allocate memory, continuing\n")));
     //} // end IF
     //else
     //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
-    HRESULT result = MFCreateMediaType (&format);
+    HRESULT result = MFCreateMediaType (&inputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
-    interfaceIdentifier = GUID_NULL;
-
-    useMediaFoundation = true;
+    mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
 #else
     ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
     v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -315,10 +313,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                             fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
+  std::string                      deviceName; // 'friendly'-name string
   //struct _AMMediaType*     format;
   IMFMediaType*                    inputFormat;
-  // *PORTABILITY*: Win32: video interface GUID
-  struct _GUID                     interfaceIdentifier;
   IMFMediaType*                    outputFormat;
   TOPOID                           rendererNodeId;
   TOPOID                           sampleGrabberNodeId;
@@ -442,24 +439,13 @@ typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISub
 
 //////////////////////////////////////////
 
-typedef std::map<guint, ACE_Thread_ID> Stream_CamSave_PendingActions_t;
-typedef Stream_CamSave_PendingActions_t::iterator Stream_CamSave_PendingActionsIterator_t;
-typedef std::set<guint> Stream_CamSave_CompletedActions_t;
-typedef Stream_CamSave_CompletedActions_t::iterator Stream_CamSave_CompletedActionsIterator_t;
 struct Stream_CamSave_GTK_ProgressData
+ : Test_U_GTK_ProgressData
 {
   Stream_CamSave_GTK_ProgressData ()
-   : completedActions ()
-//   , cursorType (GDK_LAST_CURSOR)
-   , GTKState (NULL)
-   , pendingActions ()
+   : Test_U_GTK_ProgressData ()
    , statistic ()
   {};
-
-  Stream_CamSave_CompletedActions_t   completedActions;
-//  GdkCursorType                      cursorType;
-  struct Common_UI_GTKState*          GTKState;
-  Stream_CamSave_PendingActions_t     pendingActions;
 
   struct Stream_CamSave_StatisticData statistic;
 };
@@ -470,35 +456,45 @@ struct Stream_CamSave_GTK_CBData
   Stream_CamSave_GTK_CBData ()
    : Test_U_GTK_CBData ()
    , configuration (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , fileDescriptor (-1)
+#endif
    , isFirst (true)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
    , progressData ()
    , progressEventSourceId (0)
    , stream (NULL)
-   , subscribers ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   //, streamConfiguration (NULL)
-#else
-   , fileDescriptor (-1)
+//   , streamConfiguration (NULL)
 #endif
+   , subscribers ()
   {
     pixelBufferLock = &lock;
   };
 
   struct Stream_CamSave_Configuration*   configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  int                                    fileDescriptor; // (capture) device file descriptor
+#endif
   bool                                   isFirst; // first activation ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type        mediaFramework;
+#endif
   GdkPixbuf*                             pixelBuffer;
   ACE_SYNCH_MUTEX*                       pixelBufferLock;
   struct Stream_CamSave_GTK_ProgressData progressData;
   guint                                  progressEventSourceId;
   Stream_CamSave_Stream*                 stream;
-  Stream_CamSave_Subscribers_t           subscribers;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //IAMStreamConfig*                streamConfiguration;
-#else
-  int                                    fileDescriptor; // (capture) device file descriptor
+//IAMStreamConfig*                         streamConfiguration;
 #endif
+  Stream_CamSave_Subscribers_t           subscribers;
 };
 
 struct Stream_CamSave_ThreadData

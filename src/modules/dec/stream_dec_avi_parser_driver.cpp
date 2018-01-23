@@ -49,7 +49,7 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  , scannerState_ (NULL)
  , bufferState_ (NULL)
  , messageQueue_ (NULL)
- , useYYScanBuffer_ (STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
+ , useYYScanBuffer_ (COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver"));
@@ -247,7 +247,7 @@ Stream_Decoder_AVIParserDriver::switchBuffer ()
   // initialize next buffer
 
   // append the "\0\0"-sequence, as required by flex
-  ACE_ASSERT (fragment_->capacity () - fragment_->length () >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
+  ACE_ASSERT (fragment_->capacity () - fragment_->length () >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(fragment_->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(fragment_->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
@@ -467,7 +467,7 @@ Stream_Decoder_AVIParserDriver::scan_begin ()
   {
     bufferState_ =
       RIFF_Scanner__scan_buffer (fragment_->rd_ptr (),
-                                 fragment_->length () + STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE,
+                                 fragment_->length () + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
                                  scannerState_);
   } // end IF
   else

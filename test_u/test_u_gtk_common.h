@@ -21,61 +21,53 @@
 #ifndef TEST_U_GTK_COMMON_H
 #define TEST_U_GTK_COMMON_H
 
-//#include <deque>
+#include "ace/OS.h"
 
 #include "common_ui_gtk_common.h"
+#if defined (GTKGL_SUPPORT)
+#include "common_ui_gtk_gl_common.h"
+#endif // GTKGL_SUPPORT
+
+#include "test_u_common.h"
 
 // forward declarations
 struct Test_U_Configuration;
 
-//enum Test_U_GTK_Event
-//{
-//  TEST_U_GTKEVENT_INVALID = -1,
-//  // -------------------------------------
-//  TEST_U_GTKEVENT_START = 0,
-//  TEST_U_GTKEVENT_DATA,
-//  TEST_U_GTKEVENT_END,
-//  TEST_U_GTKEVENT_STATISTIC,
-//  // -------------------------------------
-//  TEST_U_GTKEVENT_MAX
-//};
-//typedef std::deque<Test_U_GTK_Event> Test_U_GTK_Events_t;
-//typedef Test_U_GTK_Events_t::const_iterator Test_U_GTK_EventsIterator_t;
-
-struct Test_U_GTK_CBData
- : Common_UI_GTKState
+struct Test_U_GTK_CBData;
+struct Test_U_GTK_ProgressData
+ : Common_UI_GTK_ProgressData
 {
-  Test_U_GTK_CBData ()
-   : Common_UI_GTKState ()
-   , allowUserRuntimeStatistic (true)
-   , configuration (NULL)
-   //, contextId (0)
-   //, eventStack ()
-  {};
+  Test_U_GTK_ProgressData ()
+   : Common_UI_GTK_ProgressData ()
+   , statistic ()
+  {
+    ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
+  };
 
-  bool                         allowUserRuntimeStatistic;
-  struct Test_U_Configuration* configuration;
-  //guint                 contextId; // statusbar
-  //Test_U_GTK_Events_t   eventStack;
+  Test_U_Statistic_t statistic;
 };
 
-//#if defined (GTKGL_SUPPORT)
-//struct Test_U_GTKGL_CBData
-// : Common_UI_GTKGLState
-//{
-//  inline Test_U_GTKGL_CBData ()
-//   : Common_UI_GTKGLState ()
-//   , allowUserRuntimeStatistic (true)
-//   , configuration (NULL)
-//   , contextId (0)
-//   , eventStack ()
-//  {};
-//
-//  bool                  allowUserRuntimeStatistic;
-//  Test_U_Configuration* configuration;
-//  guint                 contextId; // statusbar
-//  Test_U_GTK_Events_t   eventStack;
-//};
-//#endif
+struct Test_U_GTK_CBData
+#if defined (GTKGL_SUPPORT)
+  : Common_UI_GTK_GLState
+#else
+  : Common_UI_GTK_State
+#endif
+{
+  Test_U_GTK_CBData ()
+#if defined (GTKGL_SUPPORT)
+   : Common_UI_GTK_GLState ()
+#else
+   : Common_UI_GTK_State ()
+#endif
+   , allowUserRuntimeStatistic (true)
+   , configuration (NULL)
+   , progressData ()
+  {};
+
+  bool                           allowUserRuntimeStatistic;
+  struct Test_U_Configuration*   configuration;
+  struct Test_U_GTK_ProgressData progressData;
+};
 
 #endif

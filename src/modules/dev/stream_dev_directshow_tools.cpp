@@ -36,7 +36,8 @@
 #include <fourcc.h>
 #include <ks.h>
 #include <ksmedia.h>
- //#include <ksuuids.h>
+#include <mediaobj.h>
+//#include <ksuuids.h>
 #include <qedit.h>
 
 #include <mfapi.h>
@@ -47,6 +48,7 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
+#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
@@ -2533,7 +2535,8 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
   bool filter_is_dmo_wrapper = false;
   struct _AMMediaType* media_type_p = NULL;
   IDMOWrapperFilter* i_dmo_wrapper_filter_p = NULL;
-  struct _DMOMediaType* dmo_media_type_p = NULL;
+  DMO_MEDIA_TYPE* dmo_media_type_p = NULL;
+  //struct _DMOMediaType* dmo_media_type_p = NULL;
   IMediaObject* i_media_object_p = NULL;
   IWMResizerProps* i_wmresizer_props_p = NULL;
   DWORD dwFlags = 0;

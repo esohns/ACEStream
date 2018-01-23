@@ -34,11 +34,9 @@
 #include "net_connection_manager.h"
 #include "net_iconnectionmanager.h"
 
+#include "test_i_filestream_network.h"
+
 // forward declarations
-struct Test_I_Source_ConnectionConfiguration;
-struct Test_I_Target_ConnectionConfiguration;
-struct Test_I_Source_ConnectionState;
-struct Test_I_Target_ConnectionState;
 typedef Stream_Statistic Test_I_Statistic_t;
 struct Test_I_Source_UserData;
 struct Test_I_Target_UserData;
@@ -54,13 +52,13 @@ struct Test_I_Target_UserData;
 //#endif
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct Test_I_Source_ConnectionConfiguration,
+                                 Test_I_Source_ConnectionConfiguration_t,
                                  struct Test_I_Source_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Source_UserData> Test_I_Source_IInetConnectionManager_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct Test_I_Target_ConnectionConfiguration,
+                                 Test_I_Target_ConnectionConfiguration_t,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
@@ -69,20 +67,20 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
 //#else
 //typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 //                                 ACE_Netlink_Addr,
-//                                 struct Test_I_ConnectionConfiguration,
+//                                 Test_I_ConnectionConfiguration_t,
 //                                 struct Test_I_ConnectionState,
 //                                 Test_I_Statistic_t,
 //                                 struct Test_I_UserData> Test_I_Stream_NetlinkConnectionManager_t;
 //#endif
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct Test_I_Source_ConnectionConfiguration,
+                                 Test_I_Source_ConnectionConfiguration_t,
                                  struct Test_I_Source_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Source_UserData> Test_I_Source_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 struct Test_I_Target_ConnectionConfiguration,
+                                 Test_I_Target_ConnectionConfiguration_t,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;

@@ -333,9 +333,13 @@ continue_2:
     return false;
   } // end IF
 
+  // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.inputFormat);
+
   struct _AMMediaType* media_type_p =
-    getFormat (configuration_in.format);
+    getFormat (configuration_in.inputFormat);
   if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -350,10 +354,6 @@ continue_2:
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
 #endif
 
-  // *TODO*: remove type inferences
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.format);
-
   bool result_2 = false;
   unsigned int channels, sample_rate;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -363,6 +363,9 @@ continue_2:
 
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.format);
+
   channels = configuration_in.format->channels;
   sample_rate = configuration_in.format->rate;
 #endif
@@ -518,7 +521,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* media_type_p = NULL;
-      media_type_p = getFormat (session_data_r.format);
+      media_type_p = getFormat (session_data_r.inputFormat);
       if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,

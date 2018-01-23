@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "ace/Log_Msg.h"
-//#include "ace/OS.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
@@ -36,7 +36,7 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   // initialize return value(s)
   std::string result;
 
-  //ACE_Date_Time time_local(timestamp_in);
+  //ACE_Date_Time time_local (timestamp_in);
   tm time_local;
   // init structure
   time_local.tm_sec = -1;
@@ -56,7 +56,7 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
 
   // step1: compute UTC representation
   time_t time_seconds = timestamp_in.sec ();
-  // *PORTABILITY*: man page says we should call this before...
+  // *PORTABILITY*: the man page suggests calling this first...
   ACE_OS::tzset ();
   if (!ACE_OS::localtime_r (&time_seconds,
                             &time_local))

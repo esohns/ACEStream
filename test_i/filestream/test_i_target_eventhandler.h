@@ -37,7 +37,7 @@ class Test_I_Target_EventHandler
 {
  public:
   Test_I_Target_EventHandler (struct Test_I_Target_GTK_CBData*); // GTK state
-  virtual ~Test_I_Target_EventHandler ();
+  inline virtual ~Test_I_Target_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,

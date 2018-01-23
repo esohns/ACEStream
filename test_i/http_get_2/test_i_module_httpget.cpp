@@ -29,6 +29,8 @@
 
 #include "test_i_connection_common.h"
 
+#include "test_i_http_get_defines.h"
+
 Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , iterator_ ()

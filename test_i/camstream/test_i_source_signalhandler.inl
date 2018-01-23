@@ -130,12 +130,28 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     if (inherited::configuration_->hasUI)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     {
-      if (inherited::configuration_->useMediaFoundation)
-        TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                true); // N/A
-      else
-        TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                           true); // N/A
+      switch (inherited::configuration_->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                             true); // N/A
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                  true); // N/A
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      inherited::configuration_->mediaFramework));
+          return;
+        }
+      } // end SWITCH
     } // end IF
 #else
       TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?

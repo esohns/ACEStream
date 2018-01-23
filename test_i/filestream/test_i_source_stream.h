@@ -53,7 +53,7 @@ class Test_I_Source_Stream_T
                                         struct Test_I_Source_StreamConfiguration,
                                         Test_I_Statistic_t,
                                         Common_Timer_Manager_t,
-                                        struct Stream_AllocatorConfiguration,
+                                        struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Source_ModuleHandlerConfiguration,
                                         struct Test_I_Source_SessionData, // session data
@@ -75,7 +75,7 @@ class Test_I_Source_Stream_T
                                         struct Test_I_Source_StreamConfiguration,
                                         Test_I_Statistic_t,
                                         Common_Timer_Manager_t,
-                                        struct Stream_AllocatorConfiguration,
+                                        struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Source_ModuleHandlerConfiguration,
                                         struct Test_I_Source_SessionData, // session data

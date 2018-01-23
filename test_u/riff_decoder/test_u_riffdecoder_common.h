@@ -54,7 +54,7 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
 
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
-    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+    paddingBytes = COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
 

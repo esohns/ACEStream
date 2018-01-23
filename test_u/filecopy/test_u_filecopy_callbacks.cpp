@@ -67,7 +67,7 @@ stream_processing_function (void* arg_in)
   {
 //    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
 
-    Common_UI_GTKBuildersIterator_t iterator =
+    Common_UI_GTK_BuildersIterator_t iterator =
         data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
     ACE_ASSERT (iterator != data_p->CBData->builders.end ());
@@ -79,7 +79,7 @@ stream_processing_function (void* arg_in)
 //                                                ACE_TEXT_ALWAYS_CHAR (TEST_USTREAM_UI_GTK_PROGRESSBAR_NAME)));
 //    ACE_ASSERT (progress_bar_p);
 
-    // generate context ID
+    // generate context id
     statusbar_p =
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_STATUSBAR_NAME)));
@@ -87,7 +87,7 @@ stream_processing_function (void* arg_in)
 
     std::ostringstream converter;
     converter << data_p->sessionId;
-    data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+    data_p->CBData->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                        gtk_statusbar_get_context_id (statusbar_p,
                                                                                      converter.str ().c_str ())));
     gdk_threads_leave ();
@@ -147,7 +147,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());
@@ -551,7 +551,7 @@ idle_update_log_display_cb (gpointer userData_in)
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
@@ -641,21 +641,26 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
+  GtkSpinButton* spin_button_p = NULL;
+  bool is_session_message = false;
+  enum Common_UI_EventType* event_p = NULL;
+  int result = -1;
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkSpinButton* spin_button_p = NULL;
-  bool is_session_message = false;
-  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    while (data_p->eventStack.pop (event_e) == 0)
-    {
-      switch (event_e)
+    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+         !iterator_2.done ();
+         iterator_2.next (event_p))
+    { ACE_ASSERT (event_p);
+      switch (*event_p)
       {
         case COMMON_UI_EVENT_STARTED:
         {
@@ -714,7 +719,17 @@ idle_update_info_display_cb (gpointer userData_in)
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_FORWARD,
                             1.0);
+      event_p = NULL;
     } // end FOR
+
+    // clean up
+    while (!data_p->eventStack.is_empty ())
+    {
+      result = data_p->eventStack.pop (event_e);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
+    } // end WHILE
   } // end lock scope
 
   return G_SOURCE_CONTINUE;
@@ -730,13 +745,13 @@ idle_update_progress_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->GTKState);
+  ACE_ASSERT (data_p->state);
 
   int result = -1;
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->GTKState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTK_BuildersIterator_t iterator =
+    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
+  ACE_ASSERT (iterator != data_p->state->builders.end ());
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -744,12 +759,12 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_ASSERT (progress_bar_p);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
 
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  for (Stream_Filecopy_CompletedActionsIterator_t iterator_2 = data_p->completedActions.begin ();
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_2 = data_p->completedActions.begin ();
        iterator_2 != data_p->completedActions.end ();
        ++iterator_2)
   {
@@ -773,10 +788,10 @@ idle_update_progress_cb (gpointer userData_in)
 #endif
     } // end IF
 
-    Stream_Filecopy_PendingActionsIterator_t iterator_3 =
+    Common_UI_GTK_PendingActionsIterator_t iterator_3 =
         data_p->pendingActions.find (*iterator_2);
     ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
-    data_p->GTKState->eventSourceIds.erase ((*iterator_3).second);
+    data_p->state->eventSourceIds.erase ((*iterator_3).first);
     data_p->pendingActions.erase (iterator_3);
   } // end FOR
   data_p->completedActions.clear ();
@@ -831,7 +846,7 @@ action_start_activate_cb (GtkAction* action_in,
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
@@ -1031,7 +1046,9 @@ action_start_activate_cb (GtkAction* action_in,
 
     return;
   } // end IF
-  data_p->progressData.pendingActions[thread_id] = event_source_id;
+  data_p->progressData.pendingActions[event_source_id] =
+      ACE_Thread_ID (thread_id,
+                     thread_handle);
   //    ACE_DEBUG ((LM_DEBUG,
   //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
   //                event_source_id));
@@ -1049,7 +1066,7 @@ action_stop_activate_cb (GtkAction* action_in,
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
@@ -1087,7 +1104,7 @@ button_clear_clicked_cb (GtkWidget* widget_in,
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
@@ -1126,7 +1143,7 @@ button_about_clicked_cb (GtkWidget* widget_in,
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
@@ -1215,7 +1232,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)

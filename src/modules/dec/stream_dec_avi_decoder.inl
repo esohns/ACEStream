@@ -43,14 +43,14 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , driver_ (STREAM_DECODER_DEFAULT_LEX_TRACE,
-            STREAM_DECODER_DEFAULT_YACC_TRACE)
+ , driver_ (COMMON_PARSER_DEFAULT_LEX_TRACE,
+            COMMON_PARSER_DEFAULT_YACC_TRACE)
  , allocator_ (NULL)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
  , frameSize_ (0)
- , debugParser_ (STREAM_DECODER_DEFAULT_YACC_TRACE)
- , debugScanner_ (STREAM_DECODER_DEFAULT_LEX_TRACE)
+ , debugParser_ (COMMON_PARSER_DEFAULT_YACC_TRACE)
+ , debugScanner_ (COMMON_PARSER_DEFAULT_LEX_TRACE)
  , isDriverInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::Stream_Decoder_AVIDecoder_T"));
@@ -115,8 +115,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
     frameSize_ = 0;
 
-    debugParser_ = STREAM_DECODER_DEFAULT_YACC_TRACE;
-    debugScanner_ = STREAM_DECODER_DEFAULT_LEX_TRACE;
+    debugParser_ = COMMON_PARSER_DEFAULT_YACC_TRACE;
+    debugScanner_ = COMMON_PARSER_DEFAULT_LEX_TRACE;
     isDriverInitialized_ = false;
   } // end IF
 
@@ -166,7 +166,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
 
   // append the "\0\0"-sequence, as required by flex
-  ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
+  ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was

@@ -205,7 +205,7 @@ typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Sourc
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Test_I_CamStream_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
 
 struct Test_I_Source_Stream_StatisticData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -227,7 +227,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_StreamState,
                       struct Test_I_Source_DirectShow_StreamConfiguration,
                       struct Test_I_Source_Stream_StatisticData,
-                      struct Test_I_CamStream_AllocatorConfiguration,
+                      struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       struct Test_I_Source_DirectShow_SessionData,
@@ -244,7 +244,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_StreamState,
                       struct Test_I_Source_MediaFoundation_StreamConfiguration,
                       struct Test_I_Source_Stream_StatisticData,
-                      struct Test_I_CamStream_AllocatorConfiguration,
+                      struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       struct Test_I_Source_MediaFoundation_SessionData,
@@ -266,7 +266,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_V4L2_StreamState,
                       struct Test_I_Source_V4L2_StreamConfiguration,
                       struct Test_I_Source_Stream_StatisticData,
-                      struct Test_I_CamStream_AllocatorConfiguration,
+                      struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                       struct Test_I_Source_V4L2_SessionData,
@@ -294,19 +294,20 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , contextId (0)
-   , format (NULL)
+   , deviceName ()
+   , inputFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
   {
-    format =
+    inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
+    if (!inputFormat)
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
     else
-      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
   };
 
   struct tagRECT                                       area; // visualization module
@@ -315,7 +316,8 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
-  struct _AMMediaType*                                 format; // source module
+  std::string                                          deviceName; // 'friendly'-name string
+  struct _AMMediaType*                                 inputFormat; // source module
   Test_I_Source_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*           subscriber;
   Test_I_Source_DirectShow_Subscribers_t*              subscribers;
@@ -338,7 +340,8 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , format (NULL)
+   , deviceName ()
+   , inputFormat (NULL)
    , mediaSource (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
@@ -347,18 +350,20 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , subscribers (NULL)
    , windowController (NULL)
   {
-    HRESULT result = MFCreateMediaType (&format);
+    HRESULT result = MFCreateMediaType (&inputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    ACE_ASSERT (inputFormat);
   };
 
   struct tagRECT                                            area;
   Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  IMFMediaType*                                             format;
+  std::string                                               deviceName; // 'friendly'-name string
+  IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
   IMFMediaSource*                                           mediaSource;
@@ -658,9 +663,9 @@ struct Test_I_Source_V4L2_Configuration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_ControlMessage_T<ENUM Stream_ControlMessageType,
-//                                struct Stream_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
+//                                struct Test_I_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
@@ -676,7 +681,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
@@ -692,7 +697,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test_I_Source_MediaFoundation_ISubscribe_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_V4L2_Stream_Message,
                                           Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_MessageAllocator_t;
@@ -723,7 +728,7 @@ struct Test_I_Source_DirectShow_GTK_CBData
    , streamConfiguration (NULL)
    , UDPStream (NULL)
   {
-    progressData.GTKState = this;
+    progressData.state = this;
   };
 
   struct Test_I_Source_DirectShow_Configuration* configuration;

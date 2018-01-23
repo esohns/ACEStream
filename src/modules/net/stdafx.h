@@ -20,12 +20,20 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
+#include "ace/Synch.h"
+
+//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
+#include "valgrind/valgrind.h"
+#endif
 
 // Local Header Files
 #include "common.h"
 #include "common_macros.h"
+#include "common_pragmas.h"
 
 #include "stream_common.h"
 #include "stream_macros.h"
 
+#include "stream_net_common.h"
 #include "stream_net_exports.h"

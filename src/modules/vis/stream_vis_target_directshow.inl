@@ -377,15 +377,15 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       {
         // retrieve display device 'geometry' data (i.e. monitor coordinates)
         // *TODO*: remove type inference
-        ACE_ASSERT (!inherited::configuration_->device.empty ());
+        ACE_ASSERT (!inherited::configuration_->deviceName.empty ());
         HMONITOR monitor_h = NULL;
-        if (!Stream_Module_Device_Tools::getDisplayDevice (inherited::configuration_->device,
+        if (!Stream_Module_Device_Tools::getDisplayDevice (inherited::configuration_->deviceName,
                                                            monitor_h))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDisplayDevice(\"%s\"): \"%s\", returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (inherited::configuration_->device.c_str ()),
+                      ACE_TEXT (inherited::configuration_->deviceName.c_str ()),
                       ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
           goto error;
         } // end IF
@@ -400,7 +400,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (inherited::configuration_->device.c_str ()),
+                      ACE_TEXT (inherited::configuration_->deviceName.c_str ()),
                       ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
           goto error;
         } // end IF
@@ -474,8 +474,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
       COM_initialized = true;
 
-      ACE_ASSERT (session_data_r.format);
-      if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*session_data_r.format,
+      ACE_ASSERT (session_data_r.inputFormat);
+      if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*session_data_r.inputFormat,
                                                                  media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -812,19 +812,19 @@ error:
       } // end IF
 
       // update the source filter input media format and reconnect
-      ACE_ASSERT (session_data_r.format);
-      ACE_ASSERT (session_data_r.format->pbFormat);
-      if (session_data_r.format->formattype == FORMAT_VideoInfo)
+      ACE_ASSERT (session_data_r.inputFormat);
+      ACE_ASSERT (session_data_r.inputFormat->pbFormat);
+      if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo)
       {
         video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
         width = video_info_header_p->bmiHeader.biWidth;
         height = video_info_header_p->bmiHeader.biHeight;
       } // end IF
-      else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
+      else if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo2)
       {
         video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
         width = video_info_header2_p->bmiHeader.biWidth;
         height = video_info_header2_p->bmiHeader.biHeight;
       } // end ELSE IF
@@ -833,7 +833,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
+                    ACE_TEXT (Common_Tools::GUIDToString (session_data_r.inputFormat->formattype).c_str ())));
         goto error_2;
       } // end ELSE
       if (filter_graph_configuration.front ().mediaType->formattype == FORMAT_VideoInfo)

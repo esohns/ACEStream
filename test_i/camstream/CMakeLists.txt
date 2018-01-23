@@ -169,10 +169,10 @@ set (camsource_EXE_SRCS
      test_i_callbacks.cpp
      test_i_callbacks.h
      test_i_camstream_common.h
+     test_i_camstream_defines.h
      test_i_camstream_network.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
-     test_i_defines.h
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
      test_i_module_eventhandler.inl
@@ -210,7 +210,7 @@ add_executable (${EXECUTABLE_SOURCE}
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
- if (NOT ${BUILD_TEST_I})
+ if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -501,17 +501,17 @@ endif ()
 
 ############## next target ################
 
-if (UNIX)
+#if (UNIX)
  set (camtarget_EXE_SRCS
       stdafx.cpp
       stdafx.h
       test_i_callbacks.cpp
       test_i_callbacks.h
       test_i_camstream_common.h
+      test_i_camstream_defines.h
       test_i_camstream_network.h
       test_i_common_modules.h
       test_i_connection_manager_common.h
-      test_i_defines.h
       test_i_module_eventhandler.cpp
       test_i_module_eventhandler.h
       test_i_module_eventhandler.inl
@@ -533,39 +533,39 @@ if (UNIX)
       test_i_target_signalhandler.inl
       test_i_target_stream.cpp
       test_i_target_stream.h)
-elseif (WIN32)
- set (camtarget_EXE_SRCS
-      stdafx.cpp
-      stdafx.h
-      test_i_callbacks.cpp
-      test_i_callbacks.h
-      test_i_camstream_common.h
-      test_i_camstream_network.h
-      test_i_common_modules.h
-      test_i_connection_manager_common.h
-      test_i_defines.h
-      test_i_module_eventhandler.cpp
-      test_i_module_eventhandler.h
-      test_i_module_eventhandler.inl
-      test_i_source_stream.cpp
-      test_i_source_stream.h
-      test_i_source_stream.inl
-      test_i_target.cpp
-      test_i_target_common.h
-      test_i_target_eventhandler.cpp
-      test_i_target_eventhandler.h
-      test_i_target_eventhandler.inl
-      test_i_target_listener_common.h
-      test_i_target_message.cpp
-      test_i_target_message.h
-      test_i_target_session_message.cpp
-      test_i_target_session_message.h
-      test_i_target_signalhandler.cpp
-      test_i_target_signalhandler.h
-      test_i_target_signalhandler.inl
-      test_i_target_stream.cpp
-      test_i_target_stream.h)
-endif ()
+#elseif (WIN32)
+# set (camtarget_EXE_SRCS
+#      stdafx.cpp
+#      stdafx.h
+#      test_i_callbacks.cpp
+#      test_i_callbacks.h
+#      test_i_camstream_common.h
+#      test_i_camstream_defines.h
+#      test_i_camstream_network.h
+#      test_i_common_modules.h
+#      test_i_connection_manager_common.h
+#      test_i_module_eventhandler.cpp
+#      test_i_module_eventhandler.h
+#      test_i_module_eventhandler.inl
+#      test_i_source_stream.cpp
+#      test_i_source_stream.h
+#      test_i_source_stream.inl
+#      test_i_target.cpp
+#      test_i_target_common.h
+#      test_i_target_eventhandler.cpp
+#      test_i_target_eventhandler.h
+#      test_i_target_eventhandler.inl
+#      test_i_target_listener_common.h
+#      test_i_target_message.cpp
+#      test_i_target_message.h
+#      test_i_target_session_message.cpp
+#      test_i_target_session_message.h
+#      test_i_target_signalhandler.cpp
+#      test_i_target_signalhandler.h
+#      test_i_target_signalhandler.inl
+#      test_i_target_stream.cpp
+#      test_i_target_stream.h)
+#endif ()
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_TARGET camtarget)
@@ -577,7 +577,7 @@ add_executable (${EXECUTABLE_TARGET}
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
- if (NOT ${BUILD_TEST_I})
+ if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
  if (CMAKE_BUILD_TYPE STREQUAL Debug)

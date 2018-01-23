@@ -1212,7 +1212,7 @@ get_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
   // sanity check(s)
   ACE_ASSERT (GTKCBData_in.configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     GTKCBData_in.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != GTKCBData_in.builders.end ());
@@ -1316,7 +1316,7 @@ update_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     GTKCBData_in.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != GTKCBData_in.builders.end ());
@@ -1363,7 +1363,7 @@ stream_processing_function (void* arg_in)
   std::ostringstream converter;
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
       data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->CBData->builders.end ());
@@ -1399,7 +1399,7 @@ stream_processing_function (void* arg_in)
 
   // generate context ID
   gdk_threads_enter ();
-  data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+  data_p->CBData->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                      gtk_statusbar_get_context_id (statusbar_p,
                                                                                    converter.str ().c_str ())));
   gdk_threads_leave ();
@@ -1451,7 +1451,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2050,7 +2050,7 @@ idle_session_end_cb (gpointer userData_in)
   // synch access
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2124,7 +2124,7 @@ idle_update_log_display_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2210,17 +2210,23 @@ idle_update_info_display_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_p->builders.end ());
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
-  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
+  enum Common_UI_EventType* event_p = NULL;
+  int result = -1;
+  enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
+
+  Common_UI_GTK_BuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    while (data_p->eventStack.pop (event_e) == 0)
-    {
-      switch (event_e)
+    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+         !iterator_2.done ();
+         iterator_2.next (event_p))
+    { ACE_ASSERT (event_p);
+      switch (*event_p)
       {
         case COMMON_UI_EVENT_STARTED:
         {
@@ -2299,6 +2305,16 @@ idle_update_info_display_cb (gpointer userData_in)
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_FORWARD,
                             1.0);
+      event_p = NULL;
+    } // end FOR
+
+    // clean up
+    while (!data_p->eventStack.is_empty ())
+    {
+      result = data_p->eventStack.pop (event_e);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
     } // end WHILE
   } // end lock scope
 
@@ -2315,16 +2331,16 @@ idle_update_progress_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->GTKState);
+  ACE_ASSERT (data_p->state);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
 
   int result = -1;
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->GTKState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTK_BuildersIterator_t iterator =
+    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
+  ACE_ASSERT (iterator != data_p->state->builders.end ());
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2334,8 +2350,8 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  Stream_CamSave_PendingActionsIterator_t iterator_2;
-  for (Stream_CamSave_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {
@@ -2362,7 +2378,7 @@ idle_update_progress_cb (gpointer userData_in)
 #endif
     } // end ELSE
 
-    data_p->GTKState->eventSourceIds.erase (*iterator_3);
+    data_p->state->eventSourceIds.erase (*iterator_3);
     data_p->pendingActions.erase (iterator_2);
   } // end FOR
   data_p->completedActions.clear ();
@@ -2417,7 +2433,7 @@ idle_update_video_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2454,7 +2470,7 @@ textview_size_allocate_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT(iterator != data_p->builders.end ());
@@ -2491,7 +2507,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
@@ -2593,7 +2609,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                               1, &value);
 #endif
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-    (*iterator_2).second.second.interfaceIdentifier =
+    (*iterator_2).second.second.deviceName =
         g_value_get_string (&value);
     g_value_unset (&value);
   } // end IF
@@ -2809,7 +2825,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2877,7 +2893,7 @@ toggleaction_fullscreen_toggled_cb (GtkToggleAction* toggleAction_in,
 
   bool is_active = gtk_toggle_action_get_active (toggleAction_in);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2909,12 +2925,25 @@ toggleaction_fullscreen_toggled_cb (GtkToggleAction* toggleAction_in,
 
   const Stream_Module_t* module_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
-    module_p =
-        data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-  else
-    module_p =
+  switch (data_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      module_p =
         data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      module_p =
+        data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
+                  ACE_TEXT (data_p->stream->name ().c_str ()),
+                  data_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
 #else
   module_p =
       data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
@@ -2992,7 +3021,7 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -3023,7 +3052,7 @@ button_about_clicked_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());
@@ -3110,7 +3139,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -3207,8 +3236,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (module_name.c_str ())));
     return;
   } // end IF
-  Stream_CamSave_DisplayNull* display_impl_p =
-    dynamic_cast<Stream_CamSave_DisplayNull*> (module_p->writer ());
+  Stream_CamSave_MediaFoundation_DisplayNull* display_impl_p =
+    dynamic_cast<Stream_CamSave_MediaFoundation_DisplayNull*> (module_p->writer ());
   ACE_ASSERT (display_impl_p);
 
   IMFTopology* topology_p = NULL;
@@ -3240,12 +3269,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   topology_p->Release ();
   topology_p = NULL;
 
-  if ((*iterator_2).second.second.format)
+  if ((*iterator_2).second.second.inputFormat)
   {
-    (*iterator_2).second.second.format->Release ();
-    (*iterator_2).second.second.format = NULL;
+    (*iterator_2).second.second.inputFormat->Release ();
+    (*iterator_2).second.second.inputFormat = NULL;
   } // end IF
-  HRESULT result = MFCreateMediaType (&(*iterator_2).second.second.format);
+  HRESULT result = MFCreateMediaType (&(*iterator_2).second.second.inputFormat);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3253,15 +3282,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT ((*iterator_2).second.second.format);
-  result = (*iterator_2).second.second.format->SetGUID (MF_MT_MAJOR_TYPE,
+  ACE_ASSERT ((*iterator_2).second.second.inputFormat);
+  result = (*iterator_2).second.second.inputFormat->SetGUID (MF_MT_MAJOR_TYPE,
                                                         MFMediaType_Video);
   ACE_ASSERT (SUCCEEDED (result));
   result =
-    (*iterator_2).second.second.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+    (*iterator_2).second.second.inputFormat->SetUINT32 (MF_MT_INTERLACE_MODE,
                                                    MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeRatio ((*iterator_2).second.second.format,
+  result = MFSetAttributeRatio ((*iterator_2).second.second.inputFormat,
                                 MF_MT_PIXEL_ASPECT_RATIO,
                                 pixel_aspect_ratio.Numerator,
                                 pixel_aspect_ratio.Denominator);
@@ -3374,7 +3403,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -3418,10 +3447,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT ((*iterator_2).second.second.format);
+  ACE_ASSERT ((*iterator_2).second.second.inputFormat);
   ACE_ASSERT ((*iterator_2).second.second.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
+  HRESULT result = E_FAIL;
   //struct _AMMediaType* media_type_p = NULL;
   //result = data_p->streamConfiguration->GetFormat (&media_type_p);
   //if (FAILED (result))
@@ -3433,8 +3463,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   //media_type_p->subtype = GUID_s;
-  result = (*iterator_2).second.second.format->SetGUID (MF_MT_SUBTYPE,
-                                                        GUID_s);
+  result = (*iterator_2).second.second.inputFormat->SetGUID (MF_MT_SUBTYPE,
+                                                             GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3543,7 +3573,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -3624,7 +3654,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT ((*iterator_2).second.second.format);
+  ACE_ASSERT ((*iterator_2).second.second.inputFormat);
   ACE_ASSERT ((*iterator_2).second.second.session);
 
   HRESULT result = E_FAIL;
@@ -3644,7 +3674,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     //  (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
     //video_info_header_p->bmiHeader.biWidth = width;
     //video_info_header_p->bmiHeader.biHeight = height;
-  result = (*iterator_2).second.second.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+  result = (*iterator_2).second.second.inputFormat->SetUINT32 (MF_MT_SAMPLE_SIZE,
                                                           width * height * 3);
   if (FAILED (result))
   {
@@ -3654,7 +3684,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
-  result = MFSetAttributeSize ((*iterator_2).second.second.format,
+  result = MFSetAttributeSize ((*iterator_2).second.second.inputFormat,
                                MF_MT_FRAME_SIZE,
                                width, height);
   if (FAILED (result))
@@ -3780,7 +3810,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -3823,7 +3853,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->streamConfiguration);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT ((*iterator_2).second.second.format);
+  ACE_ASSERT ((*iterator_2).second.second.inputFormat);
 
   //struct _AMMediaType* media_type_p = NULL;
   //HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3836,7 +3866,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   UINT32 width, height;
-  HRESULT result = MFGetAttributeSize ((*iterator_2).second.second.format,
+  HRESULT result = MFGetAttributeSize ((*iterator_2).second.second.inputFormat,
                                        MF_MT_FRAME_SIZE,
                                        &width, &height);
   if (FAILED (result))
@@ -3855,7 +3885,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   UINT32 bit_rate = width * height;
   bit_rate *=
     static_cast<UINT32> (((double)frame_interval / (double)frame_interval_denominator) * 3 * 8);
-  result = (*iterator_2).second.second.format->SetUINT32 (MF_MT_AVG_BITRATE,
+  result = (*iterator_2).second.second.inputFormat->SetUINT32 (MF_MT_AVG_BITRATE,
                                                           bit_rate);
   if (FAILED (result))
   {
@@ -3870,7 +3900,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
   //PropVariantClear (&property_s);
-  result = MFSetAttributeSize ((*iterator_2).second.second.format,
+  result = MFSetAttributeSize ((*iterator_2).second.second.inputFormat,
                                MF_MT_FRAME_RATE,
                                frame_interval, frame_interval_denominator);
   if (FAILED (result))
@@ -3948,7 +3978,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->pixelBufferLock);
 
-//  Common_UI_GTKBuildersIterator_t iterator =
+//  Common_UI_GTK_BuildersIterator_t iterator =
 //    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
 //  ACE_ASSERT (iterator != cb_data_p->builders.end ());
@@ -4000,7 +4030,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //    return;
 //#endif
 
-//  Common_UI_GTKBuildersIterator_t iterator =
+//  Common_UI_GTK_BuildersIterator_t iterator =
 //    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
 //  ACE_ASSERT (iterator != data_p->builders.end ());
@@ -4062,7 +4092,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (data_p->pixelBufferLock);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());
@@ -4214,7 +4244,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
@@ -4334,7 +4364,7 @@ key_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Common_UI_GTKBuildersIterator_t iterator =
+  Common_UI_GTK_BuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());

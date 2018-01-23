@@ -271,7 +271,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   format_ =
       Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (configuration_in.inputFormat->subtype,
-                                                                    configuration_in.useMediaFoundation);
+                                                                    (configuration_in.mediaFramework == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION));
 
   if (configuration_in.inputFormat->formattype == FORMAT_VideoInfo)
   { ACE_ASSERT (configuration_in.inputFormat->pbFormat);
@@ -328,7 +328,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (format_).c_str ())));
-    codecId_ = Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (format_);
+    codecId_ = Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (format_);
   } // end IF
   if (codecId_ == AV_CODEC_ID_NONE)
     ACE_DEBUG ((LM_DEBUG,
@@ -359,13 +359,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   decodeFormat_ =
     Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (configuration_in.outputFormat->subtype,
-                                                                  configuration_in.useMediaFoundation);
+                                                                  (configuration_in.mediaFramework == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION));
   if (decodeFormat_ == AV_PIX_FMT_NONE)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat(\"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (configuration_in.outputFormat->subtype, configuration_in.useMediaFoundation).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (configuration_in.outputFormat->subtype, (configuration_in.mediaFramework == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)).c_str ())));
     return false;
   } // end IF
 #else
@@ -1103,15 +1103,15 @@ continue_:
       unsigned int width = 0;
       unsigned int buffer_size = decodeFrameSize_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
 
       struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
       struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
-      if (session_data_r.format->formattype == FORMAT_VideoInfo)
-      { ACE_ASSERT (session_data_r.format->pbFormat);
+      if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo)
+      { ACE_ASSERT (session_data_r.inputFormat->pbFormat);
         video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
         ACE_ASSERT (video_info_header_p);
 
         codecFormatHeight_ =
@@ -1119,10 +1119,10 @@ continue_:
         width =
           static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
       } // end IF
-      else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
-      { ACE_ASSERT (session_data_r.format->pbFormat);
+      else if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo2)
+      { ACE_ASSERT (session_data_r.inputFormat->pbFormat);
         video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
         ACE_ASSERT (video_info_header2_p);
 
         codecFormatHeight_ =
@@ -1135,7 +1135,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (session_data_r.format->formattype).c_str ())));
+                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (session_data_r.inputFormat->formattype).c_str ())));
         break;
       } // end ELSE
 #else // *TODO*

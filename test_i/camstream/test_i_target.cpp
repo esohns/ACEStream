@@ -42,7 +42,10 @@
 
 #include "common_file_tools.h"
 #include "common_logger.h"
+#include "common_signal_tools.h"
 #include "common_tools.h"
+
+#include "common_timer_tools.h"
 
 #include "common_ui_defines.h"
 //#include "common_ui_glade_definition.h"
@@ -843,7 +846,7 @@ do_work (unsigned int bufferSize_in,
   int result = -1;
 
   // step0a: initialize event dispatch
-  struct Common_DispatchThreadData thread_data;
+  struct Common_EventDispatchThreadData thread_data_s;
   bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
@@ -862,8 +865,8 @@ do_work (unsigned int bufferSize_in,
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
-                                              thread_data.proactorType,
-                                              thread_data.reactorType,
+                                              thread_data_s.proactorType,
+                                              thread_data_s.reactorType,
                                               serialize_output))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -873,7 +876,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
-  struct Test_I_CamStream_AllocatorConfiguration* allocator_configuration_p =
+  struct Test_I_AllocatorConfiguration* allocator_configuration_p =
     NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1032,11 +1035,11 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
     result =
-      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.format,
+      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.inputFormat,
                                      UIDefinitionFilename_in.empty ()); // initialize COM ?
   else
     result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.format,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.inputFormat,
                                 UIDefinitionFilename_in.empty ()); // initialize COM ?
   if (!result)
   {
@@ -1046,13 +1049,13 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   if (!useMediaFoundation_in)
   {
-    ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.format);
+    ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.inputFormat);
   } // end IF
 #endif
 
   ACE_ASSERT (allocator_configuration_p);
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_I_CamStream_AllocatorConfiguration> heap_allocator;
+                         struct Test_I_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1110,6 +1113,8 @@ do_work (unsigned int bufferSize_in,
   Common_IRecursiveTaskControl_t* igtk_manager_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Target_MediaFoundation_ConnectionConfiguration_t mediafoundation_connection_configuration;
+  Test_I_Target_DirectShow_ConnectionConfiguration_t directshow_connection_configuration;
   Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
     NULL;
   Test_I_Target_DirectShow_InetConnectionManager_t*      directshow_connection_manager_p =
@@ -1118,7 +1123,6 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
   if (useMediaFoundation_in)
   {
-    struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
     mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                    mediafoundation_connection_configuration));
     mediafoundation_connection_configuration_iterator =
@@ -1138,7 +1142,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    struct Test_I_Target_DirectShow_ConnectionConfiguration directshow_connection_configuration;
     directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                               directshow_connection_configuration));
     directshow_connection_configuration_iterator =
@@ -1157,6 +1160,7 @@ do_work (unsigned int bufferSize_in,
     report_handler_p = directshow_connection_manager_p;
   } // end ELSE
 #else
+  Test_I_Target_ConnectionConfiguration_t connection_configuration;
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
@@ -1167,13 +1171,11 @@ do_work (unsigned int bufferSize_in,
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Test_I_StatisticHandler_t statistic_handler (STATISTIC_ACTION_REPORT,
+  Test_I_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                report_handler_p,
                                                false);
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
-  struct Test_I_Target_DirectShow_ConnectionConfiguration directshow_connection_configuration;
   if (useMediaFoundation_in)
     mediafoundation_event_handler_p =
       dynamic_cast<Test_I_Target_MediaFoundation_EventHandler*> (mediafoundation_event_handler.writer ());
@@ -1182,7 +1184,6 @@ do_work (unsigned int bufferSize_in,
       dynamic_cast<Test_I_Target_DirectShow_EventHandler*> (directshow_event_handler.writer ());
   ACE_ASSERT (mediafoundation_event_handler_p || directshow_event_handler_p);
 #else
-  struct Test_I_Target_ConnectionConfiguration connection_configuration;
   Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
   event_handler_p =
     dynamic_cast<Test_I_Target_Module_EventHandler*> (event_handler.writer ());
@@ -1235,10 +1236,10 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_configuration.userData;
     (*mediafoundation_connection_configuration_iterator).second.messageAllocator =
       &mediafoundation_message_allocator;
-    (*mediafoundation_connection_configuration_iterator).second.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
     (*mediafoundation_connection_configuration_iterator).second.userData =
       &mediafoundation_configuration.userData;
+    (*mediafoundation_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
+                                                                            mediafoundation_configuration.streamConfiguration);
 
     mediafoundation_connection_manager_p->set ((*mediafoundation_connection_configuration_iterator).second,
                                                &mediafoundation_configuration.userData);
@@ -1271,10 +1272,10 @@ do_work (unsigned int bufferSize_in,
       &directshow_configuration.userData;
     (*directshow_connection_configuration_iterator).second.messageAllocator =
       &directshow_message_allocator;
-    (*directshow_connection_configuration_iterator).second.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
     (*directshow_connection_configuration_iterator).second.userData =
       &directshow_configuration.userData;
+    (*directshow_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
+                                                                       directshow_configuration.streamConfiguration);
 
     directshow_connection_manager_p->set ((*directshow_connection_configuration_iterator).second,
                                           &directshow_configuration.userData);
@@ -1304,9 +1305,10 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
   connection_configuration.userData = &configuration.userData;
+  connection_configuration.initialize (*allocator_configuration_p,
+                                       configuration.streamConfiguration);
+
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  connection_configuration));
   iterator_2 =
@@ -1326,7 +1328,7 @@ do_work (unsigned int bufferSize_in,
   {
     //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
     ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
-    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.second.format,
+    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.second.inputFormat,
                                                           directshow_configuration.pinConfiguration.format);
     ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
@@ -1361,9 +1363,9 @@ do_work (unsigned int bufferSize_in,
   else
   {
     directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      (*directshow_modulehandler_iterator).second.second.format->lSampleSize;
+      (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize;
     if (bufferSize_in)
-    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.format->lSampleSize);
+    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize);
       directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
     } // end IF
@@ -1463,7 +1465,7 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON::instance ();
     mediafoundation_configuration.signalHandlerConfiguration.statisticReportingHandler =
       report_handler_p;
-    mediafoundation_configuration.signalHandlerConfiguration.statisticReportingTimerID =
+    mediafoundation_configuration.signalHandlerConfiguration.statisticReportingTimerId =
       timer_id;
     mediafoundation_configuration.signalHandlerConfiguration.useReactor =
       useReactor_in;
@@ -1485,7 +1487,7 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON::instance ();
     directshow_configuration.signalHandlerConfiguration.statisticReportingHandler =
       report_handler_p;
-    directshow_configuration.signalHandlerConfiguration.statisticReportingTimerID =
+    directshow_configuration.signalHandlerConfiguration.statisticReportingTimerId =
       timer_id;
     directshow_configuration.signalHandlerConfiguration.useReactor =
       useReactor_in;
@@ -1523,7 +1525,7 @@ do_work (unsigned int bufferSize_in,
 
     goto clean;
   } // end IF
-  if (!Common_Tools::initializeSignals ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                         signalSet_in,
                                         ignoredSignalSet_in,
@@ -1531,7 +1533,7 @@ do_work (unsigned int bufferSize_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), returning\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
 
     // clean up
     timer_manager_p->stop ();
@@ -1563,21 +1565,21 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (igtk_manager_p);
   if (!UIDefinitionFilename_in.empty ())
   {
-    struct Common_UI_GTKState* gtk_state_p = NULL;
+    struct Common_UI_GTK_State* gtk_state_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (useMediaFoundation_in)
     {
       gtk_state_p = &mediaFoundationCBData_in;
-      gtk_state_p->userData = &mediaFoundationCBData_in;
+      gtk_state_p->userData = &mediaFoundationCBData_in.userData;
     } // end IF
     else
     {
       gtk_state_p = &directShowCBData_in;
-      gtk_state_p->userData = &directShowCBData_in;
+      gtk_state_p->userData = &directShowCBData_in.userData;
     } // end ELSE
 #else
     gtk_state_p = &CBData_in;
-    gtk_state_p->userData = &CBData_in;
+    gtk_state_p->userData = &CBData_in.userData;
 #endif
     ACE_ASSERT (gtk_state_p);
     gtk_state_p->finalizationHook = idle_finalize_target_UI_cb;
@@ -1625,9 +1627,9 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step1b: initialize worker(s)
-  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data.useReactor = useReactor_in;
-  if (!Common_Tools::startEventDispatch (thread_data,
+  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data_s.useReactor = useReactor_in;
+  if (!Common_Tools::startEventDispatch (thread_data_s,
                                          group_id))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2267,37 +2269,37 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  struct Test_I_GTK_CBData* gtk_cb_user_data_p = NULL;
+  struct Test_I_GTK_CBData* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_user_data;
-  struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_user_data;
+  struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_data;
+  struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
   if (use_mediafoundation)
   {
-    mediafoundation_gtk_cb_user_data.progressData.GTKState =
-      &mediafoundation_gtk_cb_user_data;
-    gtk_cb_user_data_p = &mediafoundation_gtk_cb_user_data;
+    mediafoundation_gtk_cb_data.progressData.state =
+      &mediafoundation_gtk_cb_data;
+    gtk_cb_data_p = &mediafoundation_gtk_cb_data;
   } // end IF
   else
   {
-    directshow_gtk_cb_user_data.progressData.GTKState =
-      &directshow_gtk_cb_user_data;
-    gtk_cb_user_data_p = &directshow_gtk_cb_user_data;
+    directshow_gtk_cb_data.progressData.state =
+      &directshow_gtk_cb_data;
+    gtk_cb_data_p = &directshow_gtk_cb_data;
   } // end ELSE
   Test_I_Target_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
                                                                             argv_in);
   Test_I_Target_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
                                                                                       argv_in);
 #else
-  Test_I_Target_GTK_CBData gtk_cb_user_data;
-  gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
-  gtk_cb_user_data_p = &gtk_cb_user_data;
+  struct Test_I_Target_GTK_CBData gtk_cb_data;
+  gtk_cb_data.progressData.state = &gtk_cb_data;
+  gtk_cb_data_p = &gtk_cb_data;
   Test_I_Target_GtkBuilderDefinition_t ui_definition (argc_in,
                                                       argv_in);
 #endif
-  ACE_ASSERT (gtk_cb_user_data_p);
+  ACE_ASSERT (gtk_cb_data_p);
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&gtk_cb_user_data_p->logStack,
-                          &gtk_cb_user_data_p->lock);
+  Common_Logger_t logger (&gtk_cb_data_p->logStack,
+                          &gtk_cb_data_p->lock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -2329,14 +2331,14 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                    : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                      &directshow_gtk_cb_user_data.lock);
+                                                                      &directshow_gtk_cb_data.lock);
   Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                                &mediafoundation_gtk_cb_user_data.lock);
+                                                                                &mediafoundation_gtk_cb_data.lock);
 #else
   Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                &gtk_cb_user_data.lock);
+                                                &gtk_cb_data.lock);
 #endif
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);
@@ -2362,13 +2364,13 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  if (!Common_Tools::preInitializeSignals (signal_set,
+  if (!Common_Signal_Tools::preInitialize (signal_set,
                                            use_reactor,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
     Common_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -2387,7 +2389,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -2413,7 +2415,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -2442,7 +2444,7 @@ ACE_TMAIN (int argc_in,
 
   if (gtk_glade_file.empty ()) goto continue_;
 
-  gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_file);
+  gtk_cb_data_p->RCFiles.push_back (gtk_rc_file);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   directshow_gtk_manager_p =
     TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
@@ -2456,18 +2458,18 @@ ACE_TMAIN (int argc_in,
     result_2 =
       mediafoundation_gtk_manager_p->initialize (argc_in,
                                                  argv_in,
-                                                 &mediafoundation_gtk_cb_user_data,
+                                                 &mediafoundation_gtk_cb_data,
                                                  &mediafoundation_ui_definition);
   else
     result_2 =
       directshow_gtk_manager_p->initialize (argc_in,
                                             argv_in,
-                                            &directshow_gtk_cb_user_data,
+                                            &directshow_gtk_cb_data,
                                             &directshow_ui_definition);
 #else
   result_2 = gtk_manager_p->initialize (argc_in,
                                         argv_in,
-                                        gtk_cb_user_data_p,
+                                        gtk_cb_data_p,
                                         &ui_definition);
 #endif
   if (!result_2)
@@ -2475,7 +2477,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
 
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -2513,10 +2515,10 @@ continue_:
            number_of_dispatch_threads,
            frame_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           mediafoundation_gtk_cb_user_data,
-           directshow_gtk_cb_user_data,
+           mediafoundation_gtk_cb_data,
+           directshow_gtk_cb_data,
 #else
-           gtk_cb_user_data,
+           gtk_cb_data,
 #endif
            signal_set,
            ignored_signal_set,
@@ -2534,8 +2536,8 @@ continue_:
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Tools::periodToString (working_time,
-                                working_time_string);
+  Common_Timer_Tools::periodToString (working_time,
+                                      working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -2554,7 +2556,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -2577,10 +2579,10 @@ continue_:
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Tools::periodToString (user_time,
-                               user_time_string);
-  Common_Tools::periodToString (system_time,
-                               system_time_string);
+  Common_Timer_Tools::periodToString (user_time,
+                                      user_time_string);
+  Common_Timer_Tools::periodToString (system_time,
+                                      system_time_string);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
@@ -2615,7 +2617,7 @@ continue_:
               ACE_TEXT (system_time_string.c_str ())));
 #endif
 
-  Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,

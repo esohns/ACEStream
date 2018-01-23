@@ -45,6 +45,7 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
+#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
@@ -681,7 +682,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  return result;
 //}
 bool
-Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& deviceName_in,
+Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& friendlyName_in,
                                                             REFGUID deviceCategory_in,
                                                             IMFMediaSource*& mediaSource_out,
                                                             WCHAR*& symbolicLink_out,
@@ -710,6 +711,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   UINT32 count = 0;
   IMFActivate** devices_pp = NULL;
   unsigned int index = 0;
+  struct _GUID link_property_guid = GUID_NULL;
 
   HRESULT result_2 = MFCreateAttributes (&attributes_p, 1);
   if (FAILED (result_2))
@@ -749,7 +751,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
     goto error;
   } // end IF
 
-  if (!deviceName_in.empty ())
+  if (!friendlyName_in.empty ())
   {
     WCHAR buffer[BUFSIZ];
     UINT32 length;
@@ -770,8 +772,8 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
-      if (ACE_OS::strcmp (buffer,
-                          ACE_TEXT_ALWAYS_WCHAR (deviceName_in.c_str ())) == 0)
+      if (!ACE_OS::strcmp (buffer,
+                           ACE_TEXT_ALWAYS_WCHAR (friendlyName_in.c_str ())))
       {
         found = true;
         index = i;
@@ -781,8 +783,8 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
     if (!found)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("capture device (was: \"%s\") not found, aborting\n"),
-                  ACE_TEXT (deviceName_in.c_str ())));
+                  ACE_TEXT ("media source (friendly name was: \"%s\") not found, aborting\n"),
+                  ACE_TEXT (friendlyName_in.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -796,26 +798,28 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
     goto error;
   } // end IF
 
-  struct _GUID link_property_id = GUID_NULL;
   if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID)
     //link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_SYMBOLIC_LINK;
-    link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
+    link_property_guid = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
   else if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID)
-    link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
+    link_property_guid =
+      MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
   else
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown device category, aborting\n")));
+                ACE_TEXT ("invalid/unknown device category (was: %s, aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (link_property_guid).c_str ())));
     goto error;
   } // end IF
   result_2 =
-    devices_pp[index]->GetAllocatedString (link_property_id,
+    devices_pp[index]->GetAllocatedString (link_property_guid,
                                            &symbolicLink_out,
                                            &symbolicLinkSize_out);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFActivate::GetAllocatedString(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFActivate::GetAllocatedString(%s): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (link_property_guid).c_str ()),
                 ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF

@@ -27,6 +27,7 @@
 #include "ace/Time_Value.h"
 
 #include "common.h"
+#include "common_configuration.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -43,6 +44,7 @@
 
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
+#include "test_i_defines.h"
 
 struct Test_I_AllocatorConfiguration
  : Stream_AllocatorConfiguration
@@ -50,9 +52,7 @@ struct Test_I_AllocatorConfiguration
   Test_I_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
-    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-    //         'flex's yy_scan_buffer() method
-    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
   };
 };
 
@@ -80,7 +80,7 @@ struct Test_I_ModuleHandlerConfiguration
   Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
-   , connectionConfigurations (NULL)
+   //, connectionConfigurations (NULL)
    , inbound (false)
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -88,7 +88,7 @@ struct Test_I_ModuleHandlerConfiguration
   {};
 
   struct Test_I_Configuration*       configuration;
-  Test_I_ConnectionConfigurations_t* connectionConfigurations;
+  //Test_I_ConnectionConfigurations_t* connectionConfigurations;
   bool                               inbound; // statistic/IO module
   bool                               printProgressDot; // file writer module
   bool                               pushStatisticMessages; // statistic module
@@ -103,19 +103,18 @@ struct Test_I_SignalHandlerConfiguration
 {
   Test_I_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
-   , statisticReportingInterval (ACE_Time_Value::zero)
-   , statisticReportingTimerID (-1)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
+   , statisticReportingInterval (ACE_Time_Value::zero)
+   , statisticReportingTimerId (-1)
   {};
 
-  ACE_Time_Value statisticReportingInterval; // statistic reporting interval (second(s)) [0: off]
-  long           statisticReportingTimerID;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool           useMediaFoundation;
+  enum Stream_MediaFramework_Type mediaFramework;
 #endif
+  ACE_Time_Value                  statisticReportingInterval; // statistic reporting interval (second(s)) [0: off]
+  long                            statisticReportingTimerId;
 };
 
 struct Test_I_StreamConfiguration
@@ -147,7 +146,7 @@ struct Test_I_Configuration
 {
   Test_I_Configuration ()
    : signalHandlerConfiguration ()
-   , connectionConfigurations ()
+   //, connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
    , useReactor (NET_EVENT_USE_REACTOR)
@@ -157,7 +156,7 @@ struct Test_I_Configuration
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // ************************** connection data ********************************
-  Test_I_ConnectionConfigurations_t        connectionConfigurations;
+  //Test_I_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Common_ParserConfiguration        parserConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;

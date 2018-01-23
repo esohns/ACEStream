@@ -23,7 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_itimerhandler.h"
 #include "common_timer_handler.h"
 
 //#include "stream_exports.h"
@@ -34,13 +33,12 @@ class Common_ICounter;
 //class Stream_Export Stream_ResetCounterHandler
 class Stream_ResetCounterHandler
  : public Common_TimerHandler
- , public Common_ITimerHandler
 {
   typedef Common_TimerHandler inherited;
 
  public:
   Stream_ResetCounterHandler (Common_ICounter*); // interface handle
-  inline virtual ~Stream_ResetCounterHandler () {};
+  inline virtual ~Stream_ResetCounterHandler () {}
 
   // implement Common_ITimerHandler
   virtual void handle (const void*); // asynchronous completion token

@@ -30,7 +30,6 @@
 #include "http_get_stream_common.h"
 
 // forward declaration(s)
-struct HTTPGet_AllocatorConfiguration;
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
@@ -43,14 +42,14 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class HTTPGet_SessionMessage
- : public Stream_SessionMessageBase_T<struct HTTPGet_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       HTTPGet_SessionData_t,
                                       struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct HTTPGet_AllocatorConfiguration,
+                                                 struct Common_FlexParserAllocatorConfiguration,
                                                  HTTPGet_ControlMessage_t,
                                                  HTTPGet_Message,
                                                  HTTPGet_SessionMessage>;
@@ -68,7 +67,7 @@ class HTTPGet_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct HTTPGet_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       HTTPGet_SessionData_t,
                                       struct Stream_UserData> inherited;

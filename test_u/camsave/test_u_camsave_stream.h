@@ -121,26 +121,26 @@ class Stream_CamSave_Stream
 
   // modules
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_MediaFoundation_Source_Module     source_;
+  Stream_CamSave_MediaFoundation_Source_Module      source_;
 #else
-  Stream_CamSave_LibAVConverter_Module             converter_;
-  Stream_CamSave_LibAVDecoder_Module               decoder_;
-  Stream_CamSave_V4L_Source_Module                 source_;
+  Stream_CamSave_LibAVConverter_Module              converter_;
+  Stream_CamSave_LibAVDecoder_Module                decoder_;
+  Stream_CamSave_V4L_Source_Module                  source_;
 #endif
-  Stream_CamSave_StatisticReport_Module            statisticReport_;
-  Stream_CamSave_Display_Module                    display_;
+  Stream_CamSave_StatisticReport_Module             statisticReport_;
+  Stream_CamSave_Display_Module                     display_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DisplayNull_Module                displayNull_;
-  Stream_CamSave_MediaFoundation_AVIEncoder_Module encoder_;
+  Stream_CamSave_MediaFoundation_DisplayNull_Module displayNull_;
+  Stream_CamSave_MediaFoundation_AVIEncoder_Module  encoder_;
 #else
-  Stream_CamSave_V4L2_AVIEncoder_Module            encoder_;
+  Stream_CamSave_V4L2_AVIEncoder_Module             encoder_;
 #endif
-  Stream_CamSave_FileWriter_Module                 fileWriter_;
+  Stream_CamSave_FileWriter_Module                  fileWriter_;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
-  IMFMediaSession*                                 mediaSession_;
-  ULONG                                            referenceCount_;
+  IMFMediaSession*                                  mediaSession_;
+  ULONG                                             referenceCount_;
 #endif
 };
 

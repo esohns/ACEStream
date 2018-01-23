@@ -151,8 +151,8 @@ set (filesource_EXE_SRCS
      test_i_callbacks.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
-     test_i_defines.h
      test_i_filestream_common.h
+     test_i_filestream_defines.h
      test_i_filestream_network.h
      test_i_message.cpp
      test_i_message.h
@@ -187,7 +187,7 @@ add_executable (${EXECUTABLE_SOURCE}
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
- if (NOT ${BUILD_TEST_I})
+ if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -320,8 +320,8 @@ set (filetarget_EXE_SRCS
      test_i_callbacks.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
-     test_i_defines.h
      test_i_filestream_common.h
+     test_i_filestream_defines.h
      test_i_filestream_network.h
      test_i_message.cpp
      test_i_message.h
@@ -353,7 +353,7 @@ add_executable (${EXECUTABLE_TARGET}
                 etc/target.glade)
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
-if (WIN32 AND NOT ${BUILD_TEST_I})
+if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()
 

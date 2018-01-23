@@ -21,8 +21,8 @@
 #ifndef TEST_I_FILESTREAM_COMMON_H
 #define TEST_I_FILESTREAM_COMMON_H
 
-#include "test_i_common.h"
-#include "test_i_gtk_common.h"
+//#include "test_i_common.h"
+//#include "test_i_gtk_common.h"
 
 //struct Test_I_FileStream_GTK_ProgressData
 // : Test_I_GTK_ProgressData

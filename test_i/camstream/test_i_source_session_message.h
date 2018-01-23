@@ -39,17 +39,22 @@ template <ACE_SYNCH_DECL,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_DirectShow_SessionData_t,
                                       struct Test_I_Source_DirectShow_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_DirectShow_Stream_Message,
                                                  Test_I_Source_DirectShow_Stream_SessionMessage>;
+
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Test_I_Source_DirectShow_SessionData_t,
+                                      struct Test_I_Source_DirectShow_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -58,17 +63,12 @@ class Test_I_Source_DirectShow_Stream_SessionMessage
                                                   enum Stream_SessionMessageType,
                                                   Test_I_Source_DirectShow_SessionData_t*&,   // session data container handle
                                                   struct Test_I_Source_DirectShow_UserData*);
-  inline virtual ~Test_I_Source_DirectShow_Stream_SessionMessage () {};
+  inline virtual ~Test_I_Source_DirectShow_Stream_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_I_Source_DirectShow_SessionData_t,
-                                      struct Test_I_Source_DirectShow_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Test_I_Source_DirectShow_Stream_SessionMessage (const Test_I_Source_DirectShow_Stream_SessionMessage&);
 
@@ -85,18 +85,23 @@ class Test_I_Source_DirectShow_Stream_SessionMessage
 };
 
 class Test_I_Source_MediaFoundation_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_MediaFoundation_SessionData_t,
                                       struct Test_I_Source_MediaFoundation_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_MediaFoundation_Stream_Message,
                                                  Test_I_Source_MediaFoundation_Stream_SessionMessage>;
 
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Test_I_Source_MediaFoundation_SessionData_t,
+                                      struct Test_I_Source_MediaFoundation_UserData> inherited;
+  
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
@@ -104,17 +109,12 @@ class Test_I_Source_MediaFoundation_Stream_SessionMessage
                                                        enum Stream_SessionMessageType,
                                                        Test_I_Source_MediaFoundation_SessionData_t*&,   // session data container handle
                                                        struct Test_I_Source_MediaFoundation_UserData*);
-  inline virtual ~Test_I_Source_MediaFoundation_Stream_SessionMessage () {};
+  inline virtual ~Test_I_Source_MediaFoundation_Stream_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_I_Source_MediaFoundation_SessionData_t,
-                                      struct Test_I_Source_MediaFoundation_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Test_I_Source_MediaFoundation_Stream_SessionMessage (const Test_I_Source_MediaFoundation_Stream_SessionMessage&);
 
@@ -131,14 +131,14 @@ class Test_I_Source_MediaFoundation_Stream_SessionMessage
 };
 #else
 class Test_I_Source_V4L2_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L2_SessionData_t,
                                       struct Test_I_Source_V4L2_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_V4L2_Stream_Message,
                                                  Test_I_Source_V4L2_Stream_SessionMessage>;
@@ -150,13 +150,13 @@ class Test_I_Source_V4L2_Stream_SessionMessage
                                             enum Stream_SessionMessageType,
                                             Test_I_Source_V4L2_SessionData_t*&,   // session data container handle
                                             struct Test_I_Source_V4L2_UserData*);
-  inline virtual ~Test_I_Source_V4L2_Stream_SessionMessage () {};
+  inline virtual ~Test_I_Source_V4L2_Stream_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L2_SessionData_t,
                                       struct Test_I_Source_V4L2_UserData> inherited;

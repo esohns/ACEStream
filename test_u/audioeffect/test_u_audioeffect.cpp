@@ -39,8 +39,11 @@
 
 #include "common_file_tools.h"
 #include "common_logger.h"
-#include "common_timer_manager_common.h"
+#include "common_signal_tools.h"
 #include "common_tools.h"
+
+#include "common_timer_manager_common.h"
+#include "common_timer_tools.h"
 
 //#include "common_ui_defines.h"
 //#include "common_ui_glade_definition.h"
@@ -883,18 +886,18 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
-  {
+  { ACE_ASSERT (mediaFoundationCBData_in.configuration);
     struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
     mediafoundation_modulehandler_configuration.allocatorConfiguration =
       allocator_configuration_p;
     mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                             mediafoundation_modulehandler_configuration,
-                                                                            mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
-                                                                            mediafoundation_configuration.streamConfiguration.configuration_);
+                                                                            mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_,
+                                                                            mediaFoundationCBData_in.configuration->streamConfiguration.configuration_);
 
     mediafoundation_modulehandler_iterator =
-      mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
+      mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
 
     (*mediafoundation_modulehandler_iterator).second.second.audioOutput = 1;
     (*mediafoundation_modulehandler_iterator).second.second.surfaceLock =
@@ -918,18 +921,18 @@ do_work (unsigned int bufferSize_in,
                                     : targetFilename_in);
   } // end IF
   else
-  {
+  { ACE_ASSERT (directShowCBData_in.configuration);
     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
     directshow_modulehandler_configuration.allocatorConfiguration =
       allocator_configuration_p;
     directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                        directshow_modulehandler_configuration,
-                                                                       directshow_configuration.streamConfiguration.allocatorConfiguration_,
-                                                                       directshow_configuration.streamConfiguration.configuration_);
+                                                                       directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_,
+                                                                       directShowCBData_in.configuration->streamConfiguration.configuration_);
 
     directshow_modulehandler_iterator =
-      directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
+      directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
 
     (*directshow_modulehandler_iterator).second.second.audioOutput = 1;
     (*directshow_modulehandler_iterator).second.second.surfaceLock =
@@ -1014,28 +1017,28 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     if (bufferSize_in)
-      mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+      mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-    mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
+    mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
       &mediafoundation_message_allocator;
-    mediafoundation_configuration.streamConfiguration.configuration_.module =
+    mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &mediafoundation_event_handler
                                      : NULL);
-    mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
+    mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
       true;
   } // end IF
   else
   {
     if (bufferSize_in)
-      directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+      directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
-    directshow_configuration.streamConfiguration.configuration_.messageAllocator =
+    directShowCBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
       &directshow_message_allocator;
-    directshow_configuration.streamConfiguration.configuration_.module =
+    directShowCBData_in.configuration->streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &directshow_event_handler
                                      : NULL);
-    directshow_configuration.streamConfiguration.configuration_.printFinalReport =
+    directShowCBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
       true;
   } // end ELSE
 #else
@@ -1067,10 +1070,10 @@ do_work (unsigned int bufferSize_in,
                                      true);
   else
     result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.device,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceName,
                                 (*directshow_modulehandler_iterator).second.second.builder,
                                 directShowCBData_in.streamConfiguration,
-                                (*directshow_modulehandler_iterator).second.second.format,
+                                (*directshow_modulehandler_iterator).second.second.inputFormat,
                                 true); // initialize COM ?
   if (!result)
   {
@@ -1089,19 +1092,19 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.signalHandlerConfiguration.hasUI =
+    mediaFoundationCBData_in.configuration->signalHandlerConfiguration.hasUI =
       !UIDefinitionFile_in.empty ();
-    mediafoundation_configuration.signalHandlerConfiguration.messageAllocator =
+    mediaFoundationCBData_in.configuration->signalHandlerConfiguration.messageAllocator =
       &mediafoundation_message_allocator;
-    signalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
+    signalHandler_in.initialize (mediaFoundationCBData_in.configuration->signalHandlerConfiguration);
   } // end IF
   else
   {
-    directshow_configuration.signalHandlerConfiguration.hasUI =
+    directShowCBData_in.configuration->signalHandlerConfiguration.hasUI =
       !UIDefinitionFile_in.empty ();
-    directshow_configuration.signalHandlerConfiguration.messageAllocator =
+    directShowCBData_in.configuration->signalHandlerConfiguration.messageAllocator =
       &directshow_message_allocator;
-    signalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
+    signalHandler_in.initialize (directShowCBData_in.configuration->signalHandlerConfiguration);
   } // end ELSE
 #else
   CBData_in.configuration->signalHandlerConfiguration.hasUI =
@@ -1110,7 +1113,7 @@ do_work (unsigned int bufferSize_in,
     &message_allocator;
   signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
 #endif
-  if (!Common_Tools::initializeSignals ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
+  if (!Common_Signal_Tools::initialize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                         signalSet_in,
                                         ignoredSignalSet_in,
@@ -1118,12 +1121,23 @@ do_work (unsigned int bufferSize_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), aborting\n")));
     goto error;
   } // end IF
 
   // pre-initialize processing stream
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool success_b = false;
+  if (useMediaFoundation_in)
+    success_b =
+      mediafoundation_stream.initialize (mediaFoundationCBData_in.configuration->streamConfiguration);
+  else
+    success_b =
+      directshow_stream.initialize (directShowCBData_in.configuration->streamConfiguration);
+  if (!success_b)
+#else
   if (!stream.initialize (CBData_in.configuration->streamConfiguration))
+#endif
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream, aborting\n")));
@@ -1180,8 +1194,8 @@ do_work (unsigned int bufferSize_in,
     itask_control_p->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
-    result = ACE_OS::sleep (timeout);
-    if (result == -1)
+    result_2 = ACE_OS::sleep (timeout);
+    if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
@@ -1465,7 +1479,7 @@ ACE_TMAIN (int argc_in,
   struct Test_U_AudioEffect_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
   if (use_mediafoundation)
   {
-    mediafoundation_gtk_cb_data.progressData.GTKState =
+    mediafoundation_gtk_cb_data.progressData.state =
       &mediafoundation_gtk_cb_data;
     gtk_cb_data_p = &mediafoundation_gtk_cb_data;
     gtk_cb_data_p->useMediaFoundation = true;
@@ -1473,7 +1487,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   else
   {
-    directshow_gtk_cb_data.progressData.GTKState =
+    directshow_gtk_cb_data.progressData.state =
       &directshow_gtk_cb_data;
     gtk_cb_data_p = &directshow_gtk_cb_data;
     directshow_gtk_cb_data.configuration = &directshow_configuration;
@@ -1486,7 +1500,6 @@ ACE_TMAIN (int argc_in,
   gtk_cb_data.configuration = &configuration;
 #endif
   ACE_ASSERT (gtk_cb_data_p);
-  gtk_cb_data_p->configuration = &configuration;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   if (!UI_CSS_file.empty ())
     gtk_cb_data_p->CSSProviders[UI_CSS_file] = NULL;
@@ -1546,13 +1559,13 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  if (!Common_Tools::preInitializeSignals (signal_set,
+  if (!Common_Signal_Tools::preInitialize (signal_set,
                                            COMMON_EVENT_USE_REACTOR,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
     Common_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1574,7 +1587,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Tools::finalizeSignals ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -1600,7 +1613,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Tools::finalizeSignals ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -1679,8 +1692,8 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Tools::periodToString (working_time,
-                                working_time_string);
+  Common_Timer_Tools::periodToString (working_time,
+                                      working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1699,7 +1712,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Tools::finalizeSignals ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -1722,10 +1735,10 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Tools::periodToString (user_time,
-                               user_time_string);
-  Common_Tools::periodToString (system_time,
-                               system_time_string);
+  Common_Timer_Tools::periodToString (user_time,
+                                      user_time_string);
+  Common_Timer_Tools::periodToString (system_time,
+                                      system_time_string);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
@@ -1760,7 +1773,7 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT (system_time_string.c_str ())));
 #endif
 
-  Common_Tools::finalizeSignals ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
+  Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                            : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,

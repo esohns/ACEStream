@@ -848,7 +848,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (!mediaSession_);
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat);
       ACE_ASSERT (!(inherited::configuration_->session &&
                     session_data_r.session));
 
@@ -868,7 +868,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       //WCHAR* symbolic_link_p = NULL;
       //UINT32 symbolic_link_size = 0;
-      if (!initialize_MediaFoundation (*session_data_r.format,
+      if (!initialize_MediaFoundation (*session_data_r.inputFormat,
                                        this,
                                        sampleGrabberSinkNodeId_,
                                        mediaSession_))

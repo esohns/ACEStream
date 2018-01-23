@@ -115,6 +115,12 @@ elseif (WIN32)
   message (FATAL_ERROR "%UNO_PATH% not set, aborting")
  endif ()
 # message (STATUS "Apache OpenOffice UNO directory: \"${OO_APP_DIRECTORY}\"")
+# *NOTE*: the OpenOffice SDK provides its own snprintf; however MSVC complains
+#         about mutliple definitions (and inconsistent linkage)
+#         --> disable that header and use the native function
+ if (MSVC)
+  add_definitions (-D_SNPRINTF_H)
+ endif ()
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
@@ -227,12 +233,12 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
-set (http_get_2_EXE_SRCS
+set (EXECUTABLE HTTP_get_2)
+set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_i_common_modules.h
 #     test_i_connection_manager_common.h
-     test_i_defines.h
      test_i_message.cpp
      test_i_message.h
      test_i_module_spreadsheetwriter.cpp
@@ -249,26 +255,26 @@ set (http_get_2_EXE_SRCS
      test_i_http_get_common.h
      test_i_http_get_connection_common.h
      test_i_http_get_connection_manager_common.h
+     test_i_http_get_defines.h
      test_i_http_get_signalhandler.cpp
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
      test_i_http_get_stream.inl)
 #  test_i_template_instantiations.cpp
-set (http_get_2_ETC_SRCS
+set (${EXECUTABLE}_EXE_SCRIPTS
      etc/soffice.ini
      etc/sofficerc
      etc/symbols.ini
      etc/template.ods)
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE http_get_2)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${http_get_2_EXE_SRCS}
-                ${http_get_2_ETC_SRCS})
+                ${HTTP_get_2_EXE_SRCS}
+                ${HTTP_get_2_EXE_SCRIPTS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
-if (WIN32 AND NOT ${BUILD_TEST_I})
+if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()
 

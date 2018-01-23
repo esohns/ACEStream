@@ -147,16 +147,28 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     if (inherited::configuration_->hasUI)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     {
-      if (inherited::configuration_->useMediaFoundation)
-        AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                 true); // N/A
-      else
-        AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                            true); // N/A
-    } // end IF
+      switch (inherited::configuration_->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+          AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                              true); // N/A
+          break;
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                   true); // N/A
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unkown media framework (was: %d), continuing\n"),
+                      inherited::configuration_->mediaFramework));
+          break;
+        }
+      } // end SWITCH
 #else
       AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
                                                                true); // N/A
 #endif
+    } // end IF
   } // end IF
 }

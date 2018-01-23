@@ -76,17 +76,17 @@ typedef Stream_Statistic Test_I_Statistic_t;
 
 typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
 
-struct Test_I_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  Test_I_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-    //         'flex's yy_scan_buffer() method
-    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
-  };
-};
+//struct Common_FlexParserAllocatorConfiguration
+// : Stream_AllocatorConfiguration
+//{
+//  Common_FlexParserAllocatorConfiguration ()
+//   : Stream_AllocatorConfiguration ()
+//  {
+//    // *NOTE*: this facilitates (message block) data buffers to be scanned with
+//    //         'flex's yy_scan_buffer() method
+//    paddingBytes = COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE;
+//  };
+//};
 
 struct Test_I_MessageData
 {
@@ -146,7 +146,7 @@ struct Test_I_DataSet
 typedef std::list<struct Test_I_DataSet> Test_I_DataSets_t;
 typedef Test_I_DataSets_t::const_iterator Test_I_DataSetsIterator_t;
 
-enum Test_I_SAXParserState
+enum Test_I_SAXParserState : int
 {
   SAXPARSER_STATE_INVALID = -1,
   ////////////////////////////////////////
@@ -205,7 +205,7 @@ struct Test_I_Stream_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  }
+  };
 
   struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
@@ -224,7 +224,7 @@ struct Test_I_StreamConfiguration;
 struct Test_I_ModuleHandlerConfiguration;
 extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_I_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
@@ -237,7 +237,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_HTTPGet_StreamState,
                       struct Test_I_StreamConfiguration,
                       Test_I_Statistic_t,
-                      struct Test_I_AllocatorConfiguration,
+                      struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_ModuleHandlerConfiguration,
                       struct Test_I_Stream_SessionData,
@@ -316,11 +316,11 @@ struct Test_I_HTTPGet_StreamState
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
 
 //typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

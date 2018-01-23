@@ -151,12 +151,28 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     if (inherited::configuration_->hasUI)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     {
-      if (inherited::configuration_->useMediaFoundation)
-        TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                true); // N/A
-      else
-        TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                           true); // N/A
+      switch (inherited::configuration_->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                             true); // N/A
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                  true); // N/A
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      inherited::configuration_->mediaFramework));
+          return;
+        }
+      } // end SWITCH
     } // end IF
 #else
       TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
@@ -176,24 +192,24 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     } // end IF
 
     // step3: stop timer
-    if (inherited::configuration_->statisticReportingTimerID >= 0)
+    if (inherited::configuration_->statisticReportingTimerId >= 0)
     {
       const void* act_p = NULL;
       result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (inherited::configuration_->statisticReportingTimerID,
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (inherited::configuration_->statisticReportingTimerId,
                                                               &act_p);
       if (result <= 0)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", returning\n"),
-                    inherited::configuration_->statisticReportingTimerID));
+                    inherited::configuration_->statisticReportingTimerId));
 
         // clean up
-        inherited::configuration_->statisticReportingTimerID = -1;
+        inherited::configuration_->statisticReportingTimerId = -1;
 
         return;
       } // end IF
-      inherited::configuration_->statisticReportingTimerID = -1;
+      inherited::configuration_->statisticReportingTimerId = -1;
     } // end IF
 
     // step4: stop/abort(/wait) for connection(s)

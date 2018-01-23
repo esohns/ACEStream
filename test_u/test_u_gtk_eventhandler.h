@@ -18,10 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_SOURCE_EVENTHANDLER_H
-#define TEST_I_SOURCE_EVENTHANDLER_H
+#ifndef TEST_U_GTK_EVENTHANDLER_H
+#define TEST_U_GTK_EVENTHANDLER_H
 
 #include "ace/Global_Macros.h"
+
+#include "common_ui_gtk_eventhandler.h"
 
 #include "stream_isessionnotify.h"
 
@@ -31,7 +33,7 @@ template <typename SessionIdType,
           typename MessageType,
           typename SessionMessageType,
           typename CallbackDataType>
-class Test_I_Source_EventHandler_T
+class Test_U_GTK_EventHandler_T
  : public Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
                                       SessionEventType,
@@ -39,8 +41,8 @@ class Test_I_Source_EventHandler_T
                                       SessionMessageType>
 {
  public:
-  Test_I_Source_EventHandler_T (CallbackDataType*); // GTK state
-  inline virtual ~Test_I_Source_EventHandler_T () {}
+  Test_U_GTK_EventHandler_T (CallbackDataType*); // GTK state
+  inline virtual ~Test_U_GTK_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id
@@ -54,15 +56,15 @@ class Test_I_Source_EventHandler_T
                        const SessionMessageType&); // session message
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T (const Test_I_Source_EventHandler_T&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T& operator= (const Test_I_Source_EventHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_GTK_EventHandler_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_U_GTK_EventHandler_T (const Test_U_GTK_EventHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_GTK_EventHandler_T& operator= (const Test_U_GTK_EventHandler_T&))
 
   CallbackDataType* CBData_;
   SessionDataType*  sessionData_;
 };
 
 // include template definition
-#include "test_i_source_eventhandler.inl"
+#include "test_u_gtk_eventhandler.inl"
 
 #endif

@@ -27,6 +27,7 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#include "common_configuration.h"
 #include "common_defines.h"
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"
@@ -36,14 +37,25 @@
 #include "stream_common.h"
 #include "stream_defines.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#endif
 
 // forward declarations
 class Stream_IAllocator;
 
+struct Stream_AllocatorConfiguration
+ : Common_AllocatorConfiguration
+{
+  Stream_AllocatorConfiguration ()
+   : Common_AllocatorConfiguration ()
+  {
+    defaultBufferSize = STREAM_MESSAGE_DATA_BUFFER_SIZE;
+  };
+};
+
 struct Common_ParserConfiguration;
-struct Stream_AllocatorConfiguration;
 class Stream_IOutboundDataNotify;
 struct Stream_ModuleHandlerConfiguration
 {
@@ -57,6 +69,9 @@ struct Stream_ModuleHandlerConfiguration
    , hasHeader (false)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
@@ -89,6 +104,9 @@ struct Stream_ModuleHandlerConfiguration
   //            --> disable only if absolutely necessary
   bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
   bool                                  inbound;                     // statistic[/IO] module(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type       mediaFramework;
+#endif
   Stream_IAllocator*                    messageAllocator;
   Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
@@ -120,26 +138,15 @@ struct Stream_ModuleConfiguration
   Stream_IStream_t* stream; // *WARNING*: automatically set; DON'T TOUCH
 };
 
-struct Stream_AllocatorConfiguration
-{
-  Stream_AllocatorConfiguration ()
-   : defaultBufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
-   , paddingBytes (0)
-  {};
-
-  unsigned int defaultBufferSize;
-  // *NOTE*: add x bytes to each malloc(), override as needed
-  //         (e.g. flex requires additional 2 YY_END_OF_BUFFER_CHARs). Note that
-  //         this affects the ACE_Data_Block capacity, not its allotted size
-  unsigned int paddingBytes;
-};
-
 struct Stream_Configuration
 {
   Stream_Configuration ()
    : cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , finishOnDisconnect (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif
    , messageAllocator (NULL)
    , module (NULL)
    , notificationStrategy (NULL)
@@ -148,34 +155,31 @@ struct Stream_Configuration
    , serializeOutput (false)
    , sessionId (0)
    , setupPipeline (true)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
-#endif
    //, useReactor ()
    , userData (NULL)
   {};
 
-  bool                       cloneModule; // final-
-  bool                       deleteModule; // final-
-  bool                       finishOnDisconnect; // (network) i/o streams
-  Stream_IAllocator*         messageAllocator;
-  Stream_Module_t*           module; // final-
-  ACE_Notification_Strategy* notificationStrategy;
-  bool                       printFinalReport;
-  bool                       resetSessionData;
+  bool                            cloneModule; // final-
+  bool                            deleteModule; // final-
+  bool                            finishOnDisconnect; // (network) i/o streams
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif
+  Stream_IAllocator*              messageAllocator;
+  Stream_Module_t*                module; // final-
+  ACE_Notification_Strategy*      notificationStrategy;
+  bool                            printFinalReport;
+  bool                            resetSessionData;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                       serializeOutput;
-  Stream_SessionId_t         sessionId;
-  bool                       setupPipeline;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                       useMediaFoundation;
-#endif
+  bool                            serializeOutput;
+  Stream_SessionId_t              sessionId;
+  bool                            setupPipeline;
   //bool                       useReactor;
 
-  struct Stream_UserData*    userData;
+  struct Stream_UserData*         userData;
 };
 
 template <//const char* StreamName,
@@ -203,7 +207,7 @@ class Stream_Configuration_T
   typedef typename MAP_T::const_iterator CONST_ITERATOR_T;
 
   Stream_Configuration_T ();
-  inline virtual ~Stream_Configuration_T () {};
+  inline virtual ~Stream_Configuration_T () {}
 
   bool initialize (const ModuleConfigurationType&,        // 'default' module configuration
                    const ModuleHandlerConfigurationType&, // 'default' module handler configuration

@@ -18,33 +18,31 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_DEFINES_H
-#define TEST_I_DEFINES_H
+#ifndef TEST_I_CAMSTREAM_DEFINES_H
+#define TEST_I_CAMSTREAM_DEFINES_H
 
-#include "ace/config-lite.h"
+//#include "ace/config-lite.h"
 
 #define TEST_I_DEFAULT_GTK_RC_FILE                                "resources.rc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.glade"
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
-#define TEST_I_THREAD_NAME                                        "stream processor"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                                307200 // bytes
+#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             307200 // bytes
 // *NOTE*: 320x240 RGB(A) --> 76800 * 1+1+1(+1) = 230400 (307200)
 // *TODO*: implement a format negotiation handshake protocol
 #define TEST_I_DEFAULT_FRAME_SIZE                                 307200 // bytes
-#define TEST_I_MAX_MESSAGES                                       0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                            ACE_LOCALHOST
 #define TEST_I_DEFAULT_PORT                                       10001
 #define TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS                 0 // 0 --> no limits
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS              10
+
+#define CAMSTREAM_TARGET_DEFAULT_NUMBER_OF_DISPATCHING_THREADS    10
 
 #define TEST_I_DEFAULT_TRANSPORT_LAYER                            NET_TRANSPORTLAYER_TCP
 
 //---------------------------------------
 
-#define TEST_I_STREAM_UI_GTKEVENT_RESOLUTION                      200 // ms --> 5 FPS
 #define TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME                "action_close_all"
 #define TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME                   "action_report"
 #define TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME                    "action_reset"
@@ -98,15 +96,6 @@
 #define TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME                        "textview_log"
 
 // GTK progress/status bar
-#define TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL          27 // ms (?)
 #define TEST_I_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION        "Stream::main"
-
-//---------------------------------------
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//// direct show
-//#define TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME        MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
-//#define TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L
-#endif
 
 #endif

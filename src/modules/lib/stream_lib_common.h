@@ -64,7 +64,7 @@ DEFINE_GUID (CLSID_ACEStream_MediaFramework_MF_MediaSource,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-enum Stream_MediaFramework_Type
+enum Stream_MediaFramework_Type : int
 {
   STREAM_MEDIAFRAMEWORK_DIRECTSHOW,
   STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION,
@@ -77,7 +77,7 @@ enum Stream_MediaFramework_Type
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 {
-  inline Stream_MediaFramework_DirectShow_FilterPinConfiguration ()
+  Stream_MediaFramework_DirectShow_FilterPinConfiguration ()
    : format (NULL)
    , hasMediaSampleBuffers (false)
    , isTopToBottom (false)
@@ -92,7 +92,7 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 
 struct Stream_MediaFramework_DirectShow_FilterConfiguration
 {
-  inline Stream_MediaFramework_DirectShow_FilterConfiguration ()
+  Stream_MediaFramework_DirectShow_FilterConfiguration ()
    : allocator (NULL)
    , allocatorProperties ()
   {

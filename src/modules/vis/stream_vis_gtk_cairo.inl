@@ -135,22 +135,22 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
   unsigned int row_stride = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_r.inputFormat);
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
-  if (session_data_r.format->formattype == FORMAT_VideoInfo)
+  if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo)
     video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
-  else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
+  else if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo2)
     video_info_header_2 =
-    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (session_data_r.inputFormat->formattype).c_str ())));
     goto error;
   } // end ELSE
   height =
@@ -163,7 +163,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
 //     : video_info_header_2->bmiHeader.biSizeImage);
   pixel_format =
-    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.format->subtype);
+    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.inputFormat->subtype);
   //  struct _GUID sub_type = GUID_NULL;
   //  HRESULT result_3 = session_data_r.format->GetGUID (MF_MT_SUBTYPE,
   //                                                     &sub_type);

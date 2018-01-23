@@ -103,9 +103,9 @@ Stream_CamSave_Stream::find (const std::string& name_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::find"));
 
-  if (ACE_OS::strcmp (name_in.c_str (),
-                      ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
-    return const_cast<Stream_CamSave_DisplayNull_Module*> (&displayNull_);
+  if (!ACE_OS::strcmp (name_in.c_str (),
+                       ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)))
+    return const_cast<Stream_CamSave_MediaFoundation_DisplayNull_Module*> (&displayNull_);
 
   return inherited::find (name_in);
 }
@@ -600,8 +600,8 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_p->device,
-                                                                              configuration_p->format,
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_p->deviceName,
+                                                                              configuration_p->inputFormat,
                                                                               source_impl_p,
                                                                               NULL,
                                                                               //configuration_p->window,
@@ -612,7 +612,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (configuration_p->device.c_str ())));
+                ACE_TEXT (configuration_p->deviceName.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -623,7 +623,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 
 continue_:
   if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                     configuration_p->format))
+                                                                     configuration_p->inputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -634,23 +634,23 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ())));
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->inputFormat).c_str ())));
 #endif
 
-  if (session_data_p->format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->format);
-  ACE_ASSERT (!session_data_p->format);
-  session_data_p->format =
+  if (session_data_p->inputFormat)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->inputFormat);
+  ACE_ASSERT (!session_data_p->inputFormat);
+  session_data_p->inputFormat =
     static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!session_data_p->format)
+  if (!session_data_p->inputFormat)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  ACE_OS::memset (session_data_p->format, 0, sizeof (struct _AMMediaType));
-  ACE_ASSERT (!session_data_p->format->pbFormat);
+  ACE_OS::memset (session_data_p->inputFormat, 0, sizeof (struct _AMMediaType));
+  ACE_ASSERT (!session_data_p->inputFormat->pbFormat);
   if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
                                                                     configuration_p->sampleGrabberNodeId,
                                                                     media_type_p))
@@ -663,7 +663,7 @@ continue_:
   ACE_ASSERT (media_type_p);
   result_2 = MFInitAMMediaTypeFromMFMediaType (media_type_p,
                                                GUID_NULL,
-                                               session_data_p->format);
+                                               session_data_p->inputFormat);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -674,7 +674,7 @@ continue_:
   } // end IF
   media_type_p->Release ();
   media_type_p = NULL;
-  ACE_ASSERT (session_data_p->format);
+  ACE_ASSERT (session_data_p->inputFormat);
 
   //HRESULT result = E_FAIL;
   if (mediaSession_)
@@ -746,8 +746,8 @@ error:
     session_data_p->direct3DDevice->Release ();
     session_data_p->direct3DDevice = NULL;
   } // end IF
-  if (session_data_p->format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->format);
+  if (session_data_p->inputFormat)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->inputFormat);
   session_data_p->direct3DManagerResetToken = 0;
   if (session_data_p->session)
   {

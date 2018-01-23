@@ -32,6 +32,8 @@
 #include "stream_dev_mediafoundation_tools.h"
 #endif
 
+#include "stream_misc_defines.h"
+
 #include "test_i_target_session_message.h"
 #include "test_i_common_modules.h"
 #include "test_i_source_stream.h"
@@ -80,20 +82,23 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Display_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("Display")),
+                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_StatisticReport_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Splitter_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR ("Splitter")),
+                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
   //Test_I_Target_DirectShow_Module_AVIDecoder_Module            decoder_;
   //Test_I_Target_DirectShow_Module_Net_IO_Module                source_;
@@ -164,12 +169,12 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   // ******************* Display Handler ***************************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("Display")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("Display")));
+                ACE_TEXT (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
     goto error;
   } // end IF
 
@@ -372,7 +377,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry_r.mediaType, true).c_str ())));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("input format: \"%s\"\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_p->format,
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_p->inputFormat,
                                                                                   true).c_str ())));
 
   //log_file_name =
@@ -504,12 +509,12 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   //// ******************* Camera Source ************************
   //Stream_Module_t* module_p =
-  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource")));
+  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   //if (!module_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT ("CamSource")));
+  //              ACE_TEXT (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   //  return false;
   //} // end IF
   //source_impl_p =
@@ -523,17 +528,17 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   // ---------------------------------------------------------------------------
 
-  if (session_data_r.format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
-  ACE_ASSERT (!session_data_r.format);
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*configuration_p->format,
-                                                             session_data_r.format))
+  if (session_data_r.inputFormat)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+  ACE_ASSERT (!session_data_r.inputFormat);
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*configuration_p->inputFormat,
+                                                             session_data_r.inputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_r.inputFormat);
 
   // ---------------------------------------------------------------------------
 
@@ -586,8 +591,8 @@ error:
   //  session_data_r.direct3DDevice->Release ();
   //  session_data_r.direct3DDevice = NULL;
   //} // end IF
-  if (session_data_r.format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
+  if (session_data_r.inputFormat)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
   //session_data_r.resetToken = 0;
 
   //if (COM_initialized)
@@ -608,12 +613,12 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_Statistic_t& data_out)
   Test_I_Target_DirectShow_SessionData& session_data_r =
     const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("StatisticReport")));
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
   Test_I_Target_DirectShow_Module_Statistic_WriterTask_t* statisticReport_impl_p =
@@ -762,25 +767,29 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Display_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR ("Display")),
+                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
+//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)),
 //                  false);
+//  ACE_ASSERT (module_p);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   //Test_I_Target_MediaFoundation_MediaFoundationSource_Module mediaFoundationSource_;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Splitter_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter")),
+                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
+  ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
   //Test_I_Target_MediaFoundation_Module_AVIDecoder_Module            decoder_;
   //Test_I_Target_MediaFoundation_Module_Net_IO_Module                source_;
@@ -843,39 +852,39 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (configuration_p->format);
-  ACE_ASSERT (!session_data_r.format);
+  ACE_ASSERT (configuration_p->inputFormat);
+  ACE_ASSERT (!session_data_r.inputFormat);
 
   HRESULT result_2 = E_FAIL;
 
-  session_data_r.format =
+  session_data_r.inputFormat =
     static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!session_data_r.format)
+  if (!session_data_r.inputFormat)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
-  ACE_ASSERT (!session_data_r.format->pbFormat);
-  result_2 = MFInitAMMediaTypeFromMFMediaType (configuration_p->format,
+  ACE_OS::memset (session_data_r.inputFormat, 0, sizeof (struct _AMMediaType));
+  ACE_ASSERT (!session_data_r.inputFormat->pbFormat);
+  result_2 = MFInitAMMediaTypeFromMFMediaType (configuration_p->inputFormat,
                                                GUID_NULL,
-                                               session_data_r.format);
+                                               session_data_r.inputFormat);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ()),
-                ACE_TEXT (stream_name_string_)));
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 
     // clean up
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
 
     goto error;
   } // end IF
 #else
-  session_data_r.format = configuration_p->format;
+  session_data_r.inputFormat = configuration_p->format;
 #endif
 
   // ---------------------------------------------------------------------------
@@ -895,17 +904,17 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ()),
-                ACE_TEXT (stream_name_string_)));
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   COM_initialized = true;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_p->format);
+  ACE_ASSERT (configuration_p->inputFormat);
 
   if (!Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (url_string,
-                                                                               configuration_p->format,
+                                                                               configuration_p->inputFormat,
                                                                                NULL,
                                                                                //configuration_p->window,
                                                                                session_data_r.rendererNodeId,
@@ -913,8 +922,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (configuration_p->device.c_str ()),
-                ACE_TEXT (stream_name_string_)));
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (configuration_p->deviceName.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -923,7 +932,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: input format: \"%s\"\n"),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ()),
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->inputFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
 #endif
 
@@ -995,8 +1004,8 @@ error:
     session_data_r.direct3DDevice->Release ();
     session_data_r.direct3DDevice = NULL;
   } // end IF
-  if (session_data_r.format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
+  if (session_data_r.inputFormat)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
   session_data_r.direct3DManagerResetToken = 0;
 
   if (COM_initialized)
@@ -1017,12 +1026,12 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_Statistic_t& data_out)
   struct Test_I_Target_MediaFoundation_SessionData& session_data_r =
     const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("StatisticReport")));
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
   Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t* statisticReport_impl_p =
@@ -1100,24 +1109,24 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR ("Display")),
+                                                ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
 //                  Test_I_Target_DisplayNull_Module (this,
-//                                                    ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
+//                                                    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Splitter_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter")),
+                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;
@@ -1177,7 +1186,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
-  session_data_r.format = configuration_p->format;
+  session_data_r.inputFormat = configuration_p->format;
 //  session_data_r.sessionID = configuration_p->sessionID;
   session_data_r.targetFileName = configuration_p->targetFileName;
 

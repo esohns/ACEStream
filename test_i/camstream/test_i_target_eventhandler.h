@@ -48,7 +48,7 @@ class Test_I_Target_EventHandler_T
 {
  public:
   Test_I_Target_EventHandler_T (CallbackDataType*); // GTK state
-  virtual ~Test_I_Target_EventHandler_T ();
+  inline virtual ~Test_I_Target_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id

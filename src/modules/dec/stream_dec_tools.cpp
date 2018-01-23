@@ -721,10 +721,10 @@ Stream_Module_Decoder_Tools::isChromaLuminance (REFGUID subType_in,
 }
 
 enum AVCodecID
-Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecID (REFGUID mediaSubType_in,
+Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecId (REFGUID mediaSubType_in,
                                                           bool useMediaFoundation_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecID"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecId"));
 
   enum AVCodecID result = AV_CODEC_ID_NONE;
 
@@ -897,11 +897,12 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
 
   return (*iterator).second;
 }
-#else
+#endif
+
 enum AVCodecID
-Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (enum AVPixelFormat pixelFormat_in)
+Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelFormat_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId"));
 
   enum AVCodecID result = AV_CODEC_ID_NONE;
 
@@ -921,7 +922,6 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (enum AVPixelFormat pixelF
 
   return result;
 }
-#endif
 
 std::string
 Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_CompressionFormatType format_in)

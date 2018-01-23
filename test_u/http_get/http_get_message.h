@@ -38,14 +38,13 @@
 #include "http_tools.h"
 
 // forward declaration(s)
-struct HTTP_AllocatorConfiguration;
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class HTTPGet_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct HTTPGet_AllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -78,14 +77,14 @@ class HTTPGet_MessageDataContainer
 //////////////////////////////////////////
 
 class HTTPGet_Message
- : public Stream_DataMessageBase_2<struct HTTPGet_AllocatorConfiguration,
+ : public Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTPGet_MessageDataContainer,
                                    HTTP_Method_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct HTTP_AllocatorConfiguration,
+                                                 struct Common_FlexParserAllocatorConfiguration,
                                                  HTTPGet_ControlMessage_t,
                                                  HTTPGet_Message,
                                                  HTTP_SessionMessage>;
@@ -107,8 +106,7 @@ class HTTPGet_Message
 
   // implement Stream_MessageBase_T
   virtual HTTP_Method_t command () const; // return value: message type
-  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
-                                                                                                                                : HTTP_Tools::MethodToString (method_in)); };
+  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
 
  protected:
   // copy ctor to be used by duplicate() and derived classes
@@ -116,7 +114,7 @@ class HTTPGet_Message
   HTTPGet_Message (const HTTPGet_Message&);
 
  private:
-  typedef Stream_DataMessageBase_2<struct HTTPGet_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTPGet_MessageDataContainer,
                                    HTTP_Method_t> inherited;

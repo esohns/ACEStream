@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_DEFINES_H
-#define TEST_I_DEFINES_H
+#ifndef TEST_I_HTTP_GET_DEFINES_H
+#define TEST_I_HTTP_GET_DEFINES_H
 
 #include "ace/config-lite.h"
 
@@ -30,7 +30,6 @@
 #define TEST_I_CNF_STOCKS_SECTION_HEADER             "stocks"
 #define TEST_I_CNF_EQUITYFUNDS_SECTION_HEADER        "equity funds"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
 #define TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW     5
 #define TEST_I_DEFAULT_LIBREOFFICE_START_ROW         8
 
@@ -43,24 +42,13 @@
 #define TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE    "sofficerc"
 #endif
 #define TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE  "symbols.ini"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
-#else
-// *IMPORTANT NOTE*: on Linux, specifying 1 will not work correctly for proactor
-//                   scenarios with the default (rt signal) proactor. The thread
-//                   blocked in sigwaitinfo (see man pages) will not awaken when
-//                   the dispatch set is changed (*TODO*: to be verified)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
-#endif
 #define TEST_I_DEFAULT_INPUT_FILE                    "table.ods"
 #define TEST_I_DEFAULT_OUTPUT_FILE                   "output.ods"
+
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 
 #define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
 #define TEST_I_DEFAULT_URL                           "http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #define TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING        "suchbegriff"
-
-#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
-#define TEST_I_THREAD_NAME                           "stream processor"
 
 #endif

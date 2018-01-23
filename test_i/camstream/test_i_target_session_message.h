@@ -44,14 +44,14 @@ template <ACE_SYNCH_DECL,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_DirectShow_SessionData_t,
                                       struct Test_I_Target_DirectShow_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Test_I_CamStream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
                                                  Test_I_Target_DirectShow_Stream_SessionMessage>;
@@ -69,7 +69,7 @@ class Test_I_Target_DirectShow_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_DirectShow_SessionData_t,
                                       struct Test_I_Target_DirectShow_UserData> inherited;
@@ -90,14 +90,14 @@ class Test_I_Target_DirectShow_Stream_SessionMessage
 };
 
 class Test_I_Target_MediaFoundation_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_MediaFoundation_SessionData_t,
                                       struct Test_I_Target_MediaFoundation_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Test_I_CamStream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
                                                  Test_I_Target_MediaFoundation_Stream_SessionMessage>;
@@ -115,7 +115,7 @@ class Test_I_Target_MediaFoundation_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_MediaFoundation_SessionData_t,
                                       struct Test_I_Target_MediaFoundation_UserData> inherited;
@@ -136,14 +136,14 @@ class Test_I_Target_MediaFoundation_Stream_SessionMessage
 };
 #else
 class Test_I_Target_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_SessionData_t,
                                       struct Test_I_Target_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Test_I_CamStream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_Stream_SessionMessage>;
@@ -161,7 +161,7 @@ class Test_I_Target_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Test_I_CamStream_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_SessionData_t,
                                       struct Test_I_Target_UserData> inherited;

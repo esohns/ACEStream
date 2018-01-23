@@ -230,6 +230,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   // ------------------------------------
 
   // implement IKsPropertySet
+  // *NOTE*: IKsPropertySet is defined twice: in strmif.h and in dsound.h, with
+  //         slightly different signatures
+  //         --> implement both versions
+  // *TODO*: find out how to handle this mess gracefully
+  // this is the version from <strmif.h>
   inline STDMETHODIMP Set (REFGUID, // guidPropSet
                            DWORD,   // dwPropID
                            LPVOID,  // pInstanceData
@@ -246,6 +251,23 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   STDMETHODIMP QuerySupported (REFGUID, // guidPropSet
                                DWORD,   // dwPropID
                                DWORD*); // pTypeSupport
+  // this is the version from <dsound.h>
+  //inline STDMETHODIMP Set (REFGUID, // rguidPropSet
+  //                         ULONG,   // ulId
+  //                         LPVOID,  // pInstanceData
+  //                         ULONG,   // ulInstanceLength
+  //                         LPVOID,  // pPropertyData
+  //                         ULONG) { return E_NOTIMPL; }; // ulDataLength
+  //STDMETHODIMP Get (REFGUID, // rguidPropSet
+  //                  ULONG,   // ulId
+  //                  LPVOID,  // pInstanceData
+  //                  ULONG,   // ulInstanceLength
+  //                  LPVOID,  // pPropertyData
+  //                  ULONG,   // ulDataLength
+  //                  PULONG); // pulBytesReturned
+  STDMETHODIMP QuerySupport (REFGUID, // rguidPropSet
+                             ULONG,   // ulId
+                             PULONG); // pulTypeSupport
 
   // ------------------------------------
 

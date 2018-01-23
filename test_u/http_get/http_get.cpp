@@ -43,7 +43,10 @@
 #include "common.h"
 #include "common_file_tools.h"
 #include "common_logger.h"
+#include "common_signal_tools.h"
 #include "common_tools.h"
+
+#include "common_timer_tools.h"
 
 #include "common_ui_defines.h"
 
@@ -105,7 +108,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug parser [")
-            << STREAM_DECODER_DEFAULT_YACC_TRACE
+            << COMMON_PARSER_DEFAULT_YACC_TRACE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::string output_file_path = temp_directory;
@@ -153,7 +156,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : debug parser [")
-            << STREAM_DECODER_DEFAULT_YACC_TRACE
+            << COMMON_PARSER_DEFAULT_YACC_TRACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
@@ -196,7 +199,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #endif
-  debugParser_out = STREAM_DECODER_DEFAULT_YACC_TRACE;
+  debugParser_out = COMMON_PARSER_DEFAULT_YACC_TRACE;
   outputFileName_out = temp_directory;
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
@@ -568,12 +571,11 @@ do_work (unsigned int bufferSize_in,
 
   HTTPGet_EventHandler event_handler (&CBData_in,
                                       interfaceDefinitionFile_in.empty ());
-  std::string module_name = ACE_TEXT_ALWAYS_CHAR ("EventHandler");
   HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
-                                                           module_name);
+                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct HTTPGet_AllocatorConfiguration> heap_allocator;
+                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -590,7 +592,7 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
 
   // *********************** socket configuration data ************************
-  struct HTTPGet_ConnectionConfiguration connection_configuration;
+  HTTPGet_ConnectionConfiguration_t connection_configuration;
   connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
     remoteHost_in;
   connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
@@ -603,9 +605,9 @@ do_work (unsigned int bufferSize_in,
 
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.streamConfiguration =
-    &CBData_in.configuration->streamConfiguration;
   connection_configuration.userData = &CBData_in.configuration->userData;
+  connection_configuration.initialize (CBData_in.configuration->allocatorConfiguration,
+                                       CBData_in.configuration->streamConfiguration);
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             connection_configuration));
@@ -669,18 +671,18 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   int group_id = -1;
-  struct Common_DispatchThreadData thread_data;
+  struct Common_EventDispatchThreadData thread_data_s;
 
   HTTPGet_GTK_Manager_t* gtk_manager_p = NULL;
 
   // step0b: initialize event dispatch
-  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (thread_data.useReactor,
+  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data_s.useReactor = useReactor_in;
+  if (!Common_Tools::initializeEventDispatch (thread_data_s.useReactor,
                                               useThreadPool_in,
-                                              thread_data.numberOfDispatchThreads,
-                                              thread_data.proactorType, // *NOTE*: return value
-                                              thread_data.reactorType, // *NOTE*: return value
+                                              thread_data_s.numberOfDispatchThreads,
+                                              thread_data_s.proactorType, // *NOTE*: return value
+                                              thread_data_s.reactorType, // *NOTE*: return value
                                               CBData_in.configuration->streamConfiguration.configuration_.serializeOutput)) // *NOTE*: return value
   {
     ACE_DEBUG ((LM_ERROR,
@@ -732,7 +734,7 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to initialize signal handler, returning\n")));
     goto clean;
   } // end IF
-  if (!Common_Tools::initializeSignals ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
+  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                         signalSet_in,
                                         ignoredSignalSet_in,
@@ -740,7 +742,7 @@ do_work (unsigned int bufferSize_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), returning\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
     goto clean;
   } // end IF
 
@@ -795,7 +797,7 @@ do_work (unsigned int bufferSize_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (thread_data,
+  if (!Common_Tools::startEventDispatch (thread_data_s,
                                          group_id))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1036,7 +1038,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a: set defaults
   buffer_size = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
-  debug_parser = STREAM_DECODER_DEFAULT_YACC_TRACE;
+  debug_parser = COMMON_PARSER_DEFAULT_YACC_TRACE;
   output_file_path = temp_directory;
   output_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
   output_file_path +=
@@ -1161,13 +1163,13 @@ ACE_TMAIN (int argc_in,
 
     goto error;
   } // end IF
-  if (!Common_Tools::preInitializeSignals (signal_set,
+  if (!Common_Signal_Tools::preInitialize (signal_set,
                                            use_reactor,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
     // clean up
     Common_Tools::finalizeLogging ();
@@ -1185,7 +1187,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
     // clean up
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -1213,7 +1215,7 @@ ACE_TMAIN (int argc_in,
   gtk_cb_data.initializationHook = idle_initialize_ui_cb;
   gtk_cb_data.progressData = &gtk_progress_data;
   gtk_cb_data.userData = &gtk_cb_data;
-  gtk_progress_data.GTKState = &gtk_cb_data;
+  gtk_progress_data.state = &gtk_cb_data;
   HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                              argv_in,
                                                              &gtk_cb_data,
@@ -1245,8 +1247,8 @@ continue_:
 
   // debug info
   timer.elapsed_time (working_time);
-  Common_Tools::periodToString (working_time,
-                                working_time_string);
+  Common_Timer_Tools::periodToString (working_time,
+                                      working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1266,7 +1268,7 @@ done:
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
     // clean up
-    Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
@@ -1278,10 +1280,10 @@ done:
   process_profile.elapsed_rusage (elapsed_rusage);
   user_time.set (elapsed_rusage.ru_utime);
   system_time.set (elapsed_rusage.ru_stime);
-  Common_Tools::periodToString (user_time,
-                               user_time_string);
-  Common_Tools::periodToString (system_time,
-                               system_time_string);
+  Common_Timer_Tools::periodToString (user_time,
+                                      user_time_string);
+  Common_Timer_Tools::periodToString (system_time,
+                                      system_time_string);
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
@@ -1315,7 +1317,7 @@ done:
 #endif
 
   // step9: clean up
-  Common_Tools::finalizeSignals ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                  signal_set,
                                  previous_signal_actions,

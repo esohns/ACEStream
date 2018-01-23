@@ -46,9 +46,11 @@
 #include "net_ilistener.h"
 
 #include "test_i_configuration.h"
+#include "test_i_gtk_common.h"
+
 #include "test_i_connection_manager_common.h"
-#include "test_i_defines.h"
-#include "test_i_filestream_common.h"
+//#include "test_i_filestream_common.h"
+#include "test_i_filestream_defines.h"
 #include "test_i_filestream_network.h"
 #include "test_i_message.h"
 
@@ -125,13 +127,13 @@ struct Test_I_Target_ListenerConfiguration
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {};
 
-  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
-  Test_I_Target_IInetConnectionManager_t*       connectionManager;
-  ACE_Time_Value                                statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  Test_I_Target_ConnectionConfiguration_t* connectionConfiguration;
+  Test_I_Target_IInetConnectionManager_t*  connectionManager;
+  ACE_Time_Value                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
-                        struct Test_I_Target_ConnectionConfiguration> Test_I_Target_IListener_t;
+                        Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -152,7 +154,7 @@ struct Test_I_Target_SignalHandlerConfiguration
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
+                               struct Test_I_AllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
@@ -161,7 +163,7 @@ typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Target_SessionMessage> Test_I_Target_Message_t;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_Target_ControlMessage_t;
+                                struct Test_I_AllocatorConfiguration> Test_I_Target_ControlMessage_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
@@ -226,7 +228,7 @@ struct Test_I_Target_Configuration
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_Target_ControlMessage_t,
                                           Test_I_Target_Message_t,
                                           Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;

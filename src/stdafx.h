@@ -21,12 +21,14 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-#include "common.h"
-#include "common_macros.h"
-
-#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
+//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
 #include "valgrind/valgrind.h"
 #endif
+
+#include "common.h"
+#include "common_macros.h"
+#include "common_pragmas.h"
 
 // Local Header Files
 #include "stream_common.h"

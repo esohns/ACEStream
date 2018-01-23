@@ -1,8 +1,8 @@
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
- pkg_check_modules (PKG_LIBFFMPEG REQUIRED libavcodec libavformat libswscale)
  pkg_check_modules (PKG_LIBSOX REQUIRED sox)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
 endif ()
 
 if (UNIX)
@@ -29,85 +29,48 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison)
 
 ############## next target ################
+set (${PROJECT_NAME}_Decoder_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
+     stream_dec_avi_decoder.cpp
+     stream_dec_avi_decoder.h
+     stream_dec_avi_decoder.inl
+     stream_dec_avi_encoder.cpp
+     stream_dec_avi_encoder.h
+     stream_dec_avi_encoder.inl
+     stream_dec_avi_parser.cpp
+     stream_dec_avi_parser.h
+     stream_dec_avi_parser_driver.cpp
+     stream_dec_avi_parser_driver.h
+     stream_dec_common.h
+     stream_dec_defines.h
+     stream_dec_exports.h
+     stream_dec_h264_nal_bisector.cpp
+     stream_dec_h264_nal_bisector.h
+     stream_dec_h264_nal_decoder.cpp
+     stream_dec_h264_nal_decoder.h
+     stream_dec_h264_nal_decoder.inl
+     stream_dec_libav_converter.cpp
+     stream_dec_libav_converter.h
+     stream_dec_libav_converter.inl
+     stream_dec_libav_decoder.cpp
+     stream_dec_libav_decoder.h
+     stream_dec_libav_decoder.inl
+     stream_dec_mpeg_ts_decoder.cpp
+     stream_dec_mpeg_ts_decoder.h
+     stream_dec_mpeg_ts_decoder.inl
+     stream_dec_riff_scanner.cpp
+     stream_dec_riff_scanner.h
+     stream_dec_tools.cpp
+     stream_dec_tools.h
+     stream_dec_zip_decoder.cpp
+     stream_dec_zip_decoder.h
+     stream_dec_zip_decoder.inl)
 if (UNIX)
- set (${PROJECT_NAME}_Decoder_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_dec_avi_decoder.cpp
-      stream_dec_avi_decoder.h
-      stream_dec_avi_decoder.inl
-      stream_dec_avi_encoder.cpp
-      stream_dec_avi_encoder.h
-      stream_dec_avi_encoder.inl
-      stream_dec_avi_parser.cpp
-      stream_dec_avi_parser.h
-      stream_dec_avi_parser_driver.cpp
-      stream_dec_avi_parser_driver.h
-      stream_dec_common.h
-      stream_dec_defines.h
-      stream_dec_exports.h
-      stream_dec_h264_nal_bisector.cpp
-      stream_dec_h264_nal_bisector.h
-      stream_dec_h264_nal_decoder.cpp
-      stream_dec_h264_nal_decoder.h
-      stream_dec_h264_nal_decoder.inl
-      stream_dec_libav_converter.cpp
-      stream_dec_libav_converter.h
-      stream_dec_libav_converter.inl
-      stream_dec_libav_decoder.cpp
-      stream_dec_libav_decoder.h
-      stream_dec_libav_decoder.inl
-      stream_dec_mpeg_ts_decoder.cpp
-      stream_dec_mpeg_ts_decoder.h
-      stream_dec_mpeg_ts_decoder.inl
-      stream_dec_riff_scanner.cpp
-      stream_dec_riff_scanner.h
+ set (${PROJECT_NAME}_Decoder_LIB_SRCS ${ACEStream_Decoder_LIB_SRCS}
       stream_dec_sox_effect.cpp
       stream_dec_sox_effect.h
-      stream_dec_sox_effect.inl
-      stream_dec_tools.cpp
-      stream_dec_tools.h
-      stream_dec_zip_decoder.cpp
-      stream_dec_zip_decoder.h
-      stream_dec_zip_decoder.inl)
-elseif (WIN32)
- set (${PROJECT_NAME}_Decoder_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_dec_avi_decoder.cpp
-      stream_dec_avi_decoder.h
-      stream_dec_avi_decoder.inl
-      stream_dec_avi_encoder.cpp
-      stream_dec_avi_encoder.h
-      stream_dec_avi_encoder.inl
-      stream_dec_avi_parser.cpp
-      stream_dec_avi_parser.h
-      stream_dec_avi_parser_driver.cpp
-      stream_dec_avi_parser_driver.h
-      stream_dec_common.h
-      stream_dec_defines.h
-      stream_dec_exports.h
-      stream_dec_h264_nal_bisector.cpp
-      stream_dec_h264_nal_bisector.h
-      stream_dec_h264_nal_decoder.cpp
-      stream_dec_h264_nal_decoder.h
-      stream_dec_h264_nal_decoder.inl
-      stream_dec_libav_converter.cpp
-      stream_dec_libav_converter.h
-      stream_dec_libav_converter.inl
-      stream_dec_libav_decoder.cpp
-      stream_dec_libav_decoder.h
-      stream_dec_libav_decoder.inl
-      stream_dec_mpeg_ts_decoder.cpp
-      stream_dec_mpeg_ts_decoder.h
-      stream_dec_mpeg_ts_decoder.inl
-      stream_dec_riff_scanner.cpp
-      stream_dec_riff_scanner.h
-      stream_dec_tools.cpp
-      stream_dec_tools.h
-      stream_dec_zip_decoder.cpp
-      stream_dec_zip_decoder.h
-      stream_dec_zip_decoder.inl)
+      stream_dec_sox_effect.inl)
 endif ()
 set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
      scripts/avi_scanner.l
@@ -160,6 +123,8 @@ elseif (WIN32)
 # endif ()
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/avcodec.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/avformat.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
 
@@ -178,60 +143,39 @@ export (TARGETS ${PROJECT_NAME}_Decoder
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
+set (${PROJECT_NAME}_Decoder_LIB_HDRS
+     stream_dec_avi_decoder.h
+     stream_dec_avi_decoder.inl
+     stream_dec_avi_encoder.h
+     stream_dec_avi_encoder.inl
+     stream_dec_avi_parser.h
+     stream_dec_avi_parser_driver.h
+     stream_dec_common.h
+     stream_dec_defines.h
+     stream_dec_exports.h
+     stream_dec_h264_nal_bisector.h
+     stream_dec_h264_nal_decoder.h
+     stream_dec_h264_nal_decoder.inl
+     stream_dec_libav_converter.h
+     stream_dec_libav_converter.inl
+     stream_dec_libav_decoder.h
+     stream_dec_libav_decoder.inl
+     stream_dec_mpeg_ts_decoder.h
+     stream_dec_mpeg_ts_decoder.inl
+     stream_dec_riff_scanner.h
+     stream_dec_tools.h
+     stream_dec_zip_decoder.h
+     stream_dec_zip_decoder.inl)
 if (UNIX)
- install (FILES
-          stream_dec_avi_decoder.h
-          stream_dec_avi_decoder.inl
-          stream_dec_avi_encoder.h
-          stream_dec_avi_encoder.inl
-          stream_dec_avi_parser.h
-          stream_dec_avi_parser_driver.h
-          stream_dec_common.h
-          stream_dec_defines.h
-          stream_dec_exports.h
-          stream_dec_h264_nal_bisector.h
-          stream_dec_h264_nal_decoder.h
-          stream_dec_h264_nal_decoder.inl
-          stream_dec_libav_converter.h
-          stream_dec_libav_converter.inl
-          stream_dec_libav_decoder.h
-          stream_dec_libav_decoder.inl
-          stream_dec_mpeg_ts_decoder.h
-          stream_dec_mpeg_ts_decoder.inl
-          stream_dec_riff_scanner.h
-          stream_dec_sox_effect.h
-          stream_dec_sox_effect.inl
-          stream_dec_tools.h
-          stream_dec_zip_decoder.h
-          stream_dec_zip_decoder.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-elseif (WIN32)
- install (FILES
-          stream_dec_avi_decoder.h
-          stream_dec_avi_decoder.inl
-          stream_dec_avi_encoder.h
-          stream_dec_avi_encoder.inl
-          stream_dec_avi_parser.h
-          stream_dec_avi_parser_driver.h
-          stream_dec_common.h
-          stream_dec_defines.h
-          stream_dec_exports.h
-          stream_dec_h264_nal_decoder.h
-          stream_dec_h264_nal_decoder.inl
-          stream_dec_libav_converter.h
-          stream_dec_libav_converter.inl
-          stream_dec_libav_decoder.h
-          stream_dec_libav_decoder.inl
-          stream_dec_mpeg_ts_decoder.h
-          stream_dec_mpeg_ts_decoder.inl
-          stream_dec_riff_scanner.h
-          stream_dec_tools.h
-          stream_dec_zip_decoder.h
-          stream_dec_zip_decoder.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS ${ACEStream_Decoder_LIB_HDRS}
+      stream_dec_sox_effect.h
+      stream_dec_sox_effect.inl)
 endif ()
+
+install (FILES
+         ${PROJECT_NAME}_Decoder_LIB_HDRS
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Decoder
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

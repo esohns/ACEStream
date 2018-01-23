@@ -50,9 +50,11 @@ using namespace ::com::sun::star;
 class Test_I_Stream_DocumentHandler
  : public Stream_Module_LibreOffice_Document_Handler
 {
+  typedef Stream_Module_LibreOffice_Document_Handler inherited;
+  
  public:
   Test_I_Stream_DocumentHandler ();
-  virtual ~Test_I_Stream_DocumentHandler ();
+  inline virtual ~Test_I_Stream_DocumentHandler () {}
 
   void initialize (uno::Reference<uno::XComponentContext>&);
 
@@ -60,8 +62,6 @@ class Test_I_Stream_DocumentHandler
   virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
 
  private:
-  typedef Stream_Module_LibreOffice_Document_Handler inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler (const Test_I_Stream_DocumentHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler& operator= (const Test_I_Stream_DocumentHandler&))
 
@@ -81,15 +81,6 @@ class Test_I_Stream_SpreadsheetWriter
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument>
 {
- public:
-  Test_I_Stream_SpreadsheetWriter (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_SpreadsheetWriter ();
-
-  // implement (part of) Stream_ITaskBase
-  virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
-                                     bool&);                         // return value: pass message downstream ?
-
- private:
   typedef Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -100,6 +91,15 @@ class Test_I_Stream_SpreadsheetWriter
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument> inherited;
 
+ public:
+  Test_I_Stream_SpreadsheetWriter (ISTREAM_T*); // stream handle
+  virtual ~Test_I_Stream_SpreadsheetWriter ();
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
+                                     bool&);                         // return value: pass message downstream ?
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter (const Test_I_Stream_SpreadsheetWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))

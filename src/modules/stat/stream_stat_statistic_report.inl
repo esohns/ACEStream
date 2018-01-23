@@ -67,7 +67,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , inbound_ (true)
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
- , localReportingHandler_ (STATISTIC_ACTION_REPORT,
+ , localReportingHandler_ (COMMON_STATISTIC_ACTION_REPORT,
                            this,
                            false)
  , localReportingHandlerId_ (-1)

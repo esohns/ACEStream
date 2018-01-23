@@ -29,11 +29,7 @@
 #include "linux/videodev2.h"
 #endif
 
-#include "ace/Synch_Traits.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "common.h"
-#endif
+#include "common_configuration.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
@@ -109,10 +105,7 @@ struct Test_U_UserData
 {
   Test_U_UserData ()
    : Stream_UserData ()
-   //, configuration (NULL)
   {};
-
-  //struct Test_U_Configuration* configuration;
 };
 
 struct Test_U_SessionData
@@ -120,10 +113,9 @@ struct Test_U_SessionData
 {
   Test_U_SessionData ()
    : Stream_SessionData ()
-   //, currentStatistic ()
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
    , userData (NULL)
   {};
@@ -132,32 +124,30 @@ struct Test_U_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    //// *NOTE*: the idea is to 'merge' the data
-    //currentStatistic += rhs_in.currentStatistic;
     targetFileName =
       (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  //Test_U_Statistic_t currentStatistic;
-  std::string               targetFileName;
+  std::string                     targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                      useMediaFoundation;
+  enum Stream_MediaFramework_Type mediaFramework;
 #endif
-  struct Test_U_UserData*   userData;
+  struct Test_U_UserData*         userData;
 };
 typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 
 //struct Test_U_StreamState
 //{
-//  inline Test_U_StreamState ()
-//   : currentSessionData (NULL)
+//  Test_U_StreamState ()
+//   : sessionData (NULL)
 //   , userData (NULL)
 //  {};
 //
-//  struct Test_U_SessionData* currentSessionData;
+//  struct Test_U_SessionData* sessionData;
 //  struct Test_U_UserData*    userData;
 //};
 
@@ -173,33 +163,29 @@ struct Test_U_ModuleHandlerConfiguration
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
    , printProgressDot (false)
    , pushStatisticMessages (true)
-//   , streamConfiguration (NULL)
   {};
 
-  std::string                  fileName;              // file writer module
-  bool                         inbound;               // statistic/IO module
+  std::string                     fileName;              // file writer module
+  bool                            inbound;               // statistic/IO module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                         manageCOM;
-  bool                         useMediaFoundation;    // display module
+  bool                            manageCOM;
+  enum Stream_MediaFramework_Type mediaFramework;        // display module
 #endif
-  bool                         printProgressDot;      // file writer module
-  bool                         pushStatisticMessages; // statistic module
-
-//  // *TODO*: remove this ASAP
-//  struct Stream_Configuration* streamConfiguration;
+  bool                            printProgressDot;      // file writer module
+  bool                            pushStatisticMessages; // statistic module
 };
 
-struct Test_U_StreamConfiguration
- : Stream_Configuration
-{
-  Test_U_StreamConfiguration ()
-   : Stream_Configuration ()
-  {};
-};
+//struct Test_U_StreamConfiguration
+// : Stream_Configuration
+//{
+//  Test_U_StreamConfiguration ()
+//   : Stream_Configuration ()
+//  {};
+//};
 
 struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -207,12 +193,12 @@ struct Test_U_SignalHandlerConfiguration
   Test_U_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool useMediaFoundation;
+  enum Stream_MediaFramework_Type mediaFramework;
 #endif
 };
 
@@ -220,12 +206,10 @@ struct Test_U_Configuration
 {
   Test_U_Configuration ()
    : signalHandlerConfiguration ()
-//   , streamConfiguration ()
    , userData ()
   {};
 
   struct Test_U_SignalHandlerConfiguration signalHandlerConfiguration;
-//  Stream_Configuration_t                   streamConfiguration;
 
   struct Test_U_UserData                   userData;
 };

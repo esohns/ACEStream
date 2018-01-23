@@ -29,6 +29,8 @@
 //#include "stream_session_message_base.h"
 #include "stream_tools.h"
 
+#include "stream_stat_defines.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -757,7 +759,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
     session_data_r.sessionId =
       (configuration_->configuration_.sessionId ? configuration_->configuration_.sessionId
-                                                : ++inherited2::currentId);
+                                                : ++inherited2::currentSessionId);
     session_data_r.startOfSession = COMMON_TIME_NOW;
     session_data_r.state = &state_;
   } // end lock scope
@@ -2993,7 +2995,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initialize (const CONFIGURATION_T& configuration_in)
+              SessionMessageType>::initialize (const typename CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -3147,6 +3149,163 @@ Stream_Base_T<ACE_SYNCH_USE,
               configuration_->configuration_.resetSessionData);
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              AllocatorConfigurationType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::collect (StatisticContainerType& data_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::collect"));
+
+  int result = -1;
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING),
+                                        true,
+                                        false));
+  if (unlikely (!module_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (StreamName),
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
+    return false;
+  } // end IF
+  typename STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
+    dynamic_cast<typename STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  if (unlikely (!statistic_impl_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT (StreamName)));
+    return false;
+  } // end IF
+
+  // update session data as well ?
+  bool release_lock = false;
+  bool result_2 = false;
+  if (unlikely (!state_.sessionData))
+      goto continue_;
+
+  if (likely (state_.sessionData->lock))
+  {
+    result = state_.sessionData->lock->acquire ();
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (StreamName)));
+      return false;
+    } // end IF
+    release_lock = true;
+  } // end IF
+
+  state_.sessionData->statistic.timeStamp = COMMON_TIME_NOW;
+
+  // delegate to the statistic module
+continue_:
+  try {
+    result_2 = statistic_impl_p->collect (data_out);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
+                ACE_TEXT (StreamName)));
+  }
+  if (unlikely (!result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
+                ACE_TEXT (StreamName)));
+  else
+    state_.sessionData->statistic = data_out;
+
+  if (likely (release_lock))
+  { ACE_ASSERT (state_.sessionData->lock);
+    result = state_.sessionData->lock->release ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  ACE_TEXT (StreamName)));
+  } // end IF
+
+  return result_2;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              AllocatorConfigurationType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::report () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::report"));
+
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %.0f\n*** RUNTIME STATISTIC ***\\END\n"),
+              (state_.sessionData ? static_cast<int> (state_.sessionData->sessionId) : -1),
+              &(state_.sessionData->lastCollectionTimeStamp),
+              state_.sessionData->statistic.dataMessages,
+              state_.sessionData->statistic.droppedFrames,
+              state_.sessionData->statistic.bytes));
 }
 
 template <ACE_SYNCH_DECL,

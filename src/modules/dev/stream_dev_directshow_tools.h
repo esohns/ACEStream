@@ -175,7 +175,8 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   static bool copyMediaType (const struct _AMMediaType&, // media type
                              struct _AMMediaType*&);     // return value: handle
   inline static bool AMMediaTypeToDMOMediaType (const struct _AMMediaType& mediaType_in,                                                                                                                                        // media type
-                                                struct _DMOMediaType*& mediaType_out) { return Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in, reinterpret_cast<struct _AMMediaType*&> (mediaType_out)); }; // return value: media type handle
+                                                //struct _DMOMediaType*& mediaType_out) { return Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in, reinterpret_cast<struct _AMMediaType*&> (mediaType_out)); }; // return value: media type handle
+                                                DMO_MEDIA_TYPE*& mediaType_out) { return Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in, reinterpret_cast<struct _AMMediaType*&> (mediaType_out)); }; // return value: media type handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static inline void freeMediaType (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); };
   static std::string mediaTypeToString (const struct _AMMediaType&, // media type

@@ -43,23 +43,23 @@ class Stream_MessageAllocatorHeapBase_T;
 template <typename MessageType,
           typename SessionMessageType>
 class Test_I_Message_T
- : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_MessageBase_T<struct Test_I_AllocatorConfiguration,
                                MessageType,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Stream_ControlMessage_T<enum Stream_ControlType,
                                                                          enum Stream_ControlMessageType,
-                                                                         struct Stream_AllocatorConfiguration>,
+                                                                         struct Test_I_AllocatorConfiguration>,
                                                  Test_I_Message_T<MessageType,
                                                                   SessionMessageType>,
                                                  SessionMessageType>;
 
  public:
   Test_I_Message_T (unsigned int); // size
-  inline virtual ~Test_I_Message_T () {};
+  inline virtual ~Test_I_Message_T () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -76,7 +76,7 @@ class Test_I_Message_T
   Test_I_Message_T (const Test_I_Message_T&);
 
  private:
-  typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<struct Test_I_AllocatorConfiguration,
                                MessageType,
                                Stream_CommandType_t> inherited;
 

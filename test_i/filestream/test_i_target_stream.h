@@ -52,7 +52,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_Statistic_t,
                                         Common_Timer_Manager_t,
-                                        struct Stream_AllocatorConfiguration,
+                                        struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
@@ -74,7 +74,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_Statistic_t,
                                         Common_Timer_Manager_t,
-                                        struct Stream_AllocatorConfiguration,
+                                        struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data

@@ -121,7 +121,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (riffdecoder_EXE_SRCS
+set (EXECUTABLE RIFF_decoder)
+set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      targetver.h
@@ -138,13 +139,13 @@ set (riffdecoder_EXE_SRCS
 
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE riffdecoder)
+
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${riffdecoder_EXE_SRCS})
+                ${RIFF_decoder_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
-if (WIN32 AND NOT ${BUILD_TEST_U})
+if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()
 

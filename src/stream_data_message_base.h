@@ -56,6 +56,7 @@ class Stream_DataMessageBase_T
                                    CommandType> OWN_TYPE_T;
   typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
+  typedef CommandType COMMAND_T;
 
   // initialization-after-construction
   using inherited::initialize;

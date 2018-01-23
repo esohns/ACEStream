@@ -49,61 +49,45 @@ typedef Common_IStatistic_T<struct Stream_Statistic> HTTPGet_StatisticReportingH
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct HTTPGet_AllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct HTTPGet_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           HTTPGet_ControlMessage_t,
                                           HTTPGet_Message,
                                           HTTPGet_SessionMessage> HTTPGet_MessageAllocator_t;
-
-//struct HTTPGet_ConnectionConfiguration;
-//struct HTTPGet_StreamConfiguration;
-//struct HTTPGet_UserData
-// : Stream_UserData
-//{
-//  inline HTTPGet_UserData ()
-//   : Stream_UserData ()
-//   //, connectionConfiguration (NULL)
-//   //, streamConfiguration (NULL)
-//  {};
-//
-//  //struct HTTPGet_ConnectionConfiguration* connectionConfiguration;
-//  //struct HTTPGet_StreamConfiguration*     streamConfiguration;
-//};
 
 struct HTTPGet_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
   HTTPGet_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
-   //messageAllocator (NULL)
    , statisticReportingInterval (0)
   {};
 
-  //Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+  unsigned int statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
 struct HTTPGet_Configuration
 {
   HTTPGet_Configuration ()
-   : signalHandlerConfiguration ()
+   : allocatorConfiguration ()
+   , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
-   //, useReactor (NET_EVENT_USE_REACTOR)
    , userData ()
   {};
 
+  struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
   // **************************** signal data **********************************
-  struct HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct HTTPGet_SignalHandlerConfiguration      signalHandlerConfiguration;
   // **************************** socket data **********************************
-  HTTPGet_ConnectionConfigurations_t        connectionConfigurations;
+  HTTPGet_ConnectionConfigurations_t             connectionConfigurations;
   // **************************** stream data **********************************
-  struct Common_ParserConfiguration         parserConfiguration;
-  HTTPGet_StreamConfiguration_t             streamConfiguration;
+  struct Common_ParserConfiguration              parserConfiguration;
+  HTTPGet_StreamConfiguration_t                  streamConfiguration;
 
-  struct Stream_UserData                    userData;
+  struct Stream_UserData                         userData;
 };
 
 //////////////////////////////////////////
@@ -139,10 +123,10 @@ struct HTTPGet_GtkProgressData
 //                      HTTPGet_Message,
 //                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_GtkCBData
- : Common_UI_GTKState
+ : Common_UI_GTK_State
 {
   HTTPGet_GtkCBData ()
-   : Common_UI_GTKState ()
+   : Common_UI_GTK_State ()
    , configuration (NULL)
    , messageAllocator (NULL)
    , progressData (NULL)

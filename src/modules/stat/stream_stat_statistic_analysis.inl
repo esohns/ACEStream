@@ -143,8 +143,12 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+    // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
+    // sanity check(s)
+  ACE_ASSERT (configuration_in.inputFormat);
+
+  struct _AMMediaType* media_type_p = getFormat (configuration_in.inputFormat);
   if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -160,15 +164,14 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   ACE_ASSERT (waveformatex_p);
 #endif
 
-  // *TODO*: remove type inferences
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.format);
-
   bool result_2 = false;
   unsigned int sample_rate;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   sample_rate = waveformatex_p->nSamplesPerSec;
 #else
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.format);
+
   sample_rate = configuration_in.format->rate;
 #endif
   result_2 =
@@ -309,7 +312,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* media_type_p = NULL;
-      media_type_p = getFormat (session_data_r.format);
+      media_type_p = getFormat (session_data_r.inputFormat);
       if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,

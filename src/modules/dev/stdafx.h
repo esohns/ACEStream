@@ -23,11 +23,18 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
+//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
+#include "valgrind/valgrind.h"
+#endif
+
 // Local Header Files
 #include "common.h"
 #include "common_macros.h"
+#include "common_pragmas.h"
 
 #include "stream_common.h"
 #include "stream_macros.h"
 
+#include "stream_dev_common.h"
 #include "stream_dev_exports.h"

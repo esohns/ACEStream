@@ -87,7 +87,7 @@ class Stream_Dev_Export Stream_Module_Device_MediaFoundation_Tools
 
   static bool getMediaSource (const std::string&, // device name ("FriendlyName")
                               REFGUID,            // device category
-                              IMFMediaSource*&,   // return value: media device handle
+                              IMFMediaSource*&,   // return value: media source handle
                               WCHAR*&,            // return value: symbolic link
                               UINT32&);           // return value: symbolic link size
   static bool getMediaSource (const IMFMediaSession*, // media session handle

@@ -116,7 +116,7 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Common_UI_GTKBuildersIterator_t iterator;
+  Common_UI_GTK_BuildersIterator_t iterator;
   GtkTable* table_p = NULL;
   GtkAction* action_p = NULL;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
@@ -178,7 +178,7 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  enum Common_UI_Event event_e =
+  enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
 
