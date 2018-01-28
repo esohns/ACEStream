@@ -262,10 +262,11 @@ include (CreateLaunchers)
 
 # enable (unit/integration) tests
 #include (CTest)
-enable_testing ()
+#enable_testing ()
 
 ################################################################################
 
 add_subdirectory (src)
 add_subdirectory (test_i)
 add_subdirectory (test_u)
+

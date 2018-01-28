@@ -110,3 +110,10 @@ if (NOT BUILD_TEST_U)
   set_target_properties (test_u PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
 endif ()
+
+# ----------------------------------------
+
+# enable (unit/integration) tests
+#include (CTest)
+enable_testing ()
+
