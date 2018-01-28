@@ -1,8 +1,7 @@
-include (CMakeDependentOption)
-
 option (GTK_SUPPORT "enable GTK support" ON)
 #option (GTKGL_SUPPORT "enable GTK OpenGL support" ON)
  # *NOTE*: implies GTK_SUPPORT on
+include (CMakeDependentOption)
 CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
                         "GTK_SUPPORT" OFF)
 # *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
@@ -80,7 +79,7 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
- pkg_check_modules (PKG_LIBAV REQUIRED libavutil libavcodec libavformat)
+ pkg_check_modules (PKG_LIBAV REQUIRED libswscale libavutil libavformat libavcodec)
  pkg_check_modules (PKG_LIBPNG REQUIRED libpng)
  pkg_check_modules (PKG_LIBSOX REQUIRED sox)
  if (GTK_SUPPORT)

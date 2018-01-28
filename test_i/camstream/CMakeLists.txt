@@ -47,7 +47,7 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
  else ()

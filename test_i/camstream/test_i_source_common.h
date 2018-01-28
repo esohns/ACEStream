@@ -192,7 +192,7 @@ struct Test_I_Source_V4L2_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  }
+  };
 
   enum AVPixelFormat                  format;
   unsigned int                        height;
@@ -399,15 +399,15 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , v4l2Format ()
-   , v4l2FrameRate ()
+   , frameRate ()
+   , inputFormat ()
    , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
    , userData (NULL)
   {
-    ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
-    v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    ACE_OS::memset (&v4l2FrameRate, 0, sizeof (struct v4l2_fract));
+    ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
+    ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));
+    inputFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   };
 
   GdkRectangle                                   area;
@@ -423,8 +423,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_V4L2_ISessionNotify_t*           subscriber;
   Test_I_Source_V4L2_Subscribers_t*              subscribers;
-  struct v4l2_format                             v4l2Format; // v4l2 camera source
-  struct v4l2_fract                              v4l2FrameRate; // v4l2 camera source
+  struct v4l2_format                             inputFormat; // v4l2 camera source
+  struct v4l2_fract                              frameRate; // v4l2 camera source
   enum v4l2_memory                               v4l2Method; // v4l2 camera source
   struct v4l2_window*                            v4l2Window; // v4l2 camera source
 

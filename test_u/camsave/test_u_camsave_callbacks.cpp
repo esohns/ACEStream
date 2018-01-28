@@ -1306,7 +1306,7 @@ get_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_3 =
       GTKCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != GTKCBData_in.configuration->streamConfiguration.end ());
-  buffer_size = (*iterator_3).second.second.v4l2Format.fmt.pix.sizeimage;
+  buffer_size = (*iterator_3).second.second.inputFormat.fmt.pix.sizeimage;
 #endif
 
   return buffer_size;
@@ -2609,7 +2609,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                               1, &value);
 #endif
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     (*iterator_2).second.second.deviceName =
+#else
+    (*iterator_2).second.second.interfaceIdentifier =
+#endif
         g_value_get_string (&value);
     g_value_unset (&value);
   } // end IF
@@ -2680,14 +2684,14 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
   if (!Stream_Module_Device_Tools::setFormat ((*iterator_2).second.second.fileDescriptor,
-                                              (*iterator_2).second.second.v4l2Format))
+                                              (*iterator_2).second.second.inputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
   if (!Stream_Module_Device_Tools::setFrameRate ((*iterator_2).second.second.fileDescriptor,
-                                                 (*iterator_2).second.second.v4l2FrameRate))
+                                                 (*iterator_2).second.second.frameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
@@ -3509,9 +3513,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  (*iterator_2).second.second.inputFormat =
+  (*iterator_2).second.second.format =
       Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_i);
-  (*iterator_2).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
+  (*iterator_2).second.second.inputFormat.fmt.pix.pixelformat = format_i;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
@@ -3744,8 +3748,8 @@ continue_:
 #else
   (*iterator_2).second.second.sourceFormat.height = height;
   (*iterator_2).second.second.sourceFormat.width = width;
-  (*iterator_2).second.second.v4l2Format.fmt.pix.height = height;
-  (*iterator_2).second.second.v4l2Format.fmt.pix.width = width;
+  (*iterator_2).second.second.inputFormat.fmt.pix.height = height;
+  (*iterator_2).second.second.inputFormat.fmt.pix.width = width;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_rates (data_p->streamConfiguration,
@@ -3954,9 +3958,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  (*iterator_2).second.second.v4l2FrameRate.numerator =
+  (*iterator_2).second.second.frameRate.numerator =
       frame_interval_denominator;
-  (*iterator_2).second.second.v4l2FrameRate.denominator = frame_interval;
+  (*iterator_2).second.second.frameRate.denominator = frame_interval;
 #endif
 } // combobox_rate_changed_cb
 

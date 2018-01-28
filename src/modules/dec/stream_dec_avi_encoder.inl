@@ -1889,8 +1889,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      struct v4l2_fract frame_rate_s = getFrameRate (session_data_r,
-                                                     session_data_r.v4l2Format);
+      struct v4l2_fract frame_rate_s =
+          getFrameRate (session_data_r,
+                        session_data_r.inputFormat);
 
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB

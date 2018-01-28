@@ -179,7 +179,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
       // step0: retain current format as session data
       if (unlikely (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                            session_data_r.v4l2Format)))
+                                                            session_data_r.inputFormat)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
@@ -513,7 +513,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   if (unlikely (!Stream_Module_Device_Tools::setFormat (captureFileDescriptor_,
-                                                        configuration_in.v4l2Format)))
+                                                        configuration_in.inputFormat)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(%d): \"%m\", aborting\n"),
@@ -522,7 +522,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: remove type inference
   if (unlikely (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                           configuration_in.v4l2FrameRate)))
+                                                           configuration_in.frameRate)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),

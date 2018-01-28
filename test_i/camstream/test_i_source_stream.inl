@@ -1587,8 +1587,8 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   typename ConfigurationType::ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.v4l2Format = (*iterator).second.second.v4l2Format;
-  session_data_r.v4l2FrameRate = (*iterator).second.second.v4l2FrameRate;
+  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
+  session_data_r.frameRate = (*iterator).second.second.frameRate;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -1605,9 +1605,9 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
-  session_data_r.height = session_data_r.v4l2Format.fmt.pix.height;
-  session_data_r.width = session_data_r.v4l2Format.fmt.pix.width;
+//  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
+  session_data_r.height = session_data_r.inputFormat.fmt.pix.height;
+  session_data_r.width = session_data_r.inputFormat.fmt.pix.width;
 #endif
 
   // ---------------------------------------------------------------------------

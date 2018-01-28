@@ -1508,7 +1508,7 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   configuration.signalHandlerConfiguration.statisticReportingHandler =
       report_handler_p;
-  configuration.signalHandlerConfiguration.statisticReportingTimerID =
+  configuration.signalHandlerConfiguration.statisticReportingTimerId =
       timer_id;
   configuration.signalHandlerConfiguration.useReactor = useReactor_in;
   result =
@@ -2269,7 +2269,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  struct Test_I_GTK_CBData* gtk_cb_data_p = NULL;
+  struct Test_I_Target_GTK_CBData* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_data;
   struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
@@ -2469,7 +2469,7 @@ ACE_TMAIN (int argc_in,
 #else
   result_2 = gtk_manager_p->initialize (argc_in,
                                         argv_in,
-                                        gtk_cb_data_p,
+                                        &gtk_cb_data,
                                         &ui_definition);
 #endif
   if (!result_2)

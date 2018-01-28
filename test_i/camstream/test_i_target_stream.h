@@ -280,11 +280,6 @@ class Test_I_Target_Stream
   // *TODO*: re-consider this API
   void ping ();
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
-  virtual void report () const;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))

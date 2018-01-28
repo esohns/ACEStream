@@ -157,9 +157,9 @@ struct Stream_CamSave_SessionData
    , session (NULL)
 #else
    , format (AV_PIX_FMT_RGB24) // output-
+   , frameRate ()
+   , inputFormat ()
    , sourceFormat ()
-   , v4l2Format ()
-   , v4l2FrameRate ()
 #endif
    , statistic ()
    , userData (NULL)
@@ -206,9 +206,9 @@ struct Stream_CamSave_SessionData
   IMFMediaSession*                    session;
 #else
   enum AVPixelFormat                  format; // input-
+  struct v4l2_fract                   frameRate; // time-per-frame
+  struct v4l2_format                  inputFormat;
   GdkRectangle                        sourceFormat; // gtk cairo/pixbuf module
-  struct v4l2_format                  v4l2Format;
-  struct v4l2_fract                   v4l2FrameRate; // time-per-frame
 #endif
   struct Stream_CamSave_StatisticData statistic;
 
@@ -265,7 +265,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecId (AV_CODEC_ID_NONE)
    , fileDescriptor (-1)
-   , inputFormat (AV_PIX_FMT_NONE)
+   , format (AV_PIX_FMT_NONE)
    , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
    , outputFormat (AV_PIX_FMT_RGB24)
 #endif
@@ -277,8 +277,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , v4l2Format ()
-   , v4l2FrameRate ()
+   , frameRate ()
+   , inputFormat ()
    , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
 #endif
@@ -302,9 +302,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
 #else
-    ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
-    v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    ACE_OS::memset (&v4l2FrameRate, 0, sizeof (struct v4l2_fract));
+    ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
+    ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));
+    inputFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 #endif
     ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
   };
@@ -313,7 +313,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                             fullScreen;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
-  std::string                      deviceName; // 'friendly'-name string
+  std::string                      deviceName; // 'friendly'-name string. *TODO*: consolidate to interface identifier GUID
   //struct _AMMediaType*     format;
   IMFMediaType*                    inputFormat;
   IMFMediaType*                    outputFormat;
@@ -327,7 +327,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   enum AVPixelFormat               codecFormat; // preferred output-
   enum AVCodecID                   codecId;
   int                              fileDescriptor;
-  enum AVPixelFormat               inputFormat;
+  enum AVPixelFormat               format;
   // *PORTABILITY*: v4l2: device file (e.g. "[/dev/]video0")
   std::string                      interfaceIdentifier;
   enum AVPixelFormat               outputFormat;
@@ -340,8 +340,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   std::string                      targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct v4l2_format               v4l2Format;
-  struct v4l2_fract                v4l2FrameRate; // time-per-frame (s)
+  struct v4l2_fract                frameRate; // time-per-frame (s)
+  struct v4l2_format               inputFormat;
   enum v4l2_memory                 v4l2Method; // v4l camera source
   struct v4l2_window*              v4l2Window;
 #endif

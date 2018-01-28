@@ -21,16 +21,17 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
 }
 #endif /* __cplusplus */
 
 #include "ace/Log_Msg.h"
 
+#include "common_defines.h"
+
 #include "stream_macros.h"
 
-#include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
@@ -53,7 +54,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
  , scannerState_ (NULL)
  //, scannerTables_ (scannerTables_in)
  , bufferState_ (NULL)
- , useYYScanBuffer_ (STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
+ , useYYScanBuffer_ (COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::Stream_Decoder_H264_NAL_Decoder_T"));
 
@@ -232,7 +233,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
     //  scannerState_ = NULL;
     //} // end IF
 
-    useYYScanBuffer_ = STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
+    useYYScanBuffer_ = COMMON_PARSER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
   } // end IF
 
   useYYScanBuffer_ = configuration_in.useYYScanBuffer;
@@ -282,7 +283,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
 
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT (buffer_->capacity () - buffer_->length () >=
-              STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
+              COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(buffer_->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(buffer_->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
@@ -600,7 +601,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
 
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT (message_block_2->capacity () - message_block_2->length () >=
-              STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
+              COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(message_block_2->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(message_block_2->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
@@ -757,7 +758,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   // create/initialize a new buffer state
   bufferState_ =
     (useYYScanBuffer_ ? Stream_Decoder_H264_NAL_Bisector__scan_buffer (const_cast<char*> (data_in),
-                                                                       length_in + STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE,
+                                                                       length_in + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE,
                                                                        scannerState_)
                       : Stream_Decoder_H264_NAL_Bisector__scan_bytes (data_in,
                                                                       length_in,

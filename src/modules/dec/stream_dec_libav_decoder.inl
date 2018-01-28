@@ -309,9 +309,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   } // end ELSE
 #else
   // sanity check(s)
-  ACE_ASSERT (configuration_in.inputFormat != AV_PIX_FMT_NONE);
+  ACE_ASSERT (configuration_in.format != AV_PIX_FMT_NONE);
 
-  format_ = configuration_in.inputFormat;
+  format_ = configuration_in.format;
 
   codecFormatHeight_ = configuration_in.sourceFormat.height;
   width = configuration_in.sourceFormat.width;

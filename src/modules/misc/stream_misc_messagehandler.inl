@@ -223,7 +223,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (!inherited::sessionData_)
+  if (!(inherited::sessionData_))
     return;
   ACE_ASSERT (lock_ && subscribers_);
 

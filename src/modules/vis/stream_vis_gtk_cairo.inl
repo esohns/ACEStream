@@ -208,6 +208,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   row_stride = av_image_get_linesize (session_data_r.format,
                                       width,
                                       0);
+  ACE_UNUSED_ARG (row_stride);
 #endif
 
   //  bool leave_gdk = false;
@@ -246,8 +247,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     gdk_pixbuf_get_height (inherited::configuration_->pixelBuffer);
   int pixbuf_width =
     gdk_pixbuf_get_width (inherited::configuration_->pixelBuffer);
-  int pixbuf_row_stride =
-    gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
+//  int pixbuf_row_stride =
+//    gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
     ((pixel_format != pixel_format_2) ||
      ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));

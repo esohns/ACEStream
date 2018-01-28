@@ -34,14 +34,18 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 class Test_U_GTK_EventHandler_T
- : public Stream_ISessionDataNotify_T<SessionIdType,
+ : public Comon_UI_GTK_EventHandler_T<CallbackDataType>
+ , public Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
                                       SessionEventType,
                                       MessageType,
                                       SessionMessageType>
 {
+  typedef Comon_UI_GTK_EventHandler_T<CallbackDataType> inherited;
+
  public:
-  Test_U_GTK_EventHandler_T (CallbackDataType*); // GTK state
+  Test_U_GTK_EventHandler_T (struct Common_UI_GTK_EventConfiguration*,
+                             CallbackDataType*); // GTK state
   inline virtual ~Test_U_GTK_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -60,7 +64,6 @@ class Test_U_GTK_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Test_U_GTK_EventHandler_T (const Test_U_GTK_EventHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_GTK_EventHandler_T& operator= (const Test_U_GTK_EventHandler_T&))
 
-  CallbackDataType* CBData_;
   SessionDataType*  sessionData_;
 };
 

@@ -413,17 +413,17 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , area ()
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   , contextId (0)
    , crunch (false)
    , format (AV_PIX_FMT_RGB24)
    , height (0)
+   , inputFormat ()
    , queue (NULL)
    , sourceFormat ()
    , streamConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
-   , v4l2Format ()
    , v4l2Window ()
    , width (0)
    , window (NULL)
@@ -432,10 +432,11 @@ struct Test_I_Target_ModuleHandlerConfiguration
   GdkRectangle                              area;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_InetConnectionManager_t*    connectionManager; // net IO module
-  guint                                     contextID;
+  guint                                     contextId;
   bool                                      crunch;            // splitter module
   enum AVPixelFormat                        format;
   unsigned int                              height;
+  struct v4l2_format                        inputFormat;       // splitter module
   ACE_Message_Queue_Base*                   queue;  // (inbound) buffer queue handle
   GdkRectangle                              sourceFormat; // gtk pixbuf module
   // *TODO*: remove this ASAP
@@ -443,7 +444,6 @@ struct Test_I_Target_ModuleHandlerConfiguration
   std::string                               targetFileName;    // file writer module
   Test_I_Target_ISessionNotify_t*           subscriber;
   Test_I_Target_Subscribers_t*              subscribers;
-  struct v4l2_format                        v4l2Format;        // splitter module
   struct v4l2_window                        v4l2Window;
   unsigned int                              width;
   GdkWindow*                                window;

@@ -1321,6 +1321,12 @@ stream_processing_function (void* arg_in)
   Common_UI_GTK_BuildersIterator_t iterator;
   ACE_SYNCH_MUTEX* lock_p = NULL;
   Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
+  Stream_IStreamControlBase* stream_p = NULL;
+  GtkStatusbar* statusbar_p = NULL;
+  std::ostringstream converter;
+  const Stream_SessionData* session_data_p = NULL;
+  bool result_2 = false;
+  guint context_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_CamStream_ThreadData* data_p =
     static_cast<Test_I_CamStream_ThreadData*> (arg_in);
@@ -1328,12 +1334,6 @@ stream_processing_function (void* arg_in)
   Test_I_Source_MediaFoundation_ThreadData* mediafoundation_data_p = NULL;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  GtkStatusbar* statusbar_p = NULL;
-  Stream_IStreamControlBase* stream_p = NULL;
-  std::ostringstream converter;
-  const Stream_SessionData* session_data_p = NULL;
-  bool result_2 = false;
-  guint context_id = 0;
 
   switch (data_p->mediaFramework)
   {
@@ -1398,7 +1398,6 @@ stream_processing_function (void* arg_in)
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
 #endif
-
     // retrieve stream handle
     switch (protocol)
     {
@@ -4453,7 +4452,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Module_Device_Tools::setFormat ((*iterator_2).second.second.fileDescriptor,
-                                           (*iterator_2).second.second.v4l2Format);
+                                           (*iterator_2).second.second.inputFormat);
 #endif
   if (!result_3)
   {
@@ -6620,7 +6619,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
+  (*iterator).second.second.inputFormat.fmt.pix.pixelformat = format_i;
 
   result_2 =
     load_resolutions (v4l2_data_p->fileDescriptor,
@@ -6904,8 +6903,8 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.v4l2Format.fmt.pix.width = width;
-  (*iterator).second.second.v4l2Format.fmt.pix.height = height;
+  (*iterator).second.second.inputFormat.fmt.pix.width = width;
+  (*iterator).second.second.inputFormat.fmt.pix.height = height;
 
   result_2 = load_rates (v4l2_data_p->fileDescriptor,
                          format_i,
@@ -7113,8 +7112,8 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.v4l2FrameRate.numerator = frame_rate;
-  (*iterator).second.second.v4l2FrameRate.denominator = frame_rate_denominator;
+  (*iterator).second.second.frameRate.numerator = frame_rate;
+  (*iterator).second.second.frameRate.denominator = frame_rate_denominator;
 #endif
 } // combobox_rate_changed_cb
 

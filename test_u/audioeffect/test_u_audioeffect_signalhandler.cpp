@@ -145,8 +145,8 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     // step2: stop GTK event processing
     if (inherited::configuration_->hasUI)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (inherited::configuration_->mediaFramework)
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

@@ -27,6 +27,7 @@ endif ()
 #         ${PROJECT_NAME}_Test_U_GTK_SRCS
 #         DESTINATION include)
 
+include (FindPkgConfig)
 if (UNIX)
  if (GTK_SUPPORT)
   if (GTK2_SUPPORT)
@@ -40,6 +41,8 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src)
  #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer)
  if (GTK_SUPPORT)
+  include_directories (${PKG_GTK_INCLUDE_DIRS})
+
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui/gtk)
  endif ()

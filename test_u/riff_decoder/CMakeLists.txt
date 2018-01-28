@@ -46,7 +46,7 @@ include (FindPkgConfig)
 if (UNIX)
 ## *NOTE*: libCommon requires libcap
 #  pkg_check_modules (PKG_CAP REQUIRED libcap)
-#  pkg_check_modules (PKG_LIBAVUTIL REQUIRED libavutil)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
@@ -158,7 +158,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${AIO_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_LIBAVUTIL_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonTimer)

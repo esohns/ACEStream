@@ -2448,7 +2448,7 @@ stream_processing_function (void* arg_in)
                                                                    gtk_statusbar_get_context_id (statusbar_p,
                                                                                                  converter.str ().c_str ())));
 #else
-  data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+  data_p->CBData->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
                                                      gtk_statusbar_get_context_id (statusbar_p,
                                                                                    converter.str ().c_str ())));
 #endif

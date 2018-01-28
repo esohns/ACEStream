@@ -232,8 +232,8 @@ struct Test_I_CamStream_V4L2_SessionData
 {
   Test_I_CamStream_V4L2_SessionData ()
    : Test_I_SessionData ()
-   , v4l2Format ()
-   , v4l2FrameRate ()
+   , frameRate ()
+   , inputFormat ()
    , userData (NULL)
   {};
 
@@ -242,15 +242,15 @@ struct Test_I_CamStream_V4L2_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
 
-    v4l2Format = rhs_in.v4l2Format;
-    v4l2FrameRate = rhs_in.v4l2FrameRate;
+    frameRate = rhs_in.frameRate;
+    inputFormat = rhs_in.inputFormat;
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   };
 
-  struct v4l2_format                v4l2Format;
-  struct v4l2_fract                 v4l2FrameRate;
+  struct v4l2_fract                 frameRate;
+  struct v4l2_format                inputFormat;
 
   struct Test_I_CamStream_UserData* userData;
 };

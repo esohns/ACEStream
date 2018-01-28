@@ -1407,8 +1407,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
     } // end SWITCH
   } // end FOR
+#if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_mark_dirty (cairoSurface_);
   cairo_surface_flush (cairoSurface_);
+#endif
 
 unlock:
   if (release_lock)

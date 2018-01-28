@@ -480,11 +480,11 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   session_data_p->sourceFormat.height =
-      configuration_p->v4l2Format.fmt.pix.height;
+      configuration_p->inputFormat.fmt.pix.height;
   session_data_p->sourceFormat.width =
-      configuration_p->v4l2Format.fmt.pix.width;
-  session_data_p->v4l2Format = configuration_p->v4l2Format;
-  session_data_p->v4l2FrameRate = configuration_p->v4l2FrameRate;
+      configuration_p->inputFormat.fmt.pix.width;
+  session_data_p->frameRate = configuration_p->frameRate;
+  session_data_p->inputFormat = configuration_p->inputFormat;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -501,7 +501,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_p->format = configuration_p->inputFormat;
+  session_data_p->format = configuration_p->format;
 #endif
   session_data_p->targetFileName = configuration_p->targetFileName;
 

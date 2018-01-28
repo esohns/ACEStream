@@ -1457,15 +1457,15 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.pixelBufferLock = &v4l2CBData_in.lock;
   (*modulehandler_iterator).second.second.sourceFormat.height = 240;
   (*modulehandler_iterator).second.second.sourceFormat.width = 320;
-  (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.pixelformat =
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat =
       V4L2_PIX_FMT_RGB24;
-  (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.height = 240;
-  (*modulehandler_iterator).second.second.v4l2Format.fmt.pix.width = 320;
-  (*modulehandler_iterator).second.second.v4l2FrameRate.numerator = 30;
-  (*modulehandler_iterator).second.second.v4l2FrameRate.denominator = 1;
+  (*modulehandler_iterator).second.second.frameRate.numerator = 30;
+  (*modulehandler_iterator).second.second.frameRate.denominator = 1;
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.height = 240;
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.width = 320;
   (*modulehandler_iterator).second.second.v4l2Method = V4L2_MEMORY_MMAP;
   (*modulehandler_iterator).second.second.format =
-      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.second.v4l2Format.fmt.pix.pixelformat);
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat);
   (*modulehandler_iterator).second.second.streamConfiguration =
       &v4l2_configuration.streamConfiguration;
 #endif

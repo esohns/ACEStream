@@ -262,7 +262,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 #else
-  inputFormat_ = configuration_in.inputFormat;
+  inputFormat_ = configuration_in.format;
   outputFormat_ = configuration_in.outputFormat;
 #endif
 

@@ -2995,7 +2995,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initialize (const typename CONFIGURATION_T& configuration_in)
+              SessionMessageType>::initialize (const CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -3202,8 +3202,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
-  typename STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
-    dynamic_cast<typename STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
+    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
   if (unlikely (!statistic_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,

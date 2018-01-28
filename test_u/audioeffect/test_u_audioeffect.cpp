@@ -1495,7 +1495,7 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_U_AudioEffect_Configuration configuration;
   struct Test_U_AudioEffect_GTK_CBData gtk_cb_data;
-  gtk_cb_data.progressData.GTKState = &gtk_cb_data;
+  gtk_cb_data.progressData.state = &gtk_cb_data;
   gtk_cb_data_p = &gtk_cb_data;
   gtk_cb_data.configuration = &configuration;
 #endif

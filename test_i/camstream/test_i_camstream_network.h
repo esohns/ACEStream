@@ -137,19 +137,7 @@ struct Test_I_Source_V4L2_StreamState;
 struct Test_I_Source_V4L2_UserData;
 
 typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
-typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
-                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                 struct Test_I_Source_V4L2_ConnectionState,
-                                 struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
-                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                 struct Test_I_Source_V4L2_ConnectionState,
-                                 struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
-struct Test_I_Source_Stream_StatisticData;
+//struct Test_I_Source_Stream_StatisticData;
 //typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
 #endif
 
@@ -187,18 +175,18 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 //                                 Test_I_Statistic_t,
 //                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
-typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
+//typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+//                                 ACE_INET_Addr,
+//                                 Test_I_Target_ConnectionConfiguration_t,
+//                                 struct Test_I_Target_ConnectionState,
+//                                 Test_I_Statistic_t,
+//                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+//typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+//                                 ACE_INET_Addr,
+//                                 Test_I_Target_ConnectionConfiguration_t,
+//                                 struct Test_I_Target_ConnectionState,
+//                                 Test_I_Statistic_t,
+//                                 struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
 #endif
 typedef Stream_Statistic Test_I_Statistic_t;
 
@@ -371,6 +359,16 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_Source_V4L2_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_StreamConfiguration_t;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
+typedef Net_StreamConnectionConfiguration_T<struct Test_I_Source_V4L2_ConnectionConfiguration,
+                                            struct Stream_AllocatorConfiguration,
+                                            Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_ConnectionConfiguration_t;
+typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 struct Test_I_Source_Stream_StatisticData,
+                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
 struct Test_I_Source_V4L2_UserData;
 struct Test_I_Source_V4L2_ConnectionConfiguration
  : Net_ConnectionConfiguration
@@ -388,12 +386,16 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
 
   struct Test_I_Source_V4L2_UserData*                  userData;
 };
-typedef Net_StreamConnectionConfiguration_T<struct Test_I_Source_V4L2_ConnectionConfiguration,
-                                            struct Stream_AllocatorConfiguration,
-                                            Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_ConnectionConfiguration_t;
 typedef std::map<std::string,
                  Test_I_Source_V4L2_ConnectionConfiguration_t> Test_I_Source_V4L2_ConnectionConfigurations_t;
 typedef Test_I_Source_V4L2_ConnectionConfigurations_t::iterator Test_I_Source_V4L2_ConnectionConfigurationIterator_t;
+
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 struct Test_I_Source_Stream_StatisticData,
+                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -565,6 +567,16 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
+struct Test_I_Target_ConnectionConfiguration;
+typedef Net_StreamConnectionConfiguration_T<struct Test_I_Target_ConnectionConfiguration,
+                                            struct Stream_AllocatorConfiguration,
+                                            Test_I_Target_StreamConfiguration_t> Test_I_Target_ConnectionConfiguration_t;
+typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Target_ConnectionConfiguration_t,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_Statistic_t,
+                                 struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
 struct Test_I_Target_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
@@ -583,12 +595,15 @@ struct Test_I_Target_ConnectionConfiguration
 
   struct Test_I_Target_UserData*                  userData;
 };
-typedef Net_StreamConnectionConfiguration_T<struct Test_I_Target_ConnectionConfiguration,
-                                            struct Stream_AllocatorConfiguration,
-                                            Test_I_Target_StreamConfiguration_t> Test_I_Target_ConnectionConfiguration_t;
 typedef std::map<std::string,
                  Test_I_Target_ConnectionConfiguration_t> Test_I_Target_ConnectionConfigurations_t;
 typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_ConnectionConfigurationIterator_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Target_ConnectionConfiguration_t,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_Statistic_t,
+                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 #endif
 
 //////////////////////////////////////////

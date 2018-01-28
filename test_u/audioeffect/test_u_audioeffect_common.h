@@ -244,7 +244,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-    device = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+    deviceName = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif
   };
 
@@ -487,10 +487,10 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
 };
 #else
 struct Test_U_AudioEffect_StreamConfiguration
- : Test_U_StreamConfiguration
+ : Stream_Configuration
 {
   Test_U_AudioEffect_StreamConfiguration ()
-   : Test_U_StreamConfiguration ()
+   : Stream_Configuration ()
   {};
 };
 #endif

@@ -1155,7 +1155,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
+//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
@@ -1174,20 +1174,27 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
+
+  // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
+
   struct Test_I_Target_SessionData& session_data_r =
     const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.currentSessionData = &session_data_r;
+  inherited::state_.sessionData = &session_data_r;
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   session_data_r.inputFormat = configuration_p->format;
-//  session_data_r.sessionID = configuration_p->sessionID;
+#else
+  session_data_r.inputFormat = configuration_p->inputFormat;
+#endif
+  //  session_data_r.sessionID = configuration_p->sessionID;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
   //  configuration_in.moduleConfiguration.streamState = &state_;
@@ -1218,103 +1225,6 @@ void
 Test_I_Target_Stream::ping ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-bool
-Test_I_Target_Stream::collect (Test_I_Statistic_t& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  int result = -1;
-  struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("StatisticReport")));
-    return false;
-  } // end IF
-  Test_I_Target_Statistic_WriterTask_t* statistic_impl_p =
-    dynamic_cast<Test_I_Target_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!statistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Module_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
-
-  // synch access
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->acquire ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      return false;
-    } // end IF
-  } // end IF
-
-  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
-
-  // delegate to the statistic module
-  bool result_2 = false;
-  try {
-    result_2 = statistic_impl_p->collect (data_out);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (stream_name_string_)));
-  }
-  if (!result_2)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-  else
-    session_data_r.statistic = data_out;
-
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->release ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (stream_name_string_)));
-  } // end IF
-
-  return result_2;
-}
-
-void
-Test_I_Target_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

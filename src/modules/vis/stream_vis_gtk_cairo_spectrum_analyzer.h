@@ -54,7 +54,7 @@
 #include "gtk/gtkgl.h" // gtkglext
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif
+#endif // GTKGL_SUPPORT
 
 #include "common_icounter.h"
 #include "common_iget.h"
@@ -235,7 +235,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 
   Stream_ResetCounterHandler                               renderHandler_;
-  long                                                     renderHandlerTimerId_;
+  long                                                    renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                           sampleIterator_;
 

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+option (SSL_SUPPORT "enable SSL support" OFF)
 
 if (UNIX)
  include (CheckLibraryExists)
@@ -35,41 +35,48 @@ else ()
  #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
-set (ACE_SSL_LIB_FILE libACE_SSL.so)
-if (UNIX)
- find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib
-               DOC "searching for ${ACE_SSL_LIB_FILE}"
-               NO_DEFAULT_PATH)
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
+if (SSL_SUPPORT)
+ set (ACE_SSL_LIB_FILE libACE_SSL.so)
+ if (UNIX)
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
+                PATHS ENV ACE_ROOT
+                PATH_SUFFIXES lib
+                DOC "searching for ${ACE_SSL_LIB_FILE}"
+                NO_DEFAULT_PATH)
+ elseif (WIN32)
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   set (LIB_FILE_SUFFIX d)
+  endif ()
+  unset (ACE_SSL_LIB_FILE)
+  set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                PATHS ENV ACE_ROOT
+                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
+                DOC "searching for ${ACE_SSL_LIB_FILE}"
+                NO_DEFAULT_PATH)
  endif ()
- unset (ACE_SSL_LIB_FILE)
- set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_SSL_LIB_FILE}"
-               NO_DEFAULT_PATH)
-endif ()
-#if (NOT EXISTS ACE_SSL_LIBRARY)
-if (NOT ACE_SSL_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
+ #if (NOT EXISTS ACE_SSL_LIBRARY)
+ if (NOT ACE_SSL_LIBRARY)
+  message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
+ else ()
+  #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
+ endif ()
 endif ()
 
 include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
- pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
- pkg_check_modules (PKG_SSL REQUIRED libssl)
+ if (SSL_SUPPORT)
+  pkg_check_modules (PKG_SSL REQUIRED libssl)
+ endif ()
+ if (DBUS_SUPPORT)
+  pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+ endif ()
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
 endif ()
 
 #pkg_check_modules (PKG_MYSQL REQUIRED libmysql)
@@ -150,8 +157,12 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_DBUS_INCLUDE_DIRS})
- include_directories (${PKG_SSL_INCLUDE_DIRS})
+ if (SSL_SUPPORT)
+  include_directories (${PKG_SSL_INCLUDE_DIRS})
+ endif ()
+ if (DBUS_SUPPORT)
+  include_directories (${PKG_DBUS_INCLUDE_DIRS})
+ endif ()
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
 
@@ -270,11 +281,15 @@ elseif (WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
-target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
+if (SSL_SUPPORT)
+ target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
+endif ()
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  #target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
 # *TODO*: repair pkgconfig support

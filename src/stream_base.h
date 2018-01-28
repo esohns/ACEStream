@@ -230,8 +230,8 @@ class Stream_Base_T
   virtual typename ISTREAM_T::STREAM_T* upstream (bool = false) const; // recurse (if any) ?
 
   // implement Stream_ILinkCB
-  inline virtual void onLink () {};
-  inline virtual void onUnlink () {};
+  inline virtual void onLink () {}
+  inline virtual void onUnlink () {}
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -243,7 +243,7 @@ class Stream_Base_T
   //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename CONFIGURATION_T&);
+  virtual bool initialize (const CONFIGURATION_T&);
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to the statistic report module (if any)

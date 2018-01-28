@@ -227,20 +227,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                            unsigned int&);
 #else
   inline enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat* format_in) { ACE_ASSERT (format_in); enum AVPixelFormat format_e = *format_in; return format_e; }
-  inline enum AVPixelFormat& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { enum AVPixelFormat format_e = AV_PIX_FMT_NONE; ACE_ASSERT (false); ACE_NOTSUP_RETURN (format_e); ACE_NOTREACHED (return format_e;) };
-  inline struct AVRational& getFrameRate_impl (const SessionDataType&,
-                                               const Stream_Module_Device_ALSAConfiguration*) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) };
-  inline void getResolution_impl (const SessionDataType& sessionData_in,
-                                  const enum AVPixelFormat*,
-                                  unsigned int& width_out,
-                                  unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; };
-  inline void getResolution_impl (const SessionDataType&,
-                                  const Stream_Module_Device_ALSAConfiguration*,
-                                  unsigned int& width_out,
-                                  unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline enum AVPixelFormat& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { enum AVPixelFormat format_e = AV_PIX_FMT_NONE; ACE_ASSERT (false); ACE_NOTSUP_RETURN (format_e); ACE_NOTREACHED (return format_e;) }
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) }
+  inline void getResolution_impl (const SessionDataType& sessionData_in, const enum AVPixelFormat*, unsigned int& width_out, unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; }
+  inline void getResolution_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*, unsigned int& width_out, unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 #endif
-  inline struct AVRational& getFrameRate_impl (const SessionDataType&,
-                                               const enum AVPixelFormat*) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; };
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const enum AVPixelFormat*) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; }
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 };
@@ -343,8 +335,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
   inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); } // return value: media type handle
-  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,                               // session data
-                                                     const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; }; // return value: frame rate handle
+  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in, const struct v4l2_format&) { return sessionData_in.frameRate; } // return value: frame rate handle
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 };

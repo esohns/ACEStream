@@ -1,5 +1,5 @@
-option (GTK3_SUPPORT "enable Gtk3 support"
-        ON)
+option (SSL_SUPPORT "enable SSL support" OFF)
+option (GTK3_SUPPORT "enable Gtk3 support" ON)
 
 if (UNIX)
  include (CheckLibraryExists)
@@ -37,31 +37,33 @@ else ()
  #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
-set (ACE_SSL_LIB_FILE libACE_SSL.so)
-if (UNIX)
- find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib
-               DOC "searching for ${ACE_SSL_LIB_FILE}"
-               NO_DEFAULT_PATH)
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
+if (SSL_SUPPORT)
+ set (ACE_SSL_LIB_FILE libACE_SSL.so)
+ if (UNIX)
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
+                PATHS ENV ACE_ROOT
+                PATH_SUFFIXES lib
+                DOC "searching for ${ACE_SSL_LIB_FILE}"
+                NO_DEFAULT_PATH)
+ elseif (WIN32)
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   set (LIB_FILE_SUFFIX d)
+  endif ()
+  unset (ACE_SSL_LIB_FILE)
+  set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                PATHS ENV ACE_ROOT
+                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
+                DOC "searching for ${ACE_SSL_LIB_FILE}"
+                NO_DEFAULT_PATH)
  endif ()
- unset (ACE_SSL_LIB_FILE)
- set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_SSL_LIB_FILE}"
-               NO_DEFAULT_PATH)
-endif ()
-#if (NOT EXISTS ACE_SSL_LIBRARY)
-if (NOT ACE_SSL_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
+ #if (NOT EXISTS ACE_SSL_LIBRARY)
+ if (NOT ACE_SSL_LIBRARY)
+  message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
+ else ()
+  #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
+ endif ()
 endif ()
 
 include (FindPkgConfig)
@@ -69,8 +71,10 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  #pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
- pkg_check_modules (PKG_SSL REQUIRED libssl)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec)
+ if (SSL_SUPPORT)
+  pkg_check_modules (PKG_SSL REQUIRED libssl)
+ endif ()
+ pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
@@ -135,7 +139,9 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_SSL_INCLUDE_DIRS})
+ if (SSL_SUPPORT)
+  include_directories (${PKG_SSL_INCLUDE_DIRS})
+ endif ()
 
  if (GTK3_SUPPORT)
   include_directories (${PKG_GTK3_INCLUDE_DIRS})
@@ -156,7 +162,9 @@ if (UNIX)
 elseif (WIN32)
  include_directories ($ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+ if (SSL_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+ endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  # *TODO*: repair pkgconfig support
@@ -261,6 +269,8 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} iw)
  target_link_libraries (${EXECUTABLE} X11)
 
+ target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+
  if (GTK3_SUPPORT)
   target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
  else ()
@@ -292,13 +302,15 @@ elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
-target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  #target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
+endif ()
+target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+if (SSL_SUPPORT)
+ target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
