@@ -1,6 +1,8 @@
 include (CMakeDependentOption)
-
-option (GTK_SUPPORT "enable GTK support" ON)
+CMAKE_DEPENDENT_OPTION (GTK3_SUPPORT "enable GTK 3 support" ON
+                        "GTK_SUPPORT" OFF)
+CMAKE_DEPENDENT_OPTION (GTK2_SUPPORT "enable GTK 2 support" ON
+                        "GTK_SUPPORT; NOT GTK3_SUPPORT" OFF)
 #option (GTKGL_SUPPORT "enable GTK OpenGL support" ON)
  # *NOTE*: implies GTK_SUPPORT on
 CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON

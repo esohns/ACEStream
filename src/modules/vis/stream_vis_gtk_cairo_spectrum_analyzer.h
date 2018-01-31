@@ -48,7 +48,7 @@
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-//#include <gtkgl/gdkgl.h>
+//#include "gtkgl/gdkgl.h"
 #include "gtkgl/gtkglarea.h"
 #else
 #include "gtk/gtkgl.h" // gtkglext
@@ -73,7 +73,7 @@
 
 extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
-enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
+enum Stream_Module_Visualization_SpectrumAnalyzer2DMode : int
 { // *TODO*: implement discrete modes of operation
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM,
@@ -81,7 +81,7 @@ enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX,
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID
 };
-enum Stream_Module_Visualization_SpectrumAnalyzer3DMode
+enum Stream_Module_Visualization_SpectrumAnalyzer3DMode : int
 {
   STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
   ////////////////////////////////////////
@@ -235,7 +235,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 
   Stream_ResetCounterHandler                               renderHandler_;
-  long                                                    renderHandlerTimerId_;
+  long                                                     renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                           sampleIterator_;
 

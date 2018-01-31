@@ -8636,22 +8636,37 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
   ACE_ASSERT (userData_in);
 
-  GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
-  ACE_ASSERT (gl_area_p);
-  // NOTE*: the OpenGL context has been created at this point
-  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
-  ACE_ASSERT (context_p);
-  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
-  ACE_ASSERT (data_base_p);
-
-  // load the texture
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p =
     NULL;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+#else
+  struct Test_U_AudioEffect_GTK_CBData* data_p = NULL;
+  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator;
+#endif
+  GLuint* texture_id_p = NULL;
+  GtkAllocation allocation;
+
+  GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
+  ACE_ASSERT (gl_area_p);
+  // NOTE*: the OpenGL context has been created at this point
+  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
+                gl_area_p));
+    goto error;
+  } // end IF
+  data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  ACE_ASSERT (data_base_p);
+
+  // load the texture
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
@@ -8677,13 +8692,12 @@ glarea_realize_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_data_p->configuration->streamConfiguration.end ());
   } // end ELSE
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  data_p = static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -8710,7 +8724,6 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (gtk_gl_area_get_has_depth_buffer (gl_area_p));
 
   // load texture
-  GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     texture_id_p =
@@ -8743,7 +8756,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     if (!*texture_id_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
                   ACE_TEXT (filename.c_str ())));
       goto error;
     } // end IF
@@ -8753,7 +8766,6 @@ glarea_realize_cb (GtkWidget* widget_in,
   } // end IF
 
   // initialize perspective
-  GtkAllocation allocation;
   gtk_widget_get_allocation (widget_in,
                              &allocation);
   glViewport (0, 0,

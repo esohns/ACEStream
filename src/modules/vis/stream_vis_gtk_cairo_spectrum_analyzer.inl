@@ -91,7 +91,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , height_ (0)
  , width_ (0)
  , mode2D_ (NULL)
+#if defined (GTKGL_SUPPORT)
  , mode3D_ (NULL)
+#endif
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
@@ -225,7 +227,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     height_ = width_ = 0;
 
     mode2D_ = NULL;
+#if defined (GTKGL_SUPPORT)
     mode3D_ = NULL;
+#endif
   } // end IF
 
   mode2D_ =
@@ -278,8 +282,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (width_);
 
 continue_:
+#if defined (GTKGL_SUPPORT)
   mode3D_ =
     &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
+#endif
 
 #if defined (GTKGL_SUPPORT)
   // initialize OpenGL ?
@@ -318,7 +324,11 @@ continue_:
 
 continue_2:
 #if defined (_DEBUG)
-  if (unlikely (!mode2D_ && !mode3D_))
+  if (unlikely (!mode2D_
+#if defined (GTKGL_SUPPORT)
+                && !mode3D_
+#endif
+                ))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no graphics output\n"),
                 inherited::mod_->name ()));

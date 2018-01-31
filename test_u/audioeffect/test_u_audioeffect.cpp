@@ -1144,7 +1144,7 @@ do_work (unsigned int bufferSize_in,
     goto error;
   } // end IF
 
-  // step1a: start GTK event loop ?
+  // step1a: start vent loop ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
     itask_control_p =
@@ -1471,6 +1471,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
+  bool use_reactor = COMMON_EVENT_USE_REACTOR;
   struct Test_U_AudioEffect_GTK_CBDataBase* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
@@ -1484,6 +1485,8 @@ ACE_TMAIN (int argc_in,
     gtk_cb_data_p = &mediafoundation_gtk_cb_data;
     gtk_cb_data_p->useMediaFoundation = true;
     mediafoundation_gtk_cb_data.configuration = &mediafoundation_configuration;
+    use_reactor =
+        mediafoundation_configuration.signalHandlerConfiguration.useReactor;
   } // end IF
   else
   {
@@ -1491,6 +1494,8 @@ ACE_TMAIN (int argc_in,
       &directshow_gtk_cb_data;
     gtk_cb_data_p = &directshow_gtk_cb_data;
     directshow_gtk_cb_data.configuration = &directshow_configuration;
+    use_reactor =
+        directshow_configuration.signalHandlerConfiguration.useReactor;
   } // end ELSE
 #else
   struct Test_U_AudioEffect_Configuration configuration;
@@ -1498,12 +1503,14 @@ ACE_TMAIN (int argc_in,
   gtk_cb_data.progressData.state = &gtk_cb_data;
   gtk_cb_data_p = &gtk_cb_data;
   gtk_cb_data.configuration = &configuration;
+  use_reactor =
+      configuration.signalHandlerConfiguration.useReactor;
 #endif
   ACE_ASSERT (gtk_cb_data_p);
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,0,0)
   if (!UI_CSS_file.empty ())
     gtk_cb_data_p->CSSProviders[UI_CSS_file] = NULL;
-#endif
+#endif // GTK_CHECK_VERSION (3,0,0)
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_data_p->logStack,
                           &gtk_cb_data_p->logStackLock);
@@ -1560,7 +1567,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           COMMON_EVENT_USE_REACTOR,
+                                           use_reactor,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1578,8 +1585,8 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Test_U_AudioEffect_SignalHandler signal_handler ((gtk_cb_data_p->configuration->signalHandlerConfiguration.useReactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_U_AudioEffect_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                    &gtk_cb_data_p->lock);
 
   // step1f: handle specific program modes
@@ -1587,8 +1594,8 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
