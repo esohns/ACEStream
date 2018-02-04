@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -20,3 +20,8 @@
 #include "stdafx.h"
 
 #include "stream_statemachine_control.h"
+
+#include "stream_defines.h"
+
+const char stream_statemachine_control_name_string_[] =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_STATEMACHINE_CONTROL_NAME);

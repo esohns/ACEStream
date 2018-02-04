@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -46,12 +46,15 @@
 
 // module
 #define STREAM_MODULE_TASK_GROUP_ID                      10
-#define STREAM_MODULE_DEFAULT_HEAD_THREADS               1
 #define STREAM_MODULE_THREAD_NAME                        "stream dispatch"
+#define STREAM_MODULE_DEFAULT_HEAD_THREADS               1
 
 // modules (generic)
-#define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES            false
 #define STREAM_MODULE_HEAD_NAME                          "StreamHead"
+#define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES            false
+
+// state-machine
+#define STREAM_STATEMACHINE_CONTROL_NAME                 "StreamStateMachineControl"
 
 // stream
 #define STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL     500 // ms [0: off]

@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -32,13 +32,17 @@
 // forward declarations
 class ACE_Time_Value;
 
+extern const char stream_statemachine_control_name_string_[];
+
 template <ACE_SYNCH_DECL>
 class Stream_StateMachine_Control_T
- : public Common_StateMachine_Base_T<ACE_SYNCH_USE,
+ : public Common_StateMachine_Base_T<stream_statemachine_control_name_string_,
+                                     ACE_SYNCH_USE,
                                      enum Stream_StateMachine_ControlState,
                                      Common_IStateMachine_2<enum Stream_StateMachine_ControlState> >
 {
-  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
+  typedef Common_StateMachine_Base_T<stream_statemachine_control_name_string_,
+                                     ACE_SYNCH_USE,
                                      enum Stream_StateMachine_ControlState,
                                      Common_IStateMachine_2<enum Stream_StateMachine_ControlState> > inherited;
 
@@ -52,7 +56,8 @@ class Stream_StateMachine_Control_T
 
  protected:
   // convenient types
-  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
+  typedef Common_StateMachine_Base_T<stream_statemachine_control_name_string_,
+                                     ACE_SYNCH_USE,
                                      enum Stream_StateMachine_ControlState,
                                      Common_IStateMachine_2<enum Stream_StateMachine_ControlState> > STATEMACHINE_BASE_T;
 
