@@ -1,4 +1,4 @@
-option (SSL_SUPPORT "enable SSL support" OFF)
+﻿option (SSL_SUPPORT "enable SSL support" OFF)
 option (GTK3_SUPPORT "enable Gtk3 support" ON)
 
 if (UNIX)
@@ -74,7 +74,7 @@ if (UNIX)
  if (SSL_SUPPORT)
   pkg_check_modules (PKG_SSL REQUIRED libssl)
  endif ()
- pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
@@ -136,8 +136,6 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
-
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  if (SSL_SUPPORT)
   include_directories (${PKG_SSL_INCLUDE_DIRS})
@@ -148,6 +146,10 @@ if (UNIX)
  else ()
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
+
+ include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)

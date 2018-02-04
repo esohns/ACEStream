@@ -1,4 +1,4 @@
-option (SSL_SUPPORT "enable SSL support" OFF)
+﻿option (SSL_SUPPORT "enable SSL support" OFF)
 
 if (UNIX)
  include (CheckLibraryExists)
@@ -76,7 +76,7 @@ if (UNIX)
  endif ()
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
 endif ()
 
 #pkg_check_modules (PKG_MYSQL REQUIRED libmysql)
@@ -165,6 +165,7 @@ if (UNIX)
  endif ()
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
+ include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)

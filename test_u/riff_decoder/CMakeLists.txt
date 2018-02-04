@@ -1,4 +1,4 @@
-if (UNIX)
+﻿if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -7,11 +7,11 @@ endif ()
 
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
- set (AIO_LIB_FILE libaio.a)
- find_library (AIO_LIBRARY ${AIO_LIB_FILE}
-               PATHS /lib /usr/lib
-               PATH_SUFFIXES x86_64-linux-gnu
-               DOC "searching for ${AIO_LIB_FILE}")
+# set (AIO_LIB_FILE libaio.a)
+# find_library (AIO_LIBRARY ${AIO_LIB_FILE}
+#               PATHS /lib /usr/lib
+#               PATH_SUFFIXES x86_64-linux-gnu
+#               DOC "searching for ${AIO_LIB_FILE}")
 
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}

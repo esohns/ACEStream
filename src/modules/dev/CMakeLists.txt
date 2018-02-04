@@ -1,10 +1,13 @@
-include (FindPkgConfig)
+﻿include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
 endif ()
 
 if (UNIX)
+ include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
