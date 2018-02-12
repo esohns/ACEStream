@@ -1967,15 +1967,9 @@ error_2:
   //         --> parse output of 'sox -h'
   // *TODO*: apparently, SoX also 'sox_effect_find()'s LADSPA effects in the
   //         directory specified by the LADSPA_HOME environment variable
-  // sanity check(s)
-
-  std::string temporary_filename_prefix = ACE_TEXT_ALWAYS_CHAR ("output");
-  std::string temporary_filename_string;
-  std::string command_line =
+  std::string command_line_string =
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND);
-  command_line += ACE_TEXT_ALWAYS_CHAR (" > ");
   int result_2 = -1;
-  unsigned char* data_p = NULL;
   std::string command_output_string;
   std::string::size_type start_position, end_position;
   char* saveptr_p = NULL;
@@ -1983,53 +1977,21 @@ error_2:
   char buffer[BUFSIZ];
   ACE_OS::memset (buffer, 0, BUFSIZ);
 
-  if (ACE_OS::system (NULL) == 0)
+  if (!Common_Tools::command (command_line_string,
+                              command_output_string))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::system(NULL): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to Common_Tools::command(\"%s\"), aborting\n"),
+                ACE_TEXT (command_line_string.c_str ())));
     goto continue_;
   } // end IF
-
-  temporary_filename_string =
-      Common_File_Tools::getTempFilename (temporary_filename_prefix);
-  if (temporary_filename_string.empty ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_File_Tools::getTempFilename(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (temporary_filename_prefix.c_str ())));
-    goto continue_;
-  } // end IF
-  command_line += temporary_filename_string;
-  result_2 = ACE_OS::system (ACE_TEXT (command_line.c_str ()));
-  if (result_2 == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::system(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (command_line.c_str ())));
-    goto continue_;
-  } // end IF
-  if (!Common_File_Tools::load (temporary_filename_string,
-                                data_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_File_Tools::load(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (temporary_filename_string.c_str ())));
-    goto continue_;
-  } // end IF
-  ACE_ASSERT (data_p);
-  command_output_string = reinterpret_cast<char*> (data_p);
-  delete [] data_p;
-  if (!Common_File_Tools::deleteFile (temporary_filename_string))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_File_Tools::deleteFile(\"%s\"): \"%m\", continuing\n"),
-                ACE_TEXT (temporary_filename_string.c_str ())));
-
   start_position =
       command_output_string.find (ACE_TEXT_ALWAYS_CHAR ("EFFECTS: "));
   if (start_position == std::string::npos)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to parse shell command output, aborting\n")));
+                ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
+                ACE_TEXT (command_output_string.c_str ())));
     goto continue_;
   } // end IF
   end_position =
@@ -2038,7 +2000,8 @@ error_2:
   if (end_position == std::string::npos)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to parse shell command output, aborting\n")));
+                ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
+                ACE_TEXT (command_output_string.c_str ())));
     goto continue_;
   } // end IF
   command_output_string.copy (buffer,
@@ -2051,28 +2014,25 @@ error_2:
   if (!effect_string_p)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to parse shell command output: \"%m\", continuing\n")));
+                ACE_TEXT ("failed to parse shell command output (was: \"%s\"), aborting\n"),
+                ACE_TEXT (command_output_string.c_str ())));
 
     result = true;
 
     goto continue_;
   } // end IF
-  gtk_list_store_append (listStore_in, &iterator);
-  gtk_list_store_set (listStore_in, &iterator,
-                      0, ACE_TEXT (effect_string_p),
-                      -1);
   do
   {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, ACE_TEXT (effect_string_p),
+                        -1);
+
     effect_string_p = ACE_OS::strtok_r (NULL,
                                         ACE_TEXT_ALWAYS_CHAR (" "),
                                         &saveptr_p);
     if (!effect_string_p)
       break; // done
-
-    gtk_list_store_append (listStore_in, &iterator);
-    gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (effect_string_p),
-                        -1);
   } while (true);
 
   result = true;

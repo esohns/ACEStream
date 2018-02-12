@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -127,11 +127,6 @@ class Stream_Base_T
 
  public:
   // convenient types
-  typedef Stream_Configuration_T<//StreamName,
-                                 AllocatorConfigurationType,
-                                 ConfigurationType,
-                                 ModuleConfigurationType,
-                                 HandlerConfigurationType> CONFIGURATION_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
@@ -153,6 +148,12 @@ class Stream_Base_T
                                   NotificationType,
                                   StatusType,
                                   StateType> ISTREAM_CONTROL_T;
+  typedef Stream_Configuration_T<//StreamName,
+                                 AllocatorConfigurationType,
+                                 ConfigurationType,
+                                 ModuleConfigurationType,
+                                 HandlerConfigurationType> CONFIGURATION_T;
+  typedef Common_IInitialize_T<CONFIGURATION_T> IINITIALIZE_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
