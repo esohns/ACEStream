@@ -1,4 +1,4 @@
-include (FindPkgConfig)
+﻿include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
@@ -6,11 +6,30 @@ if (UNIX)
 endif ()
 
 if (UNIX)
- include_directories (${PKG_SOX_INCLUDE_DIRS})
-# include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+elseif (WIN32)
+ add_definitions (-D_USE_MATH_DEFINES)
+ add_definitions (-DWIN32)
+endif ()
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/image)
+add_library (${PROJECT_NAME}_Decoder STATIC "")
+
+if (UNIX)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+# include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/image>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
@@ -23,14 +42,15 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()
 #message (STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 
 ############## next target ################
-set (${PROJECT_NAME}_Decoder_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_dec_avi_decoder.cpp
      stream_dec_avi_decoder.h
      stream_dec_avi_decoder.inl
@@ -66,22 +86,40 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
 if (UNIX)
- set (${PROJECT_NAME}_Decoder_LIB_SRCS ${ACEStream_Decoder_LIB_SRCS}
+ set (source_files
+      ${source_files}
       stream_dec_sox_effect.cpp
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
-endif ()
-set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
+endif (UNIX)
+set (script_files
      scripts/avi_scanner.l
      scripts/avi_parser.y
      scripts/h264_nal_bisector.l)
 
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-elseif (WIN32)
- add_definitions (-D_USE_MATH_DEFINES)
- add_definitions (-DWIN32)
-endif ()
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+       ${abs_source_file})
+  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+unset (absolute_script_files)
+foreach (script_file ${script_files})
+ get_filename_component (abs_script_file ${script_file} ABSOLUTE)
+ list (APPEND absolute_script_files
+       ${absolute_script_file})
+endforeach ()
+target_sources (${PROJECT_NAME}_Decoder
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                PRIVATE
+                ${absolute_source_files}
+                INTERFACE
+                ${absolute_script_files})
 
 set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
@@ -96,9 +134,6 @@ if (WIN32)
  source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
 endif ()
 
-add_library (${PROJECT_NAME}_Decoder SHARED
-             ${ACEStream_Decoder_LIB_SRCS}
-             ${ACEStream_Decoder_LIB_SCRIPTS})
 set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Decoder Common)

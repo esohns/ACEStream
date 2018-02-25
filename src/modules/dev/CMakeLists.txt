@@ -5,13 +5,19 @@ if (UNIX)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
 endif ()
 
+add_library (${PROJECT_NAME}_Device STATIC "")
+
 if (UNIX)
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer>)
 elseif (WIN32)
  # *NOTE*: workaround
 # set(_PF86 "ProgramFiles(x86)")
@@ -31,44 +37,28 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR})
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
+#target_include_directories (${PROJECT_NAME}_Device PUBLIC
+#                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
 
 ############## next target ################
-if (UNIX)
- set (${PROJECT_NAME}_Device_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_dev_exports.h
-      stream_dev_common.h
-      stream_dev_defines.h
-      stream_dev_tools.cpp
-      stream_dev_tools.h
-      stream_dev_tools.inl
-      stream_dev_cam_source_v4l.cpp
-      stream_dev_cam_source_v4l.h
-      stream_dev_cam_source_v4l.inl
-      stream_dev_mic_source_alsa.cpp
-      stream_dev_mic_source_alsa.h
-      stream_dev_mic_source_alsa.inl
-      stream_dev_target_alsa.cpp
-      stream_dev_target_alsa.h
-      stream_dev_target_alsa.inl)
-elseif (WIN32)
- set (${PROJECT_NAME}_Device_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_dev_exports.h
-      stream_dev_common.h
-      stream_dev_defines.h
+set (source_files
+     stream_dev_exports.h
+     stream_dev_common.h
+     stream_dev_defines.h
+     stream_dev_tools.cpp
+     stream_dev_tools.h
+     stream_dev_tools.inl)
+if (WIN32)
+ set (source_files
+      ${source_files}
       stream_dev_directshow_tools.cpp
       stream_dev_directshow_tools.h
       stream_dev_mediafoundation_tools.cpp
       stream_dev_mediafoundation_tools.h
-      stream_dev_tools.cpp
-      stream_dev_tools.h
-      stream_dev_tools.inl
       stream_dev_cam_source_directshow.cpp
       stream_dev_cam_source_directshow.h
       stream_dev_cam_source_directshow.inl
@@ -90,7 +80,37 @@ elseif (WIN32)
       stream_mediafoundation_message_base.cpp
       stream_mediafoundation_message_base.h
       stream_mediafoundation_message_base.inl)
+elseif (UNIX)
+ set (source_files
+      ${source_files}
+      stream_dev_cam_source_v4l.cpp
+      stream_dev_cam_source_v4l.h
+      stream_dev_cam_source_v4l.inl
+      stream_dev_mic_source_alsa.cpp
+      stream_dev_mic_source_alsa.h
+      stream_dev_mic_source_alsa.inl
+      stream_dev_target_alsa.cpp
+      stream_dev_target_alsa.h
+      stream_dev_target_alsa.inl)
 endif ()
+
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Device
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -100,8 +120,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
  add_compile_options (-std=c++11 -fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Device SHARED
-             ${ACEStream_Device_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Device Common)

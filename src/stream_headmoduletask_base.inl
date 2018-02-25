@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -563,10 +563,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #endif
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %sthread (id: %t) starting\n"),
+              ACE_TEXT ("%s: %sthread (id: %t, group: %d) starting\n"),
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
-                                                                   : ACE_TEXT (""))));
+                                                                   : ACE_TEXT ("")),
+              inherited::grp_id_));
 #endif
 
   // sanity check(s)

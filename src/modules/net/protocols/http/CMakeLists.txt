@@ -1,31 +1,59 @@
-cmake_minimum_required (VERSION 2.8)
+﻿add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http)
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src>)
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http>)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libACENetwork/src/protocol/http)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../dec)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../stat)
+target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../..>)
+target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../dec>)
+target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../stat>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (${PROJECT_NAME}_Network_Protocol_HTTPGet_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_module_source_http_get.cpp
      stream_module_source_http_get.h
      stream_module_source_http_get.inl
      stream_net_http_defines.h
      stream_net_http_exports.h)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+       PRIVATE ${abs_source_file}
+      )
+#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Network_Protocol_HTTPGet
+               PRIVATE stdafx.cpp
+               PRIVATE stdafx.h
+               ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
  add_compile_options (-std=c++11)
 endif ()
 
-add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet SHARED
-             ${ACEStream_Network_Protocol_HTTPGet_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet Common)

@@ -1,4 +1,4 @@
-# target system introspection (see configure.ac)
+﻿# target system introspection (see configure.ac)
 include (CheckFunctionExists)
 if (UNIX)
  check_function_exists (gettimeofday HAVE_FUNC_GETTIMEOFDAY)
@@ -66,24 +66,35 @@ add_definitions (-DCOMMON_HAS_DLL)
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
+# ........................................
+
+add_library (${PROJECT_NAME} STATIC "")
+
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer>)
 else ()
  include_directories ($ENV{ACE_ROOT})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer)
 endif ()
-include_directories (${Common_INCLUDE_DIRS})
+#include_directories (${Common_INCLUDE_DIRS})
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR})
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/stat)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/lib>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/stat>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 
 ############## next target ################
-set (${PROJECT_NAME}_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_allocatorbase.cpp
      stream_allocatorbase.h
      stream_allocatorbase.inl
@@ -188,6 +199,23 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_tools.cpp
      stream_tools.h)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+foreach (source_file ${source_files})
+get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+list (APPEND absolute_source_files
+      PRIVATE ${abs_source_file}
+     )
+#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
 set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
 string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
@@ -195,8 +223,6 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
  add_compile_options (-fPIC)
  add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
 endif ()
-
-add_library (${PROJECT_NAME} STATIC ${ACEStream_LIB_SRCS})
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${PROJECT_NAME} Common)

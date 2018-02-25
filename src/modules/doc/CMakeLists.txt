@@ -4,16 +4,27 @@ if (UNIX)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
 endif ()
 
+add_library (${PROJECT_NAME}_Document STATIC "")
+
 if (UNIX)
 # include_directories (${PKG_DBUS_INCLUDE_DIRS})
 # include_directories (/usr/lib/libreoffice/sdk/include)
- include_directories (/usr/include/libreoffice)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:/usr/include/libreoffice>)
 
  add_definitions (-DSAL_UNX) # libreoffice
  add_definitions (-DUNX)     # openoffice
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src>)
 elseif (WIN32)
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
@@ -37,13 +48,13 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
+target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
 
 ############## next target ################
-set (${PROJECT_NAME}_Document_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_document_defines.h
      stream_document_exports.h
      stream_module_libreoffice_document_handler.cpp
@@ -52,12 +63,28 @@ set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_module_libreoffice_document_writer.h
      stream_module_libreoffice_document_writer.inl)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+       PRIVATE ${abs_source_file}
+      )
+#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Document
+               PRIVATE stdafx.cpp
+               PRIVATE stdafx.h
+               ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-std=c++0x -fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Document SHARED
-             ${ACEStream_Document_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Document Common)

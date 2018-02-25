@@ -1,42 +1,57 @@
+﻿add_library (${PROJECT_NAME}_Statistic STATIC "")
+
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math>)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
+set (source_files
+     stream_stat_common.h
+     stream_stat_defines.h
+     stream_stat_exports.h
+     stream_stat_statistic_analysis.cpp
+     stream_stat_statistic_analysis.h
+     stream_stat_statistic_analysis.inl
+     stream_stat_statistic_report.cpp
+     stream_stat_statistic_report.h
+     stream_stat_statistic_report.inl)
 if (WIN32)
- set (${PROJECT_NAME}_Statistic_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_stat_common.h
-      stream_stat_defines.h
-      stream_stat_exports.h
-      stream_stat_statistic_analysis.cpp
-      stream_stat_statistic_analysis.h
-      stream_stat_statistic_analysis.inl
-      stream_stat_statistic_report.cpp
-      stream_stat_statistic_report.h
-      stream_stat_statistic_report.inl
+ set (source_files
+      ${source_files}
       targetver.h)
-elseif (UNIX)
- set (${PROJECT_NAME}_Statistic_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_stat_common.h
-      stream_stat_defines.h
-      stream_stat_exports.h
-      stream_stat_statistic_analysis.cpp
-      stream_stat_statistic_analysis.h
-      stream_stat_statistic_analysis.inl
-      stream_stat_statistic_report.cpp
-      stream_stat_statistic_report.h
-      stream_stat_statistic_report.inl)
-endif ()
+endif (WIN32)
+
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Statistic
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -46,8 +61,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Statistic SHARED
-             ${ACEStream_Statistic_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Statistic Common)

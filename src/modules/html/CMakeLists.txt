@@ -1,10 +1,19 @@
+﻿add_library (${PROJECT_NAME}_HTML STATIC "")
+
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
- include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${PKG_LIBXML2_INCLUDE_DIRS}>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libiconv-1.9.2-1/include)
@@ -12,13 +21,12 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (${PROJECT_NAME}_HTML_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_module_htmlparser.cpp
      stream_module_htmlparser.h
      stream_module_htmlparser.inl
@@ -32,12 +40,28 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_html_tools.cpp
      stream_html_tools.h)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_HTML
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_HTML SHARED
-             ${ACEStream_HTML_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_HTML Common)

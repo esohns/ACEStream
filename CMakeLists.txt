@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+﻿cmake_minimum_required (VERSION 2.8)
 
 # options
 #set (CMAKE_VERBOSE_MAKEFILE ON)
@@ -80,7 +80,7 @@ endforeach ()
 
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
-export (PACKAGE lib${PROJECT_NAME})
+export (PACKAGE ${PROJECT_NAME})
 
 # Create the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake files
 #file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
@@ -89,7 +89,7 @@ set (CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 configure_file (${PROJECT_NAME}Config.cmake.in
                 "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
 # ... for the install tree
-set (CONF_INCLUDE_DIRS "\${LIBACESTREAM_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+set (CONF_INCLUDE_DIRS "\${ACEStream_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 configure_file (${PROJECT_NAME}Config.cmake.in
                 "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" @ONLY)
 # ... for both
@@ -205,7 +205,7 @@ include (cotire)
 set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 
 #if (WIN32)
-# set (CMAKE_GENERATOR_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE) 
+# set (CMAKE_GENERATOR_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE)
 # set (CMAKE_VS_PLATFORM_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE)
 # if (CMAKE_VS_PLATFORM_TOOLSET STREQUAL LLVM-vs2014)
 #  add_compile_options (-Wno-c++11-narrowing)

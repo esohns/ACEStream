@@ -1,6 +1,6 @@
-include (FindPkgConfig)
+﻿include (FindPkgConfig)
 if (UNIX)
- pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+# pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
 endif ()
 
@@ -26,12 +26,22 @@ if (NOT MYSQL_LIBRARY)
 endif ()
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
+add_library (${PROJECT_NAME}_Database STATIC "")
+
 if (UNIX)
- include_directories (${PKG_DBUS_INCLUDE_DIRS})
+ #include_directories (${PKG_DBUS_INCLUDE_DIRS})
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
@@ -41,13 +51,13 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
+target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
 
 ############## next target ################
-set (${PROJECT_NAME}_Database_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_db_exports.h
      stream_module_db_common.h
      stream_module_db_defines.h
@@ -60,12 +70,28 @@ set (${PROJECT_NAME}_Database_LIB_SRCS
      stream_module_mysqlwriter.h
      stream_module_mysqlwriter.inl)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+       PRIVATE ${abs_source_file}
+      )
+#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Database
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Database SHARED
-             ${ACEStream_Database_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Database PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Database Common)

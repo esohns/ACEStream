@@ -1,4 +1,4 @@
-include (CMakeDependentOption)
+﻿include (CMakeDependentOption)
 CMAKE_DEPENDENT_OPTION (GTK3_SUPPORT "enable GTK 3 support" ON
                         "GTK_SUPPORT" OFF)
 CMAKE_DEPENDENT_OPTION (GTK2_SUPPORT "enable GTK 2 support" ON
@@ -49,26 +49,44 @@ if (GTKGLAREA_SUPPORT)
  add_definitions (-DGTKGLAREA_SUPPORT)
 endif ()
 
+add_library (${PROJECT_NAME}_Visualization STATIC "")
+
 if (UNIX)
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
  if (GTK3_SUPPORT)
-  include_directories (${PKG_GTK3_INCLUDE_DIRS})
+#  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                              $<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              ${PKG_GTK3_INCLUDE_DIRS})
   if (GTKGL_SUPPORT AND GTKGLAREA_SUPPORT)
-   include_directories (${PKG_GTKGLAREA3_INCLUDE_DIRS})
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${PKG_GTKGLAREA3_INCLUDE_DIRS}>)
   endif ()
  else ()
-  include_directories (${PKG_GTK2_INCLUDE_DIRS})
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
   if (GTKGL_SUPPORT)
    if (GTKGLAREA_SUPPORT)
-    include_directories (${PKG_GTKGLAREA2_INCLUDE_DIRS})
+    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                $<BUILD_INTERFACE:${PKG_GTKGLAREA2_INCLUDE_DIRS}>)
    else ()
-    include_directories (${PKG_GTKGL2_INCLUDE_DIRS})
+    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                $<BUILD_INTERFACE:${PKG_GTKGL2_INCLUDE_DIRS}>)
    endif ()
   endif ()
  endif ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  # *NOTE*: workaround
  set(_PF86 "ProgramFiles(x86)")
@@ -115,26 +133,36 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 
 ############## next target ################
+set (source_files
+     stream_vis_common.h
+     stream_vis_defines.h
+     stream_vis_exports.h
+     stream_vis_gtk_cairo.cpp
+     stream_vis_gtk_cairo.h
+     stream_vis_gtk_cairo.inl
+     stream_vis_gtk_cairo_spectrum_analyzer.cpp
+     stream_vis_gtk_cairo_spectrum_analyzer.h
+     stream_vis_gtk_cairo_spectrum_analyzer.inl
+     stream_vis_gtk_pixbuf.cpp
+     stream_vis_gtk_pixbuf.h
+     stream_vis_gtk_pixbuf.inl
+     stream_vis_tools.cpp
+     stream_vis_tools.h)
 if (WIN32)
- set (${PROJECT_NAME}_Visualization_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_vis_common.h
-      stream_vis_defines.h
-      stream_vis_exports.h
-      stream_vis_gtk_cairo.cpp
-      stream_vis_gtk_cairo.h
-      stream_vis_gtk_cairo.inl
-      stream_vis_gtk_cairo_spectrum_analyzer.cpp
-      stream_vis_gtk_cairo_spectrum_analyzer.h
-      stream_vis_gtk_cairo_spectrum_analyzer.inl
+ set (source_files
+      ${source_files}
       stream_vis_target_direct3d.cpp
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
@@ -143,31 +171,29 @@ if (WIN32)
       stream_vis_target_directshow.inl
       stream_vis_target_mediafoundation.cpp
       stream_vis_target_mediafoundation.h
-      stream_vis_target_mediafoundation.inl
-      stream_vis_gtk_pixbuf.cpp
-      stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl
-      stream_vis_tools.cpp
-      stream_vis_tools.h)
-else ()
- set (${PROJECT_NAME}_Visualization_LIB_SRCS
-      stream_vis_common.h
-      stream_vis_defines.h
-      stream_vis_exports.h
-      stream_vis_gtk_cairo.cpp
-      stream_vis_gtk_cairo.h
-      stream_vis_gtk_cairo.inl
-      stream_vis_gtk_cairo_spectrum_analyzer.cpp
-      stream_vis_gtk_cairo_spectrum_analyzer.h
-      stream_vis_gtk_cairo_spectrum_analyzer.inl
-      stream_vis_gtk_pixbuf.cpp
-      stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl
-      stream_vis_tools.cpp
-      stream_vis_tools.h
-      stdafx.cpp
-      stdafx.h)
-endif ()
+      stream_vis_target_mediafoundation.inl)
+endif (WIN32)
+
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Visualization
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
+#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
+#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -180,8 +206,6 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
  add_compile_options (-std=c++11 -fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Visualization SHARED
-             ${ACEStream_Visualization_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Visualization Common)

@@ -1,11 +1,13 @@
-if (WIN32)
+﻿if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
  elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
   option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7"
           OFF)
  else ()                                    # Some other Windows
  endif ()
-endif ()
+endif (WIN32)
+
+add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
@@ -17,23 +19,33 @@ if (WIN32)
 endif ()
 
 if (UNIX)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
+set (source_files
+     stream_lib_common.h
+     stream_lib_defines.h
+     stream_lib_exports.h)
 if (WIN32)
- set (${PROJECT_NAME}_MediaFramework_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_lib_common.h
-      stream_lib_defines.h
+ set (source_files
+      ${source_files}
       stream_lib_directshow_allocator.cpp
       stream_lib_directshow_allocator.h
       stream_lib_directshow_allocator.inl
@@ -46,7 +58,6 @@ if (WIN32)
       stream_lib_directshow_target.cpp
       stream_lib_directshow_target.h
       stream_lib_directshow_target.inl
-      stream_lib_exports.h
       stream_lib_mediafoundation_callback.cpp
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl
@@ -63,22 +74,31 @@ if (WIN32)
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
       targetver.h)
-elseif (UNIX)
- set (${PROJECT_NAME}_MediaFramework_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_lib_common.h
-      stream_lib_defines.h
-      stream_lib_exports.h)
-endif ()
+endif (WIN32)
+
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_MediaFramework
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
 
 if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
  # *NOTE*: DirectShow uses 'DEBUG'
  add_definitions (-DDEBUG)
 endif ()
 
-add_library (${PROJECT_NAME}_MediaFramework SHARED
-             ${ACEStream_MediaFramework_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_MediaFramework Common)

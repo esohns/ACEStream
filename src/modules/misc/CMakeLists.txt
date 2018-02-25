@@ -1,20 +1,38 @@
+﻿add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
+
 if (UNIX)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../file)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_misc_aggregator.cpp
      stream_misc_aggregator.h
      stream_misc_aggregator.inl
@@ -37,12 +55,28 @@ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
      stream_misc_splitter.h
      stream_misc_splitter.inl)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+       PRIVATE ${abs_source_file}
+      )
+#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Miscellaneous
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
  add_compile_options (-std=c++11 -fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Miscellaneous SHARED
-             ${ACEStream_Miscellaneous_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)

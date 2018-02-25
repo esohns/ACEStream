@@ -1,7 +1,9 @@
-include (FindPkgConfig)
+﻿include (FindPkgConfig)
 if (UNIX)
- pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+# pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
 endif ()
+
+add_library (${PROJECT_NAME}_Network STATIC "")
 
 # *TODO*: add dependencies
 #find_package (libACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -14,25 +16,37 @@ endif ()
 # message (FATAL_ERROR "could not find libACENetwork, aborting")
 #endif ()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 if (UNIX)
- include_directories (${PKG_DBUS_INCLUDE_DIRS})
+# target_include_directories (${PROJECT_NAME}_Network PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_DBUS_INCLUDE_DIRS}>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src>)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server>)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server)
 endif ()
+target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../..)
 
 ############## next target ################
-set (${PROJECT_NAME}_Network_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
+set (source_files
      stream_net_common.h
      stream_net_defines.h
      stream_net_exports.h
@@ -49,12 +63,28 @@ set (${PROJECT_NAME}_Network_LIB_SRCS
      stream_net_target.h
      stream_net_target.inl)
 
+# Include dir for installed targets
+set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+
+#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+unset (absolute_source_files)
+foreach (source_file ${source_files})
+ get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+ list (APPEND absolute_source_files
+   PRIVATE ${abs_source_file}
+   )
+ #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
+endforeach ()
+target_sources (${PROJECT_NAME}_Network
+                PRIVATE stdafx.cpp
+                PRIVATE stdafx.h
+                ${absolute_source_files})
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
 
-add_library (${PROJECT_NAME}_Network SHARED
-             ${ACEStream_Network_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Network PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Network Common)

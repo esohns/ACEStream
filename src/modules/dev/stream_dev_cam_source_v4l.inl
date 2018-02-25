@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -613,9 +613,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::sessionData_);
 
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread (id: %t) starting...\n"),
-              inherited::mod_->name ()));
+              ACE_TEXT ("%s: worker thread (id: %t, group: %d) starting\n"),
+              inherited::mod_->name (),
+              inherited::grp_id_));
+#endif // _DEBUG
 
   int error = 0;
   bool has_finished = false;
