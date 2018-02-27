@@ -1,5 +1,4 @@
-option (GTK3_SUPPORT "compile Gtk3 support"
-        OFF)
+﻿option (GTK3_SUPPORT "compile Gtk3 support" ON)
 
 if (UNIX)
 # include (CheckLibraryExists)

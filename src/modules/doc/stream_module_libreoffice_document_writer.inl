@@ -203,10 +203,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   ACE_ASSERT (result_2 == osl_Process_E_None);
   uno::Sequence<beans::PropertyValue> document_properties;
 
-  const typename SessionMessageType::DATA_T& session_data_container_r =
-      message_inout->getR ();
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.getR ());
+//  const typename SessionMessageType::DATA_T& session_data_container_r =
+//      message_inout->getR ();
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

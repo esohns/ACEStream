@@ -1,4 +1,4 @@
- # *NOTE*: implies GTK_SUPPORT on
+﻿ # *NOTE*: implies GTK_SUPPORT on
 CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
                         "GTK_SUPPORT" OFF)
 # *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
@@ -77,7 +77,6 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
-# pkg_check_modules (PKG_LIBPNG REQUIRED libpng)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)
@@ -87,6 +86,7 @@ if (UNIX)
   endif ()
   if (GTKGL_SUPPORT)
    pkg_check_modules (PKG_OPENGL REQUIRED gl glu)
+   pkg_check_modules (PKG_LIBPNG REQUIRED libpng)
    if (GTK3_SUPPORT)
     if (GTKGLAREA_SUPPORT)
 #     pkg_check_modules (PKG_GTKGLAREA REQUIRED gtkglarea)
@@ -142,7 +142,7 @@ if (GTK_SUPPORT)
  endif (GTKGL_SUPPORT) # GTKGL_SUPPORT
 endif (GTK_SUPPORT) # GTK_SUPPORT
 
-add_definitions (-DHAVE_CONFIG_H)
+#add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)

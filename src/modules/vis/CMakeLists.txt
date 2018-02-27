@@ -192,8 +192,8 @@ target_sources (${PROJECT_NAME}_Visualization
                 PRIVATE stdafx.h
                 ${absolute_source_files})
 
-#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
+get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
+message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)

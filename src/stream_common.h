@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -39,7 +39,7 @@
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
-#include "stream_statemachine_control.h"
+#include "stream_statemachine_common.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
@@ -308,7 +308,7 @@ struct Stream_State
   struct Stream_State& operator+= (const struct Stream_State& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    
+
     //deleteModule = (deleteModule ? deleteModule : rhs_in.deleteModule);
     //module = (module ? module : rhs_in.module);
     //sessionData = (sessionData ? sessionData : rhs_in.sessionData);

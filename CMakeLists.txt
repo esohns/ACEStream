@@ -1,8 +1,23 @@
 ﻿cmake_minimum_required (VERSION 2.8)
 
-# options
-#set (CMAKE_VERBOSE_MAKEFILE ON)
+#include (CheckIPOSupported)
+#check_ipo_supported (RESULT IPO_SUPPORTED)
 
+# global options
+cmake_policy (SET CMP0069 NEW) # add IPO flags unconditionally (i.e. always)
+#if (IPO_SUPPORTED)
+set (CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+#endif (IPO_SUPPORTED)
+#set (CMAKE_VERBOSE_MAKEFILE ON)
+set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+if (UNIX)
+ find_program (CCACHE_PROGRAM ccache)
+ if (CCACHE_PROGRAM)
+  set_property (GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+ endif (CCACHE_PROGRAM)
+endif (UNIX)
+
+# version
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 0)
 set (VERSION_MICRO 1)
@@ -13,13 +28,11 @@ if (VERSION_DEVEL)
  set (VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}-${VERSION_DEVEL})
 endif ()
 
-set_property (GLOBAL PROPERTY USE_FOLDERS ON)
-
 set (PACKAGE_DESCRIPTION "\
 user-space wrapper library for the pipes-and-filters pattern, based on the ACE \
 framework (see: http://www.cs.wustl.edu/~schmidt/ACE.html). In particular, the \
 library lightly encapsulates the ACE_Stream and ACE_Module classes, introducing\
- a new set of (control) interfaces to support asynchronous operation, and \
+ a new set of (control) interfaces to support asynchronous operation and \
 additional concepts, such as 'session' data and messages. In conjunction with \
 additional, modular data processing functionality (see e.g.: \
 https://github.com/esohns/libACENetwork), this approach facilitates the \
@@ -31,8 +44,9 @@ set (PACKAGE_DESCRIPTION_SUMMARY "(wrapper) library for streams functionality, b
 set (PACKAGE_SECTION "devel") # Debian
 #set (PACKAGE_SECTION "Development/Libraries")
 
+# build type
 #variable_watch (CMAKE_BUILD_TYPE)
-# *NOTE*: if the user specifies -DCMAKE_BUILD_TYPE on the command line, take
+# *NOTE*: iff the user specifies -DCMAKE_BUILD_TYPE on the command line, take
 #         their definition and dump it in the cache along with proper
 #         documentation, otherwise set CMAKE_BUILD_TYPE to Debug prior to
 #         calling PROJECT()
@@ -43,6 +57,7 @@ elseif (NOT CMAKE_CONFIGURATION_TYPES)
  set (CMAKE_BUILD_TYPE Debug CACHE STRING ${BUILD_TYPE_CACHE_STRING})
 endif ()
 
+# project
 cmake_policy (SET CMP0048 NEW) # allow project VERSION
 cmake_policy (SET CMP0056 OLD) # honor per-config flags in try_compile()
 cmake_policy (SET CMP0066 OLD) # honor per-config flags in try_compile()
@@ -50,6 +65,7 @@ project (ACEStream
          VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
          LANGUAGES CXX C)
 
+# directories
 # override the installation directories ?
 #set (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION OFF)
 set (INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
@@ -68,56 +84,17 @@ foreach (path BIN CMAKE SHARE INCLUDE LIB)
 # if (NOT IS_ABSOLUTE "${${var}}")
  string (TOLOWER "${path}" RELATIVE_INSTALL_PATH)
 
-if (UNIX)
- set (${var} "${CMAKE_INSTALL_PREFIX}/${RELATIVE_INSTALL_PATH}")
-elseif (WIN32)
- set (${var} ${RELATIVE_INSTALL_PATH})
-endif ()
+ if (UNIX)
+  set (${var} "${CMAKE_INSTALL_PREFIX}/${RELATIVE_INSTALL_PATH}")
+ elseif (WIN32)
+  set (${var} ${RELATIVE_INSTALL_PATH})
+ endif ()
 # message (STATUS "set \"${var}\" to \"${${var}}\"")
 
 #endif ()
 endforeach ()
 
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export (PACKAGE ${PROJECT_NAME})
-
-# Create the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake files
-#file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
-# ... for the build tree
-set (CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
-configure_file (${PROJECT_NAME}Config.cmake.in
-                "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
-# ... for the install tree
-set (CONF_INCLUDE_DIRS "\${ACEStream_CMAKE_DIR}/${REL_INCLUDE_DIR}")
-configure_file (${PROJECT_NAME}Config.cmake.in
-                "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" @ONLY)
-# ... for both
-configure_file (${PROJECT_NAME}ConfigVersion.cmake.in
-                "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
-
-# Install the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake
-install (FILES
-         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
-         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-#         "${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
-#         "${PROJECT_NAME}ConfigVersion.cmake"
-         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-# Install the export set for use with the install-tree
-install (EXPORT ${PROJECT_NAME}Targets
-         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-
-set (PACKAGE ${PROJECT_NAME})
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake.in
-                ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h @ONLY)
-#add_custom_target (${PROJECT_NAME}_config)
-#set_target_properties (${PROJECT_NAME}_config PROPERTIES
-#                       PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_config.h")
-
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h"
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-         COMPONENT dev)
-
+# project options
 set (DEBUG_DEBUGGER TRUE
      CACHE BOOL "in debugger")
 
@@ -148,8 +125,7 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
  endif ()
 endif ()
 
-option (TRACING
-        "enable tracing" OFF)
+option (TRACING "enable tracing" OFF)
 if (TRACING)
  add_definitions (-DACESTREAM_NTRACE=0)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS ACESTREAM_NTRACE=0)
@@ -158,8 +134,7 @@ else ()
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS ACESTREAM_NTRACE=1)
 endif ()
 
-option (VALGRIND_SUPPORT
-        "enable valgrind support" OFF)
+option (VALGRIND_SUPPORT "enable valgrind support" OFF)
 include (CheckIncludeFiles)
 if (VALGRIND_SUPPORT)
  check_include_files (valgrind/valgrind.h HAVE_VALGRIND_H)
@@ -171,8 +146,7 @@ if (VALGRIND_SUPPORT)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 endif ()
 
-option (BUILD_MODULES
-        "build (git) sub-modules" OFF)
+option (BUILD_MODULES "build (git) sub-modules" OFF)
 
 #message (STATUS "compiler id: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER})")
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -198,6 +172,8 @@ elseif (MSVC)
  endforeach ()
 endif ()
 
+################################################################################
+
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cotire/CMake")
 #list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 cmake_policy (SET CMP0011 NEW)
@@ -212,8 +188,75 @@ set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 # endif ()
 #endif ()
 
-#add_definitions (-DHAVE_CONFIG_H)
+################################################################################
+
+add_subdirectory (src)
+
+################################################################################
+
+# configuration files
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export (PACKAGE ${PROJECT_NAME})
+
+# Create the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake files
+# *NOTE*: see: https://cmake.org/Wiki/CMake/Tutorials/How_to_create_a_ProjectConfig.cmake_file
+file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
+# ... for the build tree
+set (CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+configure_file (${PROJECT_NAME}Config.cmake.in
+                "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
+# ... for the install tree
+set (CONF_INCLUDE_DIRS "\${ACEStream_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+configure_file (${PROJECT_NAME}Config.cmake.in
+                "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" @ONLY)
+# ... for both
+configure_file (${PROJECT_NAME}ConfigVersion.cmake.in
+                "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
+
+set (PACKAGE ${PROJECT_NAME})
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake.in
+                ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h
+                @ONLY)
+#add_custom_target (${PROJECT_NAME}_config)
+#set_target_properties (${PROJECT_NAME}_config PROPERTIES
+#                       PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_config.h")
+add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
+
+################################################################################
+
+# Install the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake
+install (FILES
+         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+#         "${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+#         "${PROJECT_NAME}ConfigVersion.cmake"
+         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+# Install the export set for use with the install-tree
+install (EXPORT ${PROJECT_NAME}Targets
+         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h"
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT dev)
+
+################################################################################
+
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-modules")
+include (UseBackportedModules)
+cmake_policy (SET CMP0026 OLD)
+cmake_policy (SET CMP0053 OLD)
+include (CreateLaunchers)
+
+# enable (unit/integration) tests
+#include (CTest)
+enable_testing ()
+
+################################################################################
+
+add_subdirectory (test_u)
+add_subdirectory (test_i)
 
 ################################################################################
 
@@ -242,7 +285,7 @@ endif ()
 #                    VERBATIM)
 
 # build a CPack driven installer package
-include (InstallRequiredSystemLibraries)
+#include (InstallRequiredSystemLibraries)
 set (CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
 set (CPACK_PACKAGE_VERSION_PATCH ${VERSION_MICRO})
@@ -251,22 +294,3 @@ set (CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README)
 
 # build a CPack driven installer package
 include (CPack)
-
-################################################################################
-
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-modules")
-include (UseBackportedModules)
-cmake_policy (SET CMP0026 OLD)
-cmake_policy (SET CMP0053 OLD)
-include (CreateLaunchers)
-
-# enable (unit/integration) tests
-#include (CTest)
-#enable_testing ()
-
-################################################################################
-
-add_subdirectory (src)
-add_subdirectory (test_i)
-add_subdirectory (test_u)
-

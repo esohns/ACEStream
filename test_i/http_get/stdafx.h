@@ -1,4 +1,4 @@
-// stdafx.h : include file for standard system include files,
+﻿// stdafx.h : include file for standard system include files,
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
@@ -41,6 +41,10 @@
 
 #include "stream_common.h"
 #include "stream_macros.h"
+
+#if defined (HAVE_CONFIG_H)
+#include "libACEStream_config.h"
+#endif
 
 #if defined _MSC_VER
 #include "targetver.h"
