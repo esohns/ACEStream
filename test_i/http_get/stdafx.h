@@ -44,6 +44,7 @@
 
 #if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
+#include "libACENetwork_config.h"
 #endif
 
 #if defined _MSC_VER

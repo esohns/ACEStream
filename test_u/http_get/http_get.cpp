@@ -920,7 +920,7 @@ do_printVersion (const std::string& programName_in)
   std::cout << ACE_TEXT ("libraries: ")
             << std::endl
 #ifdef HAVE_CONFIG_H
-            << ACE_TEXT (ACESTREAM_PACKAGE)
+            << ACE_TEXT (ACESTREAM_PACKAGE_NAME)
             << ACE_TEXT (": ")
             << ACE_TEXT (ACESTREAM_PACKAGE_VERSION)
             << std::endl

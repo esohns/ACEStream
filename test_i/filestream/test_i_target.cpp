@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
 *   Copyright (C) 2009 by Erik Sohns   *
 *   erik.sohns@web.de   *
 *                                                                         *
@@ -997,9 +997,9 @@ do_printVersion (const std::string& programName_in)
   std::cout << ACE_TEXT ("libraries: ")
             << std::endl
 #ifdef HAVE_CONFIG_H
-            << ACE_TEXT (LIBACESTREAM_PACKAGE)
+            << ACE_TEXT (ACESTREAM_PACKAGE_NAME)
             << ACE_TEXT (": ")
-            << ACE_TEXT (LIBACESTREAM_PACKAGE_VERSION)
+            << ACE_TEXT (ACESTREAM_PACKAGE_VERSION)
             << std::endl
 #endif
             ;
@@ -1182,7 +1182,7 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
+      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
   if (!Common_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                         log_file_name,                        // log file name
