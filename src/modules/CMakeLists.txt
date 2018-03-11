@@ -1,7 +1,3 @@
-if (UNIX)
- set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
-endif ()
-
 add_subdirectory (db)
 add_subdirectory (dec)
 add_subdirectory (dev)
@@ -13,3 +9,4 @@ add_subdirectory (misc)
 add_subdirectory (net)
 add_subdirectory (stat)
 add_subdirectory (vis)
+
