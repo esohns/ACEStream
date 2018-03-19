@@ -5222,7 +5222,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                                &thread_id,                       // thread id
                                &thread_handle,                   // thread handle
                                ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                               COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
                                NULL,                             // stack
                                0,                                // stack size
                                &thread_name_2);                  // name

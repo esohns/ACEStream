@@ -396,7 +396,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_ASYNCH)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !cb_data_p->configuration->signalHandlerConfiguration.useReactor);
+                                (cb_data_p->configuration->signalHandlerConfiguration.dispatch == COMMON_EVENT_DISPATCH_PROACTOR));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_SAVE)));
@@ -1218,7 +1218,7 @@ continue_:
                                &thread_id,                       // id
                                &thread_handle,                   // handle
                                ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                               COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
                                NULL,                             // stack
                                0,                                // stack size
                                &thread_name_p);                  // name

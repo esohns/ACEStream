@@ -366,7 +366,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !data_p->configuration->useReactor);
+                                (data_p->configuration->dispatch != COMMON_EVENT_DISPATCH_REACTOR));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
@@ -1046,7 +1046,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !data_p->configuration->useReactor);
+                                (data_p->configuration->dispatch != COMMON_EVENT_DISPATCH_REACTOR));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
@@ -2125,7 +2125,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
                                &thread_id,                       // id
                                &thread_handle,                   // handle
                                ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                               COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
                                NULL,                             // stack
                                0,                                // stack size
                                &thread_name_2);                  // name
@@ -2572,7 +2572,7 @@ action_listen_activate_cb (GtkAction* action_in,
         Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
           data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-        if (data_p->configuration->useReactor)
+        if (data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (iconnection_manager_p,
                                                           (*iterator_2).second.second.statisticReportingInterval));
@@ -2606,7 +2606,7 @@ action_listen_activate_cb (GtkAction* action_in,
           connector_p->connect ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
-        if (!data_p->configuration->useReactor)
+        if (data_p->configuration->dispatch != COMMON_EVENT_DISPATCH_REACTOR)
         {
           // *TODO*: avoid tight loop here
           ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);

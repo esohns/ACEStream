@@ -45,7 +45,7 @@ include (FindPkgConfig)
 ##pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
 ## *NOTE*: libCommon requires libcap
-#  pkg_check_modules (PKG_CAP REQUIRED libcap)
+ pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
@@ -140,6 +140,19 @@ set (${EXECUTABLE}_EXE_SRCS
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11)
+ #add_compile_options (-fPIC)
+ add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+endif ()
+
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${RIFF_decoder_EXE_SRCS})
@@ -159,7 +172,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${AIO_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
-endif ()
+endif (UNIX)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
@@ -167,6 +180,10 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_File)
 target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+endif (UNIX)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

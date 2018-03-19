@@ -149,7 +149,7 @@ struct Test_I_Configuration
    //, connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
-   , useReactor (NET_EVENT_USE_REACTOR)
+   , dispatch (COMMON_EVENT_DEFAULT_DISPATCH)
    , userData ()
   {};
 
@@ -161,7 +161,7 @@ struct Test_I_Configuration
   struct Common_ParserConfiguration        parserConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
 
-  bool                                     useReactor;
+  enum Common_EventDispatchType            dispatch;
 
   struct Test_I_UserData                   userData;
 };

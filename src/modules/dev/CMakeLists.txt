@@ -5,6 +5,20 @@ if (UNIX)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
 endif ()
 
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+# message (STATUS "using ${CMAKE_CXX_COMPILER_ID} compiler options")
+ add_compile_options (-std=c++11)
+# add_compile_options (-fPIC)
+# add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+endif ()
+
 add_library (${PROJECT_NAME}_Device STATIC "")
 
 if (UNIX)
@@ -21,21 +35,29 @@ if (UNIX)
 elseif (WIN32)
  # *NOTE*: workaround
 # set(_PF86 "ProgramFiles(x86)")
+ cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 endif ()
 #target_include_directories (${PROJECT_NAME}_Device PUBLIC
 #                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
@@ -111,14 +133,6 @@ target_sources (${PROJECT_NAME}_Device
                 PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 ${absolute_source_files})
-
-if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
- add_compile_options (-std=c++11 -fPIC)
-endif ()
 
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 

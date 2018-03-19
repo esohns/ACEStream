@@ -33,7 +33,7 @@
 //  STREAM_STATISTIC_ANALYSIS_MODE_INVALID
 //};
 
-enum Stream_Statistic_AnalysisEventType : int
+enum Stream_Statistic_AnalysisEventType
 {
   STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY = 0,
   STREAM_STATISTIC_ANALYSIS_EVENT_PEAK,

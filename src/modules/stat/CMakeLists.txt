@@ -11,8 +11,15 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

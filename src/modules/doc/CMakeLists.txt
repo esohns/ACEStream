@@ -40,13 +40,17 @@ elseif (WIN32)
 #      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
  message (STATUS "Apache OpenOffice SDK include directory: \"${OO_SDK_DIRECTORY}/include\"")
- include_directories (${OO_SDK_DIRECTORY}/include)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
 
  add_definitions (-DCPPU_ENV=msci)
  add_definitions (-DWNT)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Document PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

@@ -116,7 +116,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
-            << NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE
+            << COMMON_PARSER_DEFAULT_YACC_TRACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   configuration_file = path;
@@ -169,7 +169,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << NET_EVENT_USE_REACTOR
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
@@ -233,7 +233,7 @@ do_processArguments (int argc_in,
   bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrapFileName_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
-  debug_out = NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE;
+  debug_out = COMMON_PARSER_DEFAULT_YACC_TRACE;
   templateFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
   templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -262,7 +262,8 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   port_out = TEST_I_DEFAULT_PORT;
-  useReactor_out = NET_EVENT_USE_REACTOR;
+  useReactor_out =
+          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   traceInformation_out = false;
   URI_out.clear ();
   printVersionAndExit_out = false;
@@ -716,7 +717,7 @@ do_work (const std::string& bootstrapFileName_in,
                                             false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
-  struct Common_EventDispatchThreadData thread_data_s;
+  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_FlexParserAllocatorConfiguration> heap_allocator;
@@ -738,6 +739,7 @@ do_work (const std::string& bootstrapFileName_in,
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator;
+  struct Common_EventDispatchState event_dispatch_state_s;
 
   // step0a: initialize configuration and stream
   if (useReactor_in)
@@ -766,7 +768,9 @@ do_work (const std::string& bootstrapFileName_in,
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
   //    &configuration.streamConfiguration;
-  configuration.useReactor = useReactor_in;
+  configuration.dispatch =
+          (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
+                         : COMMON_EVENT_DISPATCH_PROACTOR);
 
   // *********************** socket configuration data ************************
   connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
@@ -868,14 +872,11 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0b: initialize event dispatch
-  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data_s.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (useReactor_in,
-                                              useThreadPool_in,
-                                              numberOfDispatchThreads_in,
-                                              thread_data_s.proactorType,
-                                              thread_data_s.reactorType,
-                                              configuration.streamConfiguration.configuration_.serializeOutput))
+  event_dispatch_configuration_s.numberOfProactorThreads =
+          (!useReactor_in ? numberOfDispatchThreads_in : 0);
+  event_dispatch_configuration_s.numberOfReactorThreads =
+          (useReactor_in ? numberOfDispatchThreads_in : 0);
+  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -944,8 +945,9 @@ do_work (const std::string& bootstrapFileName_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (thread_data_s,
-                                         group_id))
+  event_dispatch_state_s.configuration =
+      &event_dispatch_configuration_s;
+  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -1168,7 +1170,7 @@ ACE_TMAIN (int argc_in,
   bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrap_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
-  debug = NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE;
+  debug = COMMON_PARSER_DEFAULT_YACC_TRACE;
   template_file = path;
 #if defined (DEBUG_DEBUGGER)
   template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1196,9 +1198,10 @@ ACE_TMAIN (int argc_in,
   output_file = path;
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  use_thread_pool = NET_EVENT_USE_THREAD_POOL;
+  use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port = TEST_I_DEFAULT_PORT;
-  use_reactor = NET_EVENT_USE_REACTOR;
+  use_reactor =
+          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   trace_information = false;
   URL.clear ();
   print_version_and_exit = false;

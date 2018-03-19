@@ -327,12 +327,12 @@ continue_2:
   if (unlikely (!mode2D_
 #if defined (GTKGL_SUPPORT)
                 && !mode3D_
-#endif
+#endif // GTKGL_SUPPORT
                 ))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no graphics output\n"),
                 inherited::mod_->name ()));
-#endif
+#endif // _DEBUG
 
   if (unlikely (!inherited::initialize (configuration_in,
                                         allocator_in)))

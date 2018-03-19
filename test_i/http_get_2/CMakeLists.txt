@@ -98,7 +98,8 @@ if (UNIX)
  elseif (DEFINED ENV{UNO_PATH})
    set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
  else ()
-  set (OO_SDK_DIRECTORY /usr/lib64/libreoffice/sdk)
+  #set (OO_SDK_DIRECTORY /usr/lib64/libreoffice/sdk)
+  set (OO_SDK_DIRECTORY /usr/lib/libreoffice/sdk)
   message (STATUS "set OO_SDK_DIRECTORY to default: \"${OO_SDK_DIRECTORY}\"")
  endif ()
  if (NOT EXISTS ${OO_SDK_DIRECTORY})
@@ -296,6 +297,19 @@ set (${EXECUTABLE}_EXE_SCRIPTS
      etc/sofficerc
      etc/symbols.ini
      etc/template.ods)
+
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11)
+ #add_compile_options (-fPIC)
+ add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}

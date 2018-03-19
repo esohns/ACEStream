@@ -45,11 +45,16 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/cmake/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/cmake/include>)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Database PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

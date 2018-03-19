@@ -21,7 +21,8 @@
 #ifndef STREAM_STATEMACHINE_COMMON_H
 #define STREAM_STATEMACHINE_COMMON_H
 
-enum Stream_StateMachine_ControlState : int
+//enum Stream_StateMachine_ControlState : int
+enum Stream_StateMachine_ControlState
 {
   STREAM_STATE_INVALID = -1,
   // *NOTE*: currently, this simply means that the 'head' module has been

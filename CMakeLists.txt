@@ -1,13 +1,14 @@
 ﻿cmake_minimum_required (VERSION 2.8)
 
-#include (CheckIPOSupported)
-#check_ipo_supported (RESULT IPO_SUPPORTED)
+cmake_policy (SET CMP0069 NEW) # IPO is enforced when enabled
+include (CheckIPOSupported)
+check_ipo_supported (RESULT IPO_SUPPORTED
+                     OUTPUT IPO_REASON)
 
 # global options
-cmake_policy (SET CMP0069 NEW) # add IPO flags unconditionally (i.e. always)
-#if (IPO_SUPPORTED)
-set (CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-#endif (IPO_SUPPORTED)
+if (IPO_SUPPORTED)
+ set (CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif (IPO_SUPPORTED)
 #set (CMAKE_VERBOSE_MAKEFILE ON)
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 if (UNIX)
@@ -74,7 +75,7 @@ set (INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header f
 if (WIN32 AND NOT CYGWIN)
  set (DEF_INSTALL_CMAKE_DIR CMake)
 else ()
- set (DEF_INSTALL_CMAKE_DIR lib/CMake/FooBar)
+ set (DEF_INSTALL_CMAKE_DIR lib/CMake/ACEStream)
 endif ()
 set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
@@ -201,7 +202,7 @@ export (PACKAGE ${PROJECT_NAME})
 
 # Create the ACEStreamConfig.cmake and ACEStreamConfigVersion.cmake files
 # *NOTE*: see: https://cmake.org/Wiki/CMake/Tutorials/How_to_create_a_ProjectConfig.cmake_file
-file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
+#file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
 # ... for the build tree
 set (CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 configure_file (${PROJECT_NAME}Config.cmake.in

@@ -10,6 +10,7 @@ endif (WIN32)
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
 if (WIN32)
+ cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
@@ -28,8 +29,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
 endif ()
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC

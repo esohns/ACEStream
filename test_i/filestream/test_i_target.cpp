@@ -112,7 +112,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread pool [")
-            << NET_EVENT_USE_THREAD_POOL
+            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
@@ -133,7 +133,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << NET_EVENT_USE_REACTOR
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
@@ -197,12 +197,12 @@ do_processArguments (int argc_in,
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
+  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   logToFile_out = false;
   netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = NET_ADDRESS_DEFAULT_PORT;
-  useReactor_out = NET_EVENT_USE_REACTOR;
+  useReactor_out = (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -455,14 +455,14 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration
   struct Test_I_Target_Configuration configuration;
-  configuration.useReactor = useReactor_in;
+  configuration.dispatch =
+                (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
   //configuration.userData.connectionConfiguration =
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
   //  &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
-  configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Test_I_AllocatorConfiguration> heap_allocator;
@@ -581,15 +581,12 @@ do_work (unsigned int bufferSize_in,
       statisticReportingInterval_in;
 
   // step0b: initialize event dispatch
-  struct Common_EventDispatchThreadData thread_data_s;
-  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data_s.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (useReactor_in,
-                                              useThreadPool_in,
-                                              numberOfDispatchThreads_in,
-                                              thread_data_s.proactorType,
-                                              thread_data_s.reactorType,
-                                              configuration.streamConfiguration.configuration_.serializeOutput))
+  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
+  event_dispatch_configuration_s.numberOfProactorThreads =
+          (!useReactor_in ? numberOfDispatchThreads_in : 0);
+  event_dispatch_configuration_s.numberOfReactorThreads =
+          (useReactor_in ? numberOfDispatchThreads_in : 0);
+  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -640,8 +637,8 @@ do_work (unsigned int bufferSize_in,
   else
     CBData_in.configuration->signalHandlerConfiguration.listener =
       TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
-  CBData_in.configuration->signalHandlerConfiguration.useReactor =
-    useReactor_in;
+  CBData_in.configuration->signalHandlerConfiguration.dispatch =
+    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
       connection_manager_p;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerId =
@@ -731,8 +728,10 @@ do_work (unsigned int bufferSize_in,
 
   // step1b: initialize worker(s)
   int group_id = -1;
-  if (!Common_Tools::startEventDispatch (thread_data_s,
-                                         group_id))
+  struct Common_EventDispatchState event_dispatch_state_s;
+  event_dispatch_state_s.configuration =
+      &event_dispatch_configuration_s;
+  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -1074,12 +1073,13 @@ ACE_TMAIN (int argc_in,
   std::string gtk_glade_file = path;
   gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
+  bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   bool log_to_file = false;
   std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = NET_ADDRESS_DEFAULT_PORT;
-  bool use_reactor = NET_EVENT_USE_REACTOR;
+  bool use_reactor =
+    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;

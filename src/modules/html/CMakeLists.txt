@@ -16,10 +16,13 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libiconv-1.9.2-1/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libxml2-2.9.4/include)
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libiconv-1.9.2-1/include>)
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libxml2-2.9.4/include>)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
 endif ()
 target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

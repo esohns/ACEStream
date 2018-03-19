@@ -149,9 +149,9 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
 
     // step4: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
-                                         !inherited::configuration_->useReactor, // stop proactor ?
-                                         -1);                                    // group ID (--> don't block)
+    Common_Tools::finalizeEventDispatch ((inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_REACTOR),  // stop reactor ?
+                                         (inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_PROACTOR), // stop proactor ?
+                                         -1);                                    // group id (--> don't block)
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF

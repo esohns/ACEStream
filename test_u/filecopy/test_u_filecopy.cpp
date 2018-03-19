@@ -444,8 +444,8 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
-  if (!Common_Signal_Tools::initialize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                  : COMMON_SIGNAL_DISPATCH_SIGNAL),
+  if (!Common_Signal_Tools::initialize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                          : COMMON_SIGNAL_DISPATCH_SIGNAL),
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -778,7 +778,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           COMMON_EVENT_USE_REACTOR,
+                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -796,8 +796,8 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Filecopy_SignalHandler signal_handler ((configuration.signalHandlerConfiguration.useReactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                     : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Stream_Filecopy_SignalHandler signal_handler (((configuration.signalHandlerConfiguration.dispatch == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                                                      : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                 &gtk_cb_data.lock);
 
   // step1f: handle specific program modes
@@ -805,8 +805,8 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -831,8 +831,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -898,8 +898,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_SIGNAL),
+    Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                     : COMMON_SIGNAL_DISPATCH_SIGNAL),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -959,8 +959,8 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT (system_time_string.c_str ())));
 #endif
 
-  Common_Signal_Tools::finalize ((COMMON_EVENT_USE_REACTOR ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                           : COMMON_SIGNAL_DISPATCH_SIGNAL),
+  Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                   : COMMON_SIGNAL_DISPATCH_SIGNAL),
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

@@ -1,4 +1,16 @@
-﻿add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
+﻿if (UNIX)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11)
+ #add_compile_options (-fPIC)
+endif ()
+
+add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
@@ -14,7 +26,16 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http>)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libACENetwork/src/protocol/http)
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../lib>)
+
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libACENetwork/src>)
+ target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libACENetwork/src/protocol/http>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../..>)
@@ -49,10 +70,6 @@ target_sources (${PROJECT_NAME}_Network_Protocol_HTTPGet
                PRIVATE stdafx.cpp
                PRIVATE stdafx.h
                ${absolute_source_files})
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
- add_compile_options (-std=c++11)
-endif ()
 
 set_property (TARGET ${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTY FOLDER "modules")
 

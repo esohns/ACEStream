@@ -130,11 +130,11 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use thread pool [")
-            << NET_EVENT_USE_THREAD_POOL
+            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << NET_EVENT_USE_REACTOR
+            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
@@ -209,9 +209,10 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_DEFINITION_FILE_NAME);
   hostName_out.clear ();
   logToFile_out = false;
-  useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
+  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port_out = 0;
-  useReactor_out = NET_EVENT_USE_REACTOR;
+  useReactor_out =
+      (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   URL_out.clear ();
@@ -671,24 +672,22 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   int group_id = -1;
-  struct Common_EventDispatchThreadData thread_data_s;
-
   HTTPGet_GTK_Manager_t* gtk_manager_p = NULL;
-
   // step0b: initialize event dispatch
-  thread_data_s.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data_s.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (thread_data_s.useReactor,
-                                              useThreadPool_in,
-                                              thread_data_s.numberOfDispatchThreads,
-                                              thread_data_s.proactorType, // *NOTE*: return value
-                                              thread_data_s.reactorType, // *NOTE*: return value
-                                              CBData_in.configuration->streamConfiguration.configuration_.serializeOutput)) // *NOTE*: return value
+  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
+  event_dispatch_configuration_s.numberOfReactorThreads =
+      (useReactor_in ? numberOfDispatchThreads_in : 0);
+  event_dispatch_configuration_s.numberOfProactorThreads =
+      (!useReactor_in ? numberOfDispatchThreads_in : 0);
+  struct Common_EventDispatchState event_dispatch_state_s;
+  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
     goto clean;
   } // end IF
+  event_dispatch_state_s.configuration =
+      &event_dispatch_configuration_s;
 
   //// step0d: initialize regular (global) statistic reporting
   //Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
@@ -721,10 +720,11 @@ do_work (unsigned int bufferSize_in,
   //} // end IF
 
   // step0c: initialize signal handling
+  CBData_in.configuration->signalHandlerConfiguration.dispatch =
+    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
+                   : COMMON_EVENT_DISPATCH_PROACTOR);
   CBData_in.configuration->signalHandlerConfiguration.hasUI =
     !interfaceDefinitionFile_in.empty ();
-  CBData_in.configuration->signalHandlerConfiguration.useReactor =
-    useReactor_in;
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
@@ -797,8 +797,7 @@ do_work (unsigned int bufferSize_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (thread_data_s,
-                                         group_id))
+  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -1047,8 +1046,9 @@ ACE_TMAIN (int argc_in,
   UI_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
   UI_file_path += ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_DEFINITION_FILE_NAME);
   log_to_file = false;
-  use_thread_pool = NET_EVENT_USE_THREAD_POOL;
-  use_reactor = NET_EVENT_USE_REACTOR;
+  use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
+  use_reactor =
+      (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   trace_information = false;

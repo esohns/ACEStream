@@ -1915,7 +1915,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   port_number =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
   protocol = v4l2_data_p->configuration->protocol;
-  use_reactor = v4l2_data_p->configuration->useReactor;
+  use_reactor =
+          (v4l2_data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
   use_loopback =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
   buffer_size =
@@ -2899,7 +2900,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   GtkRadioButton* radio_button_p = NULL;
   enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
-  bool use_reactor = NET_EVENT_USE_REACTOR;
+  bool use_reactor =
+          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (data_base_p->mediaFramework)
   {
@@ -2925,7 +2927,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   protocol = data_p->configuration->protocol;
-  use_reactor = data_p->configuration->useReactor;
+  use_reactor =
+          (data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
 #endif
   if (protocol == NET_TRANSPORTLAYER_UDP)
   {
@@ -4557,7 +4560,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                                &thread_id,                       // id
                                &thread_handle,                   // handle
                                ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                               COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
                                NULL,                             // stack
                                0,                                // stack size
                                &thread_name_2);                  // name
@@ -5127,7 +5130,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_INET_Addr inet_address;
 //        int result_2 = -1;
-        bool use_reactor = NET_EVENT_USE_REACTOR;
+        bool use_reactor =
+                (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* directshow_connection_p =
           NULL;
@@ -5211,7 +5215,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
         inet_address =
           (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
-        use_reactor = data_p->configuration->useReactor;
+        use_reactor =
+                (data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);

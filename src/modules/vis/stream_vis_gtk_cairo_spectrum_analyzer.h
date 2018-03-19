@@ -73,7 +73,7 @@
 
 extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
-enum Stream_Module_Visualization_SpectrumAnalyzer2DMode : int
+enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
 { // *TODO*: implement discrete modes of operation
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM,
@@ -81,7 +81,7 @@ enum Stream_Module_Visualization_SpectrumAnalyzer2DMode : int
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX,
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID
 };
-enum Stream_Module_Visualization_SpectrumAnalyzer3DMode : int
+enum Stream_Module_Visualization_SpectrumAnalyzer3DMode
 {
   STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
   ////////////////////////////////////////

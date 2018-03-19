@@ -200,6 +200,19 @@ set (camsource_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11)
+ #add_compile_options (-fPIC)
+ add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+endif ()
+
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE_SOURCE camsource)
 add_executable (${EXECUTABLE_SOURCE}
@@ -235,7 +248,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} rt)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
  #target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_DBUS_LIBRARIES})
- target_link_libraries (${EXECUTABLE_SOURCE} iw)
+ #target_link_libraries (${EXECUTABLE_SOURCE} iw)
  target_link_libraries (${EXECUTABLE_SOURCE} X11)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_FFMPEG_LIBRARIES})
@@ -603,7 +616,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE_TARGET} rt)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
  #target_link_libraries (${EXECUTABLE_TARGET} ${PKG_DBUS_LIBRARIES})
- target_link_libraries (${EXECUTABLE_TARGET} iw)
+# target_link_libraries (${EXECUTABLE_TARGET} iw)
  target_link_libraries (${EXECUTABLE_TARGET} X11)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_FFMPEG_LIBRARIES})
