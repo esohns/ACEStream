@@ -3,7 +3,7 @@ if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
-endif ()
+endif (UNIX)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -17,7 +17,7 @@ string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
 string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
 if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
  add_compile_options (-std=c++11)
- #add_compile_options (-fPIC)
+#add_compile_options (-fPIC)
 endif ()
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
@@ -144,7 +144,7 @@ target_sources (${PROJECT_NAME}_Decoder
 if (WIN32)
 # set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
  source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
-endif ()
+endif (WIN32)
 
 set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
 
@@ -215,7 +215,7 @@ if (UNIX)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS ${ACEStream_Decoder_LIB_HDRS}
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
-endif ()
+endif (UNIX)
 
 install (FILES
          ${PROJECT_NAME}_Decoder_LIB_HDRS
