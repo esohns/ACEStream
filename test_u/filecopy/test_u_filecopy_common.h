@@ -75,7 +75,7 @@ struct Stream_Filecopy_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
-  {};
+  {}
 
   Stream_Filecopy_ISessionNotify_t* subscriber;  // (initial) subscriber
   Stream_Filecopy_Subscribers_t*    subscribers;
@@ -90,7 +90,7 @@ struct Stream_Filecopy_SessionData
    , fileName ()
    , size (0)
    , targetFileName ()
-  {};
+  {}
 
   std::string  fileName;
   unsigned int size;
@@ -106,7 +106,7 @@ struct Stream_Filecopy_SignalHandlerConfiguration
    , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
-  {};
+  {}
 
   long               actionTimerId;
   Stream_IAllocator* messageAllocator;
@@ -114,12 +114,14 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 };
 
 struct Stream_Filecopy_Configuration
+ : Test_U_Configuration
 {
   Stream_Filecopy_Configuration ()
-   : signalHandlerConfiguration ()
+   : Test_U_Configuration ()
+   , signalHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
-  {};
+  {}
 
   struct Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
   Stream_Filecopy_StreamConfiguration_t             streamConfiguration;
@@ -149,7 +151,7 @@ struct Stream_Filecopy_GTK_ProgressData
    : Test_U_GTK_ProgressData ()
    , copied (0)
    , size (0)
-  {};
+  {}
 
   size_t copied; // bytes
   size_t size; // bytes
@@ -164,7 +166,7 @@ struct Stream_Filecopy_GTK_CBData
    , progressData ()
    , stream (NULL)
    , subscribers ()
-  {};
+  {}
 
   struct Stream_Filecopy_Configuration*   configuration;
   struct Stream_Filecopy_GTK_ProgressData progressData;
@@ -177,7 +179,7 @@ struct Stream_Filecopy_ThreadData
   Stream_Filecopy_ThreadData ()
    : CBData (NULL)
    , sessionId (0)
-  {};
+  {}
 
   struct Stream_Filecopy_GTK_CBData* CBData;
   size_t                             sessionId;
@@ -185,8 +187,9 @@ struct Stream_Filecopy_ThreadData
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GTK_Manager_t;
 typedef ACE_Singleton<Stream_Filecopy_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> FILECOPY_UI_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> FILECOPY_UI_GTK_MANAGER_SINGLETON;
 
 #endif

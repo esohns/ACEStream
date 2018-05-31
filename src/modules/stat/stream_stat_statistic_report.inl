@@ -790,14 +790,12 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::finiTimers"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
   int result = -1;
   const void* act_p = NULL;
   typename TimerManagerType::INTERFACE_T* itimer_manager_p =
-      (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                               : TIMER_MANAGER_SINGLETON_T::instance ());
+      (inherited::configuration_ ? (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                                            : TIMER_MANAGER_SINGLETON_T::instance ())
+                                 : TIMER_MANAGER_SINGLETON_T::instance ());
   ACE_ASSERT (itimer_manager_p);
 
   if (cancelAllTimers_in)

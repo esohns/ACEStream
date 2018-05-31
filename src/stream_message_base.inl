@@ -518,7 +518,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
               dataBlock_in,               // use (don't own !) this data block
               messageAllocator_in,        // allocator
               incrementMessageCounter_in) // increment the message ID ?
- , isInitialized_ (true)
+ , isInitialized_ (sessionId_in && dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 

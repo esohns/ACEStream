@@ -270,8 +270,6 @@ class Stream_Base_T
   // convenient types
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;
-  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
-                          TimePolicyType> TAIL_T;
   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ModuleConfigurationType,
@@ -279,7 +277,15 @@ class Stream_Base_T
                             DataMessageType,
                             SessionMessageType,
                             Stream_SessionId_t,
-                            Stream_SessionMessageType> HEAD_T;
+                            enum Stream_SessionMessageType> HEAD_T;
+  typedef Stream_TailTask_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ModuleConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            enum Stream_SessionMessageType> TAIL_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,

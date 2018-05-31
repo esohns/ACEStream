@@ -240,7 +240,7 @@ close:
     case NET_TRANSPORTLAYER_TCP:
     {
       struct Net_TCPSocketConfiguration* socket_configuration_p =
-          dynamic_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+          static_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
@@ -248,7 +248,7 @@ close:
     case NET_TRANSPORTLAYER_UDP:
     {
       struct Net_UDPSocketConfiguration* socket_configuration_p =
-          dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+          static_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->peerAddress;
       break;

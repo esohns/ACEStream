@@ -21,8 +21,7 @@
 #ifndef STREAM_ISESSIONNOTIFY_H
 #define STREAM_ISESSIONNOTIFY_H
 
-// forward declarations
-class ACE_Time_Value;
+#include "ace/Time_Value.h"
 
 class Stream_ISessionCB
 {

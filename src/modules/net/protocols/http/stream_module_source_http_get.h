@@ -31,9 +31,10 @@
 
 #include "http_common.h"
 
-#include "stream_net_http_exports.h"
+//#include "stream_net_http_exports.h"
 
-extern STREAM_NET_HTTP_Export const char libacestream_default_net_http_get_module_name_string[];
+//extern STREAM_NET_HTTP_Export const char libacestream_default_net_http_get_module_name_string[];
+extern const char libacestream_default_net_http_get_module_name_string[];
 
 // forward declarations
 struct HTTP_Record;
@@ -78,7 +79,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
   Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T*); // stream handle
 #else
   Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Net_Source_HTTP_Get_T ();
 
   // override (part of) Stream_IModuleHandler_T

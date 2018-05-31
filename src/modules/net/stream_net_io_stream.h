@@ -33,7 +33,7 @@
 #include "stream_inotify.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_net_exports.h"
+//#include "stream_net_exports.h"
 #include "stream_net_io.h"
 
 // forward declarations
@@ -42,7 +42,8 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-extern STREAM_NET_Export const char libacestream_default_net_stream_name_string[];
+//extern STREAM_NET_Export const char libacestream_default_net_stream_name_string[];
+extern const char libacestream_default_net_stream_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -119,20 +120,20 @@ class Stream_Module_Net_IO_Stream_T
                      TimePolicyType> MODULE_T;
 
   Stream_Module_Net_IO_Stream_T ();
-  inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
+  inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); }
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool initialize (const CONFIGURATION_T&,
 #else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                            ACE_HANDLE);                                // socket handle
 
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
-  inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); };
+  inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); }
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,  // wait for completion ?
@@ -144,19 +145,20 @@ class Stream_Module_Net_IO_Stream_T
 
   // override Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Stream_IMessageQueue
   // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
-  inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); };
-  inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); };
+  inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); }
+  inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); }
 
   // implement Stream_IOutboundDataNotify
-  virtual bool initialize (ACE_Notification_Strategy*,                                     // strategy handle
-                           const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")); // module name
+  virtual const ACE_Notification_Strategy* const getP (bool = true) const; // recurse upstream ?
+  virtual bool initialize_2 (ACE_Notification_Strategy*,                                     // strategy handle
+                             const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")); // module name
 
   // implement Common_ISetR_T
-  inline virtual void setR (const std::string& name_in) { name_ = name_in; };
+  inline virtual void setR (const std::string& name_in) { name_ = name_in; }
 
  protected:
   // convenient types
@@ -239,7 +241,7 @@ class Stream_Module_Net_IO_Stream_T
   virtual bool initialize (const CONFIGURATION_T&);
 #else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // override (part of) Stream_ILinkCB
   virtual void onLink ();

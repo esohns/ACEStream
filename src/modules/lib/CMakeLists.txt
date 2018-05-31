@@ -29,12 +29,30 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
+# *NOTE*: workaround
+# set(_PF86 "ProgramFiles(x86)")
+# cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
+# set (DIRECTSHOW_BASECLASSES_DIRECTORY
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+## message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+
+# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
+
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
+
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
+
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
 endif ()
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -45,7 +63,9 @@ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-     stream_lib_exports.h)
+     stream_lib_exports.h
+     stream_lib_tools.cpp
+		 stream_lib_tools.h)
 if (WIN32)
  set (source_files
       ${source_files}
@@ -55,18 +75,27 @@ if (WIN32)
       stream_lib_directshow_asynch_source_filter.cpp
       stream_lib_directshow_asynch_source_filter.h
       stream_lib_directshow_asynch_source_filter.inl
+      stream_lib_directshow_common.h
+      stream_lib_directshow_message_base.cpp
+      stream_lib_directshow_message_base.h
+      stream_lib_directshow_message_base.inl
       stream_lib_directshow_source_filter.cpp
       stream_lib_directshow_source_filter.h
       stream_lib_directshow_source_filter.inl
       stream_lib_directshow_target.cpp
       stream_lib_directshow_target.h
       stream_lib_directshow_target.inl
+      stream_lib_directshow_tools.cpp
+      stream_lib_directshow_tools.h
       stream_lib_mediafoundation_callback.cpp
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl
       stream_lib_mediafoundation_mediasource.cpp
       stream_lib_mediafoundation_mediasource.h
       stream_lib_mediafoundation_mediasource.inl
+      stream_lib_mediafoundation_message_base.cpp
+      stream_lib_mediafoundation_message_base.h
+      stream_lib_mediafoundation_message_base.inl
       stream_lib_mediafoundation_source.cpp
       stream_lib_mediafoundation_source.h
       stream_lib_mediafoundation_source.inl
@@ -76,6 +105,8 @@ if (WIN32)
       stream_lib_mediafoundation_target.cpp
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
+      stream_lib_mediafoundation_tools.cpp
+      stream_lib_mediafoundation_tools.h
       targetver.h)
 endif (WIN32)
 
@@ -139,19 +170,27 @@ if (WIN32)
           stream_lib_directshow_allocator.inl
           stream_lib_directshow_asynch_source_filter.h
           stream_lib_directshow_asynch_source_filter.inl
+          stream_lib_directshow_common.h
           stream_lib_directshow_source_filter.h
           stream_lib_directshow_source_filter.inl
+          stream_lib_directshow_message_base.h
+          stream_lib_directshow_message_base.inl
           stream_lib_directshow_target.h
           stream_lib_directshow_target.inl
+          stream_lib_directshow_tools.h
           stream_lib_exports.h
           stream_lib_mediafoundation_callback.h
           stream_lib_mediafoundation_callback.inl
           stream_lib_mediafoundation_mediasource.h
           stream_lib_mediafoundation_mediasource.inl
+          stream_lib_mediafoundation_message_base.h
+          stream_lib_mediafoundation_message_base.inl
           stream_lib_mediafoundation_source.h
           stream_lib_mediafoundation_source.inl
           stream_lib_mediafoundation_target.h
           stream_lib_mediafoundation_target.inl
+          stream_lib_mediafoundation_tools.h
+          stream_lib_tools.h
           targetver.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
@@ -160,6 +199,7 @@ elseif (UNIX)
           stream_lib_common.h
           stream_lib_defines.h
           stream_lib_exports.h
+          stream_lib_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif ()

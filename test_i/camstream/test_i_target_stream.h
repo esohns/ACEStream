@@ -122,11 +122,6 @@ class Test_I_Target_DirectShow_Stream
   virtual bool initialize (const CONFIGURATION_T&,
                            ACE_HANDLE);            // socket handle
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream& operator= (const Test_I_Target_DirectShow_Stream&))
@@ -138,8 +133,6 @@ class Test_I_Target_DirectShow_Stream
 
   // *TODO*: re-consider this API
   inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-
-  IGraphBuilder* graphBuilder_;
 };
 
 class Test_I_Target_MediaFoundation_Stream
@@ -198,11 +191,6 @@ class Test_I_Target_MediaFoundation_Stream
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
   virtual bool initialize (const CONFIGURATION_T&,
                            ACE_HANDLE); // socket handle
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))

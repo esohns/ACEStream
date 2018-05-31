@@ -23,6 +23,9 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_HTML PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 endif ()
 target_include_directories (${PROJECT_NAME}_HTML PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

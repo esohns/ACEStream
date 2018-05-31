@@ -39,7 +39,7 @@ elseif (WIN32)
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
- message (STATUS "Apache OpenOffice SDK include directory: \"${OO_SDK_DIRECTORY}/include\"")
+# message (STATUS "Apache OpenOffice SDK include directory: \"${OO_SDK_DIRECTORY}/include\"")
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
 
@@ -48,6 +48,9 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+
+ target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src>)

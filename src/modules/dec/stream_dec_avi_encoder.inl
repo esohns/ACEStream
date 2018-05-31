@@ -18,34 +18,39 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <fstream>
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include <xiosbase>
+
 #include <amvideo.h>
 #include <mmiscapi.h>
 #include <aviriff.h>
 #include <dvdmedia.h>
 #include <fourcc.h>
 #include <mfobjects.h>
-#include <uuids.h>
+// *WARNING*: <uuids.h> doesn't have double include protection
+//#include <uuids.h>
 #else
 #include "linux/videodev2.h"
 
 extern "C"
 {
-#include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 //#include "libavformat/raw.h"
 //#include "libavformat/riff.h"
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 extern "C"
 {
+#include "libavcodec/avcodec.h"
+#include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
+#include "libavutil/rational.h"
 #include "libswscale/swscale.h"
 }
 
-//#include "ace/FILE_Addr.h"
-//#include "ace/FILE_Connector.h"
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -57,16 +62,28 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename FormatType,
+          typename UserDataType>
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::Stream_Decoder_AVIEncoder_ReaderTask_T (ISTREAM_T* stream_in)
+                                       SessionDataType,
+                                       FormatType,
+                                       UserDataType>::Stream_Decoder_AVIEncoder_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::Stream_Decoder_AVIEncoder_ReaderTask_T"));
@@ -76,48 +93,60 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
-Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
-                                       TimePolicyType,
-                                       SessionDataContainerType,
-                                       SessionDataType>::~Stream_Decoder_AVIEncoder_ReaderTask_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::~Stream_Decoder_AVIEncoder_ReaderTask_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename FormatType,
+          typename UserDataType>
 int
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::put (ACE_Message_Block* messageBlock_in,
-                                                              ACE_Time_Value* timeout_in)
+                                       SessionDataType,
+                                       FormatType,
+                                       UserDataType>::put (ACE_Message_Block* messageBlock_in,
+                                                           ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::put"));
 
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_IOCTL:
+    case STREAM_MESSAGE_CONTROL:
     {
-      SessionDataType* session_data_p =
-          reinterpret_cast<SessionDataType*> (messageBlock_in->base ());
-      ACE_ASSERT (session_data_p);
+      ControlMessageType* message_p =
+        dynamic_cast<ControlMessageType*> (messageBlock_in);
+      ACE_ASSERT (message_p);
 
-      // *TODO*: remove type inference
-      if (!postProcessHeader (session_data_p->targetFileName))
+      switch (message_p->type ())
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader(\"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (session_data_p->targetFileName.c_str ())));
-        return -1;
-      } // end IF
+        case STREAM_CONTROL_MESSAGE_END:
+        {
+          SessionDataType* session_data_p =
+              reinterpret_cast<SessionDataType*> (messageBlock_in->rd_ptr ());
+          ACE_ASSERT (session_data_p);
 
+          // *TODO*: remove type inference
+          if (!session_data_p->targetFileName.empty ())
+            if (!postProcessHeader (session_data_p->targetFileName))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader(\"%s\"), aborting\n"),
+                          inherited::mod_->name (),
+                          ACE_TEXT (session_data_p->targetFileName.c_str ())));
+              return -1;
+            } // end IF
+          break;
+        }
+        default:
+          break;
+      } // end SWITCH
       break;
     }
     default:
@@ -135,21 +164,221 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename FormatType,
+          typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::postProcessHeader (const std::string& isActive_in)
+                                       SessionDataType,
+                                       FormatType,
+                                       UserDataType>::postProcessHeader (const std::string& targetFilename_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader"));
 
-  ACE_UNUSED_ARG (isActive_in);
+  // sanity check(s)
+  ACE_ASSERT (!targetFilename_in.empty ());
 
-  ACE_ASSERT (false);
+  bool result = false;
+  ACE_Task_Base* task_base_p = inherited::sibling ();
+  ACE_ASSERT (task_base_p);
+  WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
+  if (!writer_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Decoder_AVIEncoder_WriterTask_T>: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")...\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (targetFilename_in.c_str ())));
+
+  // *NOTE*: things left to do (in order):
+  //         - correct cb value of 'RIFF' _rifflist (6)
+  //         - set dwTotalFrames in _avimainheader  (1)
+  //         - set dwLength in _avistreamheader     (2)
+  //         - correct cb value of 'movi' _rifflist (3)
+  //         - correct cb value of 'idx1' _rifflist (4)
+  //         [- insert version 2 (super-)index]     (5)
+  // *NOTE*: how (4) implies correction of cb values for LISTs RIFF, hdrl, strl
+  //         and movi
+  unsigned int value_i;
+  char buffer_a[BUFSIZ];
+  std::ios::streamoff list_movi_offset = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
+  //std::ios::streamoff chunk_idx1_offset = 0;
+  // *NOTE*: "...A joint file position is maintained for both the input sequence
+  //         and the output sequence. ...", i.e. std::fstream::read()/write()
+  //         modify both seekg/seekp
+  //        --> maintain offsets separately
+  std::ios::streamoff read_offset = 0, write_offset = 0;
+  std::fstream stream (targetFilename_in.c_str (),
+                       //ios_base::in | ios_base::out//,
+                       std::ios::in | std::ios::out | std::ios::binary
+                       /*(int)ios_base::_Openprot*/);
+  if (stream.fail ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to open file (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (targetFilename_in.c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (stream.is_open ());
+  ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _rifflist* RIFF_list_p = NULL;
+  struct _riffchunk* RIFF_chunk_p = NULL;
+  struct _avimainheader* AVI_header_avih_p = NULL;
+  struct _avistreamheader* AVI_header_strh_p = NULL;
+  stream.read (buffer_a, sizeof (struct _rifflist));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  read_offset = sizeof (struct _rifflist);
+  RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+  ACE_ASSERT (RIFF_list_p->fcc == FCC ('RIFF'));
+  ACE_ASSERT (RIFF_list_p->fccListType == FCC ('AVI '));
+  // *TODO*: support index version 2.0
+  value_i =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (RIFF_list_p->cb)
+                                           : RIFF_list_p->cb);
+  value_i +=
+    (writer_p->frameOffsets_.size () * (sizeof (struct _riffchunk) + writer_p->frameSize_)) + // see: #1225
+    (writer_p->frameOffsets_.size () * sizeof (struct _avioldindex::_avioldindex_entry));     // see: #1228
+  RIFF_list_p->cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  stream.seekp (write_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.write (reinterpret_cast<char*> (RIFF_list_p),
+                sizeof (struct _rifflist));
+  if (stream.fail ())
+    goto error;
+  stream.seekg (read_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.read (buffer_a, sizeof (struct _rifflist));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  read_offset += sizeof (struct _rifflist);
+  RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+  ACE_ASSERT (RIFF_list_p->fccListType == FCC ('hdrl'));
+  stream.read (buffer_a, sizeof (struct _avimainheader));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  write_offset = read_offset;
+  read_offset += sizeof (struct _avimainheader);
+  AVI_header_avih_p = reinterpret_cast<struct _avimainheader*> (buffer_a);
+  ACE_ASSERT (AVI_header_avih_p->fcc == FCC ('avih'));
+  AVI_header_avih_p->dwTotalFrames =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (writer_p->frameOffsets_.size ())
+                                           : writer_p->frameOffsets_.size ());
+  // *NOTE*: std::ofstream::write() modifies seekp
+  stream.seekp (write_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.write (reinterpret_cast<char*> (AVI_header_avih_p),
+                sizeof (struct _avimainheader));
+  if (stream.fail ())
+    goto error;
+  stream.seekg (read_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.read (buffer_a, sizeof (struct _rifflist));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  read_offset += sizeof (struct _rifflist);
+  RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+  ACE_ASSERT (RIFF_list_p->fccListType == FCC ('strl'));
+  stream.read (buffer_a, sizeof (struct _avistreamheader));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  write_offset = read_offset;
+  AVI_header_strh_p = reinterpret_cast<struct _avistreamheader*> (buffer_a);
+  ACE_ASSERT (AVI_header_strh_p->fcc == FCC ('strh'));
+  ACE_ASSERT (AVI_header_strh_p->fccType == FCC ('vids'));
+  AVI_header_strh_p->dwLength =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (writer_p->frameOffsets_.size ())
+                                           : writer_p->frameOffsets_.size ());
+  stream.seekp (write_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.write (reinterpret_cast<char*> (AVI_header_strh_p),
+                sizeof (struct _avistreamheader));
+  if (stream.fail ())
+    goto error;
+  stream.seekg (list_movi_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.read (buffer_a, sizeof (struct _rifflist));
+  if (stream.eof () || stream.fail ())
+    goto error;
+  RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
+  ACE_ASSERT (RIFF_list_p->fccListType == FCC ('movi'));
+  // *TODO*: support index version 2.0
+  value_i =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (RIFF_list_p->cb)
+                                           : RIFF_list_p->cb);
+  value_i +=
+    (writer_p->frameOffsets_.size () * (sizeof (struct _riffchunk) + writer_p->frameSize_)); // see: #1440
+  RIFF_list_p->cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  //chunk_idx1_offset =
+  //  list_movi_offset + sizeof (struct _rifflist) + RIFF_list_p->cb;
+  stream.seekp (list_movi_offset,
+                ios::beg);
+                //ios_base::beg);
+  if (stream.fail ())
+    goto error;
+  stream.write (reinterpret_cast<char*> (RIFF_list_p),
+                sizeof (struct _rifflist));
+  if (stream.fail ())
+    goto error;
+
+
+#else
+  ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP_RETURN (false);
   ACE_NOTREACHED (return false;)
+#endif // ACE_WIN32 || ACE_WIN64
+
+  result = true;
+
+error:
+  stream.close ();
+  if (stream.fail ())
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to close file (was: \"%s\"), continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (targetFilename_in.c_str ())));
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +406,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
 #else
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , isActive_ (true)
  , isFirst_ (true)
@@ -185,11 +414,15 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
  , formatContext_ (NULL)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  , frameSize_ (0)
  , height_ (0)
  , width_ (0)
  , transformContext_ (NULL)
+ , currentFrameOffset_ (0)
+ , frameOffsets_ ()
+ , writeAVI1Index_ (true)
+ , writeAVI2Index_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::Stream_Decoder_AVIEncoder_WriterTask_T"));
 
@@ -237,7 +470,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
     avformat_free_context (formatContext_);
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (transformContext_)
     sws_freeContext (transformContext_);
 }
@@ -292,7 +525,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       avformat_free_context (formatContext_);
       formatContext_ = NULL;
     } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     frameSize_ = 0;
     height_ = 0;
     width_ = 0;
@@ -301,6 +534,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       sws_freeContext (transformContext_);
       transformContext_ = NULL;
     } // end IF
+    currentFrameOffset_ = 0;
+    frameOffsets_.clear ();
+    writeAVI1Index_ = true;
+    writeAVI2Index_ = false;
   } // end IF
 
   // *TODO*: remove type inference
@@ -347,7 +584,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //    return false;
 //  } // end IF
   ACE_ASSERT (formatContext_->oformat);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -370,7 +607,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //    avformat_free_context (formatContext_);
 //    formatContext_ = NULL;
 //  } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return false;
 }
@@ -415,7 +652,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _riffchunk RIFF_chunk;
 #else
   unsigned int riff_chunk_size = 0;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -423,17 +660,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   message_block_p =
-    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? 2048 + frameSize_ + 8
-                                                               : frameSize_ + 8)
-                                                   : inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
+                                                               : sizeof (struct _riffchunk) + frameSize_)
+                                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
+                                                               : sizeof (struct _riffchunk))));
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                 inherited::mod_->name (),
-                (transformContext_ ? (isFirst_ ? 2048 + frameSize_ + 8
-                                               : frameSize_ + 8)
-                                   : inherited::configuration_->allocatorConfiguration->defaultBufferSize)));
+                (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
+                                               : sizeof (struct _riffchunk) + frameSize_)
+                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
+                                               : sizeof (struct _riffchunk)))));
     goto error;
   } // end IF
 
@@ -482,7 +721,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   if (transformContext_)
   { ACE_ASSERT (message_block_p->space () >= frameSize_);
@@ -495,7 +734,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     if (!Stream_Module_Decoder_Tools::convert (transformContext_,
                                                width_, height_, format_,
                                                in_data,
-                                               width_, height_, AV_PIX_FMT_BGR24,
+                                               width_, height_, AV_PIX_FMT_RGB24,
                                                out_data))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -508,6 +747,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
   else
     message_block_p->cont (message_inout);
+  frameOffsets_.push_back (currentFrameOffset_);
+  currentFrameOffset_ += (sizeof (struct _riffchunk) + frameSize_);
 
   result = inherited::put_next (message_block_p, NULL);
   if (result == -1)
@@ -577,14 +818,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* format_p = &getFormat (session_data_r.inputFormat);
       format_ =
-        Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (format_p->subtype,
-                                                                      false); // *TODO*: set this correctly
+        Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (format_p->subtype,
+                                                                  STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
       frame_rate_s = getFrameRate (session_data_r,
                                    format_p);
       getResolution (session_data_r,
                      format_p,
                      width_, height_);
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType (format_p);
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (format_p);
 #else
       format_ = getFormat (&session_data_r.format);
       frame_rate_s = getFrameRate (session_data_r,
@@ -592,8 +833,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       getResolution (session_data_r,
                      &format_,
                      width_, height_);
-#endif
-      frameSize_ = av_image_get_buffer_size (AV_PIX_FMT_BGR24,
+#endif // ACE_WIN32 || ACE_WIN64
+      frameSize_ = av_image_get_buffer_size (AV_PIX_FMT_RGB24,
                                              width_, height_,
                                              1); // *TODO*: linesize alignment
 
@@ -688,7 +929,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       codec_context_p->width = width_;
       codec_context_p->height = height_;
 //      codec_context_p->gop_size = 0;
-      codec_context_p->pix_fmt = AV_PIX_FMT_BGR24;
+      codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
       codec_context_p->me_method = 1;
 //      codec_context_p->max_b_frames = 0;
 //      codec_context_p->b_quant_factor = -1.0F;
@@ -811,7 +1052,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      stream_p->codec->codec_tag = MKTAG ('B', 'G', 'R', 'A');
     //  stream_p->codec->codec_type = codec_->type;
 
-      stream_p->codec->pix_fmt = AV_PIX_FMT_BGR24;
+      stream_p->codec->pix_fmt = AV_PIX_FMT_RGB24;
       stream_p->codec->width = width_;
       stream_p->codec->height = height_;
       stream_p->time_base.num = frame_rate_s.den;
@@ -822,14 +1063,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      stream_p->side_data = NULL;
 //      stream_p->nb_side_data = 0;
 //      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
-      if (format_ != AV_PIX_FMT_BGR24)
+      if (format_ != AV_PIX_FMT_RGB24)
       {
         transformContext_ =
             sws_getCachedContext (NULL,
                                   width_, height_, format_,
-                                  width_, height_, AV_PIX_FMT_BGR24,
+                                  width_, height_, AV_PIX_FMT_RGB24,
                                   flags,                            // flags
                                   NULL, NULL,
                                   0);                               // parameters
@@ -844,7 +1085,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: converting %s pixel format to %s\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (format_).c_str ()),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (AV_PIX_FMT_BGR24).c_str ())));
+                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (AV_PIX_FMT_RGB24).c_str ())));
       } // end IF
 
       goto continue_;
@@ -854,7 +1095,7 @@ error:
 #else
       if (codec_context_p)
         avcodec_free_context (&codec_context_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -876,6 +1117,8 @@ continue_:
       // sanity check(s)
       if (!isActive_)
         goto continue_2; // nothing to do
+      if (!writeAVI1Index_)
+        goto continue_2;
 
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
@@ -893,16 +1136,14 @@ continue_:
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
-
-      if (!generateIndex (message_block_p))
+      if (!generateIndex (STREAM_AVI_INDEX_V1,
+                          message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
-
-        // clean up
+                    ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(%d): \"%m\", continuing\n"),
+                    inherited::mod_->name (),
+                    STREAM_AVI_INDEX_V1));
         message_block_p->release ();
-
         goto continue_2;
       } // end IF
 
@@ -912,18 +1153,14 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-
-        // clean up
         message_block_p->release ();
-
         goto continue_2;
       } // end IF
 
 continue_2:
       if (transformContext_)
       {
-        sws_freeContext (transformContext_);
-        transformContext_ = NULL;
+        sws_freeContext (transformContext_); transformContext_ = NULL;
       } // end IF
 
       break;
@@ -970,59 +1207,96 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (session_data_r.inputFormat);
 
-  struct _AMMediaType& media_type_r = getFormat (session_data_r.inputFormat);
-  // *NOTE*: needed to reclaim memory (see below)
-  struct _AMMediaType* media_type_p = &media_type_r;
+  // *NOTE*: need to reclaim this memory (see below)
+  struct _AMMediaType* media_type_p = &getFormat (session_data_r.inputFormat);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
   struct _avistreamheader AVI_header_strh;
   FOURCCMap fourcc_map;
-  unsigned int pad_bytes = 0;
   struct tagBITMAPINFOHEADER AVI_header_strf;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  unsigned int value_i = 0;
+  short int value_2 = 0;
 
-  if ((media_type_r.formattype != FORMAT_VideoInfo) &&
-      (media_type_r.formattype != FORMAT_VideoInfo2))
+  if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
+    video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
+  else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+    video_info_header2_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
+  else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (media_type_r.formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (media_type_p->formattype).c_str ())));
     goto error;
+  } // end ELSE
+
+  // *NOTE*: the input format is converted to BGR24
+  //         --> adjust header accordingly
+  if (InlineIsEqualGUID (media_type_p->subtype, MEDIASUBTYPE_RGB24))
+    goto continue_;
+
+  ACE_ASSERT (InlineIsEqualGUID (media_type_p->majortype, MEDIATYPE_Video));
+  media_type_p->subtype = MEDIASUBTYPE_RGB24;
+  ACE_ASSERT (media_type_p->bFixedSizeSamples == TRUE);
+  ACE_ASSERT (media_type_p->bTemporalCompression == FALSE);
+  media_type_p->lSampleSize = frameSize_;
+  if (video_info_header_p)
+  {
+    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+    video_info_header_p->bmiHeader.biBitCount = 24;
+    ACE_ASSERT (video_info_header_p->bmiHeader.biCompression == BI_RGB);
+    video_info_header_p->bmiHeader.biSizeImage = frameSize_;
+      //DIBSIZE (video_info_header_p->bmiHeader);
+    video_info_header_p->dwBitRate =
+      (frameSize_ * 8) *                                                      // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
   } // end IF
+  else
+  {
+    ACE_ASSERT (video_info_header2_p->bmiHeader.biPlanes == 1);
+    video_info_header2_p->bmiHeader.biBitCount = 24;
+    ACE_ASSERT (video_info_header2_p->bmiHeader.biCompression == BI_RGB);
+    video_info_header2_p->bmiHeader.biSizeImage = frameSize_;
+      //DIBSIZE (video_info_header_p->bmiHeader);
+    video_info_header2_p->dwBitRate =
+      (frameSize_ * 8) *                                                       // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
+  } // end ELSE
 
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (media_type_r.formattype == FORMAT_VideoInfo)
-    video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)media_type_r.pbFormat;
-  else if (media_type_r.formattype == FORMAT_VideoInfo2)
-    video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)media_type_r.pbFormat;
-
-  // RIFF header
+continue_:
+  // RIFF
   ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
   RIFF_list.fcc = FCC ('RIFF');
-  // *NOTE*: in a streaming scenario, this would need to be added AFTER the
-  //         file has been written (or the disc runs out of space), which is
-  //         impossible until/unless this value is preconfigured in some way.
-  //         Notice how this oversight confounds the whole standard
-  // sizeof (fccListType) [4] + sizeof (data) --> == total (file) size - 8
-  RIFF_list.cb = sizeof (FOURCC)                     +
-                 sizeof (struct _rifflist)           + // hdrl
-                 sizeof (struct _avimainheader)      +
-                 // sizeof (LIST strl)
-                 sizeof (struct _rifflist)           +
-                 sizeof (struct _avistreamheader)    + // strh
-                 sizeof (struct _riffchunk)          + // strf
-                 sizeof (struct tagBITMAPINFOHEADER) + // strf
-                 sizeof (struct _riffchunk)          + // JUNK
-                 1820                                + // pad bytes
-                 sizeof (struct _rifflist)           + // movi
-                 sizeof (struct _riffchunk)          + // 00db
-                 messageBlock_inout->length ();        // (part of) frame
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
+  // sizeof (fccListType) [4] + sizeof (RIFF) [== total (file) size - 8]
+  value_i = 4                                   + // 'AVI '
+            // sizeof (LIST hdrl)
+            sizeof (struct _rifflist)           + // 'hdrl'
+            sizeof (struct _avimainheader)      + // 'avih'
+            // sizeof (LIST strl)
+            sizeof (struct _rifflist)           + // 'strl'
+            sizeof (struct _avistreamheader)    + // 'strh' / 'vids'
+            sizeof (struct _riffchunk)          + // 'strf'
+            sizeof (struct tagBITMAPINFOHEADER) +
+            //sizeof (struct _riffchunk)          + // 'strd' // *TODO*
+            //sizeof (struct _riffchunk)          + // 'strn' // *TODO*
+            //sizeof (struct _riffchunk)          + // 'indx' // *TODO*: index version 2.0; post-processing
+            sizeof (struct _riffchunk)          + // 'JUNK'
+            1820                                + // pad bytes
+            // sizeof (LIST movi)
+            sizeof (struct _rifflist)           + // 'movi'
+            //sizeof (struct _riffchunk)        + // 'ix00' // *TODO*: index version 2.0; post-processing
+            //(sizeof (struct _riffchunk) + frameSize_) * #frames + // '00db'; post-processing
+            // sizeof (idx1)
+            sizeof (struct _riffchunk);           // 'idx1'
+            //sizeof (struct _avioldindex::_avioldindex_entry) * #frames; post-processing
+  RIFF_list.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   RIFF_list.fccListType = FCC ('AVI ');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
@@ -1036,16 +1310,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // hdrl
   RIFF_list.fcc = FCC ('LIST');
-  // sizeof (fccListType) [4] + sizeof (LIST data)
-  RIFF_list.cb = sizeof (FOURCC)                    +
-                 sizeof (struct _avimainheader)     +
-                 // sizeof (LIST strl)
-                 sizeof (struct _rifflist)          +
-                 sizeof (struct _avistreamheader)   + // strh
-                 sizeof (struct _riffchunk)         + // strf
-                 sizeof (struct tagBITMAPINFOHEADER); // strf
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
+  // sizeof (fccListType) [4] + sizeof (avih) + sizeof (LIST strl)
+  value_i = 4                                   + // 'hdrl'
+            sizeof (struct _avimainheader)      + // 'avih'
+            // sizeof (LIST strl)
+            sizeof (struct _rifflist)           + // 'strl'
+            sizeof (struct _avistreamheader)    + // 'strh' / 'vids'
+            sizeof (struct _riffchunk)          + // 'strf'
+            sizeof (struct tagBITMAPINFOHEADER);
+            //sizeof (struct _riffchunk)          + // 'strd' // *TODO*
+            //sizeof (struct _riffchunk)          + // 'strn' // *TODO*
+            //sizeof (struct _riffchunk)          + // 'indx' // *TODO*: index version 2.0; post-processing
+  RIFF_list.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   RIFF_list.fccListType = FCC ('hdrl');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
@@ -1061,27 +1339,54 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //         contained in an 'avih' chunk. ..."
   ACE_OS::memset (&AVI_header_avih, 0, sizeof (struct _avimainheader));
   AVI_header_avih.fcc = ckidMAINAVIHEADER;
-  AVI_header_avih.cb = sizeof (struct _avimainheader) - 8;
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    AVI_header_avih.cb = ACE_SWAP_LONG (AVI_header_avih.cb);
+  value_i = sizeof (struct _avimainheader) - 8;
+  AVI_header_avih.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  // *NOTE*: tagVIDEOINFOHEADER.AvgTimePerFrame gives 100ns units
+  value_i = 
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame / 10)
+                                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame / 10));
   AVI_header_avih.dwMicroSecPerFrame =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
+                                                                    : video_info_header2_p->dwBitRate) / 8;
   AVI_header_avih.dwMaxBytesPerSec =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
-                                                   : video_info_header2_p->dwBitRate) / 8;
-  AVI_header_avih.dwPaddingGranularity = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
-  AVI_header_avih.dwFlags = AVIF_WASCAPTUREFILE;
-  //AVI_header_avih.dwTotalFrames = 0; // unreliable
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  AVI_header_avih.dwPaddingGranularity =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN)
+                                           : STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN);
+  value_i = (AVIF_HASINDEX       |
+             AVIF_MUSTUSEINDEX   |
+             AVIF_WASCAPTUREFILE);
+  AVI_header_avih.dwFlags = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  //AVI_header_avih.dwTotalFrames = 0; // post-processing; unreliable
   //AVI_header_avih.dwInitialFrames = 0;
-  AVI_header_avih.dwStreams = 1;
-  //AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
+  value_i = 1;
+  AVI_header_avih.dwStreams =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i = 8 + frameSize_; // *NOTE*: unreliable
+  AVI_header_avih.dwSuggestedBufferSize =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i = 
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
+                                                                    : video_info_header2_p->bmiHeader.biWidth);
   AVI_header_avih.dwWidth =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
-                                                   : video_info_header2_p->bmiHeader.biWidth);
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
+                                                                    : video_info_header2_p->bmiHeader.biHeight);
   AVI_header_avih.dwHeight =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
-                                                   : video_info_header2_p->bmiHeader.biHeight);
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   //AVI_header_avih.dwReserved = {0, 0, 0, 0};
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_avih),
@@ -1101,13 +1406,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //         ..."
   // strl
   RIFF_list.fcc = FCC ('LIST');
-  // sizeof (fccListType) [4] + sizeof (LIST data)
-  RIFF_list.cb = sizeof (FOURCC)                   +
-                 sizeof (struct _avistreamheader)  + // strh
-                 sizeof (struct _riffchunk)        + // strf
-                 sizeof (struct tagBITMAPINFOHEADER); // strf
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
+  // sizeof (fccListType) [4] + sizeof (LIST strl)
+  value_i = 4                                 +  // 'strl'
+            sizeof (struct _avistreamheader)  +  // 'strh' / 'vids'
+            sizeof (struct _riffchunk)        +  // 'strf'
+            sizeof (struct tagBITMAPINFOHEADER);
+            //sizeof (struct _riffchunk)          + // 'strd' // *TODO*
+            //sizeof (struct _riffchunk)          + // 'strn' // *TODO*
+            //sizeof (struct _riffchunk);           // 'indx' // *TODO*: index version 2.0; post-processing
+  RIFF_list.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   RIFF_list.fccListType = ckidSTREAMLIST;
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
@@ -1122,28 +1431,67 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // strl --> strh
   ACE_OS::memset (&AVI_header_strh, 0, sizeof (struct _avistreamheader));
   AVI_header_strh.fcc = ckidSTREAMHEADER;
-  AVI_header_strh.cb = sizeof (struct _avistreamheader) - 8;
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    AVI_header_strh.cb = ACE_SWAP_LONG (AVI_header_strh.cb);
+  value_i = sizeof (struct _avistreamheader) - 8;
+  AVI_header_strh.cb = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   AVI_header_strh.fccType = streamtypeVIDEO;
-  fourcc_map.SetFOURCC (&media_type_r.subtype);
-  AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
-  //AVI_header_strh.fccHandler = 0;
+  // *NOTE*: RGB24 --> 0
+  //fourcc_map.SetFOURCC (&media_type_p->subtype);
+  //AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
   //AVI_header_strh.dwFlags = 0;
   //AVI_header_strh.wPriority = 0;
   //AVI_header_strh.wLanguage = 0;
   //AVI_header_strh.dwInitialFrames = 0;
   // *NOTE*: dwRate / dwScale == fps
-  AVI_header_strh.dwScale = 10000; // 100th nanoseconds --> seconds ???
+  value_i = 10000; // 100th nanoseconds --> milliseconds
+  AVI_header_strh.dwScale = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+                                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
   AVI_header_strh.dwRate =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   //AVI_header_strh.dwStart = 0;
-  //AVI_header_strh.dwLength = 0;
-  //AVI_header_strh.dwSuggestedBufferSize = 0;
-  AVI_header_strh.dwQuality = -1; // default
-                                  //AVI_header_strh.dwSampleSize = 0;
-                                  //AVI_header_strh.rcFrame = {0, 0, 0, 0};
+  //AVI_header_strh.dwLength = 0; // post-prcessing
+  value_i = 8 + frameSize_; // *NOTE*: unreliable
+  AVI_header_strh.dwSuggestedBufferSize = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i = -1; // default
+  AVI_header_strh.dwQuality = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_i = frameSize_;
+  AVI_header_strh.dwSampleSize = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
+  value_2 =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.left)
+                                                                    : static_cast<short int> (video_info_header2_p->rcTarget.left));
+  AVI_header_strh.rcFrame.left =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
+                                           : value_2);
+  value_2 =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.right)
+                                                                    : static_cast<short int> (video_info_header2_p->rcTarget.right));
+  AVI_header_strh.rcFrame.right =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
+                                           : value_2);
+  value_2 =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.top)
+                                                                    : static_cast<short int> (video_info_header2_p->rcTarget.top));
+  AVI_header_strh.rcFrame.top =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
+                                           : value_2);
+  value_2 =
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.bottom)
+                                                                    : static_cast<short int> (video_info_header2_p->rcTarget.bottom));
+  AVI_header_strh.rcFrame.bottom =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
+                                           : value_2);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strh),
                               sizeof (struct _avistreamheader));
@@ -1156,19 +1504,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
 
   // strl --> strf
-  // *NOTE*: there is no definition for AVI stream format chunks, as their
-  //         contents differ, depending on the stream type
+  // *NOTE*: there is no definition for AVI stream chunk format; their content
+  //         differs, depending on the type of stream
   ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
   RIFF_chunk.fcc = ckidSTREAMFORMAT;
-  RIFF_chunk.cb = sizeof (struct tagBITMAPINFOHEADER);
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
+  value_i = sizeof (struct tagBITMAPINFOHEADER);
+  RIFF_chunk.cb = 
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                      sizeof (struct _riffchunk));
   ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
   AVI_header_strf =
-    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
-                                                   : video_info_header2_p->bmiHeader);
+    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
+                                                                    : video_info_header2_p->bmiHeader);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf),
                               sizeof (struct tagBITMAPINFOHEADER));
@@ -1180,37 +1529,41 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  // strl --> strd
-  // strl --> strn
+  // strl --> strd *TODO*
+  // strl --> strn *TODO*
+  // strl --> indx *TODO*
 
   // --> END strl
 
-  // insert JUNK chunk to align the 'movi' chunk at 2048 bytes
+  // insert JUNK chunk to align the 'movi' list to 2048 bytes
   // --> should speed up CD-ROM access
-  pad_bytes = (AVI_header_avih.dwPaddingGranularity -
-               messageBlock_inout->length () - 8 - 12);
+  value_i = (AVI_header_avih.dwPaddingGranularity -
+             (messageBlock_inout->length () + 8));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: inserting JUNK chunk (%d pad byte(s))\n"),
+              ACE_TEXT ("%s: inserting JUNK chunk (%u pad byte(s))\n"),
               inherited::mod_->name (),
-              pad_bytes));
+              value_i));
   RIFF_chunk.fcc = FCC ('JUNK');
-  RIFF_chunk.cb = pad_bytes;
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
+  RIFF_chunk.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                      sizeof (struct _riffchunk));
-  ACE_OS::memset (messageBlock_inout->wr_ptr (), 0, pad_bytes);
+  ACE_OS::memset (messageBlock_inout->wr_ptr (), 0, value_i);
   messageBlock_inout->wr_ptr (RIFF_chunk.cb);
 
   // movi
+  // *NOTE*: this is the origin of the frame index; increment the corresponding
+  //         offsets from here
+  ACE_ASSERT (!currentFrameOffset_ && frameOffsets_.empty ());
   RIFF_list.fcc = FCC ('LIST');
-  // *NOTE*: see above
-  // sizeof (fccListType) [4] + sizeof (LIST data)
-  RIFF_list.cb = sizeof (FOURCC)              +
-                 sizeof (struct _riffchunk)   + // 00db
-                 messageBlock_inout->length (); // (part of) frame
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
+  // sizeof (fccListType) [4] + sizeof (LIST movi)
+  value_i = 4;               //                                   +
+            //sizeof (struct _riffchunk) + ???                    + // 'ix00' // *TODO*: index version 2.0; post-processing
+            //(sizeof (struct _riffchunk) + frameSize_) * #frames + // '00db'; post-processing
+  RIFF_list.cb =
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                           : value_i);
   RIFF_list.fccListType = FCC ('movi');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
@@ -1221,25 +1574,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-
-  //RIFF_chunk.fcc = FCC ('00db');
-  //RIFF_chunk.cb = message_inout->length ();
-  //if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-  //  RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-  //result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-  //                                sizeof (struct _riffchunk));
+  currentFrameOffset_ += sizeof (struct _rifflist);
 
   // clean up
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
 
-  goto continue_;
+  goto continue_2;
 
 error:
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
 
   return false;
 
-continue_:
+continue_2:
 #else
   ACE_ASSERT (!formatContext_->pb);
   formatContext_->pb =
@@ -1275,7 +1622,7 @@ continue_:
     return false;
   } // end IF
   avio_flush (formatContext_->pb);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }
@@ -1309,11 +1656,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
+  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*format_in,
+                                                              result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n"),
                 inherited::mod_->name ()));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
@@ -1480,7 +1827,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::GUIDToString (format_in->formattype).c_str ())));
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1502,7 +1849,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
-                                       UserDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
+                                       UserDataType>::generateIndex (enum Stream_Decoder_AVIIndexType indexType_in,
+                                                                     ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex"));
 
@@ -1512,32 +1860,106 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   int result = -1;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _avisuperindex AVI_header_index;
-  ACE_OS::memset (&AVI_header_index, 0, sizeof (struct _avisuperindex));
-//  AVI_header_index.fcc = 0;
-//  AVI_header_index.cb = 0;
-//  AVI_header_index.wLongsPerEntry = 0;
-//  AVI_header_index.bIndexSubType = 0;
-//  AVI_header_index.bIndexType = 0;
-//  AVI_header_index.nEntriesInUse = 0;
-//  AVI_header_index.dwChunkId = 0;
-//  AVI_header_index.dwReserved = 0;
-//  AVI_header_index.aIndex = 0;
+  switch (indexType_in)
+  {
+    case STREAM_AVI_INDEX_V1:
+    {
+      struct _avioldindex AVI_header_index;
+      unsigned int value_i = 0;
+      ACE_OS::memset (&AVI_header_index, 0, sizeof (struct _avioldindex));
+      AVI_header_index.fcc = ckidAVIOLDINDEX;
+      value_i =
+        (sizeof (struct _avioldindex::_avioldindex_entry) *
+         frameOffsets_.size ());
+      AVI_header_index.cb =
+        ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                               : value_i);
+      result =
+        messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_index),
+                                  sizeof (struct _avioldindex));
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    sizeof (struct _avioldindex)));
+        return false;
+      } // end IF
+      struct _avioldindex::_avioldindex_entry _avioldindex_entry_s;
+      for (FRAMEOFFSETSITERATOR_T iterator = frameOffsets_.begin ();
+           iterator != frameOffsets_.end ();
+           ++iterator)
+      {
+        ACE_OS::memset (&_avioldindex_entry_s, 0, sizeof (struct _avioldindex::_avioldindex_entry));
+        _avioldindex_entry_s.dwChunkId = FCC ('00db');
+        _avioldindex_entry_s.dwFlags = (AVIIF_KEYFRAME// |
+                                        //AVIIF_LIST     |
+                                        /*AVIIF_NO_TIME*/);
+        value_i = *iterator;
+        _avioldindex_entry_s.dwOffset =
+          ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                                 : value_i);
+        value_i = frameSize_;
+        _avioldindex_entry_s.dwSize =
+          ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
+                                                 : value_i);
+        result =
+          messageBlock_inout->copy (reinterpret_cast<char*> (&_avioldindex_entry_s),
+                                    sizeof (struct _avioldindex::_avioldindex_entry));
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
+                      sizeof (struct _avioldindex::_avioldindex_entry)));
+          return false;
+        } // end IF
+      } // end FOR
 
-//  struct _avisuperindex_entry AVI_header_index_entry_0;
-//  ACE_OS::memset (&AVI_header_index_entry_0, 0, sizeof (struct _avisuperindex_entry));
-//  struct _avisuperindex_entry AVI_header_index_entry_1;
-//  ACE_OS::memset (&AVI_header_index_entry_1, 0, sizeof (struct _avisuperindex_entry));
-//  struct _avisuperindex_entry AVI_header_index_entry_2;
-//  ACE_OS::memset (&AVI_header_index_entry_2, 0, sizeof (struct _avisuperindex_entry));
-//  struct _avisuperindex_entry AVI_header_index_entry_3;
-//  ACE_OS::memset (&AVI_header_index_entry_3, 0, sizeof (struct _avisuperindex_entry));
+      break;
+    }
+    case STREAM_AVI_INDEX_V2:
+    {
+      ACE_ASSERT (false); // *TODO*
+      ACE_NOTSUP_RETURN (false);
+      ACE_NOTREACHED (return false;)
+      //struct _avisuperindex AVI_header_index;
+      //ACE_OS::memset (&AVI_header_index, 0, sizeof (struct _avisuperindex));
+      //  AVI_header_index.fcc = 0;
+      //  AVI_header_index.cb = 0;
+      //  AVI_header_index.wLongsPerEntry = 0;
+      //  AVI_header_index.bIndexSubType = 0;
+      //  AVI_header_index.bIndexType = 0;
+      //  AVI_header_index.nEntriesInUse = 0;
+      //  AVI_header_index.dwChunkId = 0;
+      //  AVI_header_index.dwReserved = 0;
+      //  AVI_header_index.aIndex = 0;
 
-  result =
-    messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_index),
-                              sizeof (struct _avisuperindex));
+      //  struct _avisuperindex_entry AVI_header_index_entry_0;
+      //  ACE_OS::memset (&AVI_header_index_entry_0, 0, sizeof (struct _avisuperindex_entry));
+      //  struct _avisuperindex_entry AVI_header_index_entry_1;
+      //  ACE_OS::memset (&AVI_header_index_entry_1, 0, sizeof (struct _avisuperindex_entry));
+      //  struct _avisuperindex_entry AVI_header_index_entry_2;
+      //  ACE_OS::memset (&AVI_header_index_entry_2, 0, sizeof (struct _avisuperindex_entry));
+      //  struct _avisuperindex_entry AVI_header_index_entry_3;
+      //  ACE_OS::memset (&AVI_header_index_entry_3, 0, sizeof (struct _avisuperindex_entry));
+      //result =
+      //  messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_index),
+      //                            sizeof (struct _avioldindex));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown index type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  indexType_in));
+      return false;
+    }
+  } // end SWITCH
 #else
   // sanity check(s)
+  ACE_UNUSED_ARG (indexType_in);
   ACE_ASSERT (formatContext_);
 
   result = av_write_trailer (formatContext_);
@@ -1546,7 +1968,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }
@@ -1906,7 +2328,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       switch (session_data_r.format)
       {
         // RGB formats
-        case AV_PIX_FMT_BGR24:
+        case AV_PIX_FMT_RGB24:
         case AV_PIX_FMT_RGB24:
 //        case V4L2_PIX_FMT_BGR24:
 //        case V4L2_PIX_FMT_RGB24:
@@ -1995,7 +2417,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      {
 //        // RGB formats
 //        case V4L2_PIX_FMT_BGR24:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_BGR24;
+//          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
 //          break;
 //        case V4L2_PIX_FMT_RGB24:
 //          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
@@ -2261,7 +2683,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   return true;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2272,7 +2694,7 @@ sox_overwrite_permitted (char const * filename_in)
 {
   return sox_true;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2304,7 +2726,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
  , encodingInfo_ ()
  , signalInfo_ ()
  , outputFile_ (NULL)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::Stream_Decoder_WAVEncoder_T"));
 
@@ -2312,7 +2734,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #else
   ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -2357,7 +2779,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to sox_quit(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -2400,7 +2822,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                   ACE_TEXT (sox_strerror (result))));
       return false;
     } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2414,7 +2836,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (sox_strerror (result))));
     return false;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -2452,7 +2874,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #else
   if (!outputFile_)
     return; // nothing to do
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // initialize return value(s)
   passMessageDownstream_out = false;
@@ -2462,7 +2884,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   struct _riffchunk RIFF_chunk;
 #else
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
@@ -2575,7 +2997,7 @@ error:
   } // end IF
 
   return;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -2614,7 +3036,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #else
   ACE_ASSERT (inherited::configuration_);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   int result = -1;
 
@@ -2681,7 +3103,7 @@ error:
       break;
 
 continue_:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
       break;
     }
@@ -2770,7 +3192,7 @@ continue_:
 
       // clean up
       media_type_p = &media_type_r;
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
       delete [] wave_header_p;
       result = file_IO.close ();
       if (result == -1)
@@ -2783,7 +3205,7 @@ continue_:
 
 error_2:
       media_type_p = &media_type_r;
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
       if (wave_header_p)
         delete [] wave_header_p;
       if (close_file)
@@ -2813,7 +3235,7 @@ continue_2:
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     bytes_written));
       } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
       break;
     }
@@ -2895,8 +3317,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   // clean up
   struct _AMMediaType* media_type_p = &media_type_r;
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
 
   return true;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

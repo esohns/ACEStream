@@ -25,7 +25,6 @@
 #define HTTP_GET_DEFAULT_URI         "http://www.mirc.com/servers.ini"
 
 //#define HTTP_GET_DEFAULT_BUFFER_SIZE 16384 // bytes
-//#define HTTP_GET_MAX_MESSAGES        0 // 0 --> no limits
 
 // *** Gtk UI-related ***
 #define HTTPGET_UI_WIDGET_NAME_BUTTON_ABOUT                "button_about"

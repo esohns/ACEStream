@@ -30,13 +30,13 @@
 #include "test_i_http_get_common.h"
 
 class Stream_Source_SignalHandler
- : public Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Test_I_HTTPGet_SignalHandlerConfiguration>
 {
-  typedef Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<struct Test_I_HTTPGet_SignalHandlerConfiguration> inherited;
 
  public:
   Stream_Source_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                               ACE_SYNCH_MUTEX*);              // lock handle
+                               ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
   inline virtual ~Stream_Source_SignalHandler () {}
 
   // implement Common_ISignal

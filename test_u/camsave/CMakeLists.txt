@@ -162,12 +162,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camsave_defines.h
      test_u_camsave_eventhandler.cpp
      test_u_camsave_eventhandler.h
+     test_u_camsave_eventhandler.inl
      test_u_camsave_message.cpp
      test_u_camsave_message.h
-     test_u_camsave_module_eventhandler.cpp
-     test_u_camsave_module_eventhandler.h
+     test_u_camsave_message.inl
      test_u_camsave_session_message.cpp
      test_u_camsave_session_message.h
+     test_u_camsave_session_message.inl
      test_u_camsave_signalhandler.cpp
      test_u_camsave_signalhandler.h
      test_u_camsave_stream.cpp
@@ -220,10 +221,7 @@ if (UNIX)
  endif ()
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} dxguid.lib)
- target_link_libraries (${EXECUTABLE} evr.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
- target_link_libraries (${EXECUTABLE} mfuuid.lib)
- target_link_libraries (${EXECUTABLE} strmiids.lib)
 # *TODO*: repair WIN32 pkgconfig support
  if (GTK3_SUPPORT)
   target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
@@ -254,7 +252,7 @@ target_link_libraries (${EXECUTABLE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
+endif (WIN32)
 #target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} CommonUI_GTK)
 
@@ -262,6 +260,9 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
 target_link_libraries (${EXECUTABLE} ACEStream_File)
+if (WIN32)
+ target_link_libraries (${EXECUTABLE} ACEStream_MediaFramework)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 target_link_libraries (${EXECUTABLE} ACEStream_Visualization)

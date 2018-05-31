@@ -207,6 +207,7 @@
                                 <child>
                                   <object class="GtkLabel" id="label_messages">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">messages</property>
                                     <property name="track_visited_links">False</property>
@@ -222,6 +223,7 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_session_messages">
                                         <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="tooltip_text" translatable="yes">session messages</property>
                                         <property name="editable">False</property>
@@ -240,6 +242,7 @@
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_data_messages">
                                         <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="tooltip_text" translatable="yes">data messages</property>
                                         <property name="editable">False</property>
@@ -264,6 +267,7 @@
                                 <child>
                                   <object class="GtkLabel" id="label_data">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">data</property>
                                     <property name="track_visited_links">False</property>
@@ -276,6 +280,7 @@
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_data">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">True</property>
                                     <property name="tooltip_text" translatable="yes">bytes</property>
                                     <property name="editable">False</property>
@@ -731,6 +736,7 @@
                                                     <child>
                                                       <object class="GtkLabel" id="label_buffersize">
                                                         <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
                                                         <property name="can_focus">False</property>
                                                         <property name="label" translatable="yes">buffer</property>
                                                         <property name="track_visited_links">False</property>
@@ -739,8 +745,10 @@
                                                     <child>
                                                       <object class="GtkSpinButton" id="spinbutton_buffersize">
                                                         <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">False</property>
                                                         <property name="tooltip_text" translatable="yes">bytes</property>
+                                                        <property name="editable">False</property>
                                                         <property name="invisible_char">●</property>
                                                         <property name="xalign">1</property>
                                                         <property name="caps_lock_warning">False</property>

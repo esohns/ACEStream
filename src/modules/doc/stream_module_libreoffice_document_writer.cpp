@@ -24,5 +24,6 @@
 
 #include "stream_document_defines.h"
 
-Stream_Document_Export const char libacestream_default_doc_libreoffice_writer_module_name_string[] =
+//Stream_Document_Export const char libacestream_default_doc_libreoffice_writer_module_name_string[] =
+const char libacestream_default_doc_libreoffice_writer_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DOCUMENT_LIBREOFFICE_WRITER_DEFAULT_NAME_STRING);

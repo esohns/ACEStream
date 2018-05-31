@@ -48,7 +48,7 @@
 //#define STREAM_DEC_AVI_PARSER_H
 
 #include "stream_dec_common.h"
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 
 // forward declarations
 
@@ -67,7 +67,7 @@ struct YYSTYPE
 typedef void* yyscan_t;
 
 #define YYDEBUG 1
-extern int Stream_Dec_Export yydebug;
+extern int yydebug;
 //#define YYERROR_VERBOSE
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1

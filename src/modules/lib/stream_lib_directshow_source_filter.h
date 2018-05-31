@@ -94,9 +94,10 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   typedef Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType,
                                                                      OWN_TYPE_T,
                                                                      MediaType> OUTPUT_PIN_T;
-
   // friends
   friend class OUTPUT_PIN_T;
+
+  typedef CSource inherited;
 
  public:
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_T ();
@@ -127,8 +128,8 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   STDMETHODIMP SetProperties (struct _AllocatorProperties*,  // requested
                               struct _AllocatorProperties*); // return value: actual
   STDMETHODIMP GetProperties (struct _AllocatorProperties* properties_out) { CheckPointer (properties_out, E_POINTER); *properties_out = allocatorProperties_; return NOERROR; };
-  inline STDMETHODIMP Commit (void) { return NOERROR; };
-  inline STDMETHODIMP Decommit (void) { return NOERROR; };
+  inline STDMETHODIMP Commit (void) { return NOERROR; }
+  inline STDMETHODIMP Decommit (void) { return NOERROR; }
   STDMETHODIMP GetBuffer (IMediaSample**,  // return value: media sample handle
                           REFERENCE_TIME*, // return value: start time
                           REFERENCE_TIME*, // return value: end time
@@ -149,8 +150,6 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   ConfigurationType* filterConfiguration_;
 
  private:
-  typedef CSource inherited;
-
   // convenient types
   typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
   typedef Common_IInitialize_T<MediaType> IPIN_MEDIA_INITIALIZE_T;
@@ -182,6 +181,8 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitialize_T<MediaType>
 {
+  typedef CSourceStream inherited;
+
  public:
   Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT*,  // return value: result
                                                               CSource*,  // (parent) filter
@@ -210,10 +211,12 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   //         is acceptable. Therefore, the pmt parameter is assumed to be an
   //         acceptable media type. ..."
   virtual HRESULT SetMediaType (const CMediaType*);
+  // *NOTE*: support "Handling Format Changes from the Video Renderer"
+  STDMETHODIMP QueryAccept (const struct _AMMediaType*);
 
   // implement/overload (part of) CBaseOutputPin
   virtual HRESULT DecideAllocator (IMemInputPin*,
-                                        IMemAllocator**);
+                                   IMemAllocator**);
   virtual HRESULT DecideBufferSize (IMemAllocator*,
                                     struct _AllocatorProperties*);
 
@@ -240,7 +243,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
                            LPVOID,  // pInstanceData
                            DWORD,   // cbInstanceData
                            LPVOID,  // pPropData
-                           DWORD) { return E_NOTIMPL; }; // cbPropData
+                           DWORD) { return E_NOTIMPL; } // cbPropData
   STDMETHODIMP Get (REFGUID, // guidPropSet
                     DWORD,   // dwPropID
                     LPVOID,  // pInstanceData
@@ -273,10 +276,10 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
   // implement IAMBufferNegotiation
   // *NOTE*: call before (!) the pin connects
-  inline STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties* properties_in) { CheckPointer (properties_in, E_POINTER); ACE_ASSERT (parentFilter_); parentFilter_->allocatorProperties_ = *properties_in; return NOERROR; };
+  inline STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties* properties_in) { CheckPointer (properties_in, E_POINTER); ACE_ASSERT (parentFilter_); parentFilter_->allocatorProperties_ = *properties_in; return NOERROR; }
   // *NOTE*: call after the pin connects to verify whether the suggested
   //         properties were honored
-  inline STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties* properties_out) { CheckPointer (properties_out, E_POINTER); ACE_ASSERT (parentFilter_); *properties_out = parentFilter_->allocatorProperties_; return NOERROR; };
+  inline STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties* properties_out) { CheckPointer (properties_out, E_POINTER); ACE_ASSERT (parentFilter_); *properties_out = parentFilter_->allocatorProperties_; return NOERROR; }
 
   // ------------------------------------
   // implement IAMStreamConfig
@@ -299,8 +302,6 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   ACE_Message_Queue_Base*     queue_;         // inbound queue (active object)
 
  private:
-  typedef CSourceStream inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (const Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T&))

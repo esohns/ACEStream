@@ -263,7 +263,7 @@ Stream_MediaFramework_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMF
         static_cast<MF_TOPOSTATUS> (attribute_value);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
       break;
     }
     default:

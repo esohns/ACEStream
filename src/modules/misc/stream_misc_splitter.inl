@@ -289,7 +289,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   PDUSize_ = media_type_p->lSampleSize;
 
   // clean up
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
   PDUSize_ =
       av_image_get_buffer_size (configuration_in.format,
@@ -326,11 +326,11 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 
   struct _AMMediaType* result_p = NULL;
 
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
+  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*format_in,
+                                                              result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);

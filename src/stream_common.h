@@ -128,6 +128,7 @@ enum Stream_ControlMessageType : int
   STREAM_CONTROL_MESSAGE_ABORT,
   STREAM_CONTROL_MESSAGE_CONNECT,
   STREAM_CONTROL_MESSAGE_DISCONNECT,
+  STREAM_CONTROL_MESSAGE_END,
   STREAM_CONTROL_MESSAGE_FLUSH,
   STREAM_CONTROL_MESSAGE_LINK,
   STREAM_CONTROL_MESSAGE_RESET,
@@ -178,7 +179,7 @@ struct Stream_Statistic
    , bytesPerSecond (0.0F)
    , messagesPerSecond (0.0F)
    , timeStamp (ACE_Time_Value::zero)
-  {};
+  {}
 
   struct Stream_Statistic operator~ ()
   {
@@ -191,7 +192,7 @@ struct Stream_Statistic
     timeStamp = ACE_Time_Value::zero;
 
     return *this;
-  };
+  }
   struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
     capturedFrames += rhs_in.capturedFrames;
@@ -201,7 +202,7 @@ struct Stream_Statistic
     dataMessages += rhs_in.dataMessages;
 
     return *this;
-  };
+  }
 
   unsigned int   capturedFrames; // captured/generated frames
   unsigned int   droppedFrames;  // dropped frames (i.e. driver congestion, buffer overflow, etc)
@@ -236,7 +237,7 @@ struct Stream_SessionData
    , state (NULL)
    , statistic ()
    , userData (NULL)
-  {};
+  {}
 
   struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)
   {
@@ -303,7 +304,7 @@ struct Stream_State
    , sessionData (NULL)
    , stateMachineLock (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Stream_State& operator+= (const struct Stream_State& rhs_in)
   {
@@ -332,7 +333,7 @@ struct Stream_UserData
 {
   Stream_UserData ()
    : userData (NULL)
-  {};
+  {}
 
   void* userData;
 };

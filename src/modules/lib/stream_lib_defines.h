@@ -23,12 +23,12 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define MODULE_LIB_DEFAULT_MEDIAFRAMEWORK                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW
+#define MODULE_LIB_DEFAULT_MEDIAFRAMEWORK                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW
 
 // DirectShow
-#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS                30 // ==> max. #frames(/sec)
+#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS              30 // ==> max. #frames(/sec)
 
-#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL         20 // ms
+#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL       20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
 //         supplies the sample buffers (instead of the (source) filter), and the
 //         stream message type does not implement IMediaSample, the 'push'
@@ -36,32 +36,57 @@
 //         (inbound) frame data
 // *NOTE*: the 'pull' strategy is implemented via IAsynchReader (Request/
 //         WaitForNext)
-#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH           false
+#define MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH         false
 
-#define MODULE_LIB_DIRECTSHOW_ALLOCATOR_NAME                       "ACEStream DirectShow Allocator"
+#define MODULE_LIB_DIRECTSHOW_ALLOCATOR_NAME                     "Allocator"
 
-#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE            "ACEStream DirectShow Asynch Source"
-#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L          L"ACEStream DirectShow Asynch Source"
-#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE                   "ACEStream DirectShow Source"
-#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L                 L"ACEStream DirectShow Source"
-#define MODULE_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME               L"Output"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE          "Asynch Source"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L        L"Asynch Source"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE                 "Source"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L               L"Source"
+#define MODULE_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME             L"Output"
 
-#define MODULE_LIB_DIRECTSHOW_LOGFILE_NAME                         "ACEStream_DirectShow.log"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB                   L"Sample Grabber"
+#define MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL            L"Null Renderer"
+
+// *IMPORTANT NOTE*: "...When the Video Renderer draws to a DirectDraw overlay
+//                   surface, it allocates a single buffer for its input pin. If
+//                   the upstream filter attempts to force a connection using
+//                   multiple buffers, the Video Renderer will be unable to use
+//                   the overlay surface. ..."
+#define MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER          CLSID_VideoRenderer
+//#define MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7      CLSID_VideoMixingRenderer
+#define MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7      CLSID_VideoRendererDefault
+#define MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX9      CLSID_VideoMixingRenderer9
+#define MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED CLSID_EnhancedVideoRenderer
+#if (_WIN32_WINNT < _WIN32_WINNT_WINXP)
+#define MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
+#elif (_WIN32_WINNT < _WIN32_WINNT_VISTA)
+#if defined (VMR9_SUPPORT)
+#define MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX9
+#else
+#define MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7
+#endif
+#else
+#define MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED
+#endif
+
+#define MODULE_LIB_DIRECTSHOW_LOGFILE_NAME                       "ACEStream_DirectShow.log"
 
 // user-defined message to notify applications of filtergraph events
-#define MODULE_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT                 WM_APP + 1
+#define MODULE_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT               WM_APP + 1
 
 // MediaFoundation
 // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
 //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
 //         --> (try to) wait for the next MESessionTopologySet event
-#define MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT            10 // seconds
+#define MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT          10 // seconds
 
 // *NOTE*: #samples each stream tries to hold in its queue
-#define MODULE_LIB_MEDIAFOUNDATION_MEDIASOURCE_SAMPLE_QUEUE_SIZE   2;
+#define MODULE_LIB_MEDIAFOUNDATION_MEDIASOURCE_SAMPLE_QUEUE_SIZE 2;
 
-#define MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION   "ACEStream Source ByteStreamHandler"
-#define MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY       "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
+#define MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION "ACEStream Source ByteStreamHandler"
+#define MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY     "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
 
 #endif
 

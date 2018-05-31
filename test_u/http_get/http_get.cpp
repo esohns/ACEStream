@@ -674,20 +674,18 @@ do_work (unsigned int bufferSize_in,
   int group_id = -1;
   HTTPGet_GTK_Manager_t* gtk_manager_p = NULL;
   // step0b: initialize event dispatch
-  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
-  event_dispatch_configuration_s.numberOfReactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       (useReactor_in ? numberOfDispatchThreads_in : 0);
-  event_dispatch_configuration_s.numberOfProactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       (!useReactor_in ? numberOfDispatchThreads_in : 0);
-  struct Common_EventDispatchState event_dispatch_state_s;
-  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
     goto clean;
   } // end IF
-  event_dispatch_state_s.configuration =
-      &event_dispatch_configuration_s;
+  CBData_in.dispatchState.configuration =
+      &CBData_in.configuration->dispatchConfiguration;
 
   //// step0d: initialize regular (global) statistic reporting
   //Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
@@ -720,9 +718,8 @@ do_work (unsigned int bufferSize_in,
   //} // end IF
 
   // step0c: initialize signal handling
-  CBData_in.configuration->signalHandlerConfiguration.dispatch =
-    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                   : COMMON_EVENT_DISPATCH_PROACTOR);
+  CBData_in.configuration->signalHandlerConfiguration.dispatchState =
+    &CBData_in.dispatchState;
   CBData_in.configuration->signalHandlerConfiguration.hasUI =
     !interfaceDefinitionFile_in.empty ();
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -784,7 +781,7 @@ do_work (unsigned int bufferSize_in,
     if (!showConsole_in)
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   // *WARNING*: from this point on, clean up any remote connections !
@@ -797,7 +794,7 @@ do_work (unsigned int bufferSize_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Tools::startEventDispatch (CBData_in.dispatchState))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -984,7 +981,7 @@ ACE_TMAIN (int argc_in,
   struct HTTPGet_GtkProgressData gtk_progress_data;
   struct HTTPGet_Configuration configuration;
   HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        &gtk_cb_data.lock);
+                                        &gtk_cb_data.subscribersLock);
   ACE_Profile_Timer process_profile;
   ACE_High_Res_Timer timer;
   std::string working_time_string;
@@ -1211,8 +1208,8 @@ ACE_TMAIN (int argc_in,
   //                sizeof (gtk_cb_data.clientSensorBias));
   gtk_cb_data.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
-  gtk_cb_data.finalizationHook = idle_finalize_ui_cb;
-  gtk_cb_data.initializationHook = idle_initialize_ui_cb;
+  gtk_cb_data.eventHooks.finiHook = idle_finalize_ui_cb;
+  gtk_cb_data.eventHooks.initHook = idle_initialize_ui_cb;
   gtk_cb_data.progressData = &gtk_progress_data;
   gtk_cb_data.userData = &gtk_cb_data;
   gtk_progress_data.state = &gtk_cb_data;
@@ -1247,8 +1244,7 @@ continue_:
 
   // debug info
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1280,10 +1276,8 @@ done:
   process_profile.elapsed_rusage (elapsed_rusage);
   user_time.set (elapsed_rusage.ru_utime);
   system_time.set (elapsed_rusage.ru_stime);
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),

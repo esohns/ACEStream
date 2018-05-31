@@ -31,12 +31,12 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_vis_exports.h"
+//#include "stream_vis_exports.h"
 
 // forward declarations
 struct SwsContext;
 
-extern Stream_Vis_Export const char libacestream_default_vis_gtk_pixbuf_module_name_string[];
+extern const char libacestream_default_vis_gtk_pixbuf_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

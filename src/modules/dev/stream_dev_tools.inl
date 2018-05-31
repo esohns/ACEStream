@@ -18,10 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Log_Msg.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
 #include <libv4l2.h>
@@ -374,4 +373,4 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
               ACE_TEXT ("de-allocated %d device buffer(s)\n"),
               counter));
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

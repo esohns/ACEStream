@@ -24,6 +24,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include <combaseapi.h>
+#include <control.h>
+#include <evr.h>
 #include <strmif.h>
 #include <windef.h>
 
@@ -32,14 +35,13 @@
 #include "stream_lib_directshow_target.h"
 
 #include "stream_vis_common.h"
-#include "stream_vis_exports.h"
 
 // forward declarations
 struct IVideoWindow;
 struct IMFVideoDisplayControl;
 class Stream_IAllocator;
 
-extern Stream_Vis_Export const char libacestream_default_vis_directshow_module_name_string[];
+extern const char libacestream_default_vis_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -70,22 +72,6 @@ class Stream_Vis_Target_DirectShow_T
                                                     FilterType>
  , public Stream_Module_Visualization_IFullscreen
 {
- public:
-  Stream_Vis_Target_DirectShow_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_Target_DirectShow_T ();
-
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL);
-  using FilterType::initialize;
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
-
-  // implement Stream_Module_Visualization_IFullscreen
-  virtual void toggle ();
-
- private:
   typedef Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                                     TimePolicyType,
                                                     ConfigurationType,
@@ -98,6 +84,24 @@ class Stream_Vis_Target_DirectShow_T
                                                     struct _AMMediaType,
                                                     FilterType> inherited;
 
+ public:
+  Stream_Vis_Target_DirectShow_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Vis_Target_DirectShow_T ();
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+  using FilterType::initialize;
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Stream_Module_Visualization_IFullscreen
+  virtual void toggle ();
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T (const Stream_Vis_Target_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
@@ -107,7 +111,7 @@ class Stream_Vis_Target_DirectShow_T
                               const struct _AMMediaType&, // media type
                               HWND&,                      // in/out (target) window handle
                               bool,                       // fullscreen ?
-                              struct tagRECT&,            // (target) window area
+                              struct tagRECT&,            // in/out (target) window area
                               IVideoWindow*&,             // return value: window control handle
                               IMFVideoDisplayControl*&);  // return value: window control handle (EVR)
 

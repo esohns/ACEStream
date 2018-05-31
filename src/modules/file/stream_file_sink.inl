@@ -85,7 +85,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
   if (isOpen_)
   {
     result = stream_.close ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
   } // end IF
@@ -143,7 +143,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         break;
       previousError_ = error;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (error == ERROR_DISK_FULL); // 112: no space left on device
+//               (error == ERROR_INVALID_ACCESS); // 12 : (*TODO*: memory leakage ?)
+      ACE_ASSERT (error == ERROR_DISK_FULL);      // 112: no space left on device
 #else
       ACE_ASSERT (error == ENOSPC);
 #endif
@@ -155,7 +156,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
     }
     default:
     {
-      if (bytes_written != static_cast<ssize_t> (message_inout->total_length ()))
+      if (unlikely (bytes_written != static_cast<ssize_t> (message_inout->total_length ())))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
                     inherited::mod_->name (),
@@ -238,7 +239,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         if (Common_File_Tools::isValidPath (directory))
         {
           if (!Common_File_Tools::isDirectory (directory))
-            if (!Common_File_Tools::createDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", returning\n"),
@@ -252,7 +253,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
           directory =
             ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
           if (!Common_File_Tools::isDirectory (directory))
-            if (!Common_File_Tools::createDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", returning\n"),
@@ -286,9 +287,9 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
-      if (!Common_File_Tools::open (file_name,  // FQ file name
-                                    open_flags, // flags
-                                    stream_))   // stream
+      if (unlikely (!Common_File_Tools::open (file_name,   // FQ file name
+                                              open_flags,  // flags
+                                              stream_)))   // stream
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
@@ -307,14 +308,14 @@ continue_:
     case STREAM_SESSION_MESSAGE_STEP:
     {
       result = stream_.get_local_addr (path_);
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
       ACE_TCHAR buffer[PATH_MAX];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result = path_.addr_to_string (buffer, sizeof (buffer));
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
@@ -323,13 +324,13 @@ continue_:
       {
         ACE_FILE_Info file_information;
         result = stream_.get_info (file_information);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
 
         result = stream_.close ();
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
@@ -352,10 +353,10 @@ continue_:
       std::regex regular_expression (regex_string,
                                      std::regex::ECMAScript);
       std::cmatch match_results;
-      if (!std::regex_match (buffer,
-                             match_results,
-                             regular_expression,
-                             std::regex_constants::match_default))
+      if (unlikely (!std::regex_match (buffer,
+                                       match_results,
+                                       regular_expression,
+                                       std::regex_constants::match_default)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
@@ -389,9 +390,9 @@ continue_:
       int open_flags = (O_CREAT |
                         O_TRUNC |
                         O_WRONLY);
-      if (!Common_File_Tools::open (file_name,  // FQ file name
-                                    open_flags, // flags
-                                    stream_))   // stream
+      if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
+                                              open_flags, // flags
+                                              stream_)))  // stream
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
@@ -415,26 +416,26 @@ continue_:
       if (isOpen_)
       {
         result = stream_.get_local_addr (path_);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         result = path_.addr_to_string (buffer, sizeof (buffer));
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_FILE_Info file_information;
         result = stream_.get_info (file_information);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
 
         result = stream_.close ();
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
@@ -479,7 +480,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
   int result =
     path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
@@ -581,7 +582,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
   if (isOpen_)
   {
     result = stream_.close ();
-    if (result == -1)
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
@@ -625,7 +626,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!isOpen_)
+  if (unlikely (!isOpen_))
   {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to open file, returning\n")));
@@ -663,7 +664,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
     }
     default:
     {
-      if (bytes_written != static_cast<ssize_t> (message_inout->total_length ()))
+      if (unlikely (bytes_written != static_cast<ssize_t> (message_inout->total_length ())))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
                     inherited::mod_->name (),
@@ -764,7 +765,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
         if (Common_File_Tools::isValidPath (directory))
         {
           if (!Common_File_Tools::isDirectory (directory))
-            if (!Common_File_Tools::createDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", aborting\n"),
@@ -778,7 +779,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
           directory =
             ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
           if (!Common_File_Tools::isDirectory (directory))
-            if (!Common_File_Tools::createDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", aborting\n"),
@@ -813,7 +814,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                     ACE_TEXT (file_name.c_str ())));
 
       result = path_.set (file_name.c_str ());
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
@@ -831,7 +832,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                                    O_TRUNC |
                                    O_WRONLY),              // flags --> open
                                   ACE_DEFAULT_FILE_PERMS); // permissions --> open
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
@@ -858,26 +859,26 @@ error:
       if (isOpen_)
       {
         result = stream_.get_local_addr (path_);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         result = path_.addr_to_string (buffer, sizeof (buffer));
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_FILE_Info file_info;
         ACE_OS::memset (&file_info, 0, sizeof (file_info));
         result = stream_.get_info (file_info);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         result = stream_.close ();
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
@@ -938,7 +939,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
     if (isOpen_)
     {
       result_2 = stream_.close ();
-      if (result_2 == -1)
+      if (unlikely (result_2 == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
@@ -948,7 +949,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   result_2 =
     path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  if (result_2 == -1)
+  if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
@@ -1011,7 +1012,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
   // *NOTE*: information is collected by the statistic module (if any)
 
   // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
+  if (unlikely (!inherited::putStatisticMessage (data_out)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putStatisticMessage(), aborting\n"),
@@ -1021,30 +1022,3 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
-//                            TimePolicyType,
-//                            SessionMessageType,
-//                            ProtocolMessageType,
-//                            ConfigurationType,
-//                            StreamStateType,
-//                            SessionDataType,
-//                            SessionDataContainerType,
-//                            StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return);
-//}

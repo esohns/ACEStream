@@ -51,6 +51,7 @@
 
 // modules (generic)
 #define STREAM_MODULE_HEAD_NAME                          "StreamHead"
+#define STREAM_MODULE_TAIL_NAME                          "StreamTail"
 #define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES            false
 
 // state-machine

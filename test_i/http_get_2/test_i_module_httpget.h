@@ -84,7 +84,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,                 
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_net_http_get_module_name_string,
-                              Test_I_IStreamNotify_t,                           // stream notification interface type
+                              Stream_INotify_t,                                 // stream notification interface type
                               Test_I_Stream_HTTPGet);                           // writer type
 
 #endif

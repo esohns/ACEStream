@@ -21,12 +21,9 @@
 #ifndef STREAM_MODULE_DEV_TOOLS_H
 #define STREAM_MODULE_DEV_TOOLS_H
 
-#include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <map>
-#endif
 #include <string>
 
+#include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -40,43 +37,27 @@
 #else
 #include <alsa/asoundlib.h>
 #include <linux/videodev2.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/pixfmt.h>
+#include "libavutil/pixfmt.h"
 }
-#endif
+#endif // __cplusplus
 
 #include "stream_dev_common.h"
-#include "stream_dev_exports.h"
 
 // forward declarations
 class Stream_IAllocator;
+#endif // ACE_WIN32 || ACE_WIN64
 
-class Stream_Dev_Export Stream_Module_Device_Tools
+class Stream_Module_Device_Tools
 {
  public:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct less_guid
-  {
-    bool operator () (const struct _GUID& lhs_in,
-                      const struct _GUID& rhs_in) const
-    {
-      //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
-      //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
-      //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
-
-      return (lhs_in.Data1 < rhs_in.Data1);
-    }
-  };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
-  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
-  static GUID2STRING_MAP_T Stream_FormatType2StringMap;
-#endif
-
-  static void initialize ();
+  static void initialize (bool = true); // initialize media frameworks ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool getDirect3DDevice (const HWND,                      // target window handle
@@ -89,29 +70,19 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   struct Stream_EnumDisplayMonitors_CBData
   {
     Stream_EnumDisplayMonitors_CBData ()
-     : deviceName ()
+     : deviceIdentifier ()
      , handle (NULL)
-    {};
+    {}
 
-    std::string deviceName;
+    std::string deviceIdentifier;
     HMONITOR    handle;
   };
-  static bool getDisplayDevice (const std::string&, // device name
+  static bool getDisplayDevice (const std::string&, // device identifier
                                 HMONITOR&);         // return value: monitor handle
 
   static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
                                          IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
                                          UINT&);                    // return value: reset token
-
-  static bool isCompressed (REFGUID, // media subtype
-                            REFGUID, // device category
-                            bool);   // ? media foundation : direct show
-  static bool isCompressedAudio (REFGUID, // media subtype
-                                 bool);   // ? media foundation : direct show
-  static bool isCompressedVideo (REFGUID, // media subtype
-                                 bool);   // ? media foundation : direct show
-
-  static std::string mediaFormatTypeToString (REFGUID); // GUID
 #else
   static void dump (struct _snd_pcm*); // device handle
 
@@ -161,7 +132,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static std::string formatToString (const struct _snd_pcm_hw_params*); // format
 
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools ())

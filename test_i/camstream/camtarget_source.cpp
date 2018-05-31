@@ -23,8 +23,8 @@
 #include "ace/Synch.h"
 
 #include <dshow.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see:
-                      //         test_i_target_common.h)
+#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
+                      //         (see: stream_lib_common.h)
 #include <streams.h>
 #include <strmif.h>
 
@@ -35,47 +35,27 @@
 
 #include "stream_macros.h"
 
-//#include "stream_lib_common.h"
+#include "stream_dev_directshow_tools.h"
+
 #include "stream_lib_defines.h"
 #include "stream_lib_directshow_asynch_source_filter.h"
 #include "stream_lib_directshow_source_filter.h"
+#include "stream_lib_tools.h"
 
 #include "test_i_defines.h"
 #include "test_i_target_message.h"
 #include "test_i_target_session_message.h"
 
-//// initialize static variables
-//static const WCHAR g_wszName[] =
-//  TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME;
-
-//// *TODO*: move
-//// {F9F62434-535B-4934-A695-BE8D10A4C699}
-//DEFINE_GUID (CLSID_CamStream_Target_Source_Filter,
-//             0xf9f62434,
-//             0x535b,
-//             0x4934,
-//             0xa6, 0x95,
-//             0xbe, 0x8d, 0x10, 0xa4, 0xc6, 0x99);
-//// c553f2c0-1529-11d0-b4d1-00805f6cbbea
-//DEFINE_GUID (CLSID_CamStream_Target_Asynch_Source_Filter,
-//             0xc553f2c0,
-//             0x1529,
-//             0x11d0,
-//             0xb4, 0xd1,
-//             0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
-
 // Setup data
 const struct REGPINTYPES sudMediaTypes[] =
 {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
-  //{ &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
-  /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_NULL  }
-  ,*/ /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
-  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
-  , { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
-  , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
+  , { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
+  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
+  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_NULL  }
+  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
+  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  }
 };
-
 //const struct REGPINTYPES sudPinTypes[] =
 //{
 //  { &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
@@ -239,8 +219,15 @@ InitRoutine (BOOL isLoading_in,
 {
   STREAM_TRACE (ACE_TEXT ("::InitRoutine"));
 
-  ACE_UNUSED_ARG (isLoading_in);
   ACE_UNUSED_ARG (CLSID_in);
+
+  if (!isLoading_in) // DLL being unloaded ?
+    return; // nothing to do
+
+  // step1: initialize COM
+  // sanity check(s)
+  Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+  Stream_Module_Device_DirectShow_Tools::initialize (true);
 }
 
 //STDAPI

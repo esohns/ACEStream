@@ -35,11 +35,11 @@
 
 #include "cppuhelper/implbase1.hxx"
 
-#include "stream_document_exports.h"
+//#include "stream_document_exports.h"
 
 using namespace ::com::sun::star;
 
-class Stream_Document_Export Stream_Module_LibreOffice_Document_Handler
+class Stream_Module_LibreOffice_Document_Handler
  : public ::cppu::WeakImplHelper1<task::XInteractionHandler>
 {
  public:

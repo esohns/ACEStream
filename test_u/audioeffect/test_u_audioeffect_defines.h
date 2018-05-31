@@ -31,8 +31,6 @@
 
 #define TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE            "audioeffect.gtk2"
 #define TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE            "audioeffect.gtk3"
-#define TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES               0  // 0 --> no limits
-#define TEST_U_STREAM_AUDIOEFFECT_THREAD_NAME                "stream processor"
 
 // defaults
 #define TEST_U_STREAM_AUDIOEFFECT_OPENGL_CAMERA_DEFAULT_ZOOM 5.0F
@@ -53,7 +51,7 @@
 
 // GTK progress/status-bar
 //#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)
-#define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
+//#define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
 
 //----------------------------------------
 

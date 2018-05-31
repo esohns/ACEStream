@@ -202,9 +202,9 @@ do_work (bool debug_in,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
     return;
   } // end IF
-  Test_U_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_RIFFDECODER_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,                 // heap allocator handle
-                                                           true);                           // block ?
+  Test_U_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                           &heap_allocator,     // heap allocator handle
+                                                           true);               // block ?
   Test_U_RIFFDecoder_Stream stream;
 
   // ********************** parser configuration data **************************
@@ -535,8 +535,7 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -573,10 +572,8 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

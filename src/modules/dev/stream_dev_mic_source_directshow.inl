@@ -125,7 +125,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
 
   if (unlikely (ROTID_))
-    Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
+    Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_);
 
 //continue_:
   if (unlikely (IMediaEventEx_))
@@ -216,7 +216,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
     if (ROTID_)
     {
-      Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
+      Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_);
       ROTID_ = 0;
     } // end IF
 
@@ -377,7 +377,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
         IBaseFilter* filter_p = NULL;
         result_2 =
-          IGraphBuilder_->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+          IGraphBuilder_->FindFilterByName (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -391,7 +391,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
         filter_p = NULL;
 
         result_2 =
-          IGraphBuilder_->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
+          IGraphBuilder_->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -417,7 +417,7 @@ error_3:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceName,
+      if (unlikely (!initialize_DirectShow (inherited::configuration_->deviceIdentifier,
                                             inherited::configuration_->audioOutput,
                                             ICaptureGraphBuilder2_,
                                             IAMDroppedFrames_,
@@ -504,7 +504,7 @@ continue_2:
 
 #if defined (_DEBUG)
       media_type_string =
-        Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*session_data_r.inputFormat);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("output format: \"%s\"\n"),
                   ACE_TEXT (media_type_string.c_str ())));
@@ -514,8 +514,8 @@ continue_2:
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
-      Stream_Module_Device_DirectShow_Tools::debug (IGraphBuilder_,
-                                                    log_file_name);
+      Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                     log_file_name);
 #endif
 
       // start audio data capture
@@ -533,11 +533,11 @@ continue_2:
                   inherited::mod_->name ()));
 
       // register graph in the ROT (graphedt.exe)
-      if (unlikely (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
-                                                                      ROTID_)))
+      if (unlikely (!Stream_MediaFramework_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                                       ROTID_)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::addToROT(), aborting\n")));
         goto error;
       } // end IF
 
@@ -631,7 +631,7 @@ error:
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (likely (ROTID_))
       {
-        Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
+        Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_);
         ROTID_ = 0;
       } // end IF
 
@@ -870,6 +870,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (E_FAIL);
+
   ACE_NOTREACHED (return E_FAIL;)
 }
 
@@ -937,7 +938,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataContainerType,
                                    StatisticContainerType,
                                    TimerManagerType>::SampleCB (double sampleTime_in,
-                                                                    IMediaSample* IMediaSample_in)
+                                                                IMediaSample* IMediaSample_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::SampleCB"));
 
@@ -1027,100 +1028,6 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
 
   return S_OK;
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename TimerManagerType>
-HRESULT
-Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   ConfigurationType,
-                                   StreamControlType,
-                                   StreamNotificationType,
-                                   StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
-                                   StatisticContainerType,
-                                   TimerManagerType>::QueryInterface (const IID&,
-                                                                          void**)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::QueryInterface"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
-
-  ACE_NOTREACHED (return E_FAIL;)
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename TimerManagerType>
-ULONG
-Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   ConfigurationType,
-                                   StreamControlType,
-                                   StreamNotificationType,
-                                   StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
-                                   StatisticContainerType,
-                                   TimerManagerType>::AddRef ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::AddRef"));
-
-  return 1;
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename TimerManagerType>
-ULONG
-Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   ConfigurationType,
-                                   StreamControlType,
-                                   StreamNotificationType,
-                                   StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
-                                   StatisticContainerType,
-                                   TimerManagerType>::Release ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::Release"));
-
-  return 0;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1362,11 +1269,11 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
-                                   TimerManagerType>::initialize_DirectShow (const std::string& deviceName_in,
-                                                                                   int audioOutput_in,
-                                                                                   ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
-                                                                                   IAMDroppedFrames*& IAMDroppedFrames_out,
-                                                                                   ISampleGrabber*& ISampleGrabber_out)
+                                   TimerManagerType>::initialize_DirectShow (const std::string& deviceIdentifier_in,
+                                                                             int audioOutput_in,
+                                                                             ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
+                                                                             IAMDroppedFrames*& IAMDroppedFrames_out,
+                                                                             ISampleGrabber*& ISampleGrabber_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::initialize_DirectShow"));
 
@@ -1391,13 +1298,13 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (ICaptureGraphBuilder2_out);
 
-  Stream_Module_Device_DirectShow_Graph_t graph_layout;
-  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
-  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
+  Stream_MediaFramework_DirectShow_Graph_t graph_layout;
+  Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                                CLSID_AudioInputDeviceCategory,
                                                                graph_builder_p,
                                                                buffer_negotiation_p,
@@ -1406,7 +1313,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceName_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (graph_builder_p);
@@ -1466,13 +1373,13 @@ continue_:
 
   IBaseFilter* filter_p = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+    graph_builder_p->FindFilterByName (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1560,7 +1467,7 @@ continue_:
   // grab
   IBaseFilter* filter_3 = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                        &filter_3);
   if (FAILED (result))
   {
@@ -1568,7 +1475,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1585,7 +1492,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_3);
     result = graph_builder_p->AddFilter (filter_3,
-                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+                                         MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1613,8 +1520,8 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                       : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1622,8 +1529,8 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                           : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                           : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1644,8 +1551,8 @@ continue_:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                  : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                  : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1655,8 +1562,8 @@ continue_:
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("added \"%s\"\n"),
-    //            ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-    //                                                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+    //                                                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1665,7 +1572,7 @@ continue_:
 //  IBaseFilter* filter_4 = NULL;
 //  result =
 //    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                        : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+//                                                        : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
 //                                       &filter_4);
 //  if (FAILED (result))
 //  {
@@ -1674,7 +1581,7 @@ continue_:
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
 //                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                            : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+//                                                            : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
 //                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //      goto error;
 //    } // end IF
@@ -1696,7 +1603,7 @@ continue_:
 //    result =
 //      graph_builder_p->AddFilter (filter_4,
 //                                  (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                   : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+//                                                   : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 //    if (FAILED (result))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
@@ -1707,7 +1614,7 @@ continue_:
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("added \"%s\"\n"),
 //                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                          : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+//                                                          : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 //  } // end IF
 //  ACE_ASSERT (filter_4);
 //
@@ -1743,20 +1650,20 @@ continue_:
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_configuration.push_back (graph_entry);
   //filter_pipeline.push_back (converter_name);
-  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                    : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                    : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
-  if (!Stream_Module_Device_DirectShow_Tools::connect (graph_builder_p,
-                                                       graph_configuration))
+  if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,
+                                                        graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n")));
     goto error;
   } // end IF
 

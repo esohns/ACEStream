@@ -36,9 +36,9 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-#include "stream_dev_exports.h"
+//#include "stream_dev_exports.h"
 
-extern Stream_Dev_Export const char libacestream_default_dev_cam_source_directshow_module_name_string[];
+extern const char libacestream_default_dev_cam_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -111,7 +111,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
 
 //  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
@@ -119,7 +118,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  inline STDMETHODIMP_ (ULONG) AddRef () { InterlockedIncrement (&referenceCount_); return referenceCount_; };
+  inline STDMETHODIMP_ (ULONG) AddRef () { InterlockedIncrement (&referenceCount_); return referenceCount_; }
   STDMETHODIMP_ (ULONG) Release ();
   STDMETHODIMP QueryInterface (REFIID,
                                void**);

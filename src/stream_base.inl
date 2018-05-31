@@ -87,10 +87,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         task; this will become the outbound queue
 
   int result = -1;
-  HEAD_T* writer_p = NULL;
+  HEAD_T* writer_p = NULL, *reader_p = NULL;
+  TAIL_T* writer_2 = NULL, *reader_2 = NULL;
+  MODULE_T* module_p = NULL, *module_2 = NULL;
   ACE_NEW_NORETURN (writer_p,
                     HEAD_T (NULL));
-  HEAD_T* reader_p = NULL;
   ACE_NEW_NORETURN (reader_p,
                     HEAD_T (&messageQueue_));
   if (unlikely (!writer_p || !reader_p))
@@ -98,9 +99,9 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
+    delete writer_p; delete reader_p;
     return;
   } // end IF
-  MODULE_T* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
                     MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
                               writer_p, reader_p,
@@ -111,11 +112,33 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
+    delete writer_p; delete reader_p;
+    return;
+  } // end IF
 
-    // clean up
-    delete writer_p;
-    delete reader_p;
-
+  ACE_NEW_NORETURN (writer_2,
+                    TAIL_T (NULL));
+  ACE_NEW_NORETURN (reader_2,
+                    TAIL_T (NULL));
+  if (unlikely (!writer_2 || !reader_2))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+                ACE_TEXT (StreamName)));
+    delete module_p;
+    return;
+  } // end IF
+  ACE_NEW_NORETURN (module_2,
+                    MODULE_T (ACE_TEXT (STREAM_MODULE_TAIL_NAME),
+                              writer_2, reader_2,
+                              NULL,
+                              ACE_Module_Base::M_DELETE_NONE));
+  if (unlikely (!module_2))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+                ACE_TEXT (StreamName)));
+    delete writer_2; delete reader_2;
     return;
   } // end IF
 
@@ -125,24 +148,18 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::close(): \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-
-    // clean up
-    delete module_p;
-
+    delete module_p; delete module_2;
     return;
   } // end IF
-  result = inherited::open (NULL,     // argument passed to module open()
-                            module_p, // head module handle
-                            NULL);    // tail module handle --> allocate
+  result = inherited::open (NULL,      // argument passed to module open()
+                            module_p,  // head module handle
+                            module_2); // tail module handle
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-
-    // clean up
-    delete module_p;
-
+    delete module_p; delete module_2;
     return;
   } // end IF
 }
@@ -373,15 +390,15 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT (StreamName)));
       return false;
     } // end IF
-    QUEUE_T* queue_p = task_p->msg_queue ();
-    if (unlikely (!queue_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: no head module reader task queue found, aborting\n"),
-                  ACE_TEXT (StreamName)));
-      return false;
-    } // end IF
-    queue_p->notification_strategy (notificationStrategy_in);
+    //QUEUE_T* queue_p = task_p->msg_queue ();
+    //if (unlikely (!queue_p))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: no head module reader task queue found, aborting\n"),
+    //              ACE_TEXT (StreamName)));
+    //  return false;
+    //} // end IF
+    task_p->msg_queue_->notification_strategy (notificationStrategy_in);
   } // end IF
 
   // step3: push all available modules
@@ -539,7 +556,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (StreamName),
                     (*iterator)->name ()));
       ACE_ASSERT (iterator_2 != configuration_->end ());
-
+      //ACE_ASSERT (!(*iterator_2).second.first.sessionData);
       if (unlikely (!imodule_p->initialize ((*iterator_2).second.first)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1043,7 +1060,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->control (control_in,
-                                  recurseupstream_in);
+                                 recurseupstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1087,7 +1104,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
       try {
         istreamcontrol_p->control (control_in,
-                                    false); // forward upstream ?
+                                   false); // forward upstream ?
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),
@@ -1225,7 +1242,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   try {
     istreamcontrol_p->notify (notification_in,
-                               false);
+                              false);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::notify(%d), returning\n"),
@@ -3216,7 +3233,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   bool release_lock = false;
   bool result_2 = false;
   if (unlikely (!state_.sessionData))
-      goto continue_;
+    goto continue_;
 
   if (likely (state_.sessionData->lock))
   {
@@ -3298,6 +3315,38 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionMessageType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::report"));
+
+  int result = -1;
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING),
+                                        true,
+                                        false));
+  if (unlikely (!module_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, returning\n"),
+                ACE_TEXT (StreamName),
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
+    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  if (unlikely (!statistic_impl_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, returning\n"),
+                ACE_TEXT (StreamName)));
+    return;
+  } // end IF
+
+  // delegate to the statistic module
+  try {
+    statistic_impl_p->report ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::report(), continuing\n"),
+                ACE_TEXT (StreamName)));
+  }
 
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> stream statistic @ %#D<--\n (data) messages: %u\n dropped messages: %u\n bytes total: %.0f\n*** RUNTIME STATISTIC ***\\END\n"),
@@ -3415,7 +3464,9 @@ Stream_Base_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
     if (!ACE_OS::strcmp (module_p->name (),
-                         ACE_TEXT ("ACE_Stream_Tail")))
+                         ACE_TEXT ("ACE_Stream_Tail")) ||
+        !ACE_OS::strcmp (module_p->name (),
+                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)))
       break;
     trailing_module_p = module_p;
   } while (true);
@@ -3729,7 +3780,9 @@ Stream_Base_T<ACE_SYNCH_USE,
                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)))) &&
               (tail_p &&
                !ACE_OS::strcmp (tail_p->name (),
-                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail"))));
+                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) ||
+               !ACE_OS::strcmp (tail_p->name (),
+                                ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_TAIL_NAME))));
   if (unlikely (!ACE_OS::strcmp (head_p->name (),
                                  module_in->name ()) ||
                 !ACE_OS::strcmp (tail_p->name (),

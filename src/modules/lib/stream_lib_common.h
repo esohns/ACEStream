@@ -21,6 +21,9 @@
 #ifndef STREAM_LIB_COMMON_H
 #define STREAM_LIB_COMMON_H
 
+#include <list>
+#include <string>
+
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
@@ -29,13 +32,13 @@
 #include "ace/OS.h"
 
 #include "stream_lib_defines.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class ACE_Message_Queue_Base;
 class Stream_IAllocator;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // *TODO*: move these somewhere else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -61,18 +64,20 @@ DEFINE_GUID (CLSID_ACEStream_MediaFramework_MF_MediaSource,
              0x49fa,
              0x8a, 0x1,
              0x37, 0x68, 0xb5, 0x59, 0xb6, 0xda);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-enum Stream_MediaFramework_Type : int
+enum Stream_MediaFramework_Type
 {
-  STREAM_MEDIAFRAMEWORK_DIRECTSHOW,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  STREAM_MEDIAFRAMEWORK_DIRECTSHOW = 0,
   STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION,
+#else
+  STREAM_MEDIAFRAMEWORK_V4L = 0,
+#endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_MEDIAFRAMEWORK_MAX,
   STREAM_MEDIAFRAMEWORK_INVALID
 };
-#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
@@ -82,7 +87,7 @@ struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
    , hasMediaSampleBuffers (false)
    , isTopToBottom (false)
    , queue (NULL)
-  {};
+  {}
 
   struct _AMMediaType*    format; // (preferred) media type handle
   bool                    hasMediaSampleBuffers;
@@ -111,11 +116,33 @@ struct Stream_MediaFramework_DirectShow_FilterConfiguration
     allocatorProperties.cBuffers =
       MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
     //allocatorProperties_.cBuffers = -1; // <-- use default
-  };
+  }
 
   Stream_IAllocator*          allocator;
   struct _AllocatorProperties allocatorProperties;
 };
-#endif
+
+typedef std::list<std::wstring> Stream_MediaFramework_DirectShow_Graph_t;
+typedef Stream_MediaFramework_DirectShow_Graph_t::iterator Stream_MediaFramework_DirectShow_GraphIterator_t;
+typedef Stream_MediaFramework_DirectShow_Graph_t::const_iterator Stream_MediaFramework_DirectShow_GraphConstIterator_t;
+struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
+{
+  Stream_MediaFramework_DirectShow_GraphConfigurationEntry ()
+   : filterName ()
+   , mediaType (NULL)
+   , connectDirect (false)
+  {}
+
+  // *NOTE*: apparently, some filters (e.g. Video Resizer DSP DMO) need to
+  //         connect to their downstream peer 'direct'ly
+  bool                 connectDirect; // use IGraphBuilder::ConnectDirect() ? : IPin::Connect()
+  std::wstring         filterName;
+  struct _AMMediaType* mediaType; // media type to connect the
+                                  // (head entry ? output- : input-) pin with
+};
+typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
+typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
+typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::const_iterator Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

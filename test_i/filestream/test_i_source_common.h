@@ -61,7 +61,7 @@ struct Test_I_Source_UserData
    : Stream_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
-  {};
+  {}
 
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
@@ -79,7 +79,8 @@ struct Test_I_Source_SessionData
    , size (0)
    , targetFileName ()
    , userData (NULL)
-  {};
+  {}
+
   struct Test_I_Source_SessionData& operator+= (const struct Test_I_Source_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -92,7 +93,7 @@ struct Test_I_Source_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  };
+  }
 
   std::string                    fileName;
   unsigned int                   size;
@@ -109,7 +110,7 @@ struct Test_I_Source_StreamState
    : Test_I_StreamState ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_SessionData* sessionData;
 
@@ -168,7 +169,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-  {};
+  {}
 
   Test_I_Source_IConnection_t*              connection; // TCP target module
   Test_I_Source_ConnectionConfigurations_t* connectionConfigurations;
@@ -190,7 +191,7 @@ struct Test_I_Source_StreamConfiguration
   Test_I_Source_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_UserData* userData;
 };
@@ -202,7 +203,7 @@ struct Test_I_Source_SignalHandlerConfiguration
    : Common_SignalHandlerConfiguration ()
    , statisticReportingInterval (0)
    , stream (NULL)
-  {};
+  {}
 
   unsigned int         statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
   Test_I_StreamBase_t* stream;
@@ -219,7 +220,7 @@ struct Test_I_Source_Configuration
    , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , userData ()
-  {};
+  {}
 
   // **************************** signal data **********************************
   struct Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
@@ -250,7 +251,7 @@ struct Test_I_Source_GTK_ProgressData
    : Test_I_GTK_ProgressData ()
    , size (0)
    , transferred (0)
-  {};
+  {}
 
   size_t size; // bytes
   size_t transferred;
@@ -267,7 +268,7 @@ struct Test_I_Source_GTK_CBData
    , stream (NULL)
    , subscribers ()
    , UDPStream(NULL)
-  {};
+  {}
 
   struct Test_I_Source_Configuration*   configuration;
   size_t                                loop;
@@ -283,15 +284,16 @@ struct Test_I_Source_ThreadData
   Test_I_Source_ThreadData ()
    : Test_I_ThreadData ()
    , CBData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_GTK_CBData* CBData;
 };
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Source_GTK_CBData> Test_I_Source_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Source_GTK_CBData> Test_I_Source_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
 
 #endif

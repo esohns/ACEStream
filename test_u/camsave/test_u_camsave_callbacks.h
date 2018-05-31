@@ -21,20 +21,13 @@
 #ifndef TEST_U_CAMSAVE_CALLBACKS_H
 #define TEST_U_CAMSAVE_CALLBACKS_H
 
-//#include "ace/config-macros.h"
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <mfidl.h>
-//#include <mfreadwrite.h>
-//#endif
-
 #include "gtk/gtk.h"
 
 //// forward declarations
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 ////struct IAMStreamConfig;
 //#endif
-//
+
 //// helper functions
 //bool load_capture_devices (GtkListStore*);
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)

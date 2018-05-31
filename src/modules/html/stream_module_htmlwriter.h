@@ -30,9 +30,9 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_html_exports.h"
+//#include "stream_html_exports.h"
 
-extern Stream_HTML_Export const char libacestream_default_html_writer_module_name_string[];
+extern const char libacestream_default_html_writer_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

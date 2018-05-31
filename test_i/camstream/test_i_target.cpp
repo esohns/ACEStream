@@ -34,11 +34,10 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <cguid.h>
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-//#include <streams.h>
-#endif
+//#include <uuids.h>
+//#endif
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -99,7 +98,7 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
-            << TEST_I_DEFAULT_BUFFER_SIZE
+            << CAMSTREAM_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : maximum number of connections [")
@@ -196,7 +195,7 @@ do_processArguments (int argc_in,
                      bool& useThreadPool_out,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     bool& useMediaFoundation_out,
+                     enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
@@ -218,7 +217,7 @@ do_processArguments (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
+  bufferSize_out = CAMSTREAM_DEFAULT_BUFFER_SIZE;
   gtkRcFile_out = path;
   gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
@@ -231,8 +230,7 @@ do_processArguments (int argc_in,
   useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  useMediaFoundation_out =
-    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
+  mediaFramework_out = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif
   netWorkInterface_out =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
@@ -318,7 +316,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'm':
       {
-        useMediaFoundation_out = true;
+        mediaFramework_out = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
         break;
       }
 #endif
@@ -502,7 +500,7 @@ do_initialize_directshow (struct _AMMediaType*& mediaType_out,
 
   // sanity check(s)
   if (mediaType_out)
-    Stream_Module_Device_DirectShow_Tools::freeMediaType (*mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::freeMediaType (*mediaType_out);
 
   if (!coInitialize_in)
     goto continue_;
@@ -521,7 +519,8 @@ do_initialize_directshow (struct _AMMediaType*& mediaType_out,
     is_COM_initialized = true;
 
 continue_:
-  Stream_Module_Device_Tools::initialize ();
+  Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+  Stream_Module_Device_DirectShow_Tools::initialize (coInitialize_in);
 
   if (!mediaType_out)
   {
@@ -553,18 +552,15 @@ continue_:
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_out->pbFormat);
   ACE_ASSERT (video_info_header_p);
 
+  // *NOTE*: empty --> use entire video
   BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
   ACE_ASSERT (result_2);
-  video_info_header_p->rcSource.right = 320;
-  video_info_header_p->rcSource.bottom = 240;
+  // *NOTE*: empty --> fill entire buffer
   result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
   ACE_ASSERT (result_2);
-  video_info_header_p->rcTarget.right = 320;
-  video_info_header_p->rcTarget.bottom = 240;
 
   // *NOTE*: 320x240 * 4 * 30 * 8
   // *TODO*: this formula applies to RGB format(s) only
-  //video_info_header_p->dwBitRate = 55296000;
   video_info_header_p->dwBitRate = 73728000;
   //video_info_header_p->dwBitErrorRate = 0;
   video_info_header_p->AvgTimePerFrame =
@@ -575,7 +571,6 @@ continue_:
   video_info_header_p->bmiHeader.biWidth = 320;
   video_info_header_p->bmiHeader.biHeight = 240;
   video_info_header_p->bmiHeader.biPlanes = 1;
-  //video_info_header_p->bmiHeader.biBitCount = 24;
   video_info_header_p->bmiHeader.biBitCount = 32;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
   video_info_header_p->bmiHeader.biSizeImage =
@@ -591,7 +586,6 @@ continue_:
   //         for uncompressed RGB (the Color Space Converter expects
   //         MEDIASUBTYPE_ARGB32)
   //struct _GUID SubTypeGUID = MEDIASUBTYPE_RGB24;
-  struct _GUID SubTypeGUID = MEDIASUBTYPE_RGB32;
   //struct _GUID SubTypeGUID = GetBitmapSubtype (&video_info_header_p->bmiHeader);
   //if (SubTypeGUID == GUID_NULL)
   //{
@@ -600,7 +594,7 @@ continue_:
   //  //SubTypeGUID = MEDIASUBTYPE_Avi; // fallback
   //  SubTypeGUID = MEDIASUBTYPE_RGB24; // fallback
   //} // end IF
-  mediaType_out->subtype = SubTypeGUID;
+  mediaType_out->subtype = MEDIASUBTYPE_RGB32;
   mediaType_out->bFixedSizeSamples = TRUE;
   mediaType_out->bTemporalCompression = FALSE;
   mediaType_out->lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
@@ -613,7 +607,7 @@ error:
   //if (media_filter_p)
   //  media_filter_p->Release ();
   if (mediaType_out)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
 
   if (is_COM_initialized)
     CoUninitialize ();
@@ -764,10 +758,10 @@ do_finalize_directshow (struct Test_I_Target_DirectShow_GTK_CBData& CBData_in)
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.second.graphBuilder)
+  if ((*iterator).second.second.builder)
   {
-    (*iterator).second.second.graphBuilder->Release ();
-    (*iterator).second.second.graphBuilder = NULL;
+    (*iterator).second.second.builder->Release ();
+    (*iterator).second.second.builder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -814,7 +808,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFilename_in,
          bool useThreadPool_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         bool useMediaFoundation_in,
+         enum Stream_MediaFramework_Type mediaFramework_in,
 #endif
          const std::string& networkInterface_in,
          bool useLoopBack_in,
@@ -853,14 +847,33 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
   struct Test_I_Target_MediaFoundation_Configuration mediafoundation_configuration;
-  if (useMediaFoundation_in)
-    serialize_output =
-      mediafoundation_configuration.streamConfiguration.configuration_.serializeOutput;
-  else
-    serialize_output =
-      directshow_configuration.streamConfiguration.configuration_.serializeOutput;
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directShowCBData_in.configuration = &directshow_configuration;
+      serialize_output =
+        directshow_configuration.streamConfiguration.configuration_.serializeOutput;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
+      serialize_output =
+        mediafoundation_configuration.streamConfiguration.configuration_.serializeOutput;
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   struct Test_I_Target_Configuration configuration;
+  CBData_in.configuration = &configuration;
   serialize_output =
     configuration.streamConfiguration.configuration_.serializeOutput;
 #endif
@@ -883,117 +896,145 @@ do_work (unsigned int bufferSize_in,
   struct Test_I_AllocatorConfiguration* allocator_configuration_p =
     NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    camstream_configuration_p = &mediafoundation_configuration;
-    //mediafoundation_configuration.userData.connectionConfiguration =
-    //  &mediafoundation_configuration.connectionConfiguration;
-    //mediafoundation_configuration.userData.streamConfiguration =
-    //  &mediafoundation_configuration.streamConfiguration;
-    mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
-    allocator_configuration_p =
-      &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_;
-  } // end IF
-  else
-  {
-    camstream_configuration_p = &directshow_configuration;
-    //directshow_configuration.userData.connectionConfiguration =
-    //  &directshow_configuration.connectionConfiguration;
-    //directshow_configuration.userData.streamConfiguration =
-    //  &directshow_configuration.streamConfiguration;
-    directShowCBData_in.configuration = &directshow_configuration;
-    allocator_configuration_p =
-      &directshow_configuration.streamConfiguration.allocatorConfiguration_;
-  } // end IF
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      camstream_configuration_p = &directshow_configuration;
+      directShowCBData_in.configuration = &directshow_configuration;
+      allocator_configuration_p =
+        &directshow_configuration.streamConfiguration.allocatorConfiguration_;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      camstream_configuration_p = &mediafoundation_configuration;
+      mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
+      allocator_configuration_p =
+        &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_;
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   camstream_configuration_p = &configuration;
-  //configuration.userData.connectionConfiguration =
-  //    &configuration.connectionConfiguration;
-  //configuration.userData.streamConfiguration =
-  //  &configuration.streamConfiguration;
   CBData_in.configuration = &configuration;
   allocator_configuration_p =
     &configuration.streamConfiguration.allocatorConfiguration_;
 #endif
   ACE_ASSERT (camstream_configuration_p);
-  camstream_configuration_p->dispatch =
-          (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                         : COMMON_EVENT_DISPATCH_PROACTOR);
+  if (useReactor_in)
+    camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
+      numberOfDispatchThreads_in;
+  else
+    camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
+
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                    : NET_TRANSPORTLAYER_TCP);
 
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
-  if (useMediaFoundation_in)
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+  Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
+  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  switch (mediaFramework_in)
   {
-    struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration modulehandler_configuration;
-    modulehandler_configuration.configuration = &mediafoundation_configuration;
-    modulehandler_configuration.connectionConfigurations =
-      &mediafoundation_configuration.connectionConfigurations;
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      struct Test_I_Target_DirectShow_ModuleHandlerConfiguration modulehandler_configuration;
+      modulehandler_configuration.configuration = &directshow_configuration;
+      modulehandler_configuration.connectionConfigurations =
+        &directshow_configuration.connectionConfigurations;
 
-    //modulehandler_configuration.connectionManager = connection_manager_p;
-    //result =
-    //  modulehandler_configuration.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
-    //                                                 frameSize_in);
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%u): \"%s\", returning\n"),
-    //              frameSize_in,
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    //  goto clean;
-    //} // end IF
-    modulehandler_configuration.inbound = true;
-    modulehandler_configuration.printProgressDot =
-      UIDefinitionFilename_in.empty ();
-    modulehandler_configuration.statisticReportingInterval =
-        ACE_Time_Value (statisticReportingInterval_in, 0);
-    modulehandler_configuration.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
-    modulehandler_configuration.subscriber =
-      &mediafoundation_ui_event_handler;
-    modulehandler_configuration.targetFileName = fileName_in;
+      modulehandler_configuration.filterConfiguration =
+        &directshow_configuration.filterConfiguration;
+      // *TODO*: specify the preferred media type
+      //modulehandler_configuration.format = ;
+      //modulehandler_configuration.format->lSampleSize = frameSize_in;
 
-    mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                              std::make_pair (module_configuration,
-                                                                                              modulehandler_configuration)));
-  } // end IF
-  else
-  {
-    struct Test_I_Target_DirectShow_ModuleHandlerConfiguration modulehandler_configuration;
-    modulehandler_configuration.configuration = &directshow_configuration;
-    modulehandler_configuration.connectionConfigurations =
-      &directshow_configuration.connectionConfigurations;
+      //modulehandler_configuration.connectionManager = connection_manager_p;
+      modulehandler_configuration.printProgressDot =
+        UIDefinitionFilename_in.empty ();
+      modulehandler_configuration.statisticReportingInterval =
+          ACE_Time_Value (statisticReportingInterval_in, 0);
+      modulehandler_configuration.streamConfiguration =
+        &directshow_configuration.streamConfiguration;
+      modulehandler_configuration.subscriber =
+        &directshow_ui_event_handler;
+      modulehandler_configuration.targetFileName = fileName_in;
 
-    //modulehandler_configuration.filterCLSID =
-      //(modulehandler_configuration.push ? CLSID_ACEStream_Source_Filter
-      //                                  : CLSID_ACEStream_Asynch_Source_Filter);
-    modulehandler_configuration.filterConfiguration =
-      &directshow_configuration.filterConfiguration;
-    // *TODO*: specify the preferred media type
-    //modulehandler_configuration.format = ;
-    //modulehandler_configuration.format->lSampleSize = frameSize_in;
+      directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                           std::make_pair (module_configuration,
+                                                                                           modulehandler_configuration)));
+      directshow_modulehandler_iterator =
+        directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
 
-    //modulehandler_configuration.connectionManager = connection_manager_p;
-    modulehandler_configuration.inbound = true;
-    modulehandler_configuration.printProgressDot =
-      UIDefinitionFilename_in.empty ();
-    modulehandler_configuration.push = true;
-    modulehandler_configuration.statisticReportingInterval =
-        ACE_Time_Value (statisticReportingInterval_in, 0);
-    modulehandler_configuration.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
-    modulehandler_configuration.subscriber =
-      &directshow_ui_event_handler;
-    modulehandler_configuration.targetFileName = fileName_in;
+      directshow_configuration.streamConfiguration.initialize (module_configuration,
+                                                               (*directshow_modulehandler_iterator).second.second,
+                                                               directshow_configuration.streamConfiguration.allocatorConfiguration_,
+                                                               directshow_configuration.streamConfiguration.configuration_);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration modulehandler_configuration;
+      modulehandler_configuration.configuration = &mediafoundation_configuration;
+      modulehandler_configuration.connectionConfigurations =
+        &mediafoundation_configuration.connectionConfigurations;
 
-    directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                         std::make_pair (module_configuration,
-                                                                                         modulehandler_configuration)));
-  } // end ELSE
+      //modulehandler_configuration.connectionManager = connection_manager_p;
+      //result =
+      //  modulehandler_configuration.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+      //                                                 frameSize_in);
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%u): \"%s\", returning\n"),
+      //              frameSize_in,
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //  goto clean;
+      //} // end IF
+      modulehandler_configuration.printProgressDot =
+        UIDefinitionFilename_in.empty ();
+      modulehandler_configuration.statisticReportingInterval =
+          ACE_Time_Value (statisticReportingInterval_in, 0);
+      modulehandler_configuration.streamConfiguration =
+        &mediafoundation_configuration.streamConfiguration;
+      modulehandler_configuration.subscriber =
+        &mediafoundation_ui_event_handler;
+      modulehandler_configuration.targetFileName = fileName_in;
+
+      mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                std::make_pair (module_configuration,
+                                                                                                modulehandler_configuration)));
+      mediafoundation_modulehandler_iterator =
+        mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
+
+      mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
+                                                                    (*mediafoundation_modulehandler_iterator).second.second,
+                                                                    mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
+                                                                    mediafoundation_configuration.streamConfiguration.configuration_);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.configuration = &configuration;
@@ -1027,34 +1068,52 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
+
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                (*modulehandler_iterator).second.second,
+                                                configuration.streamConfiguration.allocatorConfiguration_,
+                                                configuration.streamConfiguration.configuration_);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator =
-    mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
-  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator =
-    directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
-  if (useMediaFoundation_in)
-    result =
-      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.inputFormat,
-                                     UIDefinitionFilename_in.empty ()); // initialize COM ?
-  else
-    result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.inputFormat,
-                                UIDefinitionFilename_in.empty ()); // initialize COM ?
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_modulehandler_iterator =
+        directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
+      result =
+        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.inputFormat,
+          UIDefinitionFilename_in.empty ()); // initialize COM ?
+      ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.inputFormat);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_modulehandler_iterator =
+        mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
+      result =
+        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.inputFormat,
+          UIDefinitionFilename_in.empty ()); // initialize COM ?
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to intialize media framework, returning\n")));
     return;
-  } // end IF
-  if (!useMediaFoundation_in)
-  {
-    ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.inputFormat);
   } // end IF
 #endif
 
@@ -1075,10 +1134,26 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                       &heap_allocator,     // heap allocator handle
                                                                                       true);               // block ?
-  if (useMediaFoundation_in)
-    allocator_p = &mediafoundation_message_allocator;
-  else
-    allocator_p = &directshow_message_allocator;
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      allocator_p = &directshow_message_allocator;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      allocator_p = &mediafoundation_message_allocator;
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
@@ -1107,6 +1182,9 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_Module_EventHandler* event_handler_p = NULL;
 #endif
   struct Common_TimerConfiguration timer_configuration;
+  timer_configuration.dispatch =
+    (useReactor_in ? COMMON_TIMER_DISPATCH_REACTOR
+                   : COMMON_TIMER_DISPATCH_PROACTOR);
   Common_Timer_Manager_t* timer_manager_p =
         COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
@@ -1115,7 +1193,7 @@ do_work (unsigned int bufferSize_in,
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
-  Common_IRecursiveTaskControl_t* igtk_manager_p = NULL;
+  Common_ITaskControl_t* igtk_manager_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_MediaFoundation_ConnectionConfiguration_t mediafoundation_connection_configuration;
@@ -1126,44 +1204,56 @@ do_work (unsigned int bufferSize_in,
     NULL;
   Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
   Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                   mediafoundation_connection_configuration));
-    mediafoundation_connection_configuration_iterator =
-      mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_configuration.connectionConfigurations.end ());
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
-      &((*mediafoundation_connection_configuration_iterator).second);
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                directshow_connection_configuration));
+      directshow_connection_configuration_iterator =
+        directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_configuration.connectionConfigurations.end ());
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
+        &((*directshow_connection_configuration_iterator).second);
 
-    mediafoundation_connection_manager_p =
-      TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-    mediafoundation_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                                    : std::numeric_limits<unsigned int>::max ());
-    (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
-      mediafoundation_connection_manager_p;
-    iconnection_manager_p = mediafoundation_connection_manager_p;
-    report_handler_p = mediafoundation_connection_manager_p;
-  } // end IF
-  else
-  {
-    directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                              directshow_connection_configuration));
-    directshow_connection_configuration_iterator =
-      directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (directshow_connection_configuration_iterator != directshow_configuration.connectionConfigurations.end ());
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
-      &((*directshow_connection_configuration_iterator).second);
+      directshow_connection_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
+      directshow_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                                 : std::numeric_limits<unsigned int>::max ());
+      (*directshow_modulehandler_iterator).second.second.connectionManager =
+        directshow_connection_manager_p;
+      iconnection_manager_p = directshow_connection_manager_p;
+      report_handler_p = directshow_connection_manager_p;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                     mediafoundation_connection_configuration));
+      mediafoundation_connection_configuration_iterator =
+        mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_configuration.connectionConfigurations.end ());
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
+        &((*mediafoundation_connection_configuration_iterator).second);
 
-    directshow_connection_manager_p =
-      TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-    directshow_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                               : std::numeric_limits<unsigned int>::max ());
-    (*directshow_modulehandler_iterator).second.second.connectionManager =
-      directshow_connection_manager_p;
-    iconnection_manager_p = directshow_connection_manager_p;
-    report_handler_p = directshow_connection_manager_p;
-  } // end ELSE
+      mediafoundation_connection_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
+      mediafoundation_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                                      : std::numeric_limits<unsigned int>::max ());
+      (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
+        mediafoundation_connection_manager_p;
+      iconnection_manager_p = mediafoundation_connection_manager_p;
+      report_handler_p = mediafoundation_connection_manager_p;
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   Test_I_Target_ConnectionConfiguration_t connection_configuration;
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
@@ -1181,12 +1271,28 @@ do_work (unsigned int bufferSize_in,
                                                false);
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    mediafoundation_event_handler_p =
-      dynamic_cast<Test_I_Target_MediaFoundation_EventHandler*> (mediafoundation_event_handler.writer ());
-  else
-    directshow_event_handler_p =
-      dynamic_cast<Test_I_Target_DirectShow_EventHandler*> (directshow_event_handler.writer ());
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_event_handler_p =
+        dynamic_cast<Test_I_Target_DirectShow_EventHandler*> (directshow_event_handler.writer ());
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_event_handler_p =
+        dynamic_cast<Test_I_Target_MediaFoundation_EventHandler*> (mediafoundation_event_handler.writer ());
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
   ACE_ASSERT (mediafoundation_event_handler_p || directshow_event_handler_p);
 #else
   Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
@@ -1200,91 +1306,93 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #endif
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-  {
-    // *************************** media foundation ****************************
-    //mediafoundation_configuration.mediaFoundationConfiguration.controller =
-    //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
-    //                                                                      : mediaFoundationCBData_in.UDPStream);
-  } // end IF
-#endif
-
   // ********************** socket configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
-                                                                                                                                          1);
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
-      bufferSize_in;
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-      useLoopBack_in;
-    if ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      result =
-        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
-                                                                                                                                  INADDR_LOOPBACK,
-                                                                                                                                  1,
-                                                                                                                                  0);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
-    } // end IF
-    if (bufferSize_in)
-      (*mediafoundation_connection_configuration_iterator).second.PDUSize =
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                       1);
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
         bufferSize_in;
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+        useLoopBack_in;
+      if ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
+      {
+        result =
+          (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                                                               INADDR_LOOPBACK,
+                                                                                                                               1,
+                                                                                                                               0);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
+      } // end IF
+      if (bufferSize_in)
+        (*directshow_connection_configuration_iterator).second.PDUSize =
+          bufferSize_in;
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
+        &directshow_configuration.userData;
+      (*directshow_connection_configuration_iterator).second.messageAllocator =
+        &directshow_message_allocator;
+      (*directshow_connection_configuration_iterator).second.userData =
+        &directshow_configuration.userData;
+      (*directshow_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
+                                                                         directshow_configuration.streamConfiguration);
 
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
-      &mediafoundation_configuration.userData;
-    (*mediafoundation_connection_configuration_iterator).second.messageAllocator =
-      &mediafoundation_message_allocator;
-    (*mediafoundation_connection_configuration_iterator).second.userData =
-      &mediafoundation_configuration.userData;
-    (*mediafoundation_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
-                                                                            mediafoundation_configuration.streamConfiguration);
-
-    mediafoundation_connection_manager_p->set ((*mediafoundation_connection_configuration_iterator).second,
-                                               &mediafoundation_configuration.userData);
-  } // end IF
-  else
-  {
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
-                                                                                                                                     1);
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
-      bufferSize_in;
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-      useLoopBack_in;
-    if ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
+      directshow_connection_manager_p->set ((*directshow_connection_configuration_iterator).second,
+                                            &directshow_configuration.userData);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      result =
-        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
-                                                                                                                             INADDR_LOOPBACK,
-                                                                                                                             1,
-                                                                                                                             0);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
-    } // end IF
-    if (bufferSize_in)
-      (*directshow_connection_configuration_iterator).second.PDUSize =
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                            1);
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
         bufferSize_in;
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
-      &directshow_configuration.userData;
-    (*directshow_connection_configuration_iterator).second.messageAllocator =
-      &directshow_message_allocator;
-    (*directshow_connection_configuration_iterator).second.userData =
-      &directshow_configuration.userData;
-    (*directshow_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
-                                                                       directshow_configuration.streamConfiguration);
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+        useLoopBack_in;
+      if ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
+      {
+        result =
+          (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                                                                    INADDR_LOOPBACK,
+                                                                                                                                    1,
+                                                                                                                                    0);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
+      } // end IF
+      if (bufferSize_in)
+        (*mediafoundation_connection_configuration_iterator).second.PDUSize =
+          bufferSize_in;
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
 
-    directshow_connection_manager_p->set ((*directshow_connection_configuration_iterator).second,
-                                          &directshow_configuration.userData);
-  } // end ELSE
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
+        &mediafoundation_configuration.userData;
+      (*mediafoundation_connection_configuration_iterator).second.messageAllocator =
+        &mediafoundation_message_allocator;
+      (*mediafoundation_connection_configuration_iterator).second.userData =
+        &mediafoundation_configuration.userData;
+      (*mediafoundation_connection_configuration_iterator).second.initialize (*allocator_configuration_p,
+                                                                              mediafoundation_configuration.streamConfiguration);
+
+      mediafoundation_connection_manager_p->set ((*mediafoundation_connection_configuration_iterator).second,
+                                                 &mediafoundation_configuration.userData);
+      break;
+    } // end IF
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
                                                                                                      1);
@@ -1329,61 +1437,86 @@ do_work (unsigned int bufferSize_in,
   // **************************** stream data **********************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // ******************** DirectShow configuration data ************************
-  if (!useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
-    ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
-    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.second.inputFormat,
-                                                          directshow_configuration.pinConfiguration.format);
-    ACE_ASSERT (directshow_configuration.pinConfiguration.format);
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
+      ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
+      Stream_MediaFramework_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.second.inputFormat,
+                                                             directshow_configuration.pinConfiguration.format);
+      ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
-    //ACE_ASSERT (!directshow_configuration.filterConfiguration.format);
-    //Stream_Module_Device_DirectShow_Tools::copyMediaType (*directshow_configuration.moduleHandlerConfiguration.format,
-    //                                                      directshow_configuration.filterConfiguration.format);
-    //ACE_ASSERT (directshow_configuration.filterConfiguration.format);
-    directshow_configuration.filterConfiguration.pinConfiguration =
-      &directshow_configuration.pinConfiguration;
-  } // end IF
+      //ACE_ASSERT (!directshow_configuration.filterConfiguration.format);
+      //Stream_Module_Device_DirectShow_Tools::copyMediaType (*directshow_configuration.moduleHandlerConfiguration.format,
+      //                                                      directshow_configuration.filterConfiguration.format);
+      //ACE_ASSERT (directshow_configuration.filterConfiguration.format);
+      directshow_configuration.filterConfiguration.pinConfiguration =
+        &directshow_configuration.pinConfiguration;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #endif
 
   // ******************** (sub-)stream configuration data **********************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    if (bufferSize_in)
-      mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
-    mediafoundation_configuration.streamConfiguration.configuration_.cloneModule =
-      true;
-    mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
-      allocator_p;
-    if (!UIDefinitionFilename_in.empty ())
-      mediafoundation_configuration.streamConfiguration.configuration_.module =
-        &mediafoundation_event_handler;
-    //mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
-    //  &mediafoundation_configuration.mediaFoundationConfiguration;
-    mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
-      true;
-  } // end IF
-  else
-  {
-    directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize;
-    if (bufferSize_in)
-    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize);
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
       directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
-    } // end IF
-    directshow_configuration.streamConfiguration.configuration_.cloneModule =
-      true;
-    directshow_configuration.streamConfiguration.configuration_.messageAllocator =
-      allocator_p;
-    if (!UIDefinitionFilename_in.empty ())
-      directshow_configuration.streamConfiguration.configuration_.module =
-        &directshow_event_handler;
-    directshow_configuration.streamConfiguration.configuration_.printFinalReport =
-      true;
-  } // end ELSE
+        (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize;
+      if (bufferSize_in)
+      { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.inputFormat->lSampleSize);
+        directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+          bufferSize_in;
+      } // end IF
+      directshow_configuration.streamConfiguration.configuration_.cloneModule =
+        true;
+      directshow_configuration.streamConfiguration.configuration_.messageAllocator =
+        allocator_p;
+      if (!UIDefinitionFilename_in.empty ())
+        directshow_configuration.streamConfiguration.configuration_.module =
+          &directshow_event_handler;
+      directshow_configuration.streamConfiguration.configuration_.printFinalReport =
+        true;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      if (bufferSize_in)
+        mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+          bufferSize_in;
+      mediafoundation_configuration.streamConfiguration.configuration_.cloneModule =
+        true;
+      mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
+        allocator_p;
+      if (!UIDefinitionFilename_in.empty ())
+        mediafoundation_configuration.streamConfiguration.configuration_.module =
+          &mediafoundation_event_handler;
+      //mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
+      //  &mediafoundation_configuration.mediaFoundationConfiguration;
+      mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
+        true;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   if (bufferSize_in)
     configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
@@ -1399,28 +1532,40 @@ do_work (unsigned int bufferSize_in,
 
   // ********************* listener configuration data *************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    mediafoundation_configuration.listenerConfiguration.connectionConfiguration =
-      &((*mediafoundation_connection_configuration_iterator).second);
-    mediafoundation_configuration.listenerConfiguration.connectionManager =
-      mediafoundation_connection_manager_p;
-    mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-      useLoopBack_in;
-  } // end IF
-  else
-  {
-    directshow_configuration.listenerConfiguration.connectionConfiguration =
-      &((*directshow_connection_configuration_iterator).second);
-    directshow_configuration.listenerConfiguration.connectionManager =
-      directshow_connection_manager_p;
-    directshow_configuration.listenerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-      useLoopBack_in;
-  } // end ELSE
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_configuration.listenerConfiguration.connectionConfiguration =
+        &((*directshow_connection_configuration_iterator).second);
+      directshow_configuration.listenerConfiguration.connectionManager =
+        directshow_connection_manager_p;
+      directshow_configuration.listenerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+        useLoopBack_in;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_configuration.listenerConfiguration.connectionConfiguration =
+        &((*mediafoundation_connection_configuration_iterator).second);
+      mediafoundation_configuration.listenerConfiguration.connectionManager =
+        mediafoundation_connection_manager_p;
+      mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+        useLoopBack_in;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   configuration.listenerConfiguration.connectionConfiguration =
       &((*iterator_2).second);
@@ -1456,50 +1601,62 @@ do_work (unsigned int bufferSize_in,
 
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
+  switch (mediaFramework_in)
   {
-    mediafoundation_configuration.signalHandlerConfiguration.connectionManager =
-      TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-    mediafoundation_configuration.signalHandlerConfiguration.hasUI =
-      !UIDefinitionFilename_in.empty ();
-    if (useReactor_in)
-      mediafoundation_configuration.signalHandlerConfiguration.listener =
-        TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
-    else
-      mediafoundation_configuration.signalHandlerConfiguration.listener =
-        TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON::instance ();
-    mediafoundation_configuration.signalHandlerConfiguration.statisticReportingHandler =
-      report_handler_p;
-    mediafoundation_configuration.signalHandlerConfiguration.statisticReportingTimerId =
-      timer_id;
-    mediafoundation_configuration.signalHandlerConfiguration.useReactor =
-      useReactor_in;
-    result =
-      mediaFoundationSignalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
-    event_handler_2 = &mediaFoundationSignalHandler_in;
-  } // end IF
-  else
-  {
-    directshow_configuration.signalHandlerConfiguration.connectionManager =
-      TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-    directshow_configuration.signalHandlerConfiguration.hasUI =
-      !UIDefinitionFilename_in.empty ();
-    if (useReactor_in)
-      directshow_configuration.signalHandlerConfiguration.listener =
-        TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
-    else
-      directshow_configuration.signalHandlerConfiguration.listener =
-        TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON::instance ();
-    directshow_configuration.signalHandlerConfiguration.statisticReportingHandler =
-      report_handler_p;
-    directshow_configuration.signalHandlerConfiguration.statisticReportingTimerId =
-      timer_id;
-    directshow_configuration.signalHandlerConfiguration.useReactor =
-      useReactor_in;
-    result =
-      directShowSignalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
-    event_handler_2 = &directShowSignalHandler_in;
-  } // end IF
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_configuration.signalHandlerConfiguration.connectionManager =
+        TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
+      directshow_configuration.signalHandlerConfiguration.dispatchState =
+        &event_dispatch_state_s;
+      directshow_configuration.signalHandlerConfiguration.hasUI =
+        !UIDefinitionFilename_in.empty ();
+      if (useReactor_in)
+        directshow_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
+      else
+        directshow_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON::instance ();
+      directshow_configuration.signalHandlerConfiguration.statisticReportingHandler =
+        report_handler_p;
+      directshow_configuration.signalHandlerConfiguration.statisticReportingTimerId =
+        timer_id;
+      result =
+        directShowSignalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
+      event_handler_2 = &directShowSignalHandler_in;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_configuration.signalHandlerConfiguration.connectionManager =
+        TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
+      mediafoundation_configuration.signalHandlerConfiguration.dispatchState =
+        &event_dispatch_state_s;
+      mediafoundation_configuration.signalHandlerConfiguration.hasUI =
+        !UIDefinitionFilename_in.empty ();
+      if (useReactor_in)
+        mediafoundation_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
+      else
+        mediafoundation_configuration.signalHandlerConfiguration.listener =
+          TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON::instance ();
+      mediafoundation_configuration.signalHandlerConfiguration.statisticReportingHandler =
+        report_handler_p;
+      mediafoundation_configuration.signalHandlerConfiguration.statisticReportingTimerId =
+        timer_id;
+      result =
+        mediaFoundationSignalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
+      event_handler_2 = &mediaFoundationSignalHandler_in;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   configuration.signalHandlerConfiguration.connectionManager =
       connection_manager_p;
@@ -1559,12 +1716,28 @@ do_work (unsigned int bufferSize_in,
 
   // step1a: start GTK event loop ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    igtk_manager_p =
-      TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
-  else
-    igtk_manager_p =
-      TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      igtk_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      igtk_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   igtk_manager_p =
     TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ();
@@ -1574,23 +1747,35 @@ do_work (unsigned int bufferSize_in,
   {
     struct Common_UI_GTK_State* gtk_state_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (useMediaFoundation_in)
+    switch (mediaFramework_in)
     {
-      gtk_state_p = &mediaFoundationCBData_in;
-      gtk_state_p->userData = &mediaFoundationCBData_in.userData;
-    } // end IF
-    else
-    {
-      gtk_state_p = &directShowCBData_in;
-      gtk_state_p->userData = &directShowCBData_in.userData;
-    } // end ELSE
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        gtk_state_p = &directShowCBData_in;
+        gtk_state_p->userData = &directShowCBData_in;
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        gtk_state_p = &mediaFoundationCBData_in;
+        gtk_state_p->userData = &mediaFoundationCBData_in;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      } // end ELSE
+    } // end SWITCH
 #else
     gtk_state_p = &CBData_in;
-    gtk_state_p->userData = &CBData_in.userData;
+    gtk_state_p->userData = &CBData_in;
 #endif
     ACE_ASSERT (gtk_state_p);
-    gtk_state_p->finalizationHook = idle_finalize_target_UI_cb;
-    gtk_state_p->initializationHook = idle_initialize_target_UI_cb;
+    gtk_state_p->eventHooks.finiHook = idle_finalize_target_UI_cb;
+    gtk_state_p->eventHooks.initHook = idle_initialize_target_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFilename_in, static_cast<GladeXML*> (NULL));
     gtk_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1668,32 +1853,44 @@ do_work (unsigned int bufferSize_in,
     if (useUDP_in)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
+      switch (mediaFramework_in)
       {
-        if (useReactor_in)
-          ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-                            Test_I_Target_MediaFoundation_UDPConnector_t (mediafoundation_connection_manager_p,
-                                                                          (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
-        else
-          ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-                            Test_I_Target_MediaFoundation_UDPAsynchConnector_t (mediafoundation_connection_manager_p,
-                                                                                (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
-        result_2 =
-          mediafoundation_iconnector_p->initialize ((*mediafoundation_connection_configuration_iterator).second);
-      } // end IF
-      else
-      {
-        if (useReactor_in)
-          ACE_NEW_NORETURN (directshow_iconnector_p,
-                            Test_I_Target_DirectShow_UDPConnector_t (directshow_connection_manager_p,
-                                                                     (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
-        else
-          ACE_NEW_NORETURN (directshow_iconnector_p,
-                            Test_I_Target_DirectShow_UDPAsynchConnector_t (directshow_connection_manager_p,
-                                                                           (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
-        result_2 =
-          directshow_iconnector_p->initialize ((*directshow_connection_configuration_iterator).second);
-      } // end ELSE
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          if (useReactor_in)
+            ACE_NEW_NORETURN (directshow_iconnector_p,
+                              Test_I_Target_DirectShow_UDPConnector_t (directshow_connection_manager_p,
+                                                                       (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+          else
+            ACE_NEW_NORETURN (directshow_iconnector_p,
+                              Test_I_Target_DirectShow_UDPAsynchConnector_t (directshow_connection_manager_p,
+                                                                             (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+          result_2 =
+            directshow_iconnector_p->initialize ((*directshow_connection_configuration_iterator).second);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          if (useReactor_in)
+            ACE_NEW_NORETURN (mediafoundation_iconnector_p,
+                              Test_I_Target_MediaFoundation_UDPConnector_t (mediafoundation_connection_manager_p,
+                                                                            (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+          else
+            ACE_NEW_NORETURN (mediafoundation_iconnector_p,
+                              Test_I_Target_MediaFoundation_UDPAsynchConnector_t (mediafoundation_connection_manager_p,
+                                                                                  (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+          result_2 =
+            mediafoundation_iconnector_p->initialize ((*mediafoundation_connection_configuration_iterator).second);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
       if (useReactor_in)
@@ -1712,9 +1909,9 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to allocate memory, returning\n")));
 
         // clean up
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1736,9 +1933,9 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
 
         // clean up
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1751,10 +1948,26 @@ do_work (unsigned int bufferSize_in,
           igtk_manager_p->stop ();
         timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        if (useMediaFoundation_in)
-          delete mediafoundation_iconnector_p;
-        else
-          delete directshow_iconnector_p;
+        switch (mediaFramework_in)
+        {
+          case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+          {
+            delete directshow_iconnector_p;
+            break;
+          }
+          case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          {
+            delete mediafoundation_iconnector_p;
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                        mediaFramework_in));
+            return;
+          } // end ELSE
+        } // end SWITCH
 #else
         delete iconnector_p;
 #endif
@@ -1765,12 +1978,28 @@ do_work (unsigned int bufferSize_in,
       // connect
       ACE_INET_Addr peer_address;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
-        peer_address =
-          (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
-      else
-        peer_address =
-          (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          peer_address =
+            (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          peer_address =
+            (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       peer_address =
           (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
@@ -1781,12 +2010,28 @@ do_work (unsigned int bufferSize_in,
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
-        mediafoundation_configuration.handle =
-          mediafoundation_iconnector_p->connect ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
-      else
-        directshow_configuration.handle =
-          directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          directshow_configuration.handle =
+            directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediafoundation_configuration.handle =
+            mediafoundation_iconnector_p->connect ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       configuration.handle =
         iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address);
@@ -1810,37 +2055,72 @@ do_work (unsigned int bufferSize_in,
         typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
             NULL;
 #endif
+        bool done = false;
         do
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          if (useMediaFoundation_in)
-            mediafoundation_connection_p =
-              mediafoundation_connection_manager_p->get (peer_address);
-          else
-            directshow_connection_p =
-              directshow_connection_manager_p->get (peer_address);
+          switch (mediaFramework_in)
+          {
+            case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+            {
+              directshow_connection_p =
+                directshow_connection_manager_p->get (peer_address);
+              break;
+            }
+            case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+            {
+              mediafoundation_connection_p =
+                mediafoundation_connection_manager_p->get (peer_address);
+              break;
+            }
+            default:
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                          mediaFramework_in));
+              return;
+            } // end ELSE
+          } // end SWITCH
 #else
           connection_p = connection_manager_p->get (peer_address);
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          if (useMediaFoundation_in)
-            if (mediafoundation_connection_p)
-            {
-              mediafoundation_configuration.handle =
-                reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
-              mediafoundation_connection_p->decrease ();
-              break;
-            } // end IF
-          else
+          switch (mediaFramework_in)
           {
-            if (directshow_connection_p)
+            case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
             {
-              directshow_configuration.handle =
-                reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
-              directshow_connection_p->decrease ();
+              if (directshow_connection_p)
+              {
+                directshow_configuration.handle =
+                  reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
+                directshow_connection_p->decrease ();
+                done = true;
+                break;
+              } // end IF
               break;
-            } // end IF
-          } // end ELSE
+            }
+            case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+            {
+              if (mediafoundation_connection_p)
+              {
+                mediafoundation_configuration.handle =
+                  reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
+                mediafoundation_connection_p->decrease ();
+                done = true;
+                break;
+              } // end IF
+              break;
+            }
+            default:
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                          mediaFramework_in));
+              return;
+            } // end ELSE
+          } // end SWITCH
+          if (done)
+            break;
 #else
           if (connection_p)
           {
@@ -1857,10 +2137,26 @@ do_work (unsigned int bufferSize_in,
         } while (COMMON_TIME_NOW < deadline);
       } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
-        result_2 = (mediafoundation_configuration.handle == ACE_INVALID_HANDLE);
-      else
-        result_2 = (directshow_configuration.handle == ACE_INVALID_HANDLE);
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          result_2 = (directshow_configuration.handle == ACE_INVALID_HANDLE);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          result_2 = (mediafoundation_configuration.handle == ACE_INVALID_HANDLE);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       result_2 = (configuration.handle == ACE_INVALID_HANDLE);
 #endif
@@ -1878,9 +2174,9 @@ do_work (unsigned int bufferSize_in,
         //  directshow_iconnector_p->abort ();
 #else
 #endif
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1893,10 +2189,26 @@ do_work (unsigned int bufferSize_in,
           igtk_manager_p->stop ();
         timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        if (useMediaFoundation_in)
-          delete mediafoundation_iconnector_p;
-        else
-          delete directshow_iconnector_p;
+        switch (mediaFramework_in)
+        {
+          case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+          {
+            delete directshow_iconnector_p;
+            break;
+          }
+          case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          {
+            delete mediafoundation_iconnector_p;
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                        mediaFramework_in));
+            return;
+          } // end ELSE
+        } // end SWITCH
 #else
         delete iconnector_p;
 #endif
@@ -1909,10 +2221,26 @@ do_work (unsigned int bufferSize_in,
 
       // clean up
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
-        delete mediafoundation_iconnector_p;
-      else
-        delete directshow_iconnector_p;
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          delete directshow_iconnector_p;
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          delete mediafoundation_iconnector_p;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       delete iconnector_p;
 #endif
@@ -1920,12 +2248,28 @@ do_work (unsigned int bufferSize_in,
     else
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
-        result_2 =
-          mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_configuration.listenerConfiguration);
-      else
-        result_2 =
-          directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (directshow_configuration.listenerConfiguration);
+      switch (mediaFramework_in)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          result_2 =
+            directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (directshow_configuration.listenerConfiguration);
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          result_2 =
+            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_configuration.listenerConfiguration);
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       result_2 =
         CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration);
@@ -1936,9 +2280,9 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
 
         // clean up
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1954,18 +2298,30 @@ do_work (unsigned int bufferSize_in,
         goto clean;
       } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (useMediaFoundation_in)
+      switch (mediaFramework_in)
       {
-        mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->start ();
-        result_2 =
-          mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
-      } // end IF
-      else
-      {
-        directShowCBData_in.configuration->signalHandlerConfiguration.listener->start ();
-        result_2 =
-          directShowCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
-      } // end ELSE
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          directShowCBData_in.configuration->signalHandlerConfiguration.listener->start ();
+          result_2 =
+            directShowCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->start ();
+          result_2 =
+            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      mediaFramework_in));
+          return;
+        } // end ELSE
+      } // end SWITCH
 #else
       CBData_in.configuration->signalHandlerConfiguration.listener->start ();
       result_2 =
@@ -1978,9 +2334,9 @@ do_work (unsigned int bufferSize_in,
                     listeningPortNumber_in));
 
         // clean up
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -2028,40 +2384,88 @@ clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //  connection_manager_p->stop ();
   //  connection_manager_p->abort ();
-  if (useMediaFoundation_in)
-    mediafoundation_connection_manager_p->wait ();
-  else
-    directshow_connection_manager_p->wait ();
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_connection_manager_p->wait ();
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_connection_manager_p->wait ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   connection_manager_p->wait ();
 #endif
 
   timer_manager_p->stop ();
 
-  Common_Tools::finalizeEventDispatch (useReactor_in,
-                                       !useReactor_in,
-                                       group_id);
+  Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    result =
-      mediafoundation_event_handler.close (ACE_Module_Base::M_DELETE_NONE);
-  else
-    result = directshow_event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      result = directshow_event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      result =
+        mediafoundation_event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #else
   result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
 #endif
   if (result == -1)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (useMediaFoundation_in)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
-                  mediafoundation_event_handler.name ()));
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
-                  directshow_event_handler.name ()));
+    switch (mediaFramework_in)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
+                    directshow_event_handler.name ()));
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
+                    mediafoundation_event_handler.name ()));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    mediaFramework_in));
+        return;
+      } // end ELSE
+    } // end SWITCH
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
@@ -2070,10 +2474,26 @@ clean:
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    do_finalize_mediafoundation (mediaFoundationCBData_in);
-  else
-    do_finalize_directshow (directShowCBData_in);
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      do_finalize_directshow (directShowCBData_in);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      do_finalize_mediafoundation (mediaFoundationCBData_in);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    } // end ELSE
+  } // end SWITCH
 #endif
 
   ACE_DEBUG ((LM_DEBUG,
@@ -2158,7 +2578,7 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // step1a set defaults
-  unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
+  unsigned int buffer_size = CAMSTREAM_DEFAULT_BUFFER_SIZE;
   unsigned int maximum_number_of_connections =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
   std::string path = configuration_path;
@@ -2175,8 +2595,8 @@ ACE_TMAIN (int argc_in,
   bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool use_mediafoundation =
-    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
+  enum Stream_MediaFramework_Type media_framework_e =
+    MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif
   std::string network_interface =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
@@ -2204,7 +2624,7 @@ ACE_TMAIN (int argc_in,
                             use_thread_pool,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            use_mediafoundation,
+                            media_framework_e,
 #endif
                             network_interface,
                             use_loopback,
@@ -2272,24 +2692,45 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
+  if (number_of_dispatch_threads == 0)
+    number_of_dispatch_threads = 1;
 
-  struct Test_I_Target_GTK_CBData* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_CamStream_GTK_CBData* gtk_cb_data_p = NULL;
   struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_data;
   struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
-  if (use_mediafoundation)
+  switch (media_framework_e)
   {
-    mediafoundation_gtk_cb_data.progressData.state =
-      &mediafoundation_gtk_cb_data;
-    gtk_cb_data_p = &mediafoundation_gtk_cb_data;
-  } // end IF
-  else
-  {
-    directshow_gtk_cb_data.progressData.state =
-      &directshow_gtk_cb_data;
-    gtk_cb_data_p = &directshow_gtk_cb_data;
-  } // end ELSE
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_gtk_cb_data.progressData.state = &directshow_gtk_cb_data;
+      gtk_cb_data_p = &directshow_gtk_cb_data;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_gtk_cb_data.progressData.state =
+        &mediafoundation_gtk_cb_data;
+      gtk_cb_data_p = &mediafoundation_gtk_cb_data;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  media_framework_e));
+            
+      // *PORTABILITY*: on Windows, finalize ACE...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      result = ACE::fini ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif
+
+      return EXIT_FAILURE;
+    }
+  } // end SWITCH
   Test_I_Target_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
                                                                             argv_in);
   Test_I_Target_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
@@ -2336,14 +2777,14 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                    : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                      &directshow_gtk_cb_data.lock);
+                                                                      &directshow_gtk_cb_data.subscribersLock);
   Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                                                &mediafoundation_gtk_cb_data.lock);
+                                                                                &mediafoundation_gtk_cb_data.subscribersLock);
 #else
   Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                &gtk_cb_data.lock);
+                                                &gtk_cb_data.subscribersLock);
 #endif
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);
@@ -2459,18 +2900,34 @@ ACE_TMAIN (int argc_in,
   gtk_manager_p = TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ();
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (use_mediafoundation)
-    result_2 =
-      mediafoundation_gtk_manager_p->initialize (argc_in,
-                                                 argv_in,
-                                                 &mediafoundation_gtk_cb_data,
-                                                 &mediafoundation_ui_definition);
-  else
-    result_2 =
-      directshow_gtk_manager_p->initialize (argc_in,
-                                            argv_in,
-                                            &directshow_gtk_cb_data,
-                                            &directshow_ui_definition);
+  switch (media_framework_e)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      result_2 =
+        directshow_gtk_manager_p->initialize (argc_in,
+                                              argv_in,
+                                              &directshow_gtk_cb_data,
+                                              &directshow_ui_definition);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      result_2 =
+        mediafoundation_gtk_manager_p->initialize (argc_in,
+                                                   argv_in,
+                                                   &mediafoundation_gtk_cb_data,
+                                                   &mediafoundation_ui_definition);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  media_framework_e));
+      break;
+    }
+  } // end SWITCH
 #else
   result_2 = gtk_manager_p->initialize (argc_in,
                                         argv_in,
@@ -2509,7 +2966,7 @@ continue_:
            gtk_glade_file,
            use_thread_pool,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           use_mediafoundation,
+           media_framework_e,
 #endif
            network_interface,
            use_loopback,
@@ -2541,8 +2998,7 @@ continue_:
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -2584,10 +3040,8 @@ continue_:
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

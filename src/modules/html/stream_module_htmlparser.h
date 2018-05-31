@@ -31,9 +31,9 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_html_exports.h"
+//#include "stream_html_exports.h"
 
-extern Stream_HTML_Export const char libacestream_default_html_parser_module_name_string[];
+extern const char libacestream_default_html_parser_module_name_string[];
 
 // SAX callbacks
 //void Stream_Export
@@ -55,11 +55,11 @@ extern Stream_HTML_Export const char libacestream_default_html_parser_module_nam
 //SAXDefaultSGetEntity (void*,           // user data
 //                      const xmlChar*); // name
 
-void Stream_HTML_Export
+void
 SAXDefaultErrorCallback (void*,       // context
                          const char*, // message
                          ...);        // arguments
-void Stream_HTML_Export
+void
 SAXDefaultStructuredErrorCallback (void*,        // user data
                                    xmlErrorPtr); // error
 

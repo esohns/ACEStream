@@ -22,38 +22,47 @@
 #define TEST_U_CAMSAVE_MESSAGE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Malloc_Base.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
+#include "stream_common.h"
+#include "stream_configuration.h"
 #include "stream_data_message_base.h"
 
-#include "test_u_camsave_common.h"
+#include "test_u_common.h"
 
 // forward declaration(s)
-class ACE_Allocator;
-class ACE_Data_Block;
-class ACE_Message_Block;
-class Stream_CamSave_SessionMessage;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+template <typename DataMessageType>
+class Stream_CamSave_SessionMessage_T;
 
-class Stream_CamSave_Message
+template <typename DataType>
+class Stream_CamSave_Message_T
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Stream_CamSave_MessageData,
+                                   DataType,
                                    int>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
-                                                 Stream_CamSave_Message,
-                                                 Stream_CamSave_SessionMessage>;
+                                                 Stream_CamSave_Message_T<DataType>,
+                                                 Stream_CamSave_SessionMessage_T<Stream_CamSave_Message_T<DataType> > >;
+
+  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   DataType,
+                                   int> inherited;
 
  public:
-  Stream_CamSave_Message (unsigned int); // size
-  virtual ~Stream_CamSave_Message ();
+  Stream_CamSave_Message_T (unsigned int); // size
+  virtual ~Stream_CamSave_Message_T ();
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy that references the same packet
@@ -66,28 +75,29 @@ class Stream_CamSave_Message
 #endif
 
   // implement Stream_MessageBase_T
-  inline virtual int command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual int command () const { return ACE_Message_Block::MB_DATA; }
 
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Stream_CamSave_Message (const Stream_CamSave_Message&);
+  Stream_CamSave_Message_T (const Stream_CamSave_Message_T&);
 
  private:
-  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   enum Stream_MessageType,
-                                   struct Stream_CamSave_MessageData,
-                                   int> inherited;
+  // convenient types
+  typedef Stream_CamSave_Message_T<DataType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message_T ())
   // *NOTE*: to be used by message allocators
-  Stream_CamSave_Message (Stream_SessionId_t,
-                          ACE_Data_Block*, // data block to use
-                          ACE_Allocator*,  // message allocator
-                          bool = true);    // increment running message counter ?
-  Stream_CamSave_Message (Stream_SessionId_t,
-                          ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message& operator= (const Stream_CamSave_Message&))
+  Stream_CamSave_Message_T (Stream_SessionId_t,
+                            ACE_Data_Block*, // data block to use
+                            ACE_Allocator*,  // message allocator
+                            bool = true);    // increment running message counter ?
+  Stream_CamSave_Message_T (Stream_SessionId_t,
+                            ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message_T& operator= (const Stream_CamSave_Message_T&))
 };
+
+// include template definition
+#include "test_u_camsave_message.inl"
 
 #endif

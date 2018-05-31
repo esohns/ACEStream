@@ -26,9 +26,8 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dev_mediafoundation_tools.h"
-
 #include "stream_lib_defines.h"
+#include "stream_lib_mediafoundation_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1017,13 +1016,13 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_MediaFoundation_Tools::addGrabber (media_type_p,
-                                                               IMFSampleGrabberSinkCallback2_in,
-                                                               topology_p,
-                                                               node_id))
+  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (media_type_p,
+                                                                IMFSampleGrabberSinkCallback2_in,
+                                                                topology_p,
+                                                                node_id))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::addGrabber(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::addGrabber(), aborting\n")));
     goto error;
   } // end IF
   result = topology_p->GetNodeByID (node_id,
@@ -1044,8 +1043,8 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
   // debug info
 #if defined (_DEBUG)
-  Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
-#endif
+  Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
+#endif // _DEBUG
   topology_p->Release ();
   topology_p = NULL;
 

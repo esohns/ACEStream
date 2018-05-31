@@ -33,7 +33,7 @@ class Stream_CamSave_SignalHandler
 {
  public:
   Stream_CamSave_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                                ACE_SYNCH_MUTEX*);              // lock handle
+                                ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
   inline virtual ~Stream_CamSave_SignalHandler () {}
 
   // implement Common_ISignal

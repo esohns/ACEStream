@@ -29,7 +29,7 @@
 #include "stream_macros.h"
 
 Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                                    ACE_SYNCH_MUTEX* lock_in)
+                                                                    ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
  : inherited (dispatchMode_in,
               lock_in,
               this) // event handler handle

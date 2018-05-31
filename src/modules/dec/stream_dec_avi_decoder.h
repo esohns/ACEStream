@@ -29,9 +29,10 @@
 
 #include "stream_dec_avi_parser_driver.h"
 #include "stream_dec_common.h"
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 
-extern Stream_Dec_Export const char libacestream_default_dec_avi_decoder_module_name_string[];
+//extern Stream_Dec_Export const char libacestream_default_dec_avi_decoder_module_name_string[];
+extern const char libacestream_default_dec_avi_decoder_module_name_string[];
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -76,7 +77,7 @@ class Stream_Decoder_AVIDecoder_T
   Stream_Decoder_AVIDecoder_T (ISTREAM_T*); // stream handle
 #else
   Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_AVIDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T

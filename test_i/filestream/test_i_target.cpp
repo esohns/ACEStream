@@ -452,11 +452,15 @@ do_work (unsigned int bufferSize_in,
   ACE_UNUSED_ARG (networkInterface_in);
 
   int result = -1;
+  struct Test_I_Target_Configuration configuration;
 
   // step0a: initialize configuration
-  struct Test_I_Target_Configuration configuration;
-  configuration.dispatch =
-                (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
+  if (useReactor_in)
+    CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
+      numberOfDispatchThreads_in;
+  else
+    CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
   //configuration.userData.connectionConfiguration =
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
@@ -630,15 +634,19 @@ do_work (unsigned int bufferSize_in,
     } // end IF
   } // end IF
 
+  struct Common_EventDispatchState event_dispatch_state_s;
+  event_dispatch_state_s.configuration =
+      &CBData_in.configuration->dispatchConfiguration;
+
   // step0e: initialize signal handling
+  CBData_in.configuration->signalHandlerConfiguration.dispatchState =
+    &event_dispatch_state_s;
   if (useReactor_in)
     CBData_in.configuration->signalHandlerConfiguration.listener =
       TEST_I_TARGET_LISTENER_SINGLETON::instance ();
   else
     CBData_in.configuration->signalHandlerConfiguration.listener =
       TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
-  CBData_in.configuration->signalHandlerConfiguration.dispatch =
-    (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR : COMMON_EVENT_DISPATCH_PROACTOR);
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
       connection_manager_p;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerId =
@@ -681,8 +689,8 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    CBData_in.finalizationHook = idle_finalize_UI_cb;
-    CBData_in.initializationHook = idle_initialize_target_UI_cb;
+    CBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.eventHooks.initHook = idle_initialize_target_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -728,9 +736,6 @@ do_work (unsigned int bufferSize_in,
 
   // step1b: initialize worker(s)
   int group_id = -1;
-  struct Common_EventDispatchState event_dispatch_state_s;
-  event_dispatch_state_s.configuration =
-      &event_dispatch_configuration_s;
   if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1250,9 +1255,9 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              &gtk_cb_data.lock);
+  Stream_Target_SignalHandler signal_handler (((gtk_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                              &gtk_cb_data.subscribersLock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -1360,8 +1365,7 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1403,10 +1407,8 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

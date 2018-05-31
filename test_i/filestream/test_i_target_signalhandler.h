@@ -36,7 +36,7 @@ class Stream_Target_SignalHandler
 
  public:
   Stream_Target_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                               ACE_SYNCH_MUTEX*);              // lock handle
+                               ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
   inline virtual ~Stream_Target_SignalHandler () {}
 
   // implement Common_ISignal

@@ -582,7 +582,9 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_p);
   if (!ACE_OS::strcmp (module_p->name (),
-                       ACE_TEXT ("ACE_Stream_Tail")))
+                       ACE_TEXT ("ACE_Stream_Tail")) ||
+      !ACE_OS::strcmp (module_p->name (),
+                       ACE_TEXT (STREAM_MODULE_TAIL_NAME)))
   {
     // *NOTE*: 'this' is being push()ed onto the stream
     //         --> nothing to do

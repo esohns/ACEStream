@@ -29,9 +29,9 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 
-extern Stream_Dec_Export const char libacestream_default_dec_mpeg_ts_module_name_string[];
+extern const char libacestream_default_dec_mpeg_ts_module_name_string[];
 
 // forward declaration(s)
 class ACE_Message_Block;

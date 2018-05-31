@@ -40,13 +40,17 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
+ set (PROGRAM_FILES_DIRECTORY "$ENV{PROGRAMFILES(X86)}")
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:"$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses">)
+                             "$<BUILD_INTERFACE:${PROGRAM_FILES_DIRECTORY}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses>")
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8>)
+
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
@@ -67,6 +71,8 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
+
+#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES=${INTERFACE_INCLUDE_DIRECTORIES}")
 
 ############## next target ################
 set (source_files

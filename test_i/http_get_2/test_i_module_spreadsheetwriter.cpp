@@ -524,15 +524,10 @@ error:
                                            TEST_I_LIBREOFFICE_DATE_ROW - 1);
         ACE_ASSERT (cell_p.is ());
 
-        std::string timestamp_string;
-        if (!Common_Timer_Tools::timestampToString ((*iterator).timeStamp,
-                                                    false,
-                                                    timestamp_string))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Timer_Tools::timestampToString(), returning\n")));
-          goto error_2;
-        } // end IF
+        std::string timestamp_string =
+          Common_Timer_Tools::timestampToString ((*iterator).timeStamp,
+                                                 false);
+        ACE_ASSERT (!timestamp_string.empty ());
         cell_p->setFormula (::rtl::OUString::createFromAscii (timestamp_string.c_str ()));
       } // end IF
 

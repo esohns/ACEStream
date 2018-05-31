@@ -30,9 +30,10 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_net_exports.h"
+//#include "stream_net_exports.h"
 
-extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
+//extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
+extern const char libacestream_default_net_io_module_name_string[];
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -217,7 +218,7 @@ class Stream_Module_Net_IOWriter_T // --> output
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using inherited::initialize;
+  using inherited::STATE_MACHINE_T::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T

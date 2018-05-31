@@ -33,7 +33,7 @@
 #include "http_get_connection_manager_common.h"
 
 HTTPGet_SignalHandler::HTTPGet_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                              ACE_SYNCH_MUTEX* lock_in)
+                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
 : inherited (dispatchMode_in,
              lock_in,
              this) // event handler handle
@@ -152,9 +152,9 @@ HTTPGet_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->abort ();
 
     // step3: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch ((inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_REACTOR),  // stop reactor ?
-                                         (inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_PROACTOR), // stop proactor ?
-                                         -1);                                    // group id (--> don't block)
+    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
+                                         inherited::configuration_->dispatchState->proactorGroupId, // stop proactor ?
+                                         false);                                                    // wait ?
 
     ACE_ASSERT (inherited::configuration_);
     if (inherited::configuration_->hasUI)

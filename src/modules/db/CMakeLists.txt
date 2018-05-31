@@ -30,7 +30,7 @@ add_library (${PROJECT_NAME}_Database STATIC "")
 
 if (UNIX)
  #include_directories (${PKG_DBUS_INCLUDE_DIRS})
-# include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
+ #include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -52,6 +52,11 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/lib>)
+
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src>)

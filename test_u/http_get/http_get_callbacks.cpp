@@ -396,7 +396,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_ASYNCH)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (cb_data_p->configuration->signalHandlerConfiguration.dispatch == COMMON_EVENT_DISPATCH_PROACTOR));
+                                (cb_data_p->configuration->signalHandlerConfiguration.dispatchState->proactorGroupId != -1));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_SAVE)));

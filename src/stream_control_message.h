@@ -56,8 +56,11 @@ class Stream_ControlMessage_T
   //                                             DataMessageType,
   //                                             SessionMessageType>;
 
+  typedef ACE_Message_Block inherited;
+
  public:
   // convenient types
+  typedef ControlType CONTROL_T;
   typedef Stream_ControlMessage_T<ControlType,
                                   MessageType,
                                   AllocatorConfigurationType> OWN_TYPE_T;
@@ -73,10 +76,10 @@ class Stream_ControlMessage_T
   // implement Common_IInitialize_T
   virtual bool initialize (const ControlType&);
 
-  inline MessageType type () const { return type_; };
+  inline MessageType type () const { return type_; }
 
   // debug tools
-  static std::string ControlMessageType2String (MessageType); // message type
+  static std::string ControlMessageTypeToString (MessageType); // message type
 
  protected:
   // (copy) ctor to be used by duplicate()
@@ -85,8 +88,6 @@ class Stream_ControlMessage_T
   MessageType type_;
 
  private:
-  typedef ACE_Message_Block inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_ControlMessage_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_ControlMessage_T& operator= (const Stream_ControlMessage_T&))
 

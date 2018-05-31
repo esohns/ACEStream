@@ -24,5 +24,6 @@
 
 #include "stream_dec_defines.h"
 
-Stream_Dec_Export const char libacestream_default_dec_avi_decoder_module_name_string[] =
+//Stream_Dec_Export const char libacestream_default_dec_avi_decoder_module_name_string[] =
+const char libacestream_default_dec_avi_decoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING);

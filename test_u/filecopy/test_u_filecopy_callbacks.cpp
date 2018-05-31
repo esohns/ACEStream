@@ -337,9 +337,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       return G_SOURCE_REMOVE;
     } // end ELSE
     // schedule asynchronous updates of the info view
-    event_source_id = g_timeout_add (TEST_U_STREAM_UI_GTKEVENT_RESOLUTION,
-                                     idle_update_info_display_cb,
-                                     userData_in);
+    event_source_id =
+      g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
+                     idle_update_info_display_cb,
+                     userData_in);
     if (event_source_id > 0)
       data_p->eventSourceIds.insert (event_source_id);
     else
@@ -986,7 +987,7 @@ action_start_activate_cb (GtkAction* action_in,
 //                  ACE_TEXT (TEST_U_STREAM_FILECOPY_THREAD_NAME));
 //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_U_STREAM_FILECOPY_THREAD_NAME));
+                  ACE_TEXT (TEST_U_STREAM_THREAD_NAME));
   const char* thread_name_2 = thread_name;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -1024,8 +1025,8 @@ action_start_activate_cb (GtkAction* action_in,
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
       //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
-                          TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
+                          COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                           idle_update_progress_cb,
                           &data_p->progressData,
                           NULL);

@@ -406,9 +406,9 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
     return;
   } // end IF
-  Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
-                                                        &heap_allocator,                     // heap allocator handle
-                                                        true);                               // block ?
+  Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                        &heap_allocator,     // heap allocator handle
+                                                        true);               // block ?
   // ********************** module configuration data **************************
   struct Stream_Filecopy_ModuleHandlerConfiguration moduleheandler_configuration;
   if (!UIDefinitionFile_in.empty ())
@@ -463,8 +463,8 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    CBData_in.finalizationHook = idle_finalize_UI_cb;
-    CBData_in.initializationHook = idle_initialize_UI_cb;
+    CBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.eventHooks.initHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -692,7 +692,7 @@ ACE_TMAIN (int argc_in,
   //                   reactor/proactor thread could (dead)lock on the
   //                   allocator lock, as it cannot dispatch events that would
   //                   free slots
-  if (TEST_U_STREAM_FILECOPY_MAX_MESSAGES)
+  if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((UI_definition_file.empty () &&
@@ -796,9 +796,9 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Filecopy_SignalHandler signal_handler (((configuration.signalHandlerConfiguration.dispatch == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                                      : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                &gtk_cb_data.lock);
+  Stream_Filecopy_SignalHandler signal_handler (((configuration.dispatchConfiguration.numberOfReactorThreads) ? COMMON_SIGNAL_DISPATCH_REACTOR
+                                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+                                                &gtk_cb_data.subscribersLock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -878,8 +878,7 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -921,10 +920,8 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

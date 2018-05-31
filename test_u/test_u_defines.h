@@ -27,6 +27,11 @@
 
 #define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE           "resources.css"
 
+#define TEST_U_STREAM_THREAD_NAME                    "stream processor"
+
+#define TEST_U_DEFAULT_BUFFER_SIZE                   16384 // bytes
+#define TEST_U_MAX_MESSAGES                          0 // 0 --> no limits
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
 #else

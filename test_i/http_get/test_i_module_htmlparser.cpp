@@ -140,7 +140,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 }
 
 bool
-Test_I_Stream_HTMLParser::initialize (const Test_I_ModuleHandlerConfiguration& configuration_in,
+Test_I_Stream_HTMLParser::initialize (const struct Test_I_HTTPGet_ModuleHandlerConfiguration& configuration_in,
                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));

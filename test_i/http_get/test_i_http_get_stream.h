@@ -54,11 +54,11 @@ class Test_I_HTTPGet_Stream_T
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_Statistic_t,
                         struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_Stream_SessionData,
                         Test_I_Stream_SessionData_t,
                         Test_I_ControlMessage_t,
@@ -89,11 +89,11 @@ class Test_I_HTTPGet_Stream_T
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
-                        struct Test_I_StreamConfiguration,
+                        struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_Statistic_t,
                         struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_Stream_SessionData,
                         Test_I_Stream_SessionData_t,
                         Test_I_ControlMessage_t,
@@ -101,7 +101,7 @@ class Test_I_HTTPGet_Stream_T
                         Test_I_Stream_SessionMessage> inherited;
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
-                                            struct Test_I_ModuleHandlerConfiguration,
+                                            struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                             Test_I_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage,
@@ -114,7 +114,7 @@ class Test_I_HTTPGet_Stream_T
                                          struct Test_I_Stream_SessionData,         // session data type
                                          enum Stream_SessionMessageType,           // session event type
                                          struct Stream_ModuleConfiguration,        // module configuration type
-                                         struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                                         struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                                          libacestream_default_net_source_module_name_string,
                                          Stream_INotify_t,                         // stream notification interface type
                                          SOURCE_WRITER_T> SOURCE_MODULE_T;         // writer type

@@ -63,7 +63,7 @@ structuredErrorCallback (void*,        // user data
 class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     struct Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                      Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
@@ -71,22 +71,9 @@ class Test_I_Stream_HTMLParser
                                      struct Test_I_Stream_SessionData,
                                      struct Test_I_SAXParserContext>
 {
- public:
-  Test_I_Stream_HTMLParser (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_HTMLParser ();
-
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const struct Test_I_ModuleHandlerConfiguration&,
-                           Stream_IAllocator* = NULL);
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
-                                     bool&);                         // return value: pass message downstream ?
-
- private:
   typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     struct Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                      Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
@@ -94,6 +81,19 @@ class Test_I_Stream_HTMLParser
                                      struct Test_I_Stream_SessionData,
                                      struct Test_I_SAXParserContext> inherited;
 
+ public:
+  Test_I_Stream_HTMLParser (ISTREAM_T*); // stream handle
+  virtual ~Test_I_Stream_HTMLParser ();
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const struct Test_I_HTTPGet_ModuleHandlerConfiguration&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
+                                     bool&);                         // return value: pass message downstream ?
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser& operator= (const Test_I_Stream_HTMLParser&))
@@ -105,7 +105,7 @@ class Test_I_Stream_HTMLParser
 // declare module
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
-                              struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_html_parser_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_Stream_HTMLParser);                // writer type

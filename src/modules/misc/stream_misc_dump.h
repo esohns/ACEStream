@@ -32,9 +32,9 @@
 
 #include "stream_file_sink.h"
 
-#include "stream_misc_exports.h"
+//#include "stream_misc_exports.h"
 
-extern STREAM_MISC_Export const char libacestream_default_misc_dump_module_name_string[];
+extern const char libacestream_default_misc_dump_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

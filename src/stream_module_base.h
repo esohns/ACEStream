@@ -88,9 +88,9 @@ class Stream_Module_Base_T
   //                   events to the processing stream instance
   virtual void notify (SessionIdType,            // session id
                        const SessionEventType&); // event (state/status change, ...)
-  virtual const STREAM_T& getR () const;
+  inline virtual const STREAM_T& getR () const { ACE_ASSERT (stream_); return *stream_; }
   virtual bool initialize (const ConfigurationType&);
-  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_); return *configuration_; };
+  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_); return *configuration_; }
   virtual const HandlerConfigurationType& getR_3 () const;
   virtual void reset ();
 
@@ -107,6 +107,7 @@ class Stream_Module_Base_T
   ConfigurationType* configuration_;
   bool               isInitialized_;
   NotificationType*  notify_;
+  STREAM_T*          stream_;
 
  private:
   // convenient types
@@ -129,11 +130,10 @@ class Stream_Module_Base_T
   typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
-  inline virtual void start (SessionIdType,                                                                         // session id
-                             const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
-  inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
-  inline virtual void onLink (ACE_Module_Base*) {};
-  inline virtual void onUnlink (ACE_Module_Base*) {};
+  inline virtual void start (SessionIdType, const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) } // session id
+  inline virtual void onLink (ACE_Module_Base*) {}
+  inline virtual void onUnlink (ACE_Module_Base*) {}
   virtual MODULE_T* clone ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
@@ -190,7 +190,7 @@ class Stream_Module_BaseA_T
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
 
-  inline virtual ~Stream_Module_BaseA_T () {};
+  inline virtual ~Stream_Module_BaseA_T () {}
 
   // override ACE_Module members
   virtual MODULE_T* next (void); // return value: downstream module handle

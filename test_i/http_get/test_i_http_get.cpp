@@ -533,7 +533,7 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration and stream
-  Test_I_Configuration configuration;
+  struct Test_I_HTTPGet_Configuration configuration;
   Test_I_StreamBase_t* stream_p = NULL;
   if (useReactor_in)
     ACE_NEW_NORETURN (stream_p,
@@ -551,8 +551,12 @@ do_work (unsigned int bufferSize_in,
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
   //    &configuration.streamConfiguration;
-  configuration.dispatch = (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                                          : COMMON_EVENT_DISPATCH_PROACTOR);
+  if (useReactor_in)
+    configuration.dispatchConfiguration.numberOfReactorThreads =
+      numberOfDispatchThreads_in;
+  else
+    configuration.dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
 
   Stream_Module_t* module_p = NULL;
   Test_I_Module_DataBaseWriter_Module database_writer (stream_p,
@@ -643,7 +647,7 @@ do_work (unsigned int bufferSize_in,
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
-  struct Test_I_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -668,23 +672,23 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
-  configuration.streamConfiguration.configuration_.module = module_p;
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
+  struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.module = module_p;
+  stream_configuration.printFinalReport = true;
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                configuration.streamConfiguration.allocatorConfiguration_,
+                                                stream_configuration);
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
-  struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
-  event_dispatch_configuration_s.numberOfProactorThreads =
+  configuration.dispatchConfiguration.numberOfProactorThreads =
           (!useReactor_in ? numberOfDispatchThreads_in : 0);
-  event_dispatch_configuration_s.numberOfReactorThreads =
+  configuration.dispatchConfiguration.numberOfReactorThreads =
           (useReactor_in ? numberOfDispatchThreads_in : 0);
-  if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
+  if (!Common_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -733,9 +737,9 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0c: initialize signal handling
-  configuration.signalHandlerConfiguration.dispatch =
-          (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                         : COMMON_EVENT_DISPATCH_PROACTOR);
+  struct Common_EventDispatchState dispatch_state_s;
+  dispatch_state_s.configuration = &configuration.dispatchConfiguration;
+  configuration.signalHandlerConfiguration.dispatchState = &dispatch_state_s;
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
@@ -776,10 +780,7 @@ do_work (unsigned int bufferSize_in,
 
   // step1a: initialize worker(s)
   int group_id = -1;
-  struct Common_EventDispatchState event_dispatch_state_s;
-  event_dispatch_state_s.configuration =
-      &event_dispatch_configuration_s;
-  if (!Common_Tools::startEventDispatch (event_dispatch_state_s))
+  if (!Common_Tools::startEventDispatch (dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -1129,7 +1130,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  ACE_SYNCH_MUTEX signal_lock;
+  ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
   Stream_Source_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                            : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                               &signal_lock);
@@ -1208,8 +1209,7 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1251,10 +1251,8 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

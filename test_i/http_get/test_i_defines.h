@@ -21,6 +21,8 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
+#include "ace/config-lite.h"
+
 #define TEST_I_DEFAULT_OUTPUT_DB                     "news"
 #define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE        "options.cnf"
 #define TEST_I_DEFAULT_OUTPUT_DB_TABLE               "page"

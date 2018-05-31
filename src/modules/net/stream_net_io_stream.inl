@@ -132,7 +132,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
-                ACE_TEXT (StreamName)));
+                ACE_TEXT (name_.c_str ())));
     return false;
   } // end IF
   modules_out.push_back (module_p);
@@ -291,7 +291,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (StreamName)));
+                ACE_TEXT (name_.c_str ())));
     goto error;
   } // end IF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -334,27 +334,27 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* IO ************************
-  ACE_ASSERT (!inherited::modules_.empty ());
-  module_p = inherited::modules_.front ();
-  if (unlikely (!module_p))
+  module_p =
+    const_cast<MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING)));
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve I/O module handle, aborting\n"),
-                ACE_TEXT (StreamName)));
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (MODULE_NET_IO_DEFAULT_NAME_STRING)));
     goto error;
   } // end IF
-//  IO_.initialize (*configuration_in.moduleConfiguration);
-//  READER_T* IOReader_impl_p = NULL;
   IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
   if (unlikely (!IOWriter_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (StreamName),
+                ACE_TEXT (name_.c_str ()),
                 module_p->name ()));
     goto error;
   } // end IF
   IOWriter_impl_p->setP (&(inherited::state_));
+  IOWriter_impl_p->initialize ();
 //  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
 //  if (!IOReader_impl_p)
 //  {
@@ -379,7 +379,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (StreamName)));
+                  ACE_TEXT (name_.c_str ())));
       goto error;
     } // end IF
 
@@ -604,7 +604,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (StreamName)));
+                  ACE_TEXT (name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -617,12 +617,105 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (StreamName)));
+                  ACE_TEXT (name_.c_str ())));
   } // end IF
 
   return true;
 }
 
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+const ACE_Notification_Strategy* const
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              StatisticHandlerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::getP (bool recurseUpstream_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::getP"));
+
+  std::string module_name_string = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head");
+  const typename Stream_IStream_T<ACE_SYNCH_USE,
+                                  TimePolicyType>::MODULE_T* module_p =
+    NULL;
+  typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::TASK_T* task_p =
+    NULL;
+
+  module_p = 
+    (recurseUpstream_in ? const_cast<OWN_TYPE_T*> (this)->inherited::tail ()
+                        : const_cast<OWN_TYPE_T*> (this)->inherited::head ());
+  ACE_ASSERT (module_p);
+  task_p =
+      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
+                                           TimePolicyType>::MODULE_T*> (module_p)->reader ();
+  ACE_ASSERT (task_p);
+  ACE_ASSERT (task_p->module ());
+retry:
+  while (ACE_OS::strcmp (task_p->module ()->name (),
+                         ACE_TEXT (module_name_string.c_str ())))
+  {
+    task_p = task_p->next ();
+    if (!task_p)
+      break;
+  } // end WHILE
+  if (unlikely (!task_p))
+  {
+    if (!ACE_OS::strcmp (module_name_string.c_str (),
+                         ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")))
+    {
+      module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
+      task_p =
+          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
+                                               TimePolicyType>::MODULE_T*> (module_p)->reader ();
+      ACE_ASSERT (task_p);
+      ACE_ASSERT (task_p->module ());
+      goto retry;
+    } // end IF
+
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no head module reader task found, aborting\n"),
+                ACE_TEXT (name_.c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (task_p->msg_queue_);
+  
+  return task_p->msg_queue_->notification_strategy ();
+}
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -665,10 +758,10 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (ACE_Notification_Strategy* strategyHandle_in,
-                                                         const std::string& moduleName_in)
+                              UserDataType>::initialize_2 (ACE_Notification_Strategy* strategyHandle_in,
+                                                           const std::string& moduleName_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize_2"));
 
   // sanity check(s)
   ACE_ASSERT (strategyHandle_in);
@@ -692,7 +785,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   module_p = inherited::tail ();
   ACE_ASSERT (module_p);
   task_p =
-      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*> (module_p)->reader ();
+      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
+                                           TimePolicyType>::MODULE_T*> (module_p)->reader ();
   ACE_ASSERT (task_p);
   ACE_ASSERT (task_p->module ());
 retry:
@@ -709,7 +803,8 @@ retry:
     {
       module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
       task_p =
-          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*> (module_p)->reader ();
+          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
+                                               TimePolicyType>::MODULE_T*> (module_p)->reader ();
       ACE_ASSERT (task_p);
       ACE_ASSERT (task_p->module ());
       goto retry;
@@ -717,7 +812,7 @@ retry:
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module reader task found, aborting\n"),
-                ACE_TEXT (StreamName)));
+                ACE_TEXT (name_.c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (task_p->msg_queue_);
@@ -772,18 +867,36 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::onLink"));
 
-  // sanity check(s)
-  // inbound ?
-//  if (!inherited::upstream (false))
-  if (!inherited::upstream ())
-  {
-     // make sure 'this' auto-finished()-es on disconnect
+  // inbound/outbound ?
+  if (inherited::upstream ())
+  { // --> outbound
+    ACE_Notification_Strategy* notification_strategy_p =
+      const_cast<ACE_Notification_Strategy*> (getP (false));
+    if (likely (notification_strategy_p))
+    {
+      if (unlikely (!initialize_2 (notification_strategy_p,
+                                   ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head"))))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(%@), returning\n"),
+                    ACE_TEXT (name_.c_str ()),
+                    notification_strategy_p));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: reset upstream notification\n"),
+                  ACE_TEXT (name_.c_str ())));
+    } // end IF
+  } // end IF
+  else
+  { // --> inbound
+    // make sure 'this' auto-finished()-es on disconnect
     if (!inherited::finishOnDisconnect_)
     {
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: correcting finish-on-disconnect setting\n"),
-                  ACE_TEXT (name_.c_str ())));
       inherited::finishOnDisconnect_ = true;
-    } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: reset finish-on-disconnect\n"),
+                  ACE_TEXT (name_.c_str ())));
+    } // end ELSE
   } // end IF
 }

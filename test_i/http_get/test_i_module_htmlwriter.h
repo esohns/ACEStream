@@ -39,13 +39,22 @@
 class Test_I_Stream_Module_HTMLWriter
  : public Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     struct Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                      Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
                                      struct Test_I_Stream_SessionData>
 {
+  typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     Test_I_Stream_SessionData_t,
+                                     struct Test_I_Stream_SessionData> inherited;
+
  public:
   Test_I_Stream_Module_HTMLWriter ();
   virtual ~Test_I_Stream_Module_HTMLWriter ();
@@ -55,15 +64,6 @@ class Test_I_Stream_Module_HTMLWriter
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_ModuleHandlerConfiguration,
-                                     Test_I_ControlMessage_t,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_SessionData_t,
-                                     struct Test_I_Stream_SessionData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter (const Test_I_Stream_Module_HTMLWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter& operator= (const Test_I_Stream_Module_HTMLWriter&))
 
@@ -73,7 +73,7 @@ class Test_I_Stream_Module_HTMLWriter
 // declare module
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
-                              struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_html_writer_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_Stream_Module_HTMLWriter);         // writer type

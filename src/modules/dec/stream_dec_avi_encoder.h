@@ -22,11 +22,13 @@
 #define STREAM_DEC_AVI_ENCODER_H
 
 #include <string>
+#include <vector>
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>
 #include <strmif.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
@@ -44,7 +46,7 @@ extern "C"
 #else
 //#include <sndfile.h>
 #include "sox.h"
-#endif /* ACE_WIN32 || ACE_WIN64 */
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "common_time_common.h"
 
@@ -52,7 +54,6 @@ extern "C"
 #include "stream_task_base_synch.h"
 
 #include "stream_dec_common.h"
-#include "stream_dec_exports.h"
 
 // forward declaration(s)
 struct AVFormatContext;
@@ -61,8 +62,29 @@ class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
 
-extern Stream_Dec_Export const char libacestream_default_dec_avi_encoder_module_name_string[];
-extern Stream_Dec_Export const char libacestream_default_dec_wav_encoder_module_name_string[];
+extern const char libacestream_default_dec_avi_encoder_module_name_string[];
+extern const char libacestream_default_dec_wav_encoder_module_name_string[];
+
+enum Stream_Decoder_AVIIndexType : int
+{
+  STREAM_AVI_INDEX_V1 = 0,
+  STREAM_AVI_INDEX_V2,
+  ////////////////////////////////////////
+  STREAM_AVI_INDEX_MAX,
+  STREAM_AVI_INDEX_INVALID
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename FormatType,
+          typename UserDataType>
+class Stream_Decoder_AVIEncoder_WriterTask_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -70,31 +92,53 @@ int
 stream_decoder_aviencoder_libav_write_cb (void*,    // act
                                           uint8_t*, // buffer address
                                           int);     // buffer size
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename FormatType,
+          typename UserDataType>
 class Stream_Decoder_AVIEncoder_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
+  typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 ConfigurationType,
+                                                 ControlMessageType,
+                                                 DataMessageType,
+                                                 SessionMessageType,
+                                                 SessionDataContainerType,
+                                                 SessionDataType,
+                                                 FormatType,
+                                                 UserDataType> WRITER_TASK_T;
 
   Stream_Decoder_AVIEncoder_ReaderTask_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_AVIEncoder_ReaderTask_T ();
+  inline virtual ~Stream_Decoder_AVIEncoder_ReaderTask_T () {}
 
   virtual int put (ACE_Message_Block*,      // message
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<ACE_SYNCH_USE,
-                        TimePolicyType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T& operator= (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
@@ -132,6 +176,17 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
+  friend class Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
+                                                      TimePolicyType,
+                                                      ConfigurationType,
+                                                      ControlMessageType,
+                                                      DataMessageType,
+                                                      SessionMessageType,
+                                                      SessionDataContainerType,
+                                                      SessionDataType,
+                                                      FormatType,
+                                                      UserDataType>;
+
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -149,7 +204,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -182,34 +237,35 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         side processing)
   bool                    isFirst_;
 
-  enum AVPixelFormat      format_;
+  enum AVPixelFormat format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct AVFormatContext* formatContext_;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   unsigned int            frameSize_; // output-
   unsigned int            height_;
   unsigned int            width_;
   struct SwsContext*      transformContext_;
 
+  typedef std::vector<unsigned int> FRAMEOFFSETS_T;
+  typedef FRAMEOFFSETS_T::const_iterator FRAMEOFFSETSITERATOR_T;
+  unsigned int            currentFrameOffset_;
+  FRAMEOFFSETS_T          frameOffsets_;
+  bool                    writeAVI1Index_; // AVI 1.0 "idx1" at end of file
+  bool                    writeAVI2Index_; // AVI 2.0 "inx1" + super-index
+
   // helper methods
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
-  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
+  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); }
 #else
-  template <typename FormatType2> enum AVPixelFormat& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
-#endif
-  template <typename FormatType2> AVRational& getFrameRate (const SessionDataType& sessionData_in,
-                                                            const FormatType2* format_in) { return getFrameRate_impl (sessionData_in,
-                                                                                                                      format_in); };
-  template <typename FormatType2> void getResolution (const SessionDataType& sessionData_in,
-                                                      const FormatType2* format_in,
-                                                      unsigned int& height_out,
-                                                      unsigned int& width_out) { getResolution_impl (sessionData_in,
-                                                                                                     format_in,
-                                                                                                     height_out,
-                                                                                                     width_out); };
+  template <typename FormatType2> enum AVPixelFormat& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); }
+#endif // ACE_WIN32 || ACE_WIN64
+  template <typename FormatType2> AVRational& getFrameRate (const SessionDataType& sessionData_in, const FormatType2* format_in) { return getFrameRate_impl (sessionData_in, format_in); }
+  template <typename FormatType2> void getResolution (const SessionDataType& sessionData_in, const FormatType2* format_in, unsigned int& height_out, unsigned int& width_out) { getResolution_impl (sessionData_in, format_in, height_out, width_out); }
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
+  bool generateIndex (enum Stream_Decoder_AVIIndexType, // index version
+                      ACE_Message_Block*);              // message buffer handle
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
@@ -231,10 +287,8 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   inline struct AVRational& getFrameRate_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) }
   inline void getResolution_impl (const SessionDataType& sessionData_in, const enum AVPixelFormat*, unsigned int& width_out, unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; }
   inline void getResolution_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*, unsigned int& width_out, unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline struct AVRational& getFrameRate_impl (const SessionDataType&, const enum AVPixelFormat*) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; }
-
-  bool generateIndex (ACE_Message_Block*); // message buffer handle
 };
 
 //////////////////////////////////////////
@@ -339,7 +393,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -388,7 +442,7 @@ class Stream_Decoder_WAVEncoder_T
   Stream_Decoder_WAVEncoder_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_WAVEncoder_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -408,7 +462,7 @@ class Stream_Decoder_WAVEncoder_T
   // helper methods
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: the WAV (storage) format (like many others) foresees a
   //         header that contains size fields with information about
@@ -431,7 +485,7 @@ class Stream_Decoder_WAVEncoder_T
   struct sox_signalinfo_t   signalInfo_;
 
   struct sox_format_t*      outputFile_;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition

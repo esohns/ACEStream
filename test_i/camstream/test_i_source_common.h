@@ -21,11 +21,17 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
+#include <map>
+#include <string>
+
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <combaseapi.h>
+#include <control.h>
 #include <evr.h>
 #include <mfapi.h>
 #include <strmif.h>
+#include <windef.h>
 #else
 //#include <linux/videodev2.h>
 #ifdef __cplusplus
@@ -34,7 +40,7 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -63,7 +69,6 @@ extern "C"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct IAMStreamConfig;
 struct ISampleGrabber;
 
 struct Test_I_Source_ConnectionConfiguration;
@@ -76,7 +81,7 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration;
 struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_StreamConfiguration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 template <typename ConfigurationType>
 class Test_I_Source_SignalHandler_T;
 template <typename SessionIdType,
@@ -96,7 +101,7 @@ struct Test_I_Source_DirectShow_UserData
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
-  {};
+  {}
 
   struct Test_I_Source_DirectShow_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Source_DirectShow_StreamConfiguration*     streamConfiguration;
@@ -108,7 +113,7 @@ struct Test_I_Source_MediaFoundation_UserData
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration*     streamConfiguration;
@@ -122,12 +127,12 @@ struct Test_I_Source_V4L2_UserData
    : Stream_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
-  {};
+  {}
 
 //  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
 //  struct Test_I_Source_V4L2_StreamConfiguration*     streamConfiguration;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_SessionData
@@ -136,7 +141,7 @@ struct Test_I_Source_DirectShow_SessionData
   Test_I_Source_DirectShow_SessionData ()
    : Test_I_CamStream_DirectShow_SessionData ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_DirectShow_SessionData& operator+= (const struct Test_I_Source_DirectShow_SessionData& rhs_in)
   {
@@ -157,7 +162,7 @@ struct Test_I_Source_MediaFoundation_SessionData
   Test_I_Source_MediaFoundation_SessionData ()
    : Test_I_CamStream_MediaFoundation_SessionData ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_SessionData& operator+= (const struct Test_I_Source_MediaFoundation_SessionData& rhs_in)
   {
@@ -182,7 +187,7 @@ struct Test_I_Source_V4L2_SessionData
    , height (0)
    , width (0)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_V4L2_SessionData& operator+= (const struct Test_I_Source_V4L2_SessionData& rhs_in)
   {
@@ -201,7 +206,7 @@ struct Test_I_Source_V4L2_SessionData
   struct Test_I_Source_V4L2_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
@@ -274,7 +279,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_ControlMessage_t,
                       Test_I_Source_V4L2_Stream_Message,
                       Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_StreamBase_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Source_DirectShow_SessionData,
@@ -293,22 +298,102 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextId (0)
-   , deviceName ()
+   , direct3DDevice (NULL)
+   , filterCLSID (GUID_NULL)
+   , filterConfiguration (NULL)
    , inputFormat (NULL)
+   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , sourceFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
+   , windowController2 (NULL)
   {
-    inputFormat =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!inputFormat)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, continuing\n")));
-    else
-      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
-  };
+    finishOnDisconnect = true;
+
+    //mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
+  }
+
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration operator= (const struct Test_I_Source_DirectShow_ModuleHandlerConfiguration& rhs_in)
+  {
+    area = rhs_in.area;
+    if (builder)
+    {
+      builder->Release (); builder = NULL;
+    } // end IF
+    if (rhs_in.builder)
+    {
+      rhs_in.builder->AddRef ();
+      builder = rhs_in.builder;
+    } // end IF
+    if (connection)
+    {
+      connection->decrease (); connection = NULL;
+    } // end IF
+    if (rhs_in.connection)
+    {
+      rhs_in.connection->increase ();
+      connection = rhs_in.connection;
+    } // end IF
+    connectionConfigurations = rhs_in.connectionConfigurations;
+    connectionManager = rhs_in.connectionManager;
+    if (direct3DDevice)
+    {
+      direct3DDevice->Release (); direct3DDevice = NULL;
+    } // end IF
+    if (rhs_in.direct3DDevice)
+    {
+      rhs_in.direct3DDevice->AddRef ();
+      direct3DDevice = rhs_in.direct3DDevice;
+    } // end IF
+    filterCLSID = rhs_in.filterCLSID;
+    filterConfiguration = rhs_in.filterConfiguration;
+    if (inputFormat)
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
+    if (rhs_in.inputFormat)
+      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
+                                                                  inputFormat))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+        return *this;
+      } // end IF
+    push = rhs_in.push;
+    if (sourceFormat)
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (sourceFormat);
+    if (rhs_in.sourceFormat)
+      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.sourceFormat,
+                                                                  sourceFormat))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+        return *this;
+      } // end IF
+    streamConfiguration = rhs_in.streamConfiguration;
+    subscriber = rhs_in.subscriber;
+    subscribers = rhs_in.subscribers;
+    if (windowController)
+    {
+      windowController->Release (); windowController = NULL;
+    } // end IF
+    if (rhs_in.windowController)
+    {
+      rhs_in.windowController->AddRef ();
+      windowController = rhs_in.windowController;
+    } // end IF
+    if (windowController2)
+    {
+      windowController2->Release (); windowController2 = NULL;
+    } // end IF
+    if (rhs_in.windowController2)
+    {
+      rhs_in.windowController2->AddRef ();
+      windowController2 = rhs_in.windowController2;
+    } // end IF
+
+    return *this;
+  }
 
   struct tagRECT                                       area; // visualization module
   IGraphBuilder*                                       builder;
@@ -316,12 +401,17 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
-  std::string                                          deviceName; // 'friendly'-name string
+  IDirect3DDevice9Ex*                                  direct3DDevice;
+  struct _GUID                                         filterCLSID;
+  struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
   struct _AMMediaType*                                 inputFormat; // source module
+  bool                                                 push;
+  struct _AMMediaType*                                 sourceFormat;
   Test_I_Source_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*           subscriber;
   Test_I_Source_DirectShow_Subscribers_t*              subscribers;
   IVideoWindow*                                        windowController; // visualization module
+  IMFVideoDisplayControl*                              windowController2; // visualization module (EVR)
 };
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
@@ -340,40 +430,41 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , deviceName ()
    , inputFormat (NULL)
    , mediaSource (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , sourceFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
   {
+    finishOnDisconnect = true;
+
     HRESULT result = MFCreateMediaType (&inputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     ACE_ASSERT (inputFormat);
-  };
+  }
 
   struct tagRECT                                            area;
   Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  std::string                                               deviceName; // 'friendly'-name string
   IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
-  IMFMediaSource*                                           mediaSource;
+  IMFMediaSourceEx*                                         mediaSource;
   IMFMediaSession*                                          session;
+  IMFMediaType*                                             sourceFormat;
   Test_I_Source_MediaFoundation_ISessionNotify_t*           subscriber;
   Test_I_Source_MediaFoundation_Subscribers_t*              subscribers;
   IMFVideoDisplayControl*                                   windowController;
 };
 #else
-
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Source_V4L2_SessionData,
                                     enum Stream_SessionMessageType,
@@ -405,10 +496,12 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , v4l2Window (NULL)
    , userData (NULL)
   {
+    finishOnDisconnect = true;
+
     ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
     ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));
     inputFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  };
+  }
 
   GdkRectangle                                   area;
   __u32                                          buffers; // v4l device buffers
@@ -430,7 +523,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
 
   struct Test_I_Source_V4L2_UserData*            userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_SignalHandlerConfiguration
@@ -441,7 +534,7 @@ struct Test_I_Source_DirectShow_SignalHandlerConfiguration
    , connectionManager (NULL)
 //   , statisticReportingInterval (0)
    , stream (NULL)
-  {};
+  {}
 
   Test_I_Source_DirectShow_InetConnectionManager_t* connectionManager;
 //  unsigned int                statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
@@ -456,7 +549,7 @@ struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
    , stream (NULL)
-  {};
+  {}
 
   Test_I_Source_MediaFoundation_InetConnectionManager_t* connectionManager;
   //  unsigned int                statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
@@ -472,14 +565,14 @@ struct Test_I_Source_V4L2_SignalHandlerConfiguration
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
    , stream (NULL)
-  {};
+  {}
 
   Test_I_Source_V4L2_InetConnectionManager_t* connectionManager;
   //  unsigned int                statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
   Test_I_Source_V4L2_StreamBase_t*            stream;
 };
 typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_V4L2_SignalHandlerConfiguration> Test_I_Source_V4L2_SignalHandler_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_Source_Stream_StatisticData
  : Stream_Statistic
@@ -488,22 +581,22 @@ struct Test_I_Source_Stream_StatisticData
    : Stream_Statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , capturedFrames (0)
-#endif
-  {};
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
   struct Test_I_Source_Stream_StatisticData operator+= (const struct Test_I_Source_Stream_StatisticData& rhs_in)
   {
     Stream_Statistic::operator+= (rhs_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     capturedFrames += rhs_in.capturedFrames;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
     return *this;
-  };
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int capturedFrames;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticReportingHandler_t;
 typedef Common_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
@@ -514,15 +607,27 @@ struct Test_I_Source_DirectShow_StreamConfiguration
 {
   Test_I_Source_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , filterGraphConfiguration ()
+   , graphLayout ()
    , userData (NULL)
-  {};
+  {}
 
   // **************************** stream data **********************************
-  Stream_Module_Device_DirectShow_Graph_t   filterGraphConfiguration;
+  Stream_MediaFramework_DirectShow_Graph_t  graphLayout;
 
   struct Test_I_Source_DirectShow_UserData* userData;
 };
+
+//extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_AllocatorConfiguration,
+                               struct Test_I_Source_DirectShow_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_StreamConfiguration_t;
+typedef Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T Test_I_Source_DirectShow_StreamConfigurationIterator_t;
+typedef std::map<std::string,
+                 Test_I_Source_DirectShow_StreamConfiguration_t> Test_I_Source_DirectShow_StreamConfigurations_t;
+typedef Test_I_Source_DirectShow_StreamConfigurations_t::iterator Test_I_Source_DirectShow_StreamConfigurationsIterator_t;
+
 struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
@@ -531,7 +636,7 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , mediaFoundationConfiguration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   // **************************** media foundation *****************************
   struct Test_I_MediaFoundationConfiguration*    mediaFoundationConfiguration;
@@ -539,6 +644,17 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
 
   struct Test_I_Source_MediaFoundation_UserData* userData;
 };
+
+//extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_AllocatorConfiguration,
+                               struct Test_I_Source_MediaFoundation_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration> Test_I_Source_MediaFoundation_StreamConfiguration_t;
+typedef Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T Test_I_Source_MediaFoundation_StreamConfigurationIterator_t;
+typedef std::map<std::string,
+                 Test_I_Source_MediaFoundation_StreamConfiguration_t> Test_I_Source_MediaFoundation_StreamConfigurations_t;
+typedef Test_I_Source_MediaFoundation_StreamConfigurations_t::iterator Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t;
 #else
 struct Test_I_Source_V4L2_StreamConfiguration
  : Test_I_StreamConfiguration
@@ -546,12 +662,23 @@ struct Test_I_Source_V4L2_StreamConfiguration
   Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   // **************************** stream data **********************************
   struct Test_I_Source_V4L2_UserData* userData;
 };
-#endif
+
+//extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Test_I_AllocatorConfiguration,
+                               struct Test_I_Source_V4L2_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_StreamConfiguration_t;
+typedef Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T Test_I_Source_V4L2_StreamConfigurationIterator_t;
+typedef std::map<std::string,
+                 Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_StreamConfigurations_t;
+typedef Test_I_Source_V4L2_StreamConfigurations_t::iterator Test_I_Source_V4L2_StreamConfigurationsIterator_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamState
@@ -561,7 +688,7 @@ struct Test_I_Source_DirectShow_StreamState
    : Stream_State ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_DirectShow_SessionData* sessionData;
   struct Test_I_Source_DirectShow_UserData*    userData;
@@ -573,7 +700,7 @@ struct Test_I_Source_MediaFoundation_StreamState
    : Stream_State ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_SessionData* sessionData;
   struct Test_I_Source_MediaFoundation_UserData*    userData;
@@ -586,13 +713,13 @@ struct Test_I_Source_V4L2_StreamState
    : Stream_State ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_V4L2_SessionData* sessionData;
 
   struct Test_I_Source_V4L2_UserData*    userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_Configuration
@@ -602,16 +729,16 @@ struct Test_I_Source_DirectShow_Configuration
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
-   , streamConfiguration ()
+   , streamConfigurations ()
    , userData ()
-  {};
+  {}
 
   // **************************** signal data **********************************
   struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   Test_I_Source_DirectShow_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  Test_I_Source_DirectShow_StreamConfiguration_t             streamConfiguration;
+  Test_I_Source_DirectShow_StreamConfigurations_t            streamConfigurations;
 
   struct Test_I_Source_DirectShow_UserData                   userData;
 };
@@ -623,9 +750,9 @@ struct Test_I_Source_MediaFoundation_Configuration
    , mediaFoundationConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
-   , streamConfiguration ()
+   , streamConfigurations ()
    , userData ()
-  {};
+  {}
 
   // **************************** media foundation *****************************
   struct Test_I_MediaFoundationConfiguration                      mediaFoundationConfiguration;
@@ -634,7 +761,7 @@ struct Test_I_Source_MediaFoundation_Configuration
   // **************************** socket data **********************************
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  Test_I_Source_MediaFoundation_StreamConfiguration_t             streamConfiguration;
+  Test_I_Source_MediaFoundation_StreamConfigurations_t            streamConfigurations;
 
   struct Test_I_Source_MediaFoundation_UserData                   userData;
 };
@@ -646,20 +773,20 @@ struct Test_I_Source_V4L2_Configuration
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
-   , streamConfiguration ()
+   , streamConfigurations ()
    , userData ()
-  {};
+  {}
 
   // **************************** signal data **********************************
   struct Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   Test_I_Source_V4L2_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  Test_I_Source_V4L2_StreamConfiguration_t             streamConfiguration;
+  Test_I_Source_V4L2_StreamConfigurations_t            streamConfigurations;
 
   struct Test_I_Source_V4L2_UserData                   userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_ControlMessage_T<ENUM Stream_ControlMessageType,
@@ -711,7 +838,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Source_V4L2_GTK_CBData> Test_I_Source_V4L2_EventHandler_t;
 
 typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V4L2_ISubscribe_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -729,7 +856,7 @@ struct Test_I_Source_DirectShow_GTK_CBData
    , UDPStream (NULL)
   {
     progressData.state = this;
-  };
+  }
 
   struct Test_I_Source_DirectShow_Configuration* configuration;
   Test_I_Source_DirectShow_StreamBase_t*         stream;
@@ -748,7 +875,7 @@ struct Test_I_Source_MediaFoundation_GTK_CBData
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_Configuration* configuration;
   Test_I_Source_MediaFoundation_StreamBase_t*         stream;
@@ -768,7 +895,7 @@ struct Test_I_Source_V4L2_GTK_CBData
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {};
+  {}
 
   struct Test_I_Source_V4L2_Configuration* configuration;
   int                                      fileDescriptor; // (capture) device file descriptor
@@ -777,7 +904,7 @@ struct Test_I_Source_V4L2_GTK_CBData
   ACE_SYNCH_RECURSIVE_MUTEX                subscribersLock;
   Test_I_Source_V4L2_StreamBase_t*         UDPStream;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_ThreadData
@@ -786,7 +913,7 @@ struct Test_I_Source_DirectShow_ThreadData
   Test_I_Source_DirectShow_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_DirectShow_GTK_CBData* CBData;
 };
@@ -796,7 +923,7 @@ struct Test_I_Source_MediaFoundation_ThreadData
   Test_I_Source_MediaFoundation_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_GTK_CBData* CBData;
 };
@@ -807,30 +934,33 @@ struct Test_I_Source_V4L2_ThreadData
   Test_I_Source_V4L2_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_V4L2_GTK_CBData* CBData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Source_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Source_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
 #else
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_GTK_CBData> Test_I_Source_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_GTK_CBData> Test_I_Source_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
-#endif
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

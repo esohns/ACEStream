@@ -27,8 +27,6 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
 #include "libavutil/pixdesc.h"
 }
 #endif /* __cplusplus */
@@ -36,6 +34,11 @@ extern "C"
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
+#include <mfidl.h>
+#include <mfobjects.h>
+#include <strmif.h>
+#include <vadefs.h>
+#include <windef.h>
 #else
 #include "alsa/asoundlib.h"
 
@@ -45,16 +48,32 @@ extern "C"
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 
+#include "stream_lib_common.h"
+
 #include "stream_dec_common.h"
-#include "stream_dec_exports.h"
 
-void Stream_Dec_Export stream_decoder_libav_log_cb (void*, int, const char*, va_list);
+// forward declarations
+enum AVCodecID;
+enum AVPixelFormat;
+struct SwsContext;
 
-class Stream_Dec_Export Stream_Module_Decoder_Tools
+//void Stream_Dec_Export stream_decoder_libav_log_cb (void*, int, const char*, va_list);
+void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
+
+class Stream_Module_Decoder_Tools
 {
  public:
   static void initialize ();
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static bool isCompressed (REFGUID,                                                              // media subtype
+                            REFGUID,                                                              // device category
+                            enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool isCompressedAudio (REFGUID,                                                              // media subtype
+                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool isCompressedVideo (REFGUID, // media subtype
+                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+#endif // ACE_WIN32 || ACE_WIN64
   static bool isCompressedVideo (enum AVPixelFormat); // pixel format
 
   static bool isChromaLuminance (enum AVPixelFormat); // pixel format
@@ -62,23 +81,68 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
   static std::string errorToString (int); // libav error
 
-  inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool isChromaLuminance (REFGUID,       // media subtype
-                                 bool = false); // ? media foundation : direct show
-  static bool isRGB (REFGUID,       // media subtype
-                     bool = false); // ? media foundation : direct show
-
   // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
-  static enum AVCodecID mediaTypeSubTypeToAVCodecId (REFGUID,       // media type subtype
-                                                     bool = false); // ? media foundation : direct show
+  static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
+                                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
   // *NOTE*: supports RGB and Chroma-Luminance types only
-  static enum AVPixelFormat mediaTypeSubTypeToAVPixelFormat (REFGUID,       // media type subtype
-                                                             bool = false); // ? media foundation : direct show
+  static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
+                                                         enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
 
-  static std::string mediaSubTypeToString (REFGUID,       // media subtype
-                                           bool = false); // ? media foundation : direct show
-#else
+  // -------------------------------------
+  // filter graphs / topologies
+  // *TODO*: remove these ASAP
+
+  // direct show
+  // *NOTE*: loads a filter graph (source side)
+  static bool loadAudioRendererGraph (const struct _AMMediaType&,                                       // media type
+                                      const int,                                                        // output handle [0: null]
+                                      IGraphBuilder*,                                                   // graph handle
+                                      REFGUID,                                                          // DMO effect CLSID [GUID_NULL: no effect]
+                                      const union Stream_MediaFramework_DirectShow_AudioEffectOptions&, // DMO effect options
+                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t&);          // return value: graph layout
+  static bool loadVideoRendererGraph (REFGUID,                                                 // device category (GUID_NULL: retain first filter w/o input pins)
+                                      const struct _AMMediaType&,                              // capture media type (i.e. capture device output)
+                                      const struct _AMMediaType&,                              // output media type (sample grabber-)
+                                      const HWND,                                              // window handle [NULL: NullRenderer]
+                                      IGraphBuilder*,                                          // graph builder handle
+                                      Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // return value: graph configuration
+  // *NOTE*: loads a filter graph (target side). If the first parameter is NULL,
+  //         the filter with the name of the second parameter is expected to be
+  //         part of the graph (sixth parameter) already
+  static bool loadTargetRendererGraph (IBaseFilter*,                                            // source filter handle
+                                       const std::wstring&,                                     // source filter name
+                                       const struct _AMMediaType&,                              // input media type
+                                       HWND,                                                    // window handle [NULL: NullRenderer]
+                                       IGraphBuilder*&,                                         // return value: graph handle
+                                       IAMBufferNegotiation*&,                                  // return value: source filter output pin buffer allocator configuration handle
+                                       Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // return value: graph layout
+
+  // media foundation
+  static bool loadAudioRendererTopology (const std::string&,                   // device name ("FriendlyName")
+                                         IMFMediaType*,                        // [return value] sample grabber sink input media type handle
+                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         int,                                  // audio output handle [0: do not use tee/renderer]
+                                         TOPOID&,                              // return value: sample grabber sink node id
+                                         TOPOID&,                              // return value: audio renderer sink node id
+                                         IMFTopology*&);                       // input/return value: topology handle
+  static bool loadVideoRendererTopology (const std::string&,                   // device name ("FriendlyName")
+                                         const IMFMediaType*,                  // sample grabber sink input media type handle
+                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         const HWND,                           // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,                              // return value: sample grabber sink node id
+                                         TOPOID&,                              // return value: EVR sink node id
+                                         IMFTopology*&);                       // input/return value: topology handle
+  static bool loadVideoRendererTopology (const IMFMediaType*, // input media type handle
+                                         const HWND,          // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,             // return value: EVR sink node id
+                                         IMFTopology*&);      // input/return value: topology handle
+
+  static bool loadTargetRendererTopology (const std::string&,  // URL
+                                          const IMFMediaType*, // media source output media type handle
+                                          const HWND,          // window handle [NULL: do not use tee/EVR]
+                                          TOPOID&,             // return value: EVR sink node id
+                                          IMFTopology*&);      // input/return value: topology handle
 #endif // ACE_WIN32 || ACE_WIN64
   static enum AVCodecID AVPixelFormatToAVCodecId (enum AVPixelFormat); // pixel format
 
@@ -131,18 +195,6 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct less_guid
-  {
-    inline bool operator () (const struct _GUID& lhs_in, const struct _GUID& rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
-  };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
-  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
-
-  static GUID_TO_STRING_MAP_T Stream_DirectShowMediaSubTypeToStringMap;
-  static GUID_TO_STRING_MAP_T Stream_MediaFoundationMediaSubTypeToStringMap;
-#endif // ACE_WIN32 || ACE_WIN64
 };
 
 #endif

@@ -18,6 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+extern "C"
+{
+#include "libavutil/frame.h"
+}
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -163,7 +168,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
 //     : video_info_header_2->bmiHeader.biSizeImage);
   pixel_format =
-    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.inputFormat->subtype);
+    Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (session_data_r.inputFormat->subtype);
   //  struct _GUID sub_type = GUID_NULL;
   //  HRESULT result_3 = session_data_r.format->GetGUID (MF_MT_SUBTYPE,
   //                                                     &sub_type);

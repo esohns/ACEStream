@@ -30,18 +30,18 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 
-#include "stream_vis_exports.h"
+//#include "stream_vis_exports.h"
 
-class Stream_Vis_Export Stream_Module_Visualization_Tools
+class Stream_Module_Visualization_Tools
 {
  public:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   static enum AVPixelFormat mediaSubType2AVPixelFormat (REFGUID); // media foundation subtype
-#endif
+   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID); // media foundation subtype
+#endif // ACE_WIN32 || ACE_WIN64
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools (const Stream_Module_Visualization_Tools&))

@@ -30,6 +30,9 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)

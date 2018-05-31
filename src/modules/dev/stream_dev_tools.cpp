@@ -25,25 +25,16 @@
 #include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <oleauto.h>
-
-#include <dmoreg.h>
-#include <dshow.h>
-#include <dsound.h>
+#include <amvideo.h>
+#include <d3d9.h>
+#include <d3d9types.h>
 #include <dvdmedia.h>
-#include <Dmodshow.h>
-#include <evr.h>
-#include <fourcc.h>
-#include <ks.h>
-#include <ksmedia.h>
- //#include <ksuuids.h>
-#include <qedit.h>
-
-#include <mfapi.h>
-#include <mferror.h>
-//#include <mftransform.h>
-
-#include <wmcodecdsp.h>
+#include <dxva2api.h>
+#include <minwindef.h>
+#include <strmif.h>
+#include <uuids.h>
+#include <windef.h>
+#include <WinUser.h>
 #endif
 
 #ifdef __cplusplus
@@ -69,10 +60,11 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
-// initialize statics
-Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
+#include "stream_lib_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 BOOL CALLBACK
 stream_monitor_enum_cb (HMONITOR monitor_in,
                         HDC      deviceContext_in,
@@ -101,12 +93,12 @@ stream_monitor_enum_cb (HMONITOR monitor_in,
     return FALSE;
   } // end IF
 
-  if (ACE_OS::strcmp (cb_data_p->deviceName.c_str (),
+  if (ACE_OS::strcmp (cb_data_p->deviceIdentifier.c_str (),
 #if defined (UNICODE)
                       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (monitor_info.szDevice))))
 #else
                       monitor_info.szDevice))
-#endif
+#endif // UNICODE
     return TRUE;
 
   cb_data_p->handle = monitor_in;
@@ -116,86 +108,20 @@ stream_monitor_enum_cb (HMONITOR monitor_in,
 #endif
 
 void
-Stream_Module_Device_Tools::initialize ()
+Stream_Module_Device_Tools::initialize (bool initializeFrameworks_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initialize"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Device_DirectShow_Tools::initialize ();
-  Stream_Module_Device_MediaFoundation_Tools::initialize ();
-
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_None, ACE_TEXT_ALWAYS_CHAR ("None")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VideoInfo, ACE_TEXT_ALWAYS_CHAR ("VideoInfo")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VideoInfo2, ACE_TEXT_ALWAYS_CHAR ("VideoInfo2")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_WaveFormatEx, ACE_TEXT_ALWAYS_CHAR ("WaveFormatEx")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEGVideo, ACE_TEXT_ALWAYS_CHAR ("MPEGVideo")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEGStreams, ACE_TEXT_ALWAYS_CHAR ("MPEGStreams")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DvInfo, ACE_TEXT_ALWAYS_CHAR ("DvInfo")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_525WSS, ACE_TEXT_ALWAYS_CHAR ("525WSS")));
-
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2_VIDEO, ACE_TEXT_ALWAYS_CHAR ("MPEG2_VIDEO")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VIDEOINFO2, ACE_TEXT_ALWAYS_CHAR ("VIDEOINFO2")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2Video, ACE_TEXT_ALWAYS_CHAR ("MPEG2Video")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DolbyAC3, ACE_TEXT_ALWAYS_CHAR ("DolbyAC3")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2Audio, ACE_TEXT_ALWAYS_CHAR ("MPEG2Audio")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DVD_LPCMAudio, ACE_TEXT_ALWAYS_CHAR ("DVD_LPCMAudio")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_UVCH264Video, ACE_TEXT_ALWAYS_CHAR ("UVCH264Video")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_JPEGImage, ACE_TEXT_ALWAYS_CHAR ("JPEGImage")));
-  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_Image, ACE_TEXT_ALWAYS_CHAR ("Image")));
+  if (initializeFrameworks_in)
+  {
+    Stream_Module_Device_DirectShow_Tools::initialize (true);
+    Stream_Module_Device_MediaFoundation_Tools::initialize ();
+  } // end IF
 #endif
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-bool
-Stream_Module_Device_Tools::isCompressed (REFGUID subType_in,
-                                          REFGUID deviceCategory_in,
-                                          bool useMediaFoundation_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressed"));
-
-  if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
-    return isCompressedAudio (subType_in, useMediaFoundation_in);
-  else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
-    return isCompressedVideo (subType_in, useMediaFoundation_in);
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-              ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-
-  ACE_NOTREACHED (return false;)
-}
-
-bool
-Stream_Module_Device_Tools::isCompressedAudio (REFGUID subType_in,
-                                               bool useMediaFoundation_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressedAudio"));
-
-  // *TODO*: this is probably incomplete
-  if (useMediaFoundation_in)
-    return ((subType_in != MFAudioFormat_PCM) &&
-            (subType_in != MFAudioFormat_Float));
-
-  return ((subType_in != MEDIASUBTYPE_PCM) &&
-          (subType_in != MEDIASUBTYPE_IEEE_FLOAT));
-}
-
-bool
-Stream_Module_Device_Tools::isCompressedVideo (REFGUID subType_in,
-                                               bool useMediaFoundation_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressedVideo"));
-
-  // *TODO*: this is probably incomplete
-  return (!Stream_Module_Decoder_Tools::isChromaLuminance (subType_in,
-                                                           useMediaFoundation_in) &&
-          !Stream_Module_Decoder_Tools::isRGB (subType_in,
-                                               useMediaFoundation_in));
-}
-
 bool
 Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
                                                const struct _AMMediaType& mediaType_in,
@@ -226,7 +152,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
 
   struct tagVIDEOINFOHEADER* video_info_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_2 = NULL;
-  if (mediaType_in.formattype == FORMAT_VideoInfo)
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
   {
     ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
     video_info_p =
@@ -236,7 +162,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
     presentationParameters_out.BackBufferHeight =
       video_info_p->bmiHeader.biHeight;
   } // end IF
-  else if (mediaType_in.formattype == FORMAT_VideoInfo2)
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
   {
     ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
     video_info_2 =
@@ -250,7 +176,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
     return false;
   } // end ELSE
 
@@ -357,8 +283,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  Direct3D9_p->Release ();
-  Direct3D9_p = NULL;
+  Direct3D9_p->Release (); Direct3D9_p = NULL;
 
   result = DXVA2CreateDirect3DDeviceManager9 (&resetToken_out,
                                               &IDirect3DDeviceManager9_out);
@@ -407,7 +332,7 @@ continue_:
   return true;
 }
 bool
-Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceName_in,
+Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceIdentifier_in,
                                               HMONITOR& monitor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getDisplayDevice"));
@@ -415,7 +340,7 @@ Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceName_in,
   // initialize return value(s)
   ACE_ASSERT (!monitor_out);
 
-  if (deviceName_in.empty ())
+  if (deviceIdentifier_in.empty ())
   { // retrieve primary monitor
     struct tagPOINT origin;
     ACE_OS::memset (&origin, 0, sizeof (struct tagPOINT));
@@ -433,7 +358,7 @@ Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceName_in,
   } // end IF
 
   struct Stream_EnumDisplayMonitors_CBData cb_data_s;
-  cb_data_s.deviceName = deviceName_in;
+  cb_data_s.deviceIdentifier = deviceIdentifier_in;
   EnumDisplayMonitors (NULL,                                   // hdc
                        NULL,                                   // lprcClip
                        stream_monitor_enum_cb,                 // lpfnEnum
@@ -442,7 +367,7 @@ Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceName_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve display device (was: \"%s\"), aborting\n"),
-                ACE_TEXT (deviceName_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
     return false;
   } // end IF
   
@@ -507,27 +432,6 @@ error:
 
 continue_:
   return true;
-}
-
-std::string
-Stream_Module_Device_Tools::mediaFormatTypeToString (REFGUID GUID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::mediaFormatTypeToString"));
-
-  std::string result;
-
-  GUID2STRING_MAP_ITERATOR_T iterator =
-    Stream_Module_Device_Tools::Stream_FormatType2StringMap.find (GUID_in);
-  if (iterator == Stream_Module_Device_Tools::Stream_FormatType2StringMap.end ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
-    return result;
-  } // end IF
-  result = (*iterator).second;
-
-  return result;
 }
 #else
 void
@@ -713,9 +617,9 @@ Stream_Module_Device_Tools::dump (int fd_in)
 }
 
 std::string
-Stream_Module_Device_Tools::getALSADeviceName (enum _snd_pcm_stream direction_in)
+Stream_Module_Device_Tools::getALSAdeviceIdentifier (enum _snd_pcm_stream direction_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getALSADeviceName"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getALSAdeviceIdentifier"));
 
   std::string result_string;
 

@@ -53,7 +53,7 @@ struct Test_I_AllocatorConfiguration
    : Stream_AllocatorConfiguration ()
   {
     defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  };
+  }
 };
 
 // forward declarations
@@ -85,7 +85,7 @@ struct Test_I_ModuleHandlerConfiguration
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , targetFileName ()
-  {};
+  {}
 
   struct Test_I_Configuration*       configuration;
   //Test_I_ConnectionConfigurations_t* connectionConfigurations;
@@ -105,14 +105,14 @@ struct Test_I_SignalHandlerConfiguration
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerId (-1)
-  {};
+  {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value                  statisticReportingInterval; // statistic reporting interval (second(s)) [0: off]
   long                            statisticReportingTimerId;
 };
@@ -123,7 +123,7 @@ struct Test_I_StreamConfiguration
   Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_UserData* userData;
 };
@@ -135,24 +135,27 @@ struct Test_I_MediaFoundationConfiguration
   Test_I_MediaFoundationConfiguration ()
    : controller (NULL)
    , mediaSession (NULL)
-  {};
+  {}
 
   Stream_IStreamControlBase* controller;
   IMFMediaSession*           mediaSession;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_Configuration
 {
   Test_I_Configuration ()
-   : signalHandlerConfiguration ()
+   : allocatorConfiguration ()
+   , dispatchConfiguration ()
+   , signalHandlerConfiguration ()
    //, connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
-   , dispatch (COMMON_EVENT_DEFAULT_DISPATCH)
    , userData ()
-  {};
+  {}
 
+  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
+  struct Common_EventDispatchConfiguration dispatchConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // ************************** connection data ********************************
@@ -160,8 +163,6 @@ struct Test_I_Configuration
   // **************************** stream data **********************************
   struct Common_ParserConfiguration        parserConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
-
-  enum Common_EventDispatchType            dispatch;
 
   struct Test_I_UserData                   userData;
 };

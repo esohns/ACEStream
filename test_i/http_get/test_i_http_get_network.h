@@ -78,7 +78,7 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration              socketConfiguration_2;
   struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
@@ -87,13 +87,13 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
 };
 
 //extern const char stream_name_string_[];
-struct Test_I_StreamConfiguration;
-struct Test_I_ModuleHandlerConfiguration;
+//struct Test_I_StreamConfiguration;
+//struct Test_I_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Common_FlexParserAllocatorConfiguration,
-                               struct Test_I_StreamConfiguration,
+                               struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
-                               struct Test_I_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
+                               struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
 struct Test_I_HTTPGet_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
@@ -102,7 +102,7 @@ struct Test_I_HTTPGet_ConnectionConfiguration
    ///////////////////////////////////////
    , socketHandlerConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
 
@@ -123,7 +123,7 @@ struct Test_I_HTTPGet_ConnectionState
    , configuration (NULL)
    , statistic ()
    , userData (NULL)
-  {};
+  {}
 
   Test_I_HTTPGet_ConnectionConfiguration_t* configuration;
   Test_I_Statistic_t                        statistic;
@@ -149,12 +149,12 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_HTTPGet_StreamState,
-                                      struct Test_I_StreamConfiguration,
+                                      struct Test_I_HTTPGet_StreamConfiguration,
                                       Test_I_Statistic_t,
                                       Common_Timer_Manager_t,
                                       struct Common_FlexParserAllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
-                                      struct Test_I_ModuleHandlerConfiguration,
+                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                       struct Test_I_Stream_SessionData,
                                       Test_I_Stream_SessionData_t,
                                       Test_I_ControlMessage_t,

@@ -35,13 +35,13 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_misc_aggregator.h"
-#include "stream_misc_exports.h"
+//#include "stream_misc_exports.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 
-extern STREAM_MISC_Export const char libacestream_default_misc_messagehandler_module_name_string[];
+extern const char libacestream_default_misc_messagehandler_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -124,8 +124,7 @@ class Stream_Module_MessageHandler_T
                           bool = false);               // initialize from 'original' ?
 
   // implement Common_IClone_T
-  inline virtual ACE_Task<ACE_SYNCH_USE,
-                          TimePolicyType>* clone () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
+  inline virtual ACE_Task<ACE_SYNCH_USE, TimePolicyType>* clone () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
 
  protected:
   // convenient types
@@ -226,7 +225,7 @@ class Stream_Module_MessageHandlerA_T
   Stream_Module_MessageHandlerA_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_MessageHandlerA_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_MessageHandlerA_T ();
 
   // override (part of) Stream_IModuleHandler_T

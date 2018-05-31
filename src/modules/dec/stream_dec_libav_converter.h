@@ -34,14 +34,14 @@ extern "C"
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 
 // forward declaration(s)
 struct AVCodecContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern Stream_Dec_Export const char libacestream_default_dec_libav_converter_module_name_string[];
+extern const char libacestream_default_dec_libav_converter_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

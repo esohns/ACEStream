@@ -21,21 +21,23 @@
 #ifndef STREAM_LIB_DIRECTSHOW_TARGET_H
 #define STREAM_LIB_DIRECTSHOW_TARGET_H
 
-#include <string>
+#include <combaseapi.h>
+#include <control.h>
+#include <guiddef.h>
+#include <minwindef.h>
+#include <strmif.h>
+#include <windef.h>
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-//#include <streams.h>
-#include <dshow.h>
-#include <strmif.h>
-
 #include "common_iinitialize.h"
 
+#include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_lib_directshow_asynch_source_filter.h"
-#include "stream_lib_directshow_source_filter.h"
+// forward declarations
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -60,11 +62,23 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
  , public FilterType
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef FilterType inherited2;
+
  public:
   Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_MediaFramework_DirectShow_Target_T ();
@@ -86,7 +100,7 @@ class Stream_MediaFramework_DirectShow_Target_T
   bool loadGraph (REFGUID,                        // (source) filter CLSID
                   const FilterConfigurationType&, // (source) filter configuration
                   const struct _AMMediaType&,     // 'preferred' media type
-                  const HWND,                     // (target) window handle {NULL: NullRenderer}
+                  HWND,                           // (target) window handle {NULL: NullRenderer}
                   IGraphBuilder*&);               // return value: graph builder handle
 
   // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
@@ -104,18 +118,6 @@ class Stream_MediaFramework_DirectShow_Target_T
   DWORD          ROTID_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-  typedef FilterType inherited2;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T (const Stream_MediaFramework_DirectShow_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Target_T& operator= (const Stream_MediaFramework_DirectShow_Target_T&))

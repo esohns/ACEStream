@@ -35,6 +35,7 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
+#include "stream_control_message.h"
 #include "stream_data_base.h"
 #include "stream_session_data.h"
 
@@ -65,7 +66,7 @@ struct Test_U_DirectShow_MessageData
   Test_U_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMediaSample* sample;
   double        sampleTime;
@@ -76,7 +77,7 @@ struct Test_U_MediaFoundation_MessageData
   Test_U_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -90,7 +91,7 @@ struct Test_U_V4L2_MessageData
    , index (0)
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
-  {};
+  {}
 
   int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
@@ -105,7 +106,7 @@ struct Test_U_UserData
 {
   Test_U_UserData ()
    : Stream_UserData ()
-  {};
+  {}
 };
 
 struct Test_U_SessionData
@@ -118,8 +119,9 @@ struct Test_U_SessionData
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
    , userData (NULL)
-  {};
-  inline Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
+  {}
+
+  struct Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -140,17 +142,6 @@ struct Test_U_SessionData
 };
 typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 
-//struct Test_U_StreamState
-//{
-//  Test_U_StreamState ()
-//   : sessionData (NULL)
-//   , userData (NULL)
-//  {};
-//
-//  struct Test_U_SessionData* sessionData;
-//  struct Test_U_UserData*    userData;
-//};
-
 //typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
@@ -167,7 +158,7 @@ struct Test_U_ModuleHandlerConfiguration
 #endif
    , printProgressDot (false)
    , pushStatisticMessages (true)
-  {};
+  {}
 
   std::string                     fileName;              // file writer module
   bool                            inbound;               // statistic/IO module
@@ -179,13 +170,9 @@ struct Test_U_ModuleHandlerConfiguration
   bool                            pushStatisticMessages; // statistic module
 };
 
-//struct Test_U_StreamConfiguration
-// : Stream_Configuration
-//{
-//  Test_U_StreamConfiguration ()
-//   : Stream_Configuration ()
-//  {};
-//};
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
 
 struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -195,7 +182,7 @@ struct Test_U_SignalHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif
-  {};
+  {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
@@ -205,10 +192,12 @@ struct Test_U_SignalHandlerConfiguration
 struct Test_U_Configuration
 {
   Test_U_Configuration ()
-   : signalHandlerConfiguration ()
+   : dispatchConfiguration ()
+   , signalHandlerConfiguration ()
    , userData ()
-  {};
+  {}
 
+  struct Common_EventDispatchConfiguration dispatchConfiguration;
   struct Test_U_SignalHandlerConfiguration signalHandlerConfiguration;
 
   struct Test_U_UserData                   userData;

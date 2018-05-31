@@ -132,6 +132,8 @@ Stream_ControlMessage_T<ControlType,
   {
     case STREAM_CONTROL_DISCONNECT:
       type_ = STREAM_CONTROL_MESSAGE_DISCONNECT; break;
+    case STREAM_CONTROL_END:
+      type_ = STREAM_CONTROL_MESSAGE_END; break;
     case STREAM_CONTROL_FLUSH:
       type_ = STREAM_CONTROL_MESSAGE_FLUSH; break;
     case STREAM_CONTROL_RESET:
@@ -208,9 +210,9 @@ template <typename ControlType,
 std::string
 Stream_ControlMessage_T<ControlType,
                         MessageType,
-                        AllocatorConfigurationType>::ControlMessageType2String (MessageType type_in)
+                        AllocatorConfigurationType>::ControlMessageTypeToString (MessageType type_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::ControlMessageType2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::ControlMessageTypeToString"));
 
   // initialize return value(s)
   std::string result = ACE_TEXT_ALWAYS_CHAR ("INVALID");
@@ -218,40 +220,19 @@ Stream_ControlMessage_T<ControlType,
   switch (type_in)
   {
     case STREAM_CONTROL_MESSAGE_CONNECT:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("CONNECT"); break;
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT"); break;
     case STREAM_CONTROL_MESSAGE_FLUSH:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("FLUSH");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("FLUSH"); break;
     case STREAM_CONTROL_MESSAGE_LINK:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("LINK");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("LINK"); break;
     case STREAM_CONTROL_MESSAGE_RESET:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("RESET");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("RESET"); break;
     case STREAM_CONTROL_MESSAGE_STEP:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("STEP");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("STEP"); break;
     case STREAM_CONTROL_MESSAGE_UNLINK:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("UNLINK"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

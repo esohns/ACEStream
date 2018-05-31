@@ -832,7 +832,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  // create control message
+  // allocate control message
   ACE_Message_Block* message_block_p = NULL;
   if (allocator_)
   {

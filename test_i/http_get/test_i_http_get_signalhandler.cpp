@@ -31,7 +31,7 @@
 #include "test_i_connection_manager_common.h"
 
 Stream_Source_SignalHandler::Stream_Source_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                          ACE_SYNCH_MUTEX* lock_in)
+                                                          ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
  : inherited (dispatchMode_in,
               lock_in,
               this) // event handler handle
@@ -150,9 +150,9 @@ Stream_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->abort ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch ((inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_REACTOR),  // stop reactor ?
-                                         (inherited::configuration_->dispatch == COMMON_EVENT_DISPATCH_PROACTOR), // stop proactor ?
-                                         -1);                                    // group id (--> don't block)
+    Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
+                                         inherited::configuration_->dispatchState->proactorGroupId, // stop proactor ?
+                                         false);                                                    // wait ?
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

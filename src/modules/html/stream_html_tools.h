@@ -24,11 +24,11 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Priority.h"
 
-#include <libxml/xmlerror.h>
+#include "libxml/xmlerror.h"
 
-#include "stream_html_exports.h"
+//#include "stream_html_exports.h"
 
-class Stream_HTML_Export Stream_HTML_Tools
+class Stream_HTML_Tools
 {
  public:
   static ACE_Log_Priority errorLevelToLogPriority (xmlErrorLevel); // error level

@@ -1,3 +1,4 @@
 #include "stdafx.h"
 
-int STREAM_NET_Export load_stream_net_symbols = 1;
+//STREAM_NET_Export int load_stream_net_symbols = 1;
+static int load_stream_net_symbols = 1;

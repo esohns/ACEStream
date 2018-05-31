@@ -429,17 +429,17 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (inherited::configuration_->inputFormat);
 
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (inherited::configuration_->deviceName,
-                                                                                    inherited::configuration_->inputFormat,
-                                                                                    this,
-                                                                                    (inherited::configuration_->mute ? -1
-                                                                                                                      : inherited::configuration_->audioOutput),
-                                                                                    sampleGrabberSinkNodeId_,
-                                                                                    session_data_r.rendererNodeId,
-                                                                                    topology_p))
+        if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier,
+                                                                     inherited::configuration_->inputFormat,
+                                                                     this,
+                                                                     (inherited::configuration_->mute ? -1
+                                                                                                      : inherited::configuration_->audioOutput),
+                                                                     sampleGrabberSinkNodeId_,
+                                                                     session_data_r.rendererNodeId,
+                                                                     topology_p))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(), aborting\n")));
           goto error;
         } // end IF
         ACE_ASSERT (topology_p);
@@ -458,8 +458,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"\n"),
-                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
-#endif
+                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
+#endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);

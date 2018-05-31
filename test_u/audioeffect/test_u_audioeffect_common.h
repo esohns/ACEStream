@@ -33,17 +33,16 @@
 #include <strmif.h>
 #include <mfapi.h>
 #include <mfidl.h>
-#include <dsound.h>
 #else
 #include "alsa/asoundlib.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTKGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <gl/GL.h>
 #else
 #include <GL/gl.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #endif
 
 #include "gtk/gtk.h"
@@ -80,12 +79,15 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dec_common.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -110,7 +112,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream;
 class Test_U_AudioEffect_Message;
 class Test_U_AudioEffect_SessionMessage;
 class Test_U_AudioEffect_Stream;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_MessageData
@@ -118,7 +120,7 @@ struct Test_U_AudioEffect_DirectShow_MessageData
   Test_U_AudioEffect_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMediaSample* sample;
   double        sampleTime;
@@ -128,7 +130,7 @@ struct Test_U_AudioEffect_MediaFoundation_MessageData
   Test_U_AudioEffect_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -139,12 +141,12 @@ struct Test_U_AudioEffect_MessageData
   Test_U_AudioEffect_MessageData ()
    : deviceHandle (NULL)
    , release (false)
-  {};
+  {}
 
   struct _snd_pcm* deviceHandle; // (capture) device handle
   bool             release;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
@@ -170,7 +172,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;
 typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_StreamConfiguration;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration;
@@ -190,9 +192,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , audioOutput (0)
-   , deviceName ()
+   , deviceIdentifier ()
    , dispatch (NULL)
    , fps (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -204,7 +206,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , frameRate ()
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , GdkWindow2D (NULL)
    , mute (false)
    , surfaceLock (NULL)
@@ -234,19 +236,19 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , streamConfiguration (NULL)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , subscriber (NULL)
    , subscribers (NULL)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     deviceName = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
-#endif
-  };
+#endif // ACE_WIN32 || ACE_WIN64
+  }
 
   GdkRectangle                                            area2D;
   GdkRectangle                                            area3D;
@@ -255,11 +257,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
   //         is not possible (playback eventually hogs all threads and starves)
   bool                                                    asynchPlayback;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   int                                                     audioOutput;
-  // *PORTABILITY*: Win32: "FriendlyName" property
+  // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                                             deviceName;
+  std::string                                             deviceIdentifier;
   Test_U_AudioEffect_IDispatch_t*                         dispatch;
   unsigned int                                            fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -271,7 +273,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct AVRational                                       frameRate; // *TODO*: remove ASAP !
   bool                                                    manageSoX;
   struct _snd_pcm*                                        playbackDeviceHandle;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   GdkWindow*                                              GdkWindow2D;
   bool                                                    mute;
   ACE_SYNCH_MUTEX*                                        surfaceLock;
@@ -309,12 +311,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_StreamConfiguration_t*               streamConfiguration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_ISessionNotify_t*                    subscriber;
   Test_U_AudioEffect_Subscribers_t*                       subscribers;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::string                                             targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -338,15 +340,15 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-  {};
+  {}
 
-  IGraphBuilder*                                       builder;
-  CLSID                                                effect;
-  union Stream_Decoder_DirectShow_AudioEffectOptions   effectOptions;
-  struct _AMMediaType*                                 inputFormat;
-  Test_U_AudioEffect_DirectShow_StreamConfiguration_t* streamConfiguration;
-  Test_U_AudioEffect_DirectShow_ISessionNotify_t*      subscriber;
-  Test_U_AudioEffect_DirectShow_Subscribers_t*         subscribers;
+  IGraphBuilder*                                            builder;
+  CLSID                                                     effect;
+  union Stream_MediaFramework_DirectShow_AudioEffectOptions effectOptions;
+  struct _AMMediaType*                                      inputFormat;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t*      streamConfiguration;
+  Test_U_AudioEffect_DirectShow_ISessionNotify_t*           subscriber;
+  Test_U_AudioEffect_DirectShow_Subscribers_t*              subscribers;
 };
 
 //extern const char stream_name_string_[];
@@ -376,7 +378,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-  };
+  }
 
   CLSID                                                     effect;
   std::string                                               effectOptions;
@@ -387,7 +389,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
   Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*      subscriber;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t*         subscribers;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_AudioEffect_Statistic
  : Test_U_Statistic_t
@@ -401,7 +403,7 @@ struct Test_U_AudioEffect_Statistic
    , streakVariance (0.0)
    , volumeAverage (0.0)
    , volumeVariance (0.0)
-  {};
+  {}
 
   double       amplitudeAverage;
   double       amplitudeVariance;
@@ -424,8 +426,8 @@ struct Test_U_AudioEffect_SessionData
    , format ()
    , height (0)
    , width (0)
-#endif
-  {};
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
   struct Test_U_AudioEffect_Statistic           statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -433,7 +435,7 @@ struct Test_U_AudioEffect_SessionData
   struct Stream_Module_Device_ALSAConfiguration format;
   unsigned int                                  height; // *TODO*: remove ASAP !
   unsigned int                                  width; // *TODO*: remove ASAP !
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -444,7 +446,7 @@ struct Test_U_AudioEffect_DirectShow_SessionData
    : Test_U_AudioEffect_SessionData ()
    , builder (NULL)
    , inputFormat (NULL)
-  {};
+  {}
 
   IGraphBuilder*       builder;
   struct _AMMediaType* inputFormat;
@@ -458,14 +460,14 @@ struct Test_U_AudioEffect_MediaFoundation_SessionData
    , inputFormat (NULL)
    , rendererNodeId (0)
    , session (NULL)
-  {};
+  {}
 
   IMFMediaType*    inputFormat;
   TOPOID           rendererNodeId;
   IMFMediaSession* session;
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionData> Test_U_AudioEffect_MediaFoundation_SessionData_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
@@ -474,16 +476,16 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
   Test_U_AudioEffect_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , filterGraphConfiguration ()
-  {};
+  {}
 
-  Stream_Module_Device_DirectShow_Graph_t filterGraphConfiguration;
+  Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
 };
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
  : Stream_Configuration
 {
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
-  {};
+  {}
 };
 #else
 struct Test_U_AudioEffect_StreamConfiguration
@@ -491,9 +493,9 @@ struct Test_U_AudioEffect_StreamConfiguration
 {
   Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
-  {};
+  {}
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_AudioEffect_SignalHandlerConfiguration
  : Test_U_SignalHandlerConfiguration
@@ -503,7 +505,7 @@ struct Test_U_AudioEffect_SignalHandlerConfiguration
    , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
-  {};
+  {}
 
   long               actionTimerId;
   Stream_IAllocator* messageAllocator;
@@ -518,22 +520,22 @@ struct Test_U_AudioEffect_Configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , ALSAConfiguration ()
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , streamConfiguration ()
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , signalHandlerConfiguration ()
-  {};
+  {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct Stream_Module_Device_ALSAConfiguration        ALSAConfiguration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_StreamConfiguration_t             streamConfiguration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -543,7 +545,7 @@ struct Test_U_AudioEffect_DirectShow_Configuration
   Test_U_AudioEffect_DirectShow_Configuration ()
    : Test_U_AudioEffect_Configuration ()
    , streamConfiguration ()
-  {};
+  {}
 
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t streamConfiguration;
 };
@@ -553,11 +555,11 @@ struct Test_U_AudioEffect_MediaFoundation_Configuration
   Test_U_AudioEffect_MediaFoundation_Configuration ()
    : Test_U_AudioEffect_Configuration ()
    , streamConfiguration ()
-  {};
+  {}
 
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t streamConfiguration;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_U_AudioEffect_IStreamNotify_t;
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -592,7 +594,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_MessageAllocator_t;
 
 typedef Common_ISubscribe_T<Test_U_AudioEffect_ISessionNotify_t> Test_U_AudioEffect_ISubscribe_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -602,7 +604,7 @@ struct Test_U_AudioEffect_GTK_ProgressData
   Test_U_AudioEffect_GTK_ProgressData ()
    : Test_U_GTK_ProgressData ()
    , statistic ()
-  {};
+  {}
 
   struct Test_U_AudioEffect_Statistic statistic;
 };
@@ -636,8 +638,8 @@ struct Test_U_AudioEffect_GTK_CBDataBase
    , resizeNotification (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
-#endif
-  {};
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
   GdkRectangle                                     area2D;
 #if defined (GTKGL_SUPPORT)
@@ -658,7 +660,7 @@ struct Test_U_AudioEffect_GTK_CBDataBase
   Test_U_Common_ISet_t*                            resizeNotification;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                             useMediaFoundation;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_GTK_CBData
@@ -670,7 +672,7 @@ struct Test_U_AudioEffect_DirectShow_GTK_CBData
    , stream (NULL)
    , streamConfiguration (NULL)
    , subscribers ()
-  {};
+  {}
 
   struct Test_U_AudioEffect_DirectShow_Configuration* configuration;
   Test_U_AudioEffect_DirectShow_Stream*               stream;
@@ -685,7 +687,7 @@ struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
-  {};
+  {}
 
   struct Test_U_AudioEffect_MediaFoundation_Configuration* configuration;
   Test_U_AudioEffect_MediaFoundation_Stream*               stream;
@@ -701,14 +703,14 @@ struct Test_U_AudioEffect_GTK_CBData
    , handle (NULL)
    , stream (NULL)
    , subscribers ()
-  {};
+  {}
 
   struct Test_U_AudioEffect_Configuration* configuration;
   struct _snd_pcm*                         handle; // (capture) device handle
   Test_U_AudioEffect_Stream*               stream;
   Test_U_AudioEffect_Subscribers_t         subscribers;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_AudioEffect_ThreadData
 {
@@ -718,19 +720,19 @@ struct Test_U_AudioEffect_ThreadData
    , sessionId (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
-#endif
-  {};
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_GTK_CBDataBase* CBData;
 #else
   struct Test_U_AudioEffect_GTK_CBData*     CBData;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   guint                                     eventSourceId;
   size_t                                    sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                      useMediaFoundation;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ThreadData
@@ -739,7 +741,7 @@ struct Test_U_AudioEffect_DirectShow_ThreadData
   Test_U_AudioEffect_DirectShow_ThreadData ()
    : Test_U_AudioEffect_ThreadData ()
    , CBData (NULL)
-  {};
+  {}
 
   struct Test_U_AudioEffect_DirectShow_GTK_CBData* CBData;
 };
@@ -751,28 +753,31 @@ struct Test_U_AudioEffect_MediaFoundation_ThreadData
    , CBData (NULL)
   {
     useMediaFoundation = true;
-  };
+  }
 
   struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* CBData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_DirectShow_GTK_CBData> Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t;
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData> Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_U_AudioEffect_DirectShow_GTK_CBData> Test_U_AudioEffect_DirectShow_GTK_Manager_t;
-typedef Common_UI_GTK_Manager_T<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData> Test_U_AudioEffect_MediaFoundation_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_U_AudioEffect_DirectShow_GTK_CBData> Test_U_AudioEffect_DirectShow_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_U_AudioEffect_MediaFoundation_GTK_CBData> Test_U_AudioEffect_MediaFoundation_GTK_Manager_t;
 typedef ACE_Singleton<Test_U_AudioEffect_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON;
 typedef ACE_Singleton<Test_U_AudioEffect_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
 #else
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH, 
+                                struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GTK_Manager_t;
 typedef ACE_Singleton<Test_U_AudioEffect_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON;
-#endif
+                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

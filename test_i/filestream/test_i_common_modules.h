@@ -63,7 +63,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_source_module_name_string,
-                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Stream_INotify_t,                          // stream notification interface type
                               Test_I_FileReader);                              // writer type
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
@@ -92,7 +92,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // se
                           enum Stream_SessionMessageType,                  // session event type
                           struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
-                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Stream_INotify_t,                          // stream notification interface type
                           Test_I_Source_Module_Statistic_ReaderTask_t,     // reader type
                           Test_I_Source_Module_Statistic_WriterTask_t,     // writer type
                           Test_I_Source_StatisticReport);                  // name
@@ -132,7 +132,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // se
                           enum Stream_SessionMessageType,                  // session event type
                           struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_net_io_module_name_string,
-                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Stream_INotify_t,                          // stream notification interface type
                           Test_I_Source_Module_Net_Reader_t,               // reader type
                           Test_I_Source_Module_Net_Writer_t,               // writer type
                           Test_I_Source_Net_IO);                           // name
@@ -172,7 +172,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // se
                           enum Stream_SessionMessageType,                  // session event type
                           struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_net_io_module_name_string,
-                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Stream_INotify_t,                          // stream notification interface type
                           Test_I_Target_Module_Net_Reader_t,               // reader type
                           Test_I_Target_Module_Net_Writer_t,               // writer type
                           Test_I_Target_Net_IO);                           // name
@@ -203,7 +203,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                   //
                           enum Stream_SessionMessageType,                     // session event type
                           struct Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
-                          Test_I_IStreamNotify_t,                             // stream notification interface type
+                          Stream_INotify_t,                             // stream notification interface type
                           Test_I_Target_Module_Statistic_ReaderTask_t,        // reader type
                           Test_I_Target_Module_Statistic_WriterTask_t,        // writer type
                           Test_I_Target_StatisticReport);                     // name
@@ -219,7 +219,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                /
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,
-                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Stream_INotify_t,                          // stream notification interface type
                               Test_I_FileWriter);                              // writer type
 
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
@@ -242,13 +242,13 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Stream_INotify_t,                          // stream notification interface type
                               Test_I_Stream_Source_EventHandler);              // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Stream_INotify_t,                          // stream notification interface type
                               Test_I_Stream_Target_EventHandler);              // writer type
 
 #endif

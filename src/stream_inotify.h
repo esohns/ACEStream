@@ -23,18 +23,19 @@
 
 #include <string>
 
-#include "ace/config-lite.h"
+#include "ace/Notification_Strategy.h"
 
-// forward declarations
-class ACE_Notification_Strategy;
+//#include "common_iget.h"
 
 class Stream_IOutboundDataNotify
+ //: public Common_IGetP_T<ACE_Notification_Strategy>
 {
  public:
+  virtual const ACE_Notification_Strategy* const getP (bool = true) const = 0; // recurse upstream ?
   // set up event dispatch notification for any outbound data reaching the
   // (most upstream) head modules' ('reader'-)task queue
-  virtual bool initialize (ACE_Notification_Strategy*,                                         // strategy handle
-                           const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) = 0; // module name
+  virtual bool initialize_2 (ACE_Notification_Strategy*,                                         // strategy handle
+                             const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) = 0; // module name
 };
 
 template <typename NotificationType>

@@ -23,14 +23,12 @@
 
 #define TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE            "filecopy.glade"
 #define TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE           "output.tmp"
-#define TEST_U_STREAM_FILECOPY_THREAD_NAME                   "stream processor"
 
 #define TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE           4096 // bytes
-#define TEST_U_STREAM_FILECOPY_MAX_MESSAGES                  0  // 0 --> no limits
 
 //---------------------------------------
 
-#define TEST_U_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
+//#define TEST_U_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
 #define TEST_U_STREAM_UI_GTK_ACTION_START_NAME               "action_start"
 #define TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME                "action_stop"
 #define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
@@ -61,10 +59,6 @@
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME              "table_options"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
-
-// GTK progress/status-bar
-#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)
-#define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
 
 //---------------------------------------
 

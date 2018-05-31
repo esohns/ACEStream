@@ -40,7 +40,7 @@
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_stat_exports.h"
+//#include "stream_stat_exports.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -58,7 +58,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
 
-extern Stream_Stat_Export const char libacestream_default_stat_report_module_name_string[];
+//extern Stream_Stat_Export const char libacestream_default_stat_report_module_name_string[];
+extern const char libacestream_default_stat_report_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -78,17 +79,17 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
- friend class Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
-                                                            TimePolicyType,
-                                                            ConfigurationType,
-                                                            ControlMessageType,
-                                                            DataMessageType,
-                                                            SessionMessageType,
-                                                            ProtocolCommandType,
-                                                            StatisticContainerType,
-                                                            TimerManagerType,
-                                                            SessionDataType,
-                                                            SessionDataContainerType>;
+  friend class Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                                             TimePolicyType,
+                                                             ConfigurationType,
+                                                             ControlMessageType,
+                                                             DataMessageType,
+                                                             SessionMessageType,
+                                                             ProtocolCommandType,
+                                                             StatisticContainerType,
+                                                             TimerManagerType,
+                                                             SessionDataType,
+                                                             SessionDataContainerType>;
 
  public:
   // convenient types
@@ -151,17 +152,17 @@ class Stream_Statistic_StatisticReport_WriterTask_T
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
- friend class Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
-                                                            TimePolicyType,
-                                                            ConfigurationType,
-                                                            ControlMessageType,
-                                                            DataMessageType,
-                                                            SessionMessageType,
-                                                            ProtocolCommandType,
-                                                            StatisticContainerType,
-                                                            TimerManagerType,
-                                                            SessionDataType,
-                                                            SessionDataContainerType>;
+  friend class Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
+                                                             TimePolicyType,
+                                                             ConfigurationType,
+                                                             ControlMessageType,
+                                                             DataMessageType,
+                                                             SessionMessageType,
+                                                             ProtocolCommandType,
+                                                             StatisticContainerType,
+                                                             TimerManagerType,
+                                                             SessionDataType,
+                                                             SessionDataContainerType>;
 
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -180,7 +181,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   Stream_Statistic_StatisticReport_WriterTask_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Statistic_StatisticReport_WriterTask_T () { finiTimers (true); }
 
   // initialization

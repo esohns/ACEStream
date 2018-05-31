@@ -93,6 +93,7 @@ class Test_I_Source_DirectShow_Stream_Message
                                            ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message& operator= (const Test_I_Source_DirectShow_Stream_Message&))
 };
+
 class Test_I_Source_MediaFoundation_Stream_Message
  : public Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,

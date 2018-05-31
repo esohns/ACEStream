@@ -21,6 +21,9 @@
 #ifndef STREAM_NET_TARGET_H
 #define STREAM_NET_TARGET_H
 
+#include <map>
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/INET_Addr.h"
 #include "ace/Stream.h"
@@ -30,9 +33,10 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_net_exports.h"
+//#include "stream_net_exports.h"
 
-extern STREAM_NET_Export const char libacestream_default_net_target_module_name_string[];
+//extern STREAM_NET_Export const char libacestream_default_net_target_module_name_string[];
+extern const char libacestream_default_net_target_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -80,7 +84,7 @@ class Stream_Module_Net_Target_T
   Stream_Module_Net_Target_T (ISTREAM_T*,                     // stream handle
 #else
   Stream_Module_Net_Target_T (typename inherited::ISTREAM_T*, // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                               bool = false);                  // passive ?
   virtual ~Stream_Module_Net_Target_T ();
 

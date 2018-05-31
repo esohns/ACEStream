@@ -36,9 +36,9 @@
 
 #include "stream_task_base_synch.h"
 
-#include "stream_document_exports.h"
+//#include "stream_document_exports.h"
 
-extern Stream_Document_Export const char libacestream_default_doc_libreoffice_writer_module_name_string[];
+extern const char libacestream_default_doc_libreoffice_writer_module_name_string[];
 
 using namespace ::com::sun::star;
 

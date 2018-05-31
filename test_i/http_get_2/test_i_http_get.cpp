@@ -768,9 +768,12 @@ do_work (const std::string& bootstrapFileName_in,
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
   //    &configuration.streamConfiguration;
-  configuration.dispatch =
-          (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                         : COMMON_EVENT_DISPATCH_PROACTOR);
+  if (useReactor_in)
+    configuration.dispatchConfiguration.numberOfReactorThreads =
+      numberOfDispatchThreads_in;
+  else
+    configuration.dispatchConfiguration.numberOfProactorThreads =
+      numberOfDispatchThreads_in;
 
   // *********************** socket configuration data ************************
   connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
@@ -1121,7 +1124,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (0);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  ACE_SYNCH_MUTEX signal_lock;
+  ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
   Test_I_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                        &signal_lock);
 
@@ -1359,8 +1362,7 @@ ACE_TMAIN (int argc_in,
 
   // debug info
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1382,10 +1384,8 @@ ACE_TMAIN (int argc_in,
   process_profile.elapsed_rusage (elapsed_rusage);
   user_time.set (elapsed_rusage.ru_utime);
   system_time.set (elapsed_rusage.ru_stime);
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

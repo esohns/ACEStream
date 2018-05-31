@@ -22,14 +22,17 @@
 #include "ace/Synch.h"
 #include "stream_vis_target_direct3d.h"
 
+#include <dshow.h>
+#include <guiddef.h>
+#include <mfapi.h>
+
 #include "stream_vis_defines.h"
 
-Stream_Vis_Export const char libacestream_default_vis_direct3d_module_name_string[] =
+// initialize globals
+const char libacestream_default_vis_direct3d_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING);
-Stream_Vis_Export const char libacestream_default_vis_directshow_direct3d_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DIRECT3D_DEFAULT_NAME_STRING);
-Stream_Vis_Export const char libacestream_default_vis_mediafoundation_direct3d_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DIRECT3D_DEFAULT_NAME_STRING);
+
+//////////////////////////////////////////
 
 __forceinline BYTE Clip (int clr) { return (BYTE)(clr < 0 ? 0 : (clr > 255 ? 255 : clr)); }
 __forceinline RGBQUAD ConvertYCrCbToRGB (int y,
@@ -56,12 +59,12 @@ __forceinline RGBQUAD ConvertYCrCbToRGB (int y,
 //
 // RGB-24 to RGB-32
 //-------------------------------------------------------------------
-void TransformImage_RGB24 (BYTE*       pDest,
-                           LONG        lDestStride,
-                           const BYTE* pSrc,
-                           LONG        lSrcStride,
-                           DWORD       dwWidthInPixels,
-                           DWORD       dwHeightInPixels)
+__forceinline void libacestream_vis_transform_image_RGB24 (BYTE*       pDest,
+                                                           LONG        lDestStride,
+                                                           const BYTE* pSrc,
+                                                           LONG        lSrcStride,
+                                                           DWORD       dwWidthInPixels,
+                                                           DWORD       dwHeightInPixels)
 {
   DWORD*     pDestPel = NULL;
   RGBTRIPLE* pSrcPel = NULL;
@@ -88,12 +91,12 @@ void TransformImage_RGB24 (BYTE*       pDest,
 // Note: This function is needed to copy the image from system
 // memory to the Direct3D surface.
 //-------------------------------------------------------------------
-void TransformImage_RGB32 (BYTE*       pDest,
-                           LONG        lDestStride,
-                           const BYTE* pSrc,
-                           LONG        lSrcStride,
-                           DWORD       dwWidthInPixels,
-                           DWORD       dwHeightInPixels)
+__forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
+                                                           LONG        lDestStride,
+                                                           const BYTE* pSrc,
+                                                           LONG        lSrcStride,
+                                                           DWORD       dwWidthInPixels,
+                                                           DWORD       dwHeightInPixels)
 {
   HRESULT result = MFCopyImage (pDest,
                                 lDestStride,
@@ -101,7 +104,7 @@ void TransformImage_RGB32 (BYTE*       pDest,
                                 lSrcStride,
                                 dwWidthInPixels * 4,
                                 dwHeightInPixels);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCopyImage(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
@@ -112,12 +115,12 @@ void TransformImage_RGB32 (BYTE*       pDest,
 //
 // YUY2 to RGB-32
 //-------------------------------------------------------------------
-void TransformImage_YUY2 (BYTE*       pDest,
-                          LONG        lDestStride,
-                          const BYTE* pSrc,
-                          LONG        lSrcStride,
-                          DWORD       dwWidthInPixels,
-                          DWORD       dwHeightInPixels)
+__forceinline void libacestream_vis_transform_image_YUY2 (BYTE*       pDest,
+                                                          LONG        lDestStride,
+                                                          const BYTE* pSrc,
+                                                          LONG        lSrcStride,
+                                                          DWORD       dwWidthInPixels,
+                                                          DWORD       dwHeightInPixels)
 {
   for (DWORD y = 0; y < dwHeightInPixels; ++y)
   {
@@ -146,12 +149,12 @@ void TransformImage_YUY2 (BYTE*       pDest,
 //
 // NV12 to RGB-32
 //-------------------------------------------------------------------
-void TransformImage_NV12 (BYTE* pDst,
-                          LONG dstStride,
-                          const BYTE* pSrc,
-                          LONG srcStride,
-                          DWORD dwWidthInPixels,
-                          DWORD dwHeightInPixels)
+__forceinline void libacestream_vis_transform_image_NV12 (BYTE* pDst,
+                                                          LONG dstStride,
+                                                          const BYTE* pSrc,
+                                                          LONG srcStride,
+                                                          DWORD dwWidthInPixels,
+                                                          DWORD dwHeightInPixels)
 {
   const BYTE* lpBitsY = pSrc;
   const BYTE* lpBitsCb = lpBitsY + (dwHeightInPixels * srcStride);;
@@ -215,3 +218,32 @@ void TransformImage_NV12 (BYTE* pDst,
     lpBitsCb += srcStride;
   } // end FOR
 }
+
+struct Stream_Vis_Target_Direct3D_Transformation
+libacestream_vis_directshow_format_transformations[] =
+{
+  { MEDIASUBTYPE_ARGB32, libacestream_vis_transform_image_RGB32 },
+  { MEDIASUBTYPE_RGB32,  libacestream_vis_transform_image_RGB32 },
+  { MEDIASUBTYPE_RGB24,  libacestream_vis_transform_image_RGB24 },
+  { MEDIASUBTYPE_YUY2,   libacestream_vis_transform_image_YUY2 },
+  { MEDIASUBTYPE_NV12,   libacestream_vis_transform_image_NV12 }
+};
+struct Stream_Vis_Target_Direct3D_Transformation
+libacestream_vis_mediafoundation_format_transformations[] =
+{
+  { MFVideoFormat_ARGB32, libacestream_vis_transform_image_RGB32 },
+  { MFVideoFormat_RGB32,  libacestream_vis_transform_image_RGB32 },
+  { MFVideoFormat_RGB24,  libacestream_vis_transform_image_RGB24 },
+  { MFVideoFormat_YUY2,   libacestream_vis_transform_image_YUY2 },
+  { MFVideoFormat_NV12,   libacestream_vis_transform_image_NV12 }
+};
+
+// *TODO*: find a way to set this using the ARRAYSIZE (formatConversions) macro
+DWORD libacestream_vis_number_of_format_transformations = 5;
+//ARRAYSIZE (Stream_Vis_Target_Direct3D_T<SessionMessageType,\
+//                                        MessageType,\
+//                                        ConfigurationType,\
+//                                        SessionDataType,\
+//                                        SessionDataContainerType>::formatTransformations);
+
+//////////////////////////////////////////

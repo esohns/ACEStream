@@ -559,8 +559,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::setThreadName (inherited::threadName_,
-                               -1);
-#endif
+                               0);
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: %sthread (id: %t, group: %d) starting\n"),
@@ -568,7 +568,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT ("")),
               inherited::grp_id_));
-#endif
+#endif // _DEBUG
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
@@ -759,7 +759,7 @@ done:
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT (""))));
-#endif
+#endif // _DEBUG
 
   return result;
 }
@@ -807,6 +807,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      inherited2::change (STREAM_STATE_FINISHED);
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // schedule regular statistic collection ?
@@ -1078,8 +1083,7 @@ send_session_message:
 
   if (unlikely (!inherited::putSessionMessage (message_type,
                                                session_data_container_p,
-                                               (streamState_ ? streamState_->userData
-                                                             : NULL))))
+                                               (streamState_ ? streamState_->userData : NULL))))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                 inherited::name (),
@@ -1206,7 +1210,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (session_data_container_p))
         session_data_container_p->increase ();
 
-      if (unlikely (!inherited::putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
+      if (unlikely (!inherited::putSessionMessage (static_cast<enum Stream_SessionMessageType> (notification_in),
                                                    session_data_container_p,
                                                    (streamState_ ? streamState_->userData : NULL))))
       {
@@ -2416,10 +2420,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p = inherited::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
-        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,         // session message type
-                                                     session_data_container_p,              // session data
-                                                     (streamState_ ? streamState_->userData
-                                                                   : NULL))))               // user data handle
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                    // session message type
+                                                     session_data_container_p,                         // session data
+                                                     (streamState_ ? streamState_->userData : NULL)))) // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
@@ -2494,10 +2497,9 @@ continue_:
           }
         } // end IF
 
-        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,            // session message type
-                                                     session_data_container_p,              // session data
-                                                     (streamState_ ? streamState_->userData
-                                                                   : NULL))))               // user data handle
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,                       // session message type
+                                                     session_data_container_p,                         // session data
+                                                     (streamState_ ? streamState_->userData : NULL)))) // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_END), continuing\n"),

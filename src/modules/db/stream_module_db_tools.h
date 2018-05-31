@@ -26,7 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-#include "stream_db_exports.h"
+//#include "stream_db_exports.h"
 
 // definitions
 // *TODO*: remove ASAP
@@ -34,7 +34,7 @@
 // *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
 #define STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE   19
 
-class STREAM_Db_Export Stream_Module_DataBase_Tools
+class Stream_Module_DataBase_Tools
 {
  public:
   // *IMPORTANT NOTE*: uses localtime() (i.e. returns a 'wall clock'

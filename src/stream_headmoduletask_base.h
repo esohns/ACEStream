@@ -115,13 +115,13 @@ class Stream_HeadModuleTaskBase_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_IStreamControl_T
-  inline virtual void start () { inherited2::change (STREAM_STATE_RUNNING); };
+  inline virtual void start () { inherited2::change (STREAM_STATE_RUNNING); }
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true,  // N/A
                      bool = true); // N/A
   virtual bool isRunning () const;
-  inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); };
-  inline virtual void idle () const { inherited::queue_.waitForIdleState (); };
+  inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); }
+  inline virtual void idle () const { inherited::queue_.waitForIdleState (); }
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // N/A
                      bool = false) const; // N/A
@@ -136,8 +136,8 @@ class Stream_HeadModuleTaskBase_T
   //            --> make sure there are no session message 'loops'
   virtual void notify (SessionEventType, // notification type
                        bool = false);    // N/A
-  inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
-  inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; };
+  inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) }
+  inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; }
 
   // implement Stream_ILock_T
   // *WARNING*: on Windows, 'critical sections' (such as this) are 'recursive',
@@ -148,17 +148,17 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
                       bool = true); // N/A
-  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
+  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) }
   // *TODO*: this isn't nearly accurate enough
-  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); return !hasReentrantSynchronousSubDownstream_; };
+  inline virtual bool hasLock (bool = true) { ACE_ASSERT (false); return !hasReentrantSynchronousSubDownstream_; }
 
   // implement Common_ISet_T
-  inline virtual void setP (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
+  inline virtual void setP (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; }
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
-  inline virtual bool collect (StatisticContainerType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual bool collect (StatisticContainerType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  protected:
   // convenient types
@@ -263,17 +263,17 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
   // implement (part of) Stream_ITask_T
-  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); };
+  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); }
 
   // implement Stream_ILinkCB
   virtual void onLink ();
   virtual void onUnlink ();
 
   // implement/hide (part of) Stream_IStreamControl_T
-  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) };
-  inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-  inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; };
-  inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; }
+  inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                              autoStart_;

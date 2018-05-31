@@ -35,10 +35,14 @@
 #include "stream_session_message_base.h"
 
 #include "stream_dec_defines.h"
+#include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+
+#include "stream_lib_directshow_tools.h"
+#include "stream_lib_mediafoundation_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -506,18 +510,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
-        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (inherited::configuration_->deviceName,
-                                                                                              inherited::configuration_->inputFormat,
-                                                                                              //session_data_r.inputFormat,
-                                                                                              this,
-                                                                                              //inherited::configuration_->window,
-                                                                                              NULL,
-                                                                                              sampleGrabberSinkNodeId_,
-                                                                                              session_data_r.rendererNodeId,
-                                                                                              topology_p)))
+        if (unlikely (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (inherited::configuration_->deviceIdentifier,
+                                                                               inherited::configuration_->inputFormat,
+                                                                               //session_data_r.inputFormat,
+                                                                               this,
+                                                                               //inherited::configuration_->window,
+                                                                               NULL,
+                                                                               sampleGrabberSinkNodeId_,
+                                                                               session_data_r.rendererNodeId,
+                                                                               topology_p)))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(), aborting\n")));
           goto error;
         } // end IF
         ACE_ASSERT (topology_p);
@@ -536,7 +540,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"\n"),
-                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
 #endif
 
         IMFAttributes* attributes_p = NULL;
@@ -619,7 +623,7 @@ error:
         session_data_r.direct3DManagerResetToken = 0;
       } // end IF
       if (session_data_r.inputFormat)
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
       if (session_data_r.session)
       {
         result = session_data_r.session->Shutdown ();
@@ -718,7 +722,7 @@ continue_:
       } // end IF
 
       if (likely (session_data_r.inputFormat))
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
       if (likely (session_data_r.session))
       {
         result_2 = session_data_r.session->Close ();

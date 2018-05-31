@@ -30,6 +30,7 @@
 #include "stream_session_message_base.h"
 
 #include "stream_dev_mediafoundation_tools.h"
+#include "stream_dev_tools.h"
 
 #include "stream_vis_defines.h"
 
@@ -786,6 +787,11 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::QueueEvent"));
 
+  ACE_UNUSED_ARG (type_in);
+  ACE_UNUSED_ARG (extendedType_in);
+  ACE_UNUSED_ARG (status_in);
+  ACE_UNUSED_ARG (value_in);
+
   HRESULT result = E_FAIL;
 
   return result;
@@ -1085,6 +1091,10 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::Start"));
 
+  ACE_UNUSED_ARG (presentationDescriptor_in);
+  ACE_UNUSED_ARG (timeFormat_in);
+  ACE_UNUSED_ARG (startPosition_in);
+
   HRESULT result = E_FAIL;
 
   return result;
@@ -1383,12 +1393,12 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     } // end IF
     ShowWindow (window_handle, TRUE);
     //if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
-    if (!Stream_Module_Device_MediaFoundation_Tools::addRenderer (window_handle,
-                                                                  topology_p,
-                                                                  node_id))
+    if (!Stream_MediaFramework_MediaFoundation_Tools::addRenderer (window_handle,
+                                                                   topology_p,
+                                                                   node_id))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::addRenderer(), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::addRenderer(), aborting\n"),
                   inherited::mod_->name ()));
       goto error;
     } // end IF
@@ -1631,7 +1641,7 @@ continue_:
 
     // debug info
 #if defined (_DEBUG)
-    Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
+    Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
 #endif
   } // end IF
 

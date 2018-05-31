@@ -33,9 +33,9 @@
 
 #include "stream_task_base_asynch.h"
 
-#include "stream_db_exports.h"
+//#include "stream_db_exports.h"
 
-extern STREAM_Db_Export const char libacestream_default_db_mysql_target_module_name_string[];
+extern const char libacestream_default_db_mysql_target_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

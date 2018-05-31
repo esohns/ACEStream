@@ -18,21 +18,21 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Log_Msg.h"
+ #include <string>
 
+#include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
+
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
-//#include "stream_dec_tools.h"
-
-// *TODO*: remove this inclusion ASAP
-#include "stream_dev_defines.h"
-//#include "stream_dev_tools.h"
+#include "stream_dec_tools.h"
 
 #include "stream_lib_defines.h"
+#include "stream_lib_directshow_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -113,9 +113,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
   if (ROTID_)
   {
-    if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+    if (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::removeFromROT(%d), continuing\n"),
                   inherited::mod_->name (),
                   ROTID_));
   } // end IF
@@ -163,11 +163,6 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::initialize"));
 
-  // sanity check(s)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_in.filterConfiguration);
-  ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
-
   // initialize COM ?
   HRESULT result = E_FAIL;
   static bool first_run = true;
@@ -197,13 +192,11 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     // clean up ?
     //if (IMemAllocator_)
     //{
-    //  IMemAllocator_->Release ();
-    //  IMemAllocator_ = NULL;
+    //  IMemAllocator_->Release (); IMemAllocator_ = NULL;
     //} // end IF
     //if (IMemInputPin_)
     //{
-    //  IMemInputPin_->Release ();
-    //  IMemInputPin_ = NULL;
+    //  IMemInputPin_->Release (); IMemInputPin_ = NULL;
     //} // end IF
     //if (!push_)
     //{
@@ -212,9 +205,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
     if (ROTID_)
     {
-      if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+      if (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::removeFromROT(%d), continuing\n"),
                     inherited::mod_->name (),
                     ROTID_));
       ROTID_ = 0;
@@ -224,20 +217,17 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     if (IMediaEventEx_)
     {
       IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
-      IMediaEventEx_->Release ();
-      IMediaEventEx_ = NULL;
+      IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
     } // end IF
     if (IMediaControl_)
     {
       IMediaControl_->Stop ();
-      IMediaControl_->Release ();
-      IMediaControl_ = NULL;
+      IMediaControl_->Release (); IMediaControl_ = NULL;
     } // end IF
 
     if (IGraphBuilder_)
     {
-      IGraphBuilder_->Release ();
-      IGraphBuilder_ = NULL;
+      IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
     } // end IF
   } // end IF
 
@@ -250,25 +240,28 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (configuration_in.graphBuilder)
+  // *TODO*: remove type inference
+  if (configuration_in.builder)
   {
-    ULONG reference_count = configuration_in.graphBuilder->AddRef ();
-    IGraphBuilder_ = configuration_in.graphBuilder;
+    ULONG reference_count = configuration_in.builder->AddRef ();
+    IGraphBuilder_ = configuration_in.builder;
   } // end IF
-  //mediaType_ = &configuration_->mediaType;
   // *TODO*: remove type inference
   push_ = configuration_in.push;
-  configuration_in.filterConfiguration->module = inherited::mod_;
-  configuration_in.filterConfiguration->pinConfiguration->queue =
-    &(inherited::queue_);
 
-  // *TODO*: remove type inference
-  if (!inherited2::initialize (*configuration_in.filterConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
-                inherited::mod_->name ()));
-    goto error;
+  if (configuration_in.filterConfiguration)
+  { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
+    configuration_in.filterConfiguration->module = inherited::mod_;
+    configuration_in.filterConfiguration->pinConfiguration->queue =
+      &(inherited::queue_);
+
+    if (!inherited2::initialize (*configuration_in.filterConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    } // end IF
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -282,8 +275,7 @@ error:
                 inherited::mod_->name ()));
   if (IGraphBuilder_)
   {
-    IGraphBuilder_->Release ();
-    IGraphBuilder_ = NULL;
+    IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
   } // end IF
 
   return false;
@@ -319,22 +311,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  //// *TODO*: remove ASAP (see: stream_task_base.inl:627)
-  //if (!IMediaControl_)
-  //{
-  //  ACE_DEBUG ((LM_WARNING,
-  //              ACE_TEXT ("%s: codec not initialized: dropping 'early' data message, continuing\n"),
-  //              inherited::mod_->name ()));
-
-  //  passMessageDownstream_out = false;
-  //  message_inout->release ();
-  //  message_inout = NULL;
-
-  //  return;
-  //} // end IF
-
   ACE_Message_Block* message_block_p = message_inout->duplicate ();
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
@@ -342,7 +320,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     return;
   } // end IF
   int result = inherited::queue_.enqueue_tail (message_block_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
@@ -353,8 +331,6 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
 
     return;
   } // end IF
-
-  return;
 }
 
 template <ACE_SYNCH_DECL,
@@ -406,7 +382,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       bool remove_from_ROT = false;
 #if defined (_DEBUG)
       std::string log_file_name;
-#endif
+#endif // _DEBUG
       //struct _AllocatorProperties allocator_properties;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       IVideoWindow* video_window_p = NULL;
@@ -462,9 +438,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
-      Stream_Module_Device_DirectShow_Tools::debug (IGraphBuilder_,
-                                                    log_file_name);
-#endif
+      Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
+                                                     log_file_name);
+#endif // _DEBUG
       // sanity check(s)
       ACE_ASSERT (!IMediaControl_);
       ACE_ASSERT (!IMediaEventEx_);
@@ -519,11 +495,11 @@ do_run:
 
       // register graph in the ROT (so graphedt.exe can see it)
       ACE_ASSERT (!ROTID_);
-      if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
-                                                            ROTID_))
+      if (!Stream_MediaFramework_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                             ROTID_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::addToROT(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -535,9 +511,9 @@ do_run:
 error:
       if (remove_from_ROT)
       { ACE_ASSERT (ROTID_);
-        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+        if (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::removeFromROT(%d), continuing\n"),
                       inherited::mod_->name (),
                       ROTID_));
         ROTID_ = 0;
@@ -578,9 +554,9 @@ error:
       // deregister graph from the ROT ?
       if (ROTID_)
       {
-        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+        if (!Stream_MediaFramework_DirectShow_Tools::removeFromROT (ROTID_))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::removeFromROT(%d), continuing\n"),
                       inherited::mod_->name (),
                       ROTID_));
         ROTID_ = 0;
@@ -595,8 +571,7 @@ error:
                       ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-        IMediaEventEx_->Release ();
-        IMediaEventEx_ = NULL;
+        IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
       } // end IF
 
       if (IMediaControl_)
@@ -608,15 +583,12 @@ error:
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-
-        IMediaControl_->Release ();
-        IMediaControl_ = NULL;
+        IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 
       if (IGraphBuilder_)
       {
-        IGraphBuilder_->Release ();
-        IGraphBuilder_ = NULL;
+        IGraphBuilder_->Release (); IGraphBuilder_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -654,7 +626,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                           FilterType>::loadGraph (REFGUID filterCLSID_in,
                                                                   const FilterConfigurationType& filterConfiguration_in,
                                                                   const struct _AMMediaType& mediaType_in,
-                                                                  const HWND windowHandle_in,
+                                                                  HWND windowHandle_in,
                                                                   IGraphBuilder*& IGraphBuilder_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Target_T::loadGraph"));
@@ -669,13 +641,13 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
   std::wstring render_filter_name =
-    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   bool release_configuration = false;
 
-  if (!IsEqualGUID (filterCLSID_in, GUID_NULL))
+  if (!InlineIsEqualGUID (filterCLSID_in, GUID_NULL))
   {
     result =
       CoCreateInstance (filterCLSID_in, NULL,
@@ -736,23 +708,22 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (filter_p,
-                                                                       (push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                              : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
-                                                                       mediaType_in,
-                                                                       windowHandle_in,
-                                                                       IGraphBuilder_out,
-                                                                       buffer_negotiation_p,
-                                                                       graph_configuration))
+  if (!Stream_Module_Decoder_Tools::loadTargetRendererGraph (filter_p,
+                                                             (push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                    : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                             mediaType_in,
+                                                             windowHandle_in,
+                                                             IGraphBuilder_out,
+                                                             buffer_negotiation_p,
+                                                             graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadTargetRendererGraph(), aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
   release_configuration = true;
-  filter_p->Release ();
-  filter_p = NULL;
+  filter_p->Release (); filter_p = NULL;
   ACE_ASSERT (IGraphBuilder_out);
   ACE_ASSERT (buffer_negotiation_p);
 
@@ -771,14 +742,13 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     
     goto error;
   } // end IF
-  buffer_negotiation_p->Release ();
-  buffer_negotiation_p = NULL;
+  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
-  if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_out,
-                                                       graph_configuration))
+  if (!Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder_out,
+                                                        graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connect(), aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -798,18 +768,17 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (filter_p);
 
-  IPin* pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
-                                                            PINDIR_INPUT);
+  IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
+                                                             PINDIR_INPUT);
   if (!pin_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: has no input pin, aborting\n"),
+                ACE_TEXT ("%s/%s: no input pin, aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT_WCHAR_TO_TCHAR (render_filter_name.c_str ())));
     goto error;
   } // end IF
-  filter_p->Release ();
-  filter_p = NULL;
+  filter_p->Release (); filter_p = NULL;
 
   //result = pin_p->QueryInterface (IID_PPV_ARGS (&IMemInputPin_));
   //if (FAILED (result))
@@ -824,7 +793,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   //  return false;
   //} // end IF
   //ACE_ASSERT (IMemInputPin_);
-  pin_p->Release ();
+  pin_p->Release (); pin_p = NULL;
 
   //result = IMemInputPin_->GetAllocator (&IMemAllocator_);
   //if (FAILED (result))
@@ -834,36 +803,34 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
-  //  IMemInputPin_->Release ();
-  //  IMemInputPin_ = NULL;
+  //  IMemInputPin_->Release (); IMemInputPin_ = NULL;
 
   //  return false;
   //} // end IF
   //ACE_ASSERT (IMemAllocator_);
 
   // clean up
-  for (Stream_Module_Device_DirectShow_GraphConfigurationIterator_t iterator = graph_configuration.begin ();
+  for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graph_configuration.begin ();
        iterator != graph_configuration.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
 
   return true;
 
 error:
   if (IGraphBuilder_out)
   {
-    IGraphBuilder_out->Release ();
-    IGraphBuilder_out = NULL;
+    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
   } // end IF
   if (filter_p)
     filter_p->Release ();
   if (release_configuration)
-    for (Stream_Module_Device_DirectShow_GraphConfigurationIterator_t iterator = graph_configuration.begin ();
+    for (Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t iterator = graph_configuration.begin ();
        iterator != graph_configuration.end ();
        ++iterator)
       if ((*iterator).mediaType)
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+        Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
 
   return false;
 }

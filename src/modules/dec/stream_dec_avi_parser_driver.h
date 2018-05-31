@@ -31,7 +31,7 @@
 
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 //#include "stream_dec_riff_scanner.h"
 
 // forward declaration(s)
@@ -41,7 +41,7 @@ typedef void* yyscan_t;
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
 struct YYLTYPE;
 
-class Stream_Dec_Export Stream_Decoder_AVIParserDriver
+class Stream_Decoder_AVIParserDriver
 {
 //  friend class Stream_Decoder_RIFF_Scanner;
 

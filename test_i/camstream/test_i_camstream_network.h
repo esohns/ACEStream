@@ -207,7 +207,7 @@ struct Test_I_Source_DirectShow_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration                        socketConfiguration_2;
   struct Net_UDPSocketConfiguration                        socketConfiguration_3;
@@ -228,7 +228,7 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration                             socketConfiguration_2;
   struct Net_UDPSocketConfiguration                             socketConfiguration_3;
@@ -245,6 +245,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_Source_DirectShow_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_StreamConfiguration_t;
+
 struct Test_I_Source_DirectShow_ConnectionConfiguration;
 typedef Net_StreamConnectionConfiguration_T<struct Test_I_Source_DirectShow_ConnectionConfiguration,
                                             struct Stream_AllocatorConfiguration,
@@ -265,7 +266,7 @@ struct Test_I_Source_DirectShow_ConnectionConfiguration
    , connectionManager (NULL)
    , socketHandlerConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   Test_I_Source_DirectShow_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -311,7 +312,7 @@ struct Test_I_Source_MediaFoundation_ConnectionConfiguration
    , connectionManager (NULL)
    , socketHandlerConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   Test_I_Source_MediaFoundation_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -342,7 +343,7 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration                  socketConfiguration_2;
   struct Net_UDPSocketConfiguration                  socketConfiguration_3;
@@ -379,7 +380,7 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
    , connectionManager (NULL)
    , socketHandlerConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   Test_I_Source_V4L2_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -412,7 +413,7 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration                        socketConfiguration_2;
   struct Net_UDPSocketConfiguration                        socketConfiguration_3;
@@ -450,7 +451,7 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
    , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
-  };
+  }
 
   Test_I_Target_DirectShow_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -481,7 +482,7 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration                             socketConfiguration_2;
   struct Net_UDPSocketConfiguration                             socketConfiguration_3;
@@ -519,7 +520,7 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
    , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
-  };
+  }
 
   Test_I_Target_MediaFoundation_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -551,7 +552,7 @@ struct Test_I_Target_SocketHandlerConfiguration
    , userData (NULL)
   {
     socketConfiguration = &socketConfiguration_2;
-  };
+  }
 
   struct Net_TCPSocketConfiguration             socketConfiguration_2;
   struct Net_UDPSocketConfiguration             socketConfiguration_3;
@@ -588,7 +589,7 @@ struct Test_I_Target_ConnectionConfiguration
    , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
-  };
+  }
 
   Test_I_Target_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
@@ -704,7 +705,7 @@ struct Test_I_Source_DirectShow_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_DirectShow_ConnectionConfiguration* configuration;
   struct Test_I_Source_DirectShow_UserData*                userData;
@@ -716,7 +717,7 @@ struct Test_I_Source_MediaFoundation_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_MediaFoundation_ConnectionConfiguration* configuration;
   struct Test_I_Source_MediaFoundation_UserData*                userData;
@@ -729,7 +730,7 @@ struct Test_I_Target_DirectShow_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_DirectShow_ConnectionConfiguration* configuration;
@@ -742,7 +743,7 @@ struct Test_I_Target_MediaFoundation_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_MediaFoundation_ConnectionConfiguration* configuration;
@@ -756,7 +757,7 @@ struct Test_I_Source_V4L2_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Source_V4L2_ConnectionConfiguration* configuration;
 
@@ -769,7 +770,7 @@ struct Test_I_Target_ConnectionState
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
-  {};
+  {}
 
   // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_ConnectionConfiguration* configuration;

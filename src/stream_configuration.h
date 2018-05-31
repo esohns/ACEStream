@@ -40,10 +40,26 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
+class ACE_Notification_Strategy;
 class Stream_IAllocator;
+
+struct Stream_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  Stream_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+};
 
 struct Stream_AllocatorConfiguration
  : Common_AllocatorConfiguration
@@ -52,7 +68,7 @@ struct Stream_AllocatorConfiguration
    : Common_AllocatorConfiguration ()
   {
     defaultBufferSize = STREAM_MESSAGE_DATA_BUFFER_SIZE;
-  };
+  }
 };
 
 struct Common_ParserConfiguration;
@@ -71,7 +87,7 @@ struct Stream_ModuleHandlerConfiguration
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
@@ -84,7 +100,7 @@ struct Stream_ModuleHandlerConfiguration
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
    , subscribersLock (NULL)
    , timerManager (NULL)
-  {};
+  {}
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
   unsigned int                          bufferSize;
@@ -106,7 +122,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  inbound;                     // statistic[/IO] module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type       mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                    messageAllocator;
   Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
@@ -128,7 +144,7 @@ struct Stream_ModuleConfiguration
    : generateUniqueNames (false) // module-
    , notify (NULL)
    , stream (NULL)
-  {};
+  {}
 
   bool              generateUniqueNames;
   Stream_INotify_t* notify; // *WARNING*: automatically set; DON'T TOUCH
@@ -146,7 +162,7 @@ struct Stream_Configuration
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , module (NULL)
    , notificationStrategy (NULL)
@@ -155,16 +171,15 @@ struct Stream_Configuration
    , serializeOutput (false)
    , sessionId (0)
    , setupPipeline (true)
-   //, useReactor ()
    , userData (NULL)
-  {};
+  {}
 
   bool                            cloneModule; // final-
   bool                            deleteModule; // final-
   bool                            finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*              messageAllocator;
   Stream_Module_t*                module; // final-
   ACE_Notification_Strategy*      notificationStrategy;
@@ -177,7 +192,6 @@ struct Stream_Configuration
   bool                            serializeOutput;
   Stream_SessionId_t              sessionId;
   bool                            setupPipeline;
-  //bool                       useReactor;
 
   struct Stream_UserData*         userData;
 };
@@ -209,8 +223,8 @@ class Stream_Configuration_T
   Stream_Configuration_T ();
   inline virtual ~Stream_Configuration_T () {}
 
-  bool initialize (const ModuleConfigurationType&,        // 'default' module configuration
-                   const ModuleHandlerConfigurationType&, // 'default' module handler configuration
+  bool initialize (const ModuleConfigurationType&,             // 'default' module configuration
+                   const ModuleHandlerConfigurationType&,      // 'default' module handler configuration
                    const AllocatorConfigurationType&,
                    const ConfigurationType&);
 

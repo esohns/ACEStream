@@ -7,4 +7,5 @@
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file
 
-int Stream_HTML_Export load_stream_html_protocols_symbols = 1;
+//int Stream_HTML_Export load_stream_html_protocols_symbols = 1;
+static int load_stream_html_protocols_symbols = 1;

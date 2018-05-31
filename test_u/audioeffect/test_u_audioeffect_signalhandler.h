@@ -33,7 +33,7 @@ class Test_U_AudioEffect_SignalHandler
 {
  public:
   Test_U_AudioEffect_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                                    ACE_SYNCH_MUTEX*);              // lock handle
+                                    ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
   inline virtual ~Test_U_AudioEffect_SignalHandler () {}
 
   // implement Common_ISignal

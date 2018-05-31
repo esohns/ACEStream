@@ -48,14 +48,13 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
               NULL,                               // data block allocator
               NULL)                               // message block allocator
  , data_ (data_inout)
- , isInitialized_ (true)
+ , isInitialized_ (!!data_inout)
  , sessionId_ (sessionId_in)
  , type_ (messageType_in)
  , userData_ (userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
-  // *NOTE*: ctor assumes responsibility for the handle !
   data_inout = NULL;
 
 //  if (data_)

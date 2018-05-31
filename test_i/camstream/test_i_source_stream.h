@@ -65,49 +65,41 @@ template <typename StreamStateType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Test_I_Source_DirectShow_Stream_T
- : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        StreamStateType,
-                                        ConfigurationType,
-                                        struct Test_I_Source_Stream_StatisticData,
-                                        TimerManagerType,
-                                        struct Test_I_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        HandlerConfigurationType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        ControlMessageType,
-                                        MessageType,
-                                        SessionMessageType,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Test_I_Source_DirectShow_UserData>
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType>
 {
-  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        StreamStateType,
-                                        ConfigurationType,
-                                        struct Test_I_Source_Stream_StatisticData,
-                                        TimerManagerType,
-                                        struct Test_I_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        HandlerConfigurationType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        ControlMessageType,
-                                        MessageType,
-                                        SessionMessageType,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Test_I_Source_DirectShow_UserData> inherited;
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType> inherited;
 
  public:
   Test_I_Source_DirectShow_Stream_T ();
@@ -118,13 +110,7 @@ class Test_I_Source_DirectShow_Stream_T
                      bool&);               // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-  virtual bool initialize (const CONFIGURATION_T&,
-                           ACE_HANDLE);            // socket handle
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_I_Source_Stream_StatisticData&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual bool initialize (const CONFIGURATION_T&);
 
  private:
   typedef Test_I_Source_DirectShow_Stream_T<StreamStateType,
@@ -156,16 +142,11 @@ class Test_I_Source_DirectShow_Stream_T
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
                                          libacestream_default_net_target_module_name_string,
-                                         Test_I_IStreamNotify_t,     // stream notification interface type
+                                         Stream_INotify_t,           // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;  // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_T (const Test_I_Source_DirectShow_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_T& operator= (const Test_I_Source_DirectShow_Stream_T&))
-
-  // *TODO*: re-consider this API
-  inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-
-  IGraphBuilder* graphBuilder_;
 };
 
 //////////////////////////////////////////
@@ -182,50 +163,43 @@ template <typename StreamStateType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Test_I_Source_MediaFoundation_Stream_T
- : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        StreamStateType,
-                                        ConfigurationType,
-                                        struct Test_I_Source_Stream_StatisticData,
-                                        TimerManagerType,
-                                        struct Test_I_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        HandlerConfigurationType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        ControlMessageType,
-                                        MessageType,
-                                        SessionMessageType,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Test_I_Source_MediaFoundation_UserData>
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType>
  , public Stream_MediaFramework_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration>
 {
-  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        StreamStateType,
-                                        ConfigurationType,
-                                        struct Test_I_Source_Stream_StatisticData,
-                                        TimerManagerType,
-                                        struct Test_I_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        HandlerConfigurationType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        ControlMessageType,
-                                        MessageType,
-                                        SessionMessageType,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Test_I_Source_MediaFoundation_UserData> inherited;
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType> inherited;
+  typedef Stream_MediaFramework_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration> inherited2;
 
  public:
   Test_I_Source_MediaFoundation_Stream_T ();
@@ -242,17 +216,9 @@ class Test_I_Source_MediaFoundation_Stream_T
                      bool&);               // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-  virtual bool initialize (const CONFIGURATION_T&,
-                           ACE_HANDLE); // socket handle
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_I_Source_Stream_StatisticData&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual bool initialize (const CONFIGURATION_T&);
 
  private:
-  typedef Stream_MediaFramework_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration> inherited2;
-
   typedef Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                                  ConfigurationType,
                                                  TimerManagerType,
@@ -282,7 +248,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
                                          libacestream_default_net_target_module_name_string,
-                                         Test_I_IStreamNotify_t,     // stream notification interface type
+                                         Stream_INotify_t,     // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;  // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_T (const Test_I_Source_MediaFoundation_Stream_T&))
@@ -354,11 +320,6 @@ class Test_I_Source_V4L2_Stream_T
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_I_Source_Stream_StatisticData&); // return value: statistic data
-  virtual void report () const;
-
  private:
   typedef Test_I_Source_V4L2_Stream_T<StreamStateType,
                                       ConfigurationType,
@@ -389,7 +350,7 @@ class Test_I_Source_V4L2_Stream_T
                                          struct Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,          // module handler configuration type
                                          libacestream_default_net_target_module_name_string,
-                                         Test_I_IStreamNotify_t,            // stream notification interface type
+                                         Stream_INotify_t,            // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;         // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T (const Test_I_Source_V4L2_Stream_T&))
@@ -577,5 +538,4 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_UDPAsynchConnector_t> Test_I_Source_V4L2_AsynchUDPStream_t;
 #endif
-
 #endif

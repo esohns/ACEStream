@@ -30,7 +30,7 @@
 //#include <mtype.h>
 #include <uuids.h>
 //#include <wmcodecdsp.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -38,9 +38,9 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum AVPixelFormat
-Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (REFGUID mediaSubType_in)
+Stream_Module_Visualization_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Visualization_Tools::mediaSubTypeToAVPixelFormat"));
 
   // DirectShow
   /////////////////////////////////////// AUDIO
@@ -335,4 +335,4 @@ Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (REFGUID mediaSubT
 
   return AV_PIX_FMT_NONE;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

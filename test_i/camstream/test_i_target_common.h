@@ -33,11 +33,12 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <combaseapi.h>
+#include <control.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
-//#include <mfidl.h>
-//#include <mmeapi.h>
+#include <mfobjects.h>
 //#include <mtype.h>
 #include <strmif.h>
 #else
@@ -50,6 +51,7 @@
 #include "common_ui_gtk_manager.h"
 
 #include "stream_control_message.h"
+#include "stream_isessionnotify.h"
 
 #include "stream_dec_defines.h"
 
@@ -89,7 +91,7 @@ struct Test_I_Target_DirectShow_MessageData
   Test_I_Target_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0.0)
-  {};
+  {}
 
   IMediaSample* sample;
   double        sampleTime;
@@ -99,7 +101,7 @@ struct Test_I_Target_MediaFoundation_MessageData
   Test_I_Target_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMFMediaBuffer* sample;
   LONGLONG        sampleTime;
@@ -116,7 +118,7 @@ struct Test_I_Target_DirectShow_UserData
    : Stream_UserData ()
    //, connectionConfiguration (NULL)
    //, streamConfiguration (NULL)
-  {};
+  {}
 
   //struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
   //struct Test_I_Target_DirectShow_StreamConfiguration*     streamConfiguration;
@@ -130,7 +132,7 @@ struct Test_I_Target_MediaFoundation_UserData
    : Stream_UserData ()
    //, connectionConfiguration (NULL)
    //, streamConfiguration (NULL)
-  {};
+  {}
 
   //struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
   //struct Test_I_Target_MediaFoundation_StreamConfiguration*     streamConfiguration;
@@ -142,7 +144,7 @@ struct Test_I_Target_UserData
 {
   Test_I_Target_UserData ()
    : Stream_UserData ()
-  {};
+  {}
 };
 #endif
 
@@ -155,7 +157,7 @@ struct Test_I_Target_ConnectionState;
 //   : Test_I_CamStream_DirectShow_SessionData ()
 //   , targetFileName ()
 //   , userData (NULL)
-//  {};
+//  {}
 //
 //  struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
 //  {
@@ -167,7 +169,7 @@ struct Test_I_Target_ConnectionState;
 //    userData = (userData ? userData : rhs_in.userData);
 //
 //    return *this;
-//  };
+//  }
 //
 //  std::string                    targetFileName;
 //
@@ -179,9 +181,9 @@ struct Test_I_Target_DirectShow_SessionData
 {
   Test_I_Target_DirectShow_SessionData ()
    : Test_I_CamStream_DirectShow_SessionData ()
-   , userData (NULL)
    , windowController (NULL)
-  {};
+   , userData (NULL)
+  {}
 
   struct Test_I_Target_DirectShow_SessionData& operator+= (const struct Test_I_Target_DirectShow_SessionData& rhs_in)
   {
@@ -193,8 +195,9 @@ struct Test_I_Target_DirectShow_SessionData
     return *this;
   }
 
-  struct Test_I_Target_DirectShow_UserData*        userData;
-  IVideoWindow*                                    windowController;
+  IVideoWindow*                             windowController;
+
+  struct Test_I_Target_DirectShow_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 struct Test_I_Target_MediaFoundation_SessionData
@@ -203,7 +206,7 @@ struct Test_I_Target_MediaFoundation_SessionData
   Test_I_Target_MediaFoundation_SessionData ()
    : Test_I_CamStream_MediaFoundation_SessionData ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_MediaFoundation_SessionData& operator+= (const struct Test_I_Target_MediaFoundation_SessionData& rhs_in)
   {
@@ -229,7 +232,7 @@ struct Test_I_Target_SessionData
    , targetFileName ()
    , width (0)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
@@ -263,7 +266,7 @@ struct Test_I_Target_DirectShow_FilterConfiguration
    //, format (NULL)
    , module (NULL)
    , pinConfiguration (NULL)
-  {};
+  {}
 
   // *TODO*: specify this as part of the network protocol header/handshake
   //struct _AMMediaType*                                           format; // handle
@@ -286,15 +289,15 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
+   , builder (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , contextId (0)
    , crunch (true)
-   , deviceName ()
-   , filterCLSID ()
+   , deviceIdentifier ()
+   , filterCLSID (GUID_NULL)
    , filterConfiguration (NULL)
-   , graphBuilder (NULL)
    , inputFormat (NULL)
    , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
@@ -303,7 +306,10 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , subscribers (NULL)
    , window (NULL)
    , windowController (NULL)
+   , windowController2 (NULL)
   {
+    inbound = true;
+
     inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
     if (!inputFormat)
@@ -313,18 +319,22 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
     } // end IF
     else
       ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
-  };
+
+    push = true; // *TODO*: support asynch directshow filter
+    filterCLSID = (push ? CLSID_ACEStream_MediaFramework_Source_Filter
+                        : CLSID_ACEStream_MediaFramework_Asynch_Source_Filter);
+  }
 
   struct tagRECT                                       area;              // display module
+  IGraphBuilder*                                       builder;           // display module
   Test_I_Target_DirectShow_IConnection_t*              connection;        // Net source/IO module
   Test_I_Target_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
   guint                                                contextId;
   bool                                                 crunch;            // splitter module
-  std::string                                          deviceName; // 'FriendlyName'
-  struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
+  std::string                                          deviceIdentifier;
   struct _GUID                                         filterCLSID;
-  IGraphBuilder*                                       graphBuilder;      // display module
+  struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
   struct _AMMediaType*                                 inputFormat;       // splitter module
   bool                                                 push; // media sample passing strategy
   ACE_Message_Queue_Base*                              queue; // (inbound) buffer queue handle
@@ -333,6 +343,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_Subscribers_t*              subscribers;       // event handler module
   HWND                                                 window;            // display module
   IVideoWindow*                                        windowController;  // display module
+  IMFVideoDisplayControl*                              windowController2; // display module: EVR
 };
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
@@ -353,7 +364,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , contextId (0)
    , crunch (true)
-   , deviceName ()
+   , deviceIdentifier ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , inputFormat (NULL)
@@ -368,12 +379,14 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
    , window (NULL)
    , windowController (NULL)
   {
+    inbound = true;
+
     HRESULT result = MFCreateMediaType (&inputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-  };
+  }
 
   struct tagRECT                                            area;                      // display module
   Test_I_Target_MediaFoundation_IConnection_t*              connection;                // net source/IO module
@@ -381,7 +394,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager;         // net IO module
   guint                                                     contextId;
   bool                                                      crunch;                    // splitter module
-  std::string                                               deviceName; // 'FriendlyName'
+  std::string                                               deviceIdentifier;
   IDirect3DDevice9Ex*                                       direct3DDevice;            // display module
   UINT                                                      direct3DManagerResetToken; // display module
   IMFMediaType*                                             inputFormat;               // display module
@@ -427,7 +440,9 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , v4l2Window ()
    , width (0)
    , window (NULL)
-  {};
+  {
+    inbound = true;
+  }
 
   GdkRectangle                              area;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
@@ -462,7 +477,7 @@ struct Test_I_Target_DirectShow_ListenerConfiguration
   {
     //socketHandlerConfiguration.socketConfiguration.address.set_port_number (TEST_I_DEFAULT_PORT,
     //                                                                        1);
-  };
+  }
 
   Test_I_Target_DirectShow_ConnectionConfiguration_t* connectionConfiguration;
   Test_I_Target_DirectShow_InetConnectionManager_t*   connectionManager;
@@ -478,7 +493,7 @@ struct Test_I_Target_MediaFoundation_ListenerConfiguration
    , connectionConfiguration (NULL)
    , connectionManager (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {};
+  {}
 
   Test_I_Target_MediaFoundation_ConnectionConfiguration_t* connectionConfiguration;
   Test_I_Target_MediaFoundation_InetConnectionManager_t*   connectionManager;
@@ -497,7 +512,7 @@ struct Test_I_Target_ListenerConfiguration
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {
     //address.set_port_number (TEST_I_DEFAULT_PORT, 1);
-  };
+  }
 
   Test_I_Target_ConnectionConfiguration_t* connectionConfiguration;
   Test_I_Target_InetConnectionManager_t*   connectionManager;
@@ -516,7 +531,7 @@ struct Test_I_Target_DirectShow_SignalHandlerConfiguration
    , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
-  {};
+  {}
 
   Net_IConnectionManagerBase_t*         connectionManager;
   Test_I_Target_DirectShow_IListener_t* listener;
@@ -532,7 +547,7 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
    , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
-  {};
+  {}
 
   Net_IConnectionManagerBase_t*              connectionManager;
   Test_I_Target_MediaFoundation_IListener_t* listener;
@@ -549,7 +564,7 @@ struct Test_I_Target_SignalHandlerConfiguration
    , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
-  {};
+  {}
 
   Test_I_Target_InetConnectionManager_t* connectionManager;
   Test_I_Target_IListener_t*             listener;
@@ -567,7 +582,7 @@ struct Test_I_Target_DirectShow_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , graphBuilder (NULL)
    , userData (NULL)
-  {};
+  {}
 
   IGraphBuilder*                            graphBuilder;
 
@@ -579,7 +594,7 @@ struct Test_I_Target_MediaFoundation_StreamConfiguration
   Test_I_Target_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_MediaFoundation_UserData* userData;
 };
@@ -591,7 +606,7 @@ struct Test_I_Target_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , window (NULL)
    , userData (NULL)
-  {};
+  {}
 
   GdkWindow*                     window;
 
@@ -607,7 +622,7 @@ struct Test_I_Target_DirectShow_StreamState
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_DirectShow_SessionData* currentSessionData;
   struct Test_I_Target_DirectShow_UserData*    userData;
@@ -619,7 +634,7 @@ struct Test_I_Target_MediaFoundation_StreamState
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_MediaFoundation_SessionData* currentSessionData;
   struct Test_I_Target_MediaFoundation_UserData*    userData;
@@ -632,7 +647,7 @@ struct Test_I_Target_StreamState
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_SessionData* currentSessionData;
   struct Test_I_Target_UserData*    userData;
@@ -654,7 +669,7 @@ struct Test_I_Target_DirectShow_Configuration
    , filterConfiguration ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
 
   // **************************** socket data **********************************
   Test_I_Target_DirectShow_ConnectionConfigurations_t            connectionConfigurations;
@@ -684,7 +699,7 @@ struct Test_I_Target_MediaFoundation_Configuration
    , listenerConfiguration ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
 
   // **************************** media foundation *****************************
   struct Test_I_MediaFoundationConfiguration                      mediaFoundationConfiguration;
@@ -714,7 +729,7 @@ struct Test_I_Target_Configuration
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
 
   // **************************** socket data **********************************
   Test_I_Target_ConnectionConfigurations_t        connectionConfigurations;
@@ -772,7 +787,7 @@ struct Test_I_Target_DirectShow_GTK_CBData
    , configuration (NULL)
    , progressEventSourceId (0)
    , subscribers ()
-  {};
+  {}
 
   struct Test_I_Target_DirectShow_Configuration* configuration;
   guint                                          progressEventSourceId;
@@ -786,7 +801,7 @@ struct Test_I_Target_MediaFoundation_GTK_CBData
    , configuration (NULL)
    , progressEventSourceId (0)
    , subscribers ()
-  {};
+  {}
 
   struct Test_I_Target_MediaFoundation_Configuration* configuration;
   guint                                               progressEventSourceId;
@@ -801,7 +816,7 @@ struct Test_I_Target_GTK_CBData
    , configuration (NULL)
    , progressEventSourceId (0)
    , subscribers ()
-  {};
+  {}
 
   struct Test_I_Target_Configuration* configuration;
   guint                               progressEventSourceId;
@@ -812,21 +827,24 @@ struct Test_I_Target_GTK_CBData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Target_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON;
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
 #else
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
 #endif
 
 #endif

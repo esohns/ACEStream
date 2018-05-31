@@ -35,7 +35,7 @@ extern "C"
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dec_exports.h"
+//#include "stream_dec_exports.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -51,9 +51,11 @@ class Stream_IAllocator;
 struct AVFrame;
 struct SwsContext;
 
-extern Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[];
+//Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[];
+extern const char libacestream_default_dec_libav_decoder_module_name_string[];
 
-Stream_Dec_Export enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
+//Stream_Dec_Export enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
+enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
 //Stream_Dec_Export void stream_decoder_libav_nopfree_cb (void*, uint8_t*);
 
 template <ACE_SYNCH_DECL,
@@ -95,7 +97,7 @@ class Stream_Decoder_LibAVDecoder_T
   Stream_Decoder_LibAVDecoder_T (ISTREAM_T*); // stream handle
 #else
   Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_LibAVDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -144,7 +146,7 @@ class Stream_Decoder_LibAVDecoder_T
   static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
 #else
   static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition

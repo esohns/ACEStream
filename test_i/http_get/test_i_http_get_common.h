@@ -27,6 +27,7 @@
 #include "common.h"
 #include "common_configuration.h"
 
+#include "test_i_configuration.h"
 #include "test_i_connection_common.h"
 
 #include "test_i_http_get_stream_common.h"
@@ -41,47 +42,44 @@ struct Test_I_HTTPGet_UserData
    : Test_I_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
-  {};
+  {}
 
 //  struct Test_I_ConnectionConfiguration* connectionConfiguration;
 //  struct Test_I_StreamConfiguration*     streamConfiguration;
 };
 
-struct Stream_SignalHandlerConfiguration
+struct Test_I_HTTPGet_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  Stream_SignalHandlerConfiguration ()
+  Test_I_HTTPGet_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    //messageAllocator (NULL)
    , statisticReportingInterval (0)
-  {};
+  {}
 
   //Stream_IAllocator* messageAllocator;
   unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
-struct Test_I_Configuration
+struct Test_I_HTTPGet_Configuration
+ : Test_I_Configuration
 {
-  Test_I_Configuration ()
-   : signalHandlerConfiguration ()
+  Test_I_HTTPGet_Configuration ()
+   : Test_I_Configuration ()
+   , signalHandlerConfiguration ()
    , connectionConfigurations ()
-   , parserConfiguration ()
    , streamConfiguration ()
-   , dispatch (COMMON_EVENT_DEFAULT_DISPATCH)
    , userData ()
-  {};
+  {}
 
   // **************************** signal data **********************************
-  struct Stream_SignalHandlerConfiguration  signalHandlerConfiguration;
+  struct Test_I_HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_HTTPGet_ConnectionConfigurations_t connectionConfigurations;
+  Test_I_HTTPGet_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  struct Common_ParserConfiguration         parserConfiguration;
-  Test_I_StreamConfiguration_t              streamConfiguration;
-  // *************************** protocol data *********************************
-  enum Common_EventDispatchType             dispatch;
+  Test_I_StreamConfiguration_t                     streamConfiguration;
 
-  struct Test_I_HTTPGet_UserData            userData;
+  struct Test_I_HTTPGet_UserData                   userData;
 };
 
 #endif

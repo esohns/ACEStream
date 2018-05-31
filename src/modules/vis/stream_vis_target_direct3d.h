@@ -34,11 +34,7 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_vis_exports.h"
-
-extern Stream_Vis_Export const char libacestream_default_vis_direct3d_module_name_string[];
-extern Stream_Vis_Export const char libacestream_default_vis_directshow_direct3d_module_name_string[];
-extern Stream_Vis_Export const char libacestream_default_vis_mediafoundation_direct3d_module_name_string[];
+extern const char libacestream_default_vis_direct3d_module_name_string[];
 
 typedef void (*Stream_Vis_Target_Direct3D_TransformationCB) (BYTE*,       // destination
                                                              LONG,        // destination stride
@@ -46,16 +42,21 @@ typedef void (*Stream_Vis_Target_Direct3D_TransformationCB) (BYTE*,       // des
                                                              LONG,        // source stride
                                                              DWORD,       // width
                                                              DWORD);      // height
+// *NOTE*: must be an 'aggregate' type to support 'list initialization'
 struct Stream_Vis_Target_Direct3D_Transformation
 {
   struct _GUID                                subType;
   Stream_Vis_Target_Direct3D_TransformationCB transformationCB;
 };
 
-void Stream_Vis_Export TransformImage_RGB24 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
-void Stream_Vis_Export TransformImage_RGB32 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
-void Stream_Vis_Export TransformImage_YUY2 (BYTE*,  LONG, const BYTE*, LONG, DWORD, DWORD);
-void Stream_Vis_Export TransformImage_NV12 (BYTE*,  LONG, const BYTE*, LONG, DWORD, DWORD);
+void libacestream_vis_transform_image_RGB24 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+void libacestream_vis_transform_image_RGB32 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+void libacestream_vis_transform_image_YUY2 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+void libacestream_vis_transform_image_NV12 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+
+extern struct Stream_Vis_Target_Direct3D_Transformation libacestream_vis_directshow_format_transformations[];
+extern struct Stream_Vis_Target_Direct3D_Transformation libacestream_vis_mediafoundation_format_transformations[];
+extern DWORD                                            libacestream_vis_number_of_format_transformations;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -141,8 +142,7 @@ class Stream_Vis_Target_Direct3D_T
                        enum _D3DFORMAT,                 // Direct3D format
                        IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
                        IDirect3DSwapChain9*&,           // return value: Direct3D swap chain handle
-                       struct tagRECT&,                 // return value:: destination rectangle
-                       bool = false);                   // use media foundation ?
+                       struct tagRECT&);                // return value:: destination rectangle
 
   bool                                        closeWindow_;
   LONG                                        defaultStride_;
@@ -162,7 +162,7 @@ class Stream_Vis_Target_Direct3D_T
   // *TODO*: separate this two-step process (insert a MFT/DMO decoder filter)
   Stream_Vis_Target_Direct3D_TransformationCB transformation_;
 
-  bool                                        useMediaFoundation_;
+  enum Stream_MediaFramework_Type             mediaFramework_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T ())
@@ -178,9 +178,6 @@ class Stream_Vis_Target_Direct3D_T
                                        SessionMessageType,
                                        SessionDataType,
                                        SessionDataContainerType> OWN_TYPE_T;
-  static struct Stream_Vis_Target_Direct3D_Transformation directShowFormatTransformations[];
-  static struct Stream_Vis_Target_Direct3D_Transformation mediaFoundationFormatTransformations[];
-  static const DWORD                                      numberOfFormatTransformations;
 
   // helper methods
   // *NOTE*: all image data needs to be transformed to RGB32
@@ -188,13 +185,12 @@ class Stream_Vis_Target_Direct3D_T
   HRESULT setTransformation (REFGUID); // (inbound) sub-type
   HRESULT getFormat (DWORD,                // index
                      struct _GUID&) const; // return value: sub-type
-  HRESULT createSwapChain (HWND,                  // (target) window handle
-                           IDirect3DDevice9Ex*,   // Direct3D device handle
-                           UINT32,                // width
-                           UINT32,                // height
-                           REFGUID,               // (input) media subtype
-                           IDirect3DSwapChain9*&, // return value: Direct3D swap chain
-                           bool = false);         // use media foundation ?
+  HRESULT createSwapChain (HWND,                   // (target) window handle
+                           IDirect3DDevice9Ex*,    // Direct3D device handle
+                           UINT32,                 // width
+                           UINT32,                 // height
+                           REFGUID,                // (input) media subtype
+                           IDirect3DSwapChain9*&); // return value: Direct3D swap chain
   virtual void updateDestinationRectangle (HWND,                  // (target) window handle
                                            const struct tagRECT&, // source rectangle
                                            struct tagRECT&);      // destination rectangle
@@ -236,7 +232,7 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
 
  public:
   Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_DirectShow_Target_Direct3D_T ();
+  inline virtual ~Stream_Vis_DirectShow_Target_Direct3D_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -282,7 +278,7 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
 
  public:
   Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_MediaFoundation_Target_Direct3D_T ();
+  inline virtual ~Stream_Vis_MediaFoundation_Target_Direct3D_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

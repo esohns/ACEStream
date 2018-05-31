@@ -46,6 +46,9 @@ class Stream_HeadTask_T
  : public ACE_Stream_Head<ACE_SYNCH_USE,
                           TimePolicyType>
 {
+  typedef ACE_Stream_Head<ACE_SYNCH_USE,
+                          TimePolicyType> inherited;
+
  public:
   Stream_HeadTask_T (Stream_IMessageQueue* = NULL); // message queue handle
   virtual ~Stream_HeadTask_T ();
@@ -55,9 +58,6 @@ class Stream_HeadTask_T
                    ACE_Time_Value*);   // timeout value
 
  private:
-  typedef ACE_Stream_Head<ACE_SYNCH_USE,
-                          TimePolicyType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T (const Stream_HeadTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T& operator= (const Stream_HeadTask_T&))
@@ -85,36 +85,33 @@ class Stream_TailTask_T
  : public ACE_Stream_Tail<ACE_SYNCH_USE,
                           TimePolicyType>
 {
+  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
+                          TimePolicyType> inherited;
+
  public:
-  Stream_TailTask_T (bool); // writer ? : reader
+  Stream_TailTask_T (Stream_IAllocator* = NULL);
   virtual ~Stream_TailTask_T ();
 
   // override some task-based members
-  virtual int open (void* = 0); // argument
-  virtual int close (u_long = 0); // flags
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
 
  protected:
   // convenient types
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
-  typedef std::vector<MODULE_T*> MODULE_LIST_T;
-  typedef typename MODULE_LIST_T::const_iterator MODULE_LIST_ITERATOR_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
 
-  bool              isWriter_;
-  ACE_SYNCH_MUTEX_T lock_;
-  MODULE_LIST_T     modules_;
-
  private:
-  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
-                          TimePolicyType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T (const Stream_TailTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T& operator= (const Stream_TailTask_T&))
+
+  // helper methods
+  bool putControlMessage (typename ControlMessageType::CONTROL_T,              // control type
+                          const typename SessionMessageType::DATA_T::DATA_T&); // session data
+
+  Stream_IAllocator*                   allocator_;
+  typename SessionMessageType::DATA_T* sessionData_;
 };
 
 // include template definition

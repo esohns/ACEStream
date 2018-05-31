@@ -21,18 +21,18 @@
 #ifndef STREAM_MODULE_FILEWRITER_H
 #define STREAM_MODULE_FILEWRITER_H
 
+#include "ace/FILE_Addr.h"
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
 
-#include "common_time_common.h"
-
+#include "stream_common.h"
 #include "stream_headmoduletask_base.h"
-//#include "stream_statistichandler.h"
 #include "stream_task_base_asynch.h"
 
-#include "stream_file_exports.h"
+// forward declarations
+class Stream_IAllocator;
 
-extern STREAM_FILE_Export const char libacestream_default_file_sink_module_name_string[];
+extern const char libacestream_default_file_sink_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -191,15 +191,11 @@ class Stream_Module_FileWriterH_T
   // implement Common_IStatistic
   // *NOTE*: this reuses the interface to implement timer-based data collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T (const Stream_Module_FileWriterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T& operator= (const Stream_Module_FileWriterH_T&))
-
-  // convenience types
-  //typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> STATISTICHANDLER_T;
 
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&) const;

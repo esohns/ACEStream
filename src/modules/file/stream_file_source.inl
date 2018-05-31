@@ -605,19 +605,6 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename UserDataType>
-Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ControlMessageType,
-                                  UserDataType>::~Stream_Module_FileReader_Reader_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::~Stream_Module_FileReader_Reader_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename UserDataType>
 void
 Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,

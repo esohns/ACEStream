@@ -31,6 +31,26 @@
 #define MODULE_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoXEffect"
 #define MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAVEncoder"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM                L"WAV Converter"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB                L"Color Space Converter"
+//#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV                L"Color Converter DSP DMO"
+// *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
+//         to RGB formats via the MSYUV Color Space Converter Codec
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI             L"AVI Decompressor"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264            L"H264 Decompressor"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG            L"MJPG Decompressor"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO               L"Video Renderer"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO              L"Video Resizer DSP DMO"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI                  L"AVI Splitter"
+
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO               L"Audio Effect"
+#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO               L"Audio Renderer"
+
+#define MODULE_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT   MEDIASUBTYPE_RGB32
+#endif // ACE_WIN32 || ACE_WIN64
+
 // zlib
 #define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS                       15 // 0,(-)[8-15], see zlib.h
 #define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET                   16
@@ -92,6 +112,6 @@
 #include <cstdint>
 
 #define MAKEFOURCC(a,b,c,d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

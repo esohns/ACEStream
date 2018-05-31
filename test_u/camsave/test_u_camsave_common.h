@@ -29,11 +29,14 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <guiddef.h>
+#include <coguid.h>
+#include <combaseapi.h>
+#include <control.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
-#include <mfobjects.h>
-#include <mfreadwrite.h>
+#include <mfidl.h>
 #include <strmif.h>
 #else
 #include "linux/videodev2.h"
@@ -45,9 +48,9 @@ extern "C"
 #include "libavutil/pixfmt.h"
 }
 #endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "gtk/gtk.h"
-#endif
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
@@ -59,12 +62,17 @@ extern "C"
 #include "stream_control_message.h"
 #include "stream_inotify.h"
 #include "stream_isessionnotify.h"
+#include "stream_istreamcontrol.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_messageallocatorheap_base.h"
 #else
 #include "stream_messageallocatorheap_base.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_session_data.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
@@ -72,51 +80,62 @@ extern "C"
 #include "test_u_common.h"
 #include "test_u_gtk_common.h"
 
+#include "test_u_camsave_eventhandler.h"
+
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct IAMStreamConfig;
-struct IGraphBuilder;
-struct IMediaSample;
 struct ISampleGrabber;
-struct IVideoWindow;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 class Stream_IAllocator;
-class Stream_CamSave_Message;
-class Stream_CamSave_SessionMessage;
-class Stream_CamSave_Stream;
 
 struct Stream_CamSave_UserData
  : Stream_UserData
 {
   Stream_CamSave_UserData ()
    : Stream_UserData ()
-  {};
+  {}
 };
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Stream_CamSave_DirectShow_MessageData
+{
+  Stream_CamSave_DirectShow_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMediaSample* sample;
+  double        sampleTime;
+};
+typedef Stream_DataBase_T<struct Stream_CamSave_DirectShow_MessageData> Stream_CamSave_DirectShow_MessageData_t;
+
+struct Stream_CamSave_MediaFoundation_MessageData
+{
+  Stream_CamSave_MediaFoundation_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMFSample* sample;
+  LONGLONG   sampleTime;
+};
+typedef Stream_DataBase_T<struct Stream_CamSave_MediaFoundation_MessageData> Stream_CamSave_MediaFoundation_MessageData_t;
+#else
 struct Stream_CamSave_MessageData
 {
   Stream_CamSave_MessageData ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   : sample (NULL)
-   , sampleTime (0)
-#else
    : device (-1)
    , index (0)
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
-#endif
-  {};
+  {}
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IMFSample* sample;
-  LONGLONG   sampleTime;
-#else
   int         device; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
   v4l2_memory method;
   bool        release;
-#endif
 };
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_StatisticData
  : Stream_Statistic
@@ -125,22 +144,22 @@ struct Stream_CamSave_StatisticData
    : Stream_Statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , capturedFrames (0)
-#endif
-  {};
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
-  struct Stream_CamSave_StatisticData operator+= (const Stream_CamSave_StatisticData& rhs_in)
+  struct Stream_CamSave_StatisticData operator+= (const struct Stream_CamSave_StatisticData& rhs_in)
   {
     Stream_Statistic::operator+= (rhs_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     capturedFrames += rhs_in.capturedFrames;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
     return *this;
-  };
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int capturedFrames;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 typedef Common_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandler_t;
 
@@ -154,13 +173,14 @@ struct Stream_CamSave_SessionData
    , direct3DManagerResetToken (0)
    , inputFormat (NULL)
    , rendererNodeId (0)
+   , resetToken (0)
    , session (NULL)
 #else
    , format (AV_PIX_FMT_RGB24) // output-
    , frameRate ()
    , inputFormat ()
    , sourceFormat ()
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , statistic ()
    , userData (NULL)
   {
@@ -174,10 +194,10 @@ struct Stream_CamSave_SessionData
       ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 #else
     ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
-#endif
-  };
+#endif // ACE_WIN32 || ACE_WIN64
+  }
 
-  struct Stream_CamSave_SessionData operator+= (const Stream_CamSave_SessionData& rhs_in)
+  struct Stream_CamSave_SessionData operator+= (const struct Stream_CamSave_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_U_SessionData::operator+= (rhs_in);
@@ -186,30 +206,34 @@ struct Stream_CamSave_SessionData
     statistic += rhs_in.statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    direct3DManagerResetToken =
+      (direct3DManagerResetToken ? direct3DManagerResetToken
+                                 : rhs_in.direct3DManagerResetToken);
     //finputFormat = (inputFormat ? inputFormat : rhs_in.inputFormat);
     //rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
-    //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    resetToken = (resetToken ? resetToken : rhs_in.resetToken);
     //session = (session ? session : rhs_in.session);
 #else
     //format =
     //frameRate =
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
     return *this;
-  };
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IDirect3DDevice9Ex*                 direct3DDevice;
   UINT                                direct3DManagerResetToken;
   struct _AMMediaType*                inputFormat; // input-
   TOPOID                              rendererNodeId;
+  UINT                                resetToken;
   IMFMediaSession*                    session;
 #else
   enum AVPixelFormat                  format; // input-
   struct v4l2_fract                   frameRate; // time-per-frame
   struct v4l2_format                  inputFormat;
   GdkRectangle                        sourceFormat; // gtk cairo/pixbuf module
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   struct Stream_CamSave_StatisticData statistic;
 
   struct Stream_CamSave_UserData*     userData;
@@ -217,136 +241,282 @@ struct Stream_CamSave_SessionData
 typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 
 struct Stream_CamSave_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
+ : Stream_SignalHandlerConfiguration
 {
   Stream_CamSave_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
+   : Stream_SignalHandlerConfiguration ()
    , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
-  {};
+  {}
 
   long               actionTimerId;
   Stream_IAllocator* messageAllocator;
   unsigned int       statisticReportingInterval; // (statistic) reporting interval (second(s)) [0: off]
 };
 
+template <typename DataType>
+class Stream_CamSave_Message_T;
+template <typename DataMessageType>
+class Stream_CamSave_SessionMessage_T;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_CamSave_Message_T<struct Stream_CamSave_DirectShow_MessageData> Stream_CamSave_DirectShow_Message_t;
+typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_DirectShow_Message_t> Stream_CamSave_DirectShow_SessionMessage_t;
+typedef Stream_CamSave_Message_T<struct Stream_CamSave_MediaFoundation_MessageData> Stream_CamSave_MediaFoundation_Message_t;
+typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_MediaFoundation_Message_t> Stream_CamSave_MediaFoundation_SessionMessage_t;
+
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Stream_CamSave_SessionData,
                                     enum Stream_SessionMessageType,
-                                    Stream_CamSave_Message,
-                                    Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
+                                    Stream_CamSave_DirectShow_Message_t,
+                                    Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_ISessionNotify_t;
+typedef std::list<Stream_CamSave_DirectShow_ISessionNotify_t*> Stream_CamSave_DirectShow_Subscribers_t;
+typedef Stream_CamSave_DirectShow_Subscribers_t::iterator Stream_CamSave_DirectShow_SubscribersIterator_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Stream_CamSave_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Stream_CamSave_MediaFoundation_Message_t,
+                                    Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_ISessionNotify_t;
+typedef std::list<Stream_CamSave_MediaFoundation_ISessionNotify_t*> Stream_CamSave_MediaFoundation_Subscribers_t;
+typedef Stream_CamSave_MediaFoundation_Subscribers_t::iterator Stream_CamSave_MediaFoundation_SubscribersIterator_t;
+#else
+typedef Stream_CamSave_Message_T<struct Stream_CamSave_MessageData> Stream_CamSave_Message_t;
+typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_Message_t> Stream_CamSave_SessionMessage_t;
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Stream_CamSave_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Stream_CamSave_Message_t,
+                                    Stream_CamSave_SessionMessage_t> Stream_CamSave_ISessionNotify_t;
 typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
 typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
-//extern const char stream_name_string_[];
-struct Stream_CamSave_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
-                               struct Stream_CamSave_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
-                               struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_StreamConfiguration_t;
+#endif // ACE_WIN32 || ACE_WIN64
 struct Stream_CamSave_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , area ()
+   , deviceIdentifier ()
    , fullScreen (false)
+   , targetFileName ()
+  {
+    hasHeader = true;
+  }
+
+  std::string deviceIdentifier;
+  bool        fullScreen;
+  std::string targetFileName;
+};
+//extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   //, builder (NULL)
-   , deviceName ()
+struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Stream_CamSave_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration> Stream_CamSave_DirectShow_StreamConfiguration_t;
+struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
+ : Stream_CamSave_ModuleHandlerConfiguration
+{
+  Stream_CamSave_DirectShow_ModuleHandlerConfiguration ()
+   : Stream_CamSave_ModuleHandlerConfiguration ()
+   , area ()
+   , builder (NULL)
+   , direct3DDevice (NULL)
+   , filterCLSID (GUID_NULL)
+   , filterConfiguration (NULL)
    , inputFormat (NULL)
-   , outputFormat (NULL)
+   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , sourceFormat (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
+   , window (NULL)
+   , windowController (NULL)
+   , windowController2 (NULL)
+  {
+    //mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
+  }
+
+  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration operator= (const struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration& rhs_in)
+  {
+    area = rhs_in.area;
+    if (builder)
+    {
+      builder->Release (); builder = NULL;
+    } // end IF
+    if (rhs_in.builder)
+    {
+      rhs_in.builder->AddRef ();
+      builder = rhs_in.builder;
+    } // end IF
+    if (direct3DDevice)
+    {
+      direct3DDevice->Release (); direct3DDevice = NULL;
+    } // end IF
+    if (rhs_in.direct3DDevice)
+    {
+      rhs_in.direct3DDevice->AddRef ();
+      direct3DDevice = rhs_in.direct3DDevice;
+    } // end IF
+    filterCLSID = rhs_in.filterCLSID;
+    filterConfiguration = rhs_in.filterConfiguration;
+    if (inputFormat)
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
+    if (rhs_in.inputFormat)
+      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
+                                                                  inputFormat))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+        return *this;
+      } // end IF
+    push = rhs_in.push;
+    if (sourceFormat)
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (sourceFormat);
+    if (rhs_in.sourceFormat)
+      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.sourceFormat,
+                                                                  sourceFormat))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+        return *this;
+      } // end IF
+    subscriber = rhs_in.subscriber;
+    subscribers = rhs_in.subscribers;
+    window = rhs_in.window;
+    if (windowController)
+    {
+      windowController->Release (); windowController = NULL;
+    } // end IF
+    if (rhs_in.windowController)
+    {
+      rhs_in.windowController->AddRef ();
+      windowController = rhs_in.windowController;
+    } // end IF
+    if (windowController2)
+    {
+      windowController2->Release (); windowController2 = NULL;
+    } // end IF
+    if (rhs_in.windowController2)
+    {
+      rhs_in.windowController2->AddRef ();
+      windowController2 = rhs_in.windowController2;
+    } // end IF
+
+    return *this;
+  }
+
+  struct tagRECT                                        area;
+  IGraphBuilder*                                        builder;
+  IDirect3DDevice9Ex*                                   direct3DDevice;
+  struct _GUID                                          filterCLSID;
+  struct Stream_CamSave_DirectShow_FilterConfiguration* filterConfiguration;
+  struct _AMMediaType*                                  inputFormat;
+  bool                                                  push;
+  struct _AMMediaType*                                  sourceFormat;
+  Stream_CamSave_DirectShow_ISessionNotify_t*           subscriber;
+  Stream_CamSave_DirectShow_Subscribers_t*              subscribers;
+  HWND                                                  window;
+  IVideoWindow*                                         windowController;
+  IMFVideoDisplayControl*                               windowController2; // EVR
+};
+
+struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Stream_CamSave_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration> Stream_CamSave_MediaFoundation_StreamConfiguration_t;
+struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
+ : Stream_CamSave_ModuleHandlerConfiguration
+{
+  Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration ()
+   : Stream_CamSave_ModuleHandlerConfiguration ()
+   , area ()
+   , direct3DDevice (NULL)
+   , inputFormat (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , sourceFormat (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
+   , window (NULL)
    , windowController (NULL)
+  {
+    mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
+  }
+
+  struct tagRECT                                   area;
+  IDirect3DDevice9Ex*                              direct3DDevice;
+  IMFMediaType*                                    inputFormat;
+  TOPOID                                           rendererNodeId;
+  TOPOID                                           sampleGrabberNodeId;
+  IMFMediaSession*                                 session;
+  IMFMediaType*                                    sourceFormat;
+  Stream_CamSave_MediaFoundation_ISessionNotify_t* subscriber;
+  Stream_CamSave_MediaFoundation_Subscribers_t*    subscribers;
+  HWND                                             window;
+  IMFVideoDisplayControl*                          windowController;
+};
 #else
+struct Stream_CamSave_V4L_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Stream_CamSave_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration> Stream_CamSave_V4L_StreamConfiguration_t;
+struct Stream_CamSave_V4L_ModuleHandlerConfiguration
+ : Stream_CamSave_ModuleHandlerConfiguration
+{
+  Stream_CamSave_V4L_ModuleHandlerConfiguration ()
+   : Stream_CamSave_ModuleHandlerConfiguration ()
+   , area ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_NONE)
-   , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
+   , frameRate ()
+   , inputFormat ()
    , outputFormat (AV_PIX_FMT_RGB24)
-#endif
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
    , sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
-   , targetFileName ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , frameRate ()
-   , inputFormat ()
    , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
-#endif
    , window (NULL)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //inputFormat =
-    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    //if (!inputFormat)
-    //{
-    //  ACE_DEBUG ((LM_CRITICAL,
-    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
-    //} // end IF
-    //else
-    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
-    HRESULT result = MFCreateMediaType (&inputFormat);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
+    deviceIdentifier = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
 
-    mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
-#else
     ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
     ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));
     inputFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-#endif
+
     ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
-  };
+  }
 
   GdkRectangle                     area;
-  bool                             fullScreen;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //IGraphBuilder*           builder;
-  std::string                      deviceName; // 'friendly'-name string. *TODO*: consolidate to interface identifier GUID
-  //struct _AMMediaType*     format;
-  IMFMediaType*                    inputFormat;
-  IMFMediaType*                    outputFormat;
-  TOPOID                           rendererNodeId;
-  TOPOID                           sampleGrabberNodeId;
-  IMFMediaSession*                 session;
-  //IVideoWindow*        windowController;
-  IMFVideoDisplayControl*          windowController;
-#else
   __u32                            buffers; // v4l device buffers
   enum AVPixelFormat               codecFormat; // preferred output-
   enum AVCodecID                   codecId;
   int                              fileDescriptor;
-  enum AVPixelFormat               format;
-  // *PORTABILITY*: v4l2: device file (e.g. "[/dev/]video0")
-  std::string                      interfaceIdentifier;
+  struct v4l2_fract                frameRate; // time-per-frame (s)
+  struct v4l2_format               inputFormat;
   enum AVPixelFormat               outputFormat;
-#endif
   GdkPixbuf*                       pixelBuffer;
   ACE_SYNCH_MUTEX*                 pixelBufferLock;
   GdkRectangle                     sourceFormat; // gtk cairo/pixbuf module
   Stream_CamSave_ISessionNotify_t* subscriber;
   Stream_CamSave_Subscribers_t*    subscribers;
-  std::string                      targetFileName;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  struct v4l2_fract                frameRate; // time-per-frame (s)
-  struct v4l2_format               inputFormat;
   enum v4l2_memory                 v4l2Method; // v4l camera source
   struct v4l2_window*              v4l2Window;
-#endif
   GdkWindow*                       window;
 };
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_StreamState
  : Stream_State
@@ -354,7 +524,7 @@ struct Stream_CamSave_StreamState
   Stream_CamSave_StreamState ()
    : Stream_State ()
    , userData (NULL)
-  {};
+  {}
 
   struct Stream_CamSave_UserData* userData;
 };
@@ -365,18 +535,64 @@ struct Stream_CamSave_StreamConfiguration
   Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
-  {};
+  {
+    printFinalReport = true;
+  }
 
   struct Stream_CamSave_UserData* userData;
 };
 
-struct Stream_CamSave_Configuration
+typedef Stream_IStreamControl_T<enum Stream_ControlType,
+                                enum Stream_SessionMessageType,
+                                enum Stream_StateMachine_ControlState,
+                                struct Stream_CamSave_StreamState> Stream_CamSave_IStreamControl_t;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Stream_CamSave_DirectShow_Configuration
+ : Test_U_Configuration
 {
-  Stream_CamSave_Configuration ()
-   : signalHandlerConfiguration ()
+  Stream_CamSave_DirectShow_Configuration ()
+   : Test_U_Configuration ()
+   , signalHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
+
+  // **************************** signal data **********************************
+  struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
+  // **************************** stream data **********************************
+  Stream_CamSave_DirectShow_StreamConfiguration_t  streamConfiguration;
+
+  struct Stream_CamSave_UserData                   userData;
+};
+
+struct Stream_CamSave_MediaFoundation_Configuration
+ : Test_U_Configuration
+{
+  Stream_CamSave_MediaFoundation_Configuration ()
+   : Test_U_Configuration ()
+   , signalHandlerConfiguration ()
+   , streamConfiguration ()
+   , userData ()
+  {}
+
+  // **************************** signal data **********************************
+  struct Stream_CamSave_SignalHandlerConfiguration     signalHandlerConfiguration;
+  // **************************** stream data **********************************
+  Stream_CamSave_MediaFoundation_StreamConfiguration_t streamConfiguration;
+
+  struct Stream_CamSave_UserData                       userData;
+};
+#else
+struct Stream_CamSave_Configuration
+ : Test_U_Configuration
+{
+  Stream_CamSave_Configuration ()
+   : Test_U_Configuration ()
+   , signalHandlerConfiguration ()
+   , streamConfiguration ()
+   , userData ()
+  {}
 
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
@@ -385,10 +601,7 @@ struct Stream_CamSave_Configuration
 
   struct Stream_CamSave_UserData                   userData;
 };
-
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,
@@ -401,19 +614,6 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //                             Test_U_SessionMessage_t> Test_U_Message_t;
 
 //typedef Stream_SessionData_T<struct Stream_SessionData> Test_U_SessionData_t;
-//template <typename AllocatorConfigurationType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename UserDataType,
-//          typename ControlMessageType,
-//          typename DataMessageType>
-//class Stream_SessionMessageBase_T;
-//typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-//                                    enum Stream_SessionMessageType,
-//                                    Test_U_SessionData_t,
-//                                    struct Stream_UserData,
-//                                    Test_U_ControlMessage_t,
-//                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_DirectShowAllocatorBase_T<struct Stream_AllocatorConfiguration,
@@ -423,19 +623,38 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
-                                          Stream_CamSave_Message,
-                                          Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
+                                          Stream_CamSave_DirectShow_Message_t,
+                                          Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_MessageAllocator_t;
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
+                                          Test_U_ControlMessage_t,
+                                          Stream_CamSave_MediaFoundation_Message_t,
+                                          Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
-                                          Stream_CamSave_Message,
-                                          Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
-#endif
+                                          Stream_CamSave_Message_t,
+                                          Stream_CamSave_SessionMessage_t> Stream_CamSave_MessageAllocator_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
-typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Common_ISubscribe_T<Stream_CamSave_DirectShow_ISessionNotify_t> Stream_CamSave_DirectShow_ISubscribe_t;
+typedef Common_ISubscribe_T<Stream_CamSave_MediaFoundation_ISessionNotify_t> Stream_CamSave_MediaFoundation_ISubscribe_t;
 
+typedef Stream_CamSave_EventHandler_T<Stream_CamSave_DirectShow_ISessionNotify_t,
+                                      Stream_CamSave_DirectShow_Message_t,
+                                      Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_EventHandler_t;
+typedef Stream_CamSave_EventHandler_T<Stream_CamSave_MediaFoundation_ISessionNotify_t,
+                                      Stream_CamSave_MediaFoundation_Message_t,
+                                      Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_EventHandler_t;
+#else
 typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISubscribe_t;
+
+typedef Stream_CamSave_EventHandler_T<Stream_CamSave_ISessionNotify_t,
+                                      Stream_CamSave_Message_t,
+                                      Stream_CamSave_SessionMessage_t> Stream_CamSave_EventHandler_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -445,7 +664,7 @@ struct Stream_CamSave_GTK_ProgressData
   Stream_CamSave_GTK_ProgressData ()
    : Test_U_GTK_ProgressData ()
    , statistic ()
-  {};
+  {}
 
   struct Stream_CamSave_StatisticData statistic;
 };
@@ -455,65 +674,93 @@ struct Stream_CamSave_GTK_CBData
 {
   Stream_CamSave_GTK_CBData ()
    : Test_U_GTK_CBData ()
-   , configuration (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , fileDescriptor (-1)
-#endif
    , isFirst (true)
+   , progressData ()
+  {}
+
+  bool                                   isFirst; // first activation ?
+  struct Stream_CamSave_GTK_ProgressData progressData;
+};
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+class Stream_CamSave_DirectShow_Stream;
+struct Stream_CamSave_DirectShow_GTK_CBData
+ : Stream_CamSave_GTK_CBData
+{
+  Stream_CamSave_DirectShow_GTK_CBData ()
+   : Stream_CamSave_GTK_CBData ()
+   , configuration (NULL)
+   , stream (NULL)
+   , streamConfiguration (NULL)
+   , subscribers ()
+  {}
+
+  struct Stream_CamSave_DirectShow_Configuration* configuration;
+  Stream_CamSave_DirectShow_Stream*               stream;
+  IAMStreamConfig*                                streamConfiguration;
+  Stream_CamSave_DirectShow_Subscribers_t         subscribers;
+};
+
+class Stream_CamSave_MediaFoundation_Stream;
+struct Stream_CamSave_MediaFoundation_GTK_CBData
+ : Stream_CamSave_GTK_CBData
+{
+  Stream_CamSave_MediaFoundation_GTK_CBData ()
+   : Stream_CamSave_GTK_CBData ()
+   , configuration (NULL)
+   , stream (NULL)
+   , subscribers ()
+  {}
+
+  struct Stream_CamSave_MediaFoundation_Configuration* configuration;
+  Stream_CamSave_MediaFoundation_Stream*               stream;
+  Stream_CamSave_MediaFoundation_Subscribers_t         subscribers;
+};
+#else
+class Stream_CamSave_Stream;
+struct Stream_CamSave_V4L_GTK_CBData
+ : Stream_CamSave_GTK_CBData
+{
+  Stream_CamSave_V4L_GTK_CBData ()
+   : Stream_CamSave_GTK_CBData ()
+   , configuration (NULL)
+   , fileDescriptor (-1)
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
-   , progressData ()
-   , progressEventSourceId (0)
    , stream (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//   , streamConfiguration (NULL)
-#endif
    , subscribers ()
   {
     pixelBufferLock = &lock;
-  };
+  }
 
-  struct Stream_CamSave_Configuration*   configuration;
+  struct Stream_CamSave_Configuration* configuration;
+  int                                  fileDescriptor; // (capture) device file descriptor
+  GdkPixbuf*                           pixelBuffer;
+  ACE_SYNCH_MUTEX*                     pixelBufferLock;
+  Stream_CamSave_Stream*               stream;
+  Stream_CamSave_Subscribers_t         subscribers;
+};
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_DirectShow_GTK_CBData> Stream_CamSave_DirectShow_GtkBuilderDefinition_t;
+typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_MediaFoundation_GTK_CBData> Stream_CamSave_MediaFoundation_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Stream_CamSave_DirectShow_GTK_CBData> Stream_CamSave_DirectShow_GTK_Manager_t;
+typedef ACE_Singleton<Stream_CamSave_DirectShow_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
+
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Stream_CamSave_MediaFoundation_GTK_CBData> Stream_CamSave_MediaFoundation_GTK_Manager_t;
+typedef ACE_Singleton<Stream_CamSave_MediaFoundation_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
 #else
-  int                                    fileDescriptor; // (capture) device file descriptor
-#endif
-  bool                                   isFirst; // first activation ?
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type        mediaFramework;
-#endif
-  GdkPixbuf*                             pixelBuffer;
-  ACE_SYNCH_MUTEX*                       pixelBufferLock;
-  struct Stream_CamSave_GTK_ProgressData progressData;
-  guint                                  progressEventSourceId;
-  Stream_CamSave_Stream*                 stream;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//IAMStreamConfig*                         streamConfiguration;
-#endif
-  Stream_CamSave_Subscribers_t           subscribers;
-};
+typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_V4L_GTK_CBData> Stream_CamSave_GtkBuilderDefinition_t;
 
-struct Stream_CamSave_ThreadData
-{
-  Stream_CamSave_ThreadData ()
-   : CBData (NULL)
-   , eventSourceId (0)
-   , sessionId (0)
-  {};
-
-  struct Stream_CamSave_GTK_CBData* CBData;
-  guint                             eventSourceId;
-  size_t                            sessionId;
-};
-
-typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_GTK_CBData> Stream_CamSave_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<struct Stream_CamSave_GTK_CBData> Stream_CamSave_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Stream_CamSave_V4L_GTK_CBData> Stream_CamSave_GTK_Manager_t;
 typedef ACE_Singleton<Stream_CamSave_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> CAMSAVE_UI_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_GTK_MANAGER_SINGLETON;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

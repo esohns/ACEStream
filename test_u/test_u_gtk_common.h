@@ -22,6 +22,10 @@
 #define TEST_U_GTK_COMMON_H
 
 #include "ace/OS.h"
+#include "ace/Synch_Traits.h"
+
+#include "common_ilock.h"
+#include "common_itaskcontrol.h"
 
 #include "common_ui_gtk_common.h"
 #if defined (GTKGL_SUPPORT)
@@ -42,7 +46,7 @@ struct Test_U_GTK_ProgressData
    , statistic ()
   {
     ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
-  };
+  }
 
   Test_U_Statistic_t statistic;
 };
@@ -62,12 +66,36 @@ struct Test_U_GTK_CBData
 #endif
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif
    , progressData ()
-  {};
+   , progressEventSourceId (0)
+  {}
 
-  bool                           allowUserRuntimeStatistic;
-  struct Test_U_Configuration*   configuration;
-  struct Test_U_GTK_ProgressData progressData;
+  bool                            allowUserRuntimeStatistic;
+  struct Test_U_Configuration*    configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif
+  struct Test_U_GTK_ProgressData  progressData;
+  guint                           progressEventSourceId;
 };
+
+struct Test_U_GTK_ThreadData
+{
+  Test_U_GTK_ThreadData ()
+   : CBData (NULL)
+   , eventSourceId (0)
+   , sessionId (0)
+  {}
+
+  struct Test_U_GTK_CBData* CBData;
+  guint                     eventSourceId;
+  size_t                    sessionId;
+};
+
+typedef Common_ITaskControl_T<ACE_MT_SYNCH,
+                              Common_ILock_T<ACE_MT_SYNCH> > Test_U_GTK_Manager_t;
 
 #endif

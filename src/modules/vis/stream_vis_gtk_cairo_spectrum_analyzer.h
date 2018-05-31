@@ -28,7 +28,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfapi.h>
 #include <mfobjects.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Singleton.h"
@@ -38,7 +38,7 @@
 #include <gl/GL.h>
 #else
 #include "GL/gl.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
@@ -71,7 +71,8 @@
 #include "stream_vis_common.h"
 #include "stream_vis_exports.h"
 
-extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
+//extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
+extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
 enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
 { // *TODO*: implement discrete modes of operation
@@ -119,7 +120,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_ISetP_T<cairo_surface_t>
 #else
  , public Common_ISetP_T<GdkPixbuf>
-#endif
+#endif // GTK_CHECK_VERSION (3,10,0)
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -139,7 +140,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -170,7 +171,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   bool initialize_Cairo (GdkWindow*,
                          cairo_t*&,
                          GdkPixbuf*&);
-#endif
+#endif // GTK_CHECK_VERSION (3,10,0)
   virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
@@ -178,7 +179,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   virtual void setP (cairo_surface_t*);
 #else
   virtual void setP (GdkPixbuf*);
-#endif
+#endif // GTK_CHECK_VERSION (3,10,0)
 
   void update ();
 
@@ -187,7 +188,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
   AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   cairo_t*                                                 cairoContext_;
   ACE_SYNCH_MUTEX_T*                                       surfaceLock_;
@@ -232,7 +233,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode* mode2D_;
 #if defined (GTKGL_SUPPORT)
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode* mode3D_;
-#endif
+#endif // GTKGL_SUPPORT
 
   Stream_ResetCounterHandler                               renderHandler_;
   long                                                     renderHandlerTimerId_;

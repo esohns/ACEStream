@@ -24,10 +24,12 @@
 
 #include "stream_dec_defines.h"
 
-Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[] =
+//Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[] =
+const char libacestream_default_dec_libav_decoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
-Stream_Dec_Export enum AVPixelFormat
+//Stream_Dec_Export enum AVPixelFormat
+enum AVPixelFormat
 stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
                                    const enum AVPixelFormat* formats_in)
 {

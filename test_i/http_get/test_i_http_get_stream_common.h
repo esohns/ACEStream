@@ -31,7 +31,6 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
-//#include "common_inotify.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
 #include "common_time_common.h"
@@ -39,7 +38,6 @@
 #include "stream_base.h"
 #include "stream_common.h"
 #include "stream_control_message.h"
-//#include "stream_data_base.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
@@ -50,19 +48,13 @@
 
 #include "stream_module_htmlparser.h"
 
-//#include "stream_module_net_common.h"
-
-//#include "net_configuration.h"
-
 #include "http_common.h"
 #include "http_defines.h"
 
+#include "test_i_configuration.h"
 #include "test_i_defines.h"
 
-//#include "test_i_http_get_common.h"
 #include "test_i_http_get_network.h"
-//#include "test_i_message.h"
-//#include "test_i_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -76,31 +68,20 @@ typedef Stream_Statistic Test_I_Statistic_t;
 
 typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
 
-//struct Common_FlexParserAllocatorConfiguration
-// : Stream_AllocatorConfiguration
-//{
-//  Common_FlexParserAllocatorConfiguration ()
-//   : Stream_AllocatorConfiguration ()
-//  {
-//    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-//    //         'flex's yy_scan_buffer() method
-//    paddingBytes = COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE;
-//  };
-//};
-
 struct Test_I_MessageData
 {
   Test_I_MessageData ()
    : HTTPRecord (NULL)
    , HTMLDocument (NULL)
-  {};
+  {}
+
   virtual ~Test_I_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
-  };
+  }
  inline void operator+= (struct Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
  inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
 
@@ -114,7 +95,8 @@ struct Test_I_DataItem
  Test_I_DataItem ()
   : description ()
   , URI ()
- {};
+ {}
+
  inline bool operator== (struct Test_I_DataItem rhs_in) { return URI == rhs_in.URI; }
 
  std::string description;
@@ -130,7 +112,8 @@ struct Test_I_DataSet
   Test_I_DataSet ()
    : pageData ()
    , title ()
-  {};
+  {}
+
   struct Test_I_DataSet& operator+= (const struct Test_I_DataSet& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -171,7 +154,7 @@ struct Test_I_SAXParserContext
    , dataItem ()
    , state (SAXPARSER_STATE_INVALID)
    , timeStamp ()
-  {};
+  {}
 
   struct Test_I_Stream_SessionData* sessionData;
 
@@ -191,7 +174,8 @@ struct Test_I_Stream_SessionData
    , parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
-  {};
+  {}
+
   struct Test_I_Stream_SessionData& operator+= (const struct Test_I_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -205,7 +189,7 @@ struct Test_I_Stream_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  };
+  }
 
   struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
@@ -217,17 +201,14 @@ struct Test_I_Stream_SessionData
 typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
 // forward declarations
-struct Test_I_Configuration;
-struct Test_I_ModuleHandlerConfiguration;
+struct Test_I_HTTPGet_Configuration;
 struct Test_I_SocketHandlerConfiguration;
-struct Test_I_StreamConfiguration;
-struct Test_I_ModuleHandlerConfiguration;
 extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Common_FlexParserAllocatorConfiguration,
-                               struct Test_I_StreamConfiguration,
+                               struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
-                               struct Test_I_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
+                               struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       stream_name_string_,
@@ -235,21 +216,21 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       enum Stream_SessionMessageType,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_HTTPGet_StreamState,
-                      struct Test_I_StreamConfiguration,
+                      struct Test_I_HTTPGet_StreamConfiguration,
                       Test_I_Statistic_t,
                       struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
-                      struct Test_I_ModuleHandlerConfiguration,
+                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                       struct Test_I_Stream_SessionData,
                       Test_I_Stream_SessionData_t,
                       Test_I_ControlMessage_t,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
-struct Test_I_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
+struct Test_I_HTTPGet_ModuleHandlerConfiguration
+ : Test_I_ModuleHandlerConfiguration
 {
-  Test_I_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
+  Test_I_HTTPGet_ModuleHandlerConfiguration ()
+   : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -269,9 +250,9 @@ struct Test_I_ModuleHandlerConfiguration
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
     passive = false;
-  };
+  }
 
-  struct Test_I_Configuration*               configuration;
+  struct Test_I_HTTPGet_Configuration*       configuration;
   Test_I_IConnection_t*                      connection; // TCP target/IO module
   Test_I_HTTPGet_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
@@ -289,13 +270,13 @@ struct Test_I_ModuleHandlerConfiguration
   std::string                                URL; // HTTP get module
 };
 
-struct Test_I_StreamConfiguration
+struct Test_I_HTTPGet_StreamConfiguration
  : Stream_Configuration
 {
-  Test_I_StreamConfiguration ()
+  Test_I_HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_HTTPGet_UserData* userData;
 };
@@ -307,7 +288,7 @@ struct Test_I_HTTPGet_StreamState
    : Test_I_StreamState ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Stream_SessionData* sessionData;
 

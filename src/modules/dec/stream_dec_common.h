@@ -1,33 +1,13 @@
 ﻿#ifndef STREAM_DECODER_COMMON_H
 #define STREAM_DECODER_COMMON_H
 
+#include <cstdint>
 #include <set>
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mmreg.h>
-#include <dsound.h>
-#else
-#include <cstdint>
-#endif
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-union Stream_Decoder_DirectShow_AudioEffectOptions
-{
-  struct _DSCFXAec        AECOptions;
-  struct _DSFXChorus      chorusOptions;
-  struct _DSFXCompressor  compressorOptions;
-  struct _DSFXDistortion  distortionOptions;
-  struct _DSFXEcho        echoOptions;
-  struct _DSFXParamEq     equalizerOptions;
-  struct _DSFXFlanger     flangerOptions;
-  struct _DSFXGargle      gargleOptions;
-  struct _DSFXI3DL2Reverb reverbOptions;
-  struct _DSFXWavesReverb wavesReverbOptions;
-};
+#include <minwindef.h>
 #endif // ACE_WIN32 || ACE_WIN64
-
-// ---------------------------------------
 
 #if defined (__llvm__)
 enum Stream_Decoder_CompressionFormatType

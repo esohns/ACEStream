@@ -237,6 +237,7 @@ add_dependencies (${EXECUTABLE_SOURCE} CommonUI)
 add_dependencies (${EXECUTABLE_SOURCE} CommonUI_GTK)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
+add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_MediaFramework)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
@@ -306,6 +307,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
@@ -356,14 +358,15 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE_SOURCE}
-#                         ARGS "-c -g.\\\\etc\\\\source.glade -l -t"
-                         ARGS "-f -g -l -t"
+#                         ARGS "-g.\\\\etc\\\\source.glade -l -t"
+                         ARGS "-c -g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
@@ -421,6 +424,7 @@ if (WIN32)
 
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME})
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Device)
+ target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_MediaFramework)
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Miscellaneous)
 
  set_target_properties (${LIBRARY_DS} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
@@ -439,10 +443,8 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
-
  create_target_launcher (${LIBRARY_DS}
-#                         ARGS "-c -g.\\\\etc\\\\source.glade -l -t"
-                         ARGS "-g -l -t"
+                         ARGS "${PROJECT_BINARY_DIR}/test_i/camstream/Debug/${LIBRARY_DS}.dll"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
@@ -493,6 +495,7 @@ if (WIN32)
 
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME})
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Device)
+ target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_MediaFramework)
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Miscellaneous)
 
  set_target_properties (${LIBRARY_MF} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
@@ -672,6 +675,9 @@ target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Device)
+if (WIN32)
+ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_MediaFramework)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
@@ -700,7 +706,7 @@ endif ()
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE_TARGET}
-                         ARGS "-g./../../../test_i/camstream/etc/target.glade -l -t"
+                         ARGS "-g./etc/target.glade -l -o -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
@@ -715,13 +721,14 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE_TARGET}
-                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\camstream\\\\etc\\\\target.glade -l -t"
+                         ARGS "-g.\\\\etc\\\\target.glade -l -o -t"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
 #                                              D:/projects/libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
@@ -732,7 +739,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
+                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
                          ENVIRONMENT foo=bar)
 endif ()
 

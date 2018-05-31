@@ -103,7 +103,7 @@ struct Test_U_RIFFDecoder_Configuration
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Test_U_RIFFDecoder_AllocatorConfiguration> Test_U_ControlMessage_t;
+                                struct Test_U_RIFFDecoder_AllocatorConfiguration> Test_U_RIFFDecoder_ControlMessage_t;
 
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,

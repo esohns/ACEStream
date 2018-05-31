@@ -31,17 +31,17 @@
 class Stream_Filecopy_SignalHandler
  : public Common_SignalHandler_T<struct Stream_Filecopy_SignalHandlerConfiguration>
 {
+  typedef Common_SignalHandler_T<struct Stream_Filecopy_SignalHandlerConfiguration> inherited;
+
  public:
   Stream_Filecopy_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
-                                 ACE_SYNCH_MUTEX*);              // lock handle
+                                 ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
   inline virtual ~Stream_Filecopy_SignalHandler () {}
 
   // implement Common_ISignal
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<struct Stream_Filecopy_SignalHandlerConfiguration> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler (const Stream_Filecopy_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler& operator= (const Stream_Filecopy_SignalHandler&))

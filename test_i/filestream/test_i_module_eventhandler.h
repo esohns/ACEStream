@@ -98,7 +98,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          ModuleConfigurationType,
                                          ConfigurationType,
                                          libacestream_default_misc_messagehandler_module_name_string,
-                                         Test_I_IStreamNotify_t,
+                                         Stream_INotify_t,
                                          OWN_TYPE_T> MODULE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T ())

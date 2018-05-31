@@ -38,13 +38,13 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_exports.h"
+//#include "stream_misc_exports.h"
 
 // forward declarations
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern STREAM_MISC_Export const char libacestream_default_misc_splitter_module_name_string[];
+extern const char libacestream_default_misc_splitter_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

@@ -22,15 +22,18 @@
 #define TEST_I_CALLBACKS_H
 
 #include "ace/config-lite.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <guiddef.h>
 #include <mfidl.h>
-#include <mfreadwrite.h>
 #else
 #include <linux/videodev2.h>
 #endif
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_common.h"
+#endif
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -38,7 +41,12 @@ struct IAMStreamConfig;
 #endif
 
 // helper functions
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+bool load_capture_devices (enum Stream_MediaFramework_Type,
+                           GtkListStore*);
+#else
 bool load_capture_devices (GtkListStore*);
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool load_formats (IAMStreamConfig*, // device configuration handle
                    GtkListStore*);   // return value: supported media subtypes

@@ -34,9 +34,9 @@
 #include "stream_iparser.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_exports.h"
+//#include "stream_misc_exports.h"
 
-extern STREAM_MISC_Export const char libacestream_default_misc_parser_module_name_string[];
+extern const char libacestream_default_misc_parser_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

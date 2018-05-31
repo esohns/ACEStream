@@ -24,12 +24,12 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <streams.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -45,23 +45,25 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-//#include "common_ui_defines.h"
-//#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 
 #include "stream_allocatorheap.h"
-//#include "stream_control_message.h"
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dev_directshow_tools.h"
-#endif
-#include "stream_dev_tools.h"
+#include "stream_dec_tools.h"
 
-#ifdef HAVE_CONFIG_H
+#include "stream_dev_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
@@ -488,7 +490,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& deviceName_in,
+do_initialize_directshow (const std::string& deviceIdentifier_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType*& mediaType_out,
@@ -499,8 +501,8 @@ do_initialize_directshow (const std::string& deviceName_in,
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
-  Stream_Module_Device_DirectShow_Graph_t graph_layout;
-  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  Stream_MediaFramework_DirectShow_Graph_t graph_layout;
+  Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
 
   // sanity check(s)
@@ -525,9 +527,9 @@ do_initialize_directshow (const std::string& deviceName_in,
   } // end IF
 
 continue_:
-  Stream_Module_Device_Tools::initialize ();
+  Stream_Module_Device_Tools::initialize (true);
 
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                                CLSID_AudioInputDeviceCategory,
                                                                IGraphBuilder_out,
                                                                buffer_negotiation_p,
@@ -536,7 +538,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceName_in.c_str ())));
+                ACE_TEXT (deviceIdentifier_in.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
@@ -623,16 +625,16 @@ continue_:
     goto error;
   } // end IF
 
-  union Stream_Decoder_DirectShow_AudioEffectOptions effect_options;
-  if (!Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (*mediaType_out,
-                                                                      0,
-                                                                      IGraphBuilder_out,
-                                                                      GUID_NULL,
-                                                                      effect_options,
-                                                                      graph_configuration))
+  union Stream_MediaFramework_DirectShow_AudioEffectOptions effect_options;
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (*mediaType_out,
+                                                            0,
+                                                            IGraphBuilder_out,
+                                                            GUID_NULL,
+                                                            effect_options,
+                                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadAudioRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
@@ -675,7 +677,7 @@ error:
   } // end IF
 
   if (mediaType_out)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -722,7 +724,7 @@ continue_:
   } // end IF
 
 continue_2:
-  Stream_Module_Device_Tools::initialize ();
+  Stream_Module_Device_Tools::initialize (true);
 
   return true;
 
@@ -807,20 +809,20 @@ do_work (unsigned int bufferSize_in,
   struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_IRecursiveTaskControl_t* itask_control_p = NULL;
+  Common_ITaskControl_t* itask_control_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                                                 &heap_allocator,                        // heap allocator handle
-                                                                                 true);                                  // block ?
-  Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                                                           &heap_allocator,                        // heap allocator handle
-                                                                                           true);                                  // block ?
+  Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                                                 &heap_allocator,     // heap allocator handle
+                                                                                 true);               // block ?
+  Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                                                           &heap_allocator,     // heap allocator handle
+                                                                                           true);               // block ?
 #else
-  Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,                        // heap allocator handle
-                                                           true);                                  // block ?
+  Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                           &heap_allocator,     // heap allocator handle
+                                                           true);               // block ?
 #endif
   bool result = false;
   Stream_IStream_t* istream_p = NULL;
@@ -1070,7 +1072,7 @@ do_work (unsigned int bufferSize_in,
                                      true);
   else
     result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceName,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier,
                                 (*directshow_modulehandler_iterator).second.second.builder,
                                 directShowCBData_in.streamConfiguration,
                                 (*directshow_modulehandler_iterator).second.second.inputFormat,
@@ -1160,8 +1162,8 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (useMediaFoundation_in)
     {
-      mediaFoundationCBData_in.finalizationHook = idle_finalize_UI_cb;
-      mediaFoundationCBData_in.initializationHook = idle_initialize_UI_cb;
+      mediaFoundationCBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
+      mediaFoundationCBData_in.eventHooks.initHook = idle_initialize_UI_cb;
       //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
       mediaFoundationCBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1171,8 +1173,8 @@ do_work (unsigned int bufferSize_in,
     } // end IF
     else
     {
-      directShowCBData_in.finalizationHook = idle_finalize_UI_cb;
-      directShowCBData_in.initializationHook = idle_initialize_UI_cb;
+      directShowCBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
+      directShowCBData_in.eventHooks.initHook = idle_initialize_UI_cb;
       //directShowCBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
       directShowCBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1181,8 +1183,8 @@ do_work (unsigned int bufferSize_in,
       directShowCBData_in.userData = &directShowCBData_in;
     } // end ELSE
 #else
-    CBData_in.finalizationHook = idle_finalize_UI_cb;
-    CBData_in.initializationHook = idle_initialize_UI_cb;
+    CBData_in.eventHooks.finiHook = idle_initialize_UI_cb;
+    CBData_in.eventHooks.initHook = idle_finalize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1445,7 +1447,7 @@ ACE_TMAIN (int argc_in,
   //                   reactor/proactor thread could (dead)lock on the
   //                   allocator lock, as it cannot dispatch events that would
   //                   free slots
-  if (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES)
+  if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((!UI_definition_file.empty () &&
@@ -1487,7 +1489,7 @@ ACE_TMAIN (int argc_in,
     gtk_cb_data_p->useMediaFoundation = true;
     mediafoundation_gtk_cb_data.configuration = &mediafoundation_configuration;
     use_reactor =
-        mediafoundation_configuration.signalHandlerConfiguration.useReactor;
+        (mediafoundation_configuration.dispatchConfiguration.numberOfProactorThreads == 0);
   } // end IF
   else
   {
@@ -1496,7 +1498,7 @@ ACE_TMAIN (int argc_in,
     gtk_cb_data_p = &directshow_gtk_cb_data;
     directshow_gtk_cb_data.configuration = &directshow_configuration;
     use_reactor =
-        directshow_configuration.signalHandlerConfiguration.useReactor;
+        (directshow_configuration.dispatchConfiguration.numberOfProactorThreads == 0);
   } // end ELSE
 #else
   struct Test_U_AudioEffect_Configuration configuration;
@@ -1588,7 +1590,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   Test_U_AudioEffect_SignalHandler signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                   &gtk_cb_data_p->lock);
+                                                   &gtk_cb_data_p->subscribersLock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -1700,8 +1702,7 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Timer_Tools::periodToString (working_time,
-                                      working_time_string);
+  working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1743,10 +1744,8 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Timer_Tools::periodToString (user_time,
-                                      user_time_string);
-  Common_Timer_Tools::periodToString (system_time,
-                                      system_time_string);
+  user_time_string = Common_Timer_Tools::periodToString (user_time);
+  system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

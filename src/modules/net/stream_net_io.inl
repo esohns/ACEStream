@@ -121,7 +121,8 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (connection_manager_p);
   // *TODO*: remove type inferences
-  ACE_ASSERT (sibling_task_p->sessionData_);
+  if (unlikely (!sibling_task_p->sessionData_))
+    goto continue_; // something went wrong: session aborted ?
 
   const SessionDataType& session_data_r = sibling_task_p->sessionData_->getR ();
 
@@ -152,6 +153,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
+continue_:
   switch (controlMessage_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
@@ -205,13 +207,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
       break;
     }
     default:
-    {
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: invalid/unknown control message type (was: %d), continuing\n"),
-      //            inherited::mod_->name (),
-      //            messageBlock_in.msg_type ()));
       break;
-    }
   } // end SWITCH
 }
 
@@ -588,38 +584,38 @@ continue_2:
         goto error;
       } // end IF
 
-      // set up reactor/proactor notification ?
-      // *IMPORTANT NOTE*: how this does not work in all scenarios; in
-      //                   particular, when there are several connections
-      //                   involved in a processing stream, the (input/)output
-      //                   (Note that this module only handles 'output'
-      //                   notification ATM) connection pertaining to
-      //                   one stream may best be specified at a different level
-      //                   of abstraction, and/or a different time (i.e. after
-      //                   the stream/session has been completely set up)
-      if (outboundNotificationHandle_)
-      {
-        std::string module_name_string;
-        try {
-          if (unlikely (!outboundNotificationHandle_->initialize (connection_p->notification (),
-                                                                  module_name_string)))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), aborting\n"),
-                          inherited::mod_->name (),
-                          connection_p->notification (),
-                          ACE_TEXT (module_name_string.c_str ())));
-            goto error;
-          } // end IF
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), aborting\n"),
-                      inherited::mod_->name (),
-                      connection_p->notification (),
-                      ACE_TEXT (module_name_string.c_str ())));
-          goto error;
-        }
-      } // end IF
+      //// set up reactor/proactor notification ?
+      //// *IMPORTANT NOTE*: how this does not work in all scenarios; in
+      ////                   particular, when there are several connections
+      ////                   involved in a processing stream, the (input/)output
+      ////                   (Note that this module only handles 'output'
+      ////                   notification ATM) connection pertaining to
+      ////                   one stream may best be specified at a different level
+      ////                   of abstraction, and/or a different time (i.e. after
+      ////                   the stream/session has been completely set up)
+      //if (outboundNotificationHandle_)
+      //{
+      //  std::string module_name_string;
+      //  try {
+      //    if (unlikely (!outboundNotificationHandle_->initialize_2 (connection_p->notification (),
+      //                                                              module_name_string)))
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                    ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), aborting\n"),
+      //                    inherited::mod_->name (),
+      //                    connection_p->notification (),
+      //                    ACE_TEXT (module_name_string.c_str ())));
+      //      goto error;
+      //    } // end IF
+      //  } catch (...) {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), aborting\n"),
+      //                inherited::mod_->name (),
+      //                connection_p->notification (),
+      //                ACE_TEXT (module_name_string.c_str ())));
+      //    goto error;
+      //  }
+      //} // end IF
 
       connection_p->decrease ();
 
@@ -706,26 +702,26 @@ continue_3:
       if (!inbound_)
         goto continue_4;
 
-      // reset reactor/proactor notification
-      if (outboundNotificationHandle_)
-      {
-        std::string module_name_string;
-        try {
-          if (unlikely (!outboundNotificationHandle_->initialize (NULL,
-                                                                  module_name_string)))
-            ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), continuing\n"),
-                          inherited::mod_->name (),
-                          NULL,
-                          ACE_TEXT (module_name_string.c_str ())));
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), continuing\n"),
-                      inherited::mod_->name (),
-                      NULL,
-                      ACE_TEXT (module_name_string.c_str ())));
-        }
-      } // end IF
+      //// reset reactor/proactor notification
+      //if (outboundNotificationHandle_)
+      //{
+      //  std::string module_name_string;
+      //  try {
+      //    if (unlikely (!outboundNotificationHandle_->initialize_2 (NULL,
+      //                                                              module_name_string)))
+      //      ACE_DEBUG ((LM_ERROR,
+      //                    ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), continuing\n"),
+      //                    inherited::mod_->name (),
+      //                    NULL,
+      //                    ACE_TEXT (module_name_string.c_str ())));
+      //  } catch (...) {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), continuing\n"),
+      //                inherited::mod_->name (),
+      //                NULL,
+      //                ACE_TEXT (module_name_string.c_str ())));
+      //  }
+      //} // end IF
 
 continue_4:
       break;

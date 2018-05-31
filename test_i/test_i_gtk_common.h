@@ -23,6 +23,11 @@
 
 #include "gtk/gtk.h"
 
+#include "ace/Synch_Traits.h"
+
+#include "common_ilock.h"
+#include "common_itaskcontrol.h"
+
 #include "common_ui_gtk_common.h"
 
 #include "test_i_common.h"
@@ -36,7 +41,7 @@ struct Test_I_GTK_ProgressData
   Test_I_GTK_ProgressData ()
    : Common_UI_GTK_ProgressData ()
    , statistic ()
-  {};
+  {}
 
   Test_I_Statistic_t statistic;
 };
@@ -49,7 +54,7 @@ struct Test_I_GTK_CBData
    , configuration (NULL)
    , progressData ()
    , progressEventSourceId (0)
-  {};
+  {}
 
   struct Test_I_Configuration*   configuration;
   struct Test_I_GTK_ProgressData progressData;
@@ -61,10 +66,13 @@ struct Test_I_ThreadData
   Test_I_ThreadData ()
    : CBData (NULL)
    , eventSourceId (0)
-  {};
+  {}
 
   struct Test_I_GTK_CBData* CBData;
   guint                     eventSourceId;
 };
+
+typedef Common_ITaskControl_T<ACE_MT_SYNCH,
+                              Common_ILock_T<ACE_MT_SYNCH> > Test_I_GTK_Manager_t;
 
 #endif

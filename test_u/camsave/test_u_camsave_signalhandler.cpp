@@ -29,7 +29,7 @@
 #include "stream_macros.h"
 
 Stream_CamSave_SignalHandler::Stream_CamSave_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                            ACE_SYNCH_MUTEX* lock_in)
+                                                            ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
 : inherited (dispatchMode_in,
              lock_in,
              this) // event handler handle
@@ -51,7 +51,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
   {
     case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGQUIT:
 #endif
     {
@@ -66,10 +67,10 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
     }
 // *PORTABILITY*: on Windows SIGUSRx are not defined
 // --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
+#else
+    case SIGUSR1:
 #endif
     {
       // print statistic
@@ -77,7 +78,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
 #endif
@@ -142,7 +144,30 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     // step2: stop GTK event processing
     if (inherited::configuration_->hasUI)
+    {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (inherited::configuration_->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+          CAMSAVE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                                       false); // N/A
+          break;
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          CAMSAVE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                                            false); // N/A
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      inherited::configuration_->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
       CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
                                                            false); // N/A
+#endif
+    } // end IF
   } // end IF
 }

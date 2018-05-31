@@ -105,8 +105,8 @@ class Stream_SessionMessageBase_T
                    UserDataType*);
 
   // implement (part of) Stream_IMessage_T
-  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; };
-  inline virtual SessionMessageType type () const { return type_; };
+  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
+  inline virtual SessionMessageType type () const { return type_; }
 
   // implement Common_IGet_T
   virtual const SessionDataType& getR () const;
@@ -154,7 +154,7 @@ class Stream_SessionMessageBase_T
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement (part of) Stream_IMessage_T
-  inline virtual Stream_MessageId_t id () const { return 0; };
+  inline virtual Stream_MessageId_t id () const { return 0; }
 };
 
 // include template definition

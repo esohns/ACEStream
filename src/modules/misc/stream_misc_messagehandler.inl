@@ -324,9 +324,10 @@ error:
     {
       // *NOTE*: the modules' session data handle may have gone away already
       //         --> use the messages' reference instead
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->getR ();
-      session_data_p = &session_data_container_r.getR ();
+      const typename SessionMessageType::DATA_T* session_data_container_p =
+        (inherited::sessionData_ ? inherited::sessionData_ 
+                                 : &message_inout->getR ());
+      session_data_p = &session_data_container_p->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -355,9 +356,10 @@ error:
     {
       // *NOTE*: the modules' session data handle may not have been set yet
       //         --> use the messages' reference instead
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->getR ();
-      session_data_p = &session_data_container_r.getR ();
+      const typename SessionMessageType::DATA_T* session_data_container_p =
+        (inherited::sessionData_ ? inherited::sessionData_ 
+                                 : &message_inout->getR ());
+      session_data_p = &session_data_container_p->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the

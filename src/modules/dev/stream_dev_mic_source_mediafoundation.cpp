@@ -24,5 +24,6 @@
 
 #include "stream_dev_defines.h"
 
-Stream_Dev_Export const char libacestream_default_dev_mic_source_mediafoundation_module_name_string[] =
+//Stream_Dev_Export const char libacestream_default_dev_mic_source_mediafoundation_module_name_string[] =
+const char libacestream_default_dev_mic_source_mediafoundation_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);

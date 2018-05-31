@@ -64,7 +64,7 @@ struct Test_I_Target_UserData
   Test_I_Target_UserData ()
    : Test_I_UserData ()
 //   , connectionConfiguration (NULL)
-  {};
+  {}
 
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
@@ -80,7 +80,7 @@ struct Test_I_Target_SessionData
    , size (0)
    , targetFileName ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
@@ -109,7 +109,7 @@ struct Test_I_Target_StreamState
    : Test_I_StreamState ()
    , currentSessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_SessionData* currentSessionData;
 
@@ -125,7 +125,7 @@ struct Test_I_Target_ListenerConfiguration
    , connectionConfiguration (NULL)
    , connectionManager (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {};
+  {}
 
   Test_I_Target_ConnectionConfiguration_t* connectionConfiguration;
   Test_I_Target_IInetConnectionManager_t*  connectionManager;
@@ -143,7 +143,7 @@ struct Test_I_Target_SignalHandlerConfiguration
    , listener (NULL)
    , statisticReportingHandler (NULL)
    , statisticReportingTimerId (-1)
-  {};
+  {}
 
   Test_I_Target_IListener_t*  listener;
   Test_I_IStatisticHandler_t* statisticReportingHandler;
@@ -181,7 +181,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-  {};
+  {}
 
   //guint                                     contextID;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
@@ -196,7 +196,7 @@ struct Test_I_Target_StreamConfiguration
   Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_Target_UserData* userData;
 };
@@ -214,7 +214,7 @@ struct Test_I_Target_Configuration
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
 
   Test_I_Target_ConnectionConfigurations_t        connectionConfigurations;
   ACE_HANDLE                                      handle;
@@ -240,10 +240,10 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 //struct Test_I_Target_GTK_ProgressData
 // : Test_I_GTK_ProgressData
 //{
-//  inline Test_I_Target_GTK_ProgressData ()
+//  Test_I_Target_GTK_ProgressData ()
 //   : Test_I_GTK_ProgressData ()
 //   , transferred (0)
-//  {};
+//  {}
 //
 //  size_t transferred; // bytes
 //};
@@ -255,7 +255,7 @@ struct Test_I_Target_GTK_CBData
    : Test_I_GTK_CBData ()
    , configuration (NULL)
    , subscribers ()
-  {};
+  {}
 
   struct Test_I_Target_Configuration* configuration;
   Test_I_Target_Subscribers_t         subscribers;
@@ -263,8 +263,9 @@ struct Test_I_Target_GTK_CBData
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
 
-typedef Common_UI_GTK_Manager_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
+typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
+                                struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
+                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
 
 #endif

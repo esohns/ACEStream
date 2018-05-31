@@ -24,5 +24,6 @@
 
 #include "stream_net_defines.h"
 
-STREAM_NET_Export const char libacestream_default_net_stream_name_string[] =
+//STREAM_NET_Export const char libacestream_default_net_stream_name_string[] =
+const char libacestream_default_net_stream_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING);

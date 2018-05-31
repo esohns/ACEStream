@@ -38,9 +38,9 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_stat_common.h"
-#include "stream_stat_exports.h"
+//#include "stream_stat_exports.h"
 
-extern Stream_Stat_Export const char libacestream_default_stat_analysis_module_name_string[];
+extern const char libacestream_default_stat_analysis_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

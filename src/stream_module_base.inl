@@ -171,49 +171,6 @@ template <ACE_SYNCH_DECL,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-const ACE_Stream<ACE_SYNCH_USE, TimePolicyType>&
-Stream_Module_Base_T<ACE_SYNCH_USE,
-                     TimePolicyType,
-                     SessionIdType,
-                     SessionDataType,
-                     SessionEventType,
-                     ConfigurationType,
-                     HandlerConfigurationType,
-                     ModuleName,
-                     NotificationType,
-                     ReaderTaskType,
-                     WriterTaskType>::getR () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::getR"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  // *TODO*: remove type inference
-  STREAM_T* stream_p = dynamic_cast<STREAM_T*> (configuration_->stream);
-  if (unlikely (!stream_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<ACE_Stream>(0x%@) failed, aborting\n"),
-                inherited::name (),
-                configuration_->stream));
-    return STREAM_T ();
-  } // end IF
-
-  return *stream_p;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename SessionIdType,
-          typename SessionDataType,
-          typename SessionEventType,
-          typename ConfigurationType,
-          typename HandlerConfigurationType,
-          const char* ModuleName,
-          typename NotificationType,
-          typename ReaderTaskType,
-          typename WriterTaskType>
 bool
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
@@ -231,9 +188,14 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
   if (unlikely (isInitialized_))
   {
+    notify_ = NULL;
+    stream_ = NULL;
+
+    isInitialized_ = false;
   } // end IF
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  // *TODO*: remove type inference
   if (!isInitialized_ &&
       configuration_->generateUniqueNames)
   {
@@ -246,6 +208,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   isInitialized_ = true;
   // *TODO*: remove type inferences
   notify_ = configuration_->notify;
+  stream_ = dynamic_cast<STREAM_T*> (configuration_->stream);
 
   return true;
 }

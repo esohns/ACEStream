@@ -34,9 +34,7 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-#include "stream_dev_exports.h"
-
-extern Stream_Dev_Export const char libacestream_default_dev_mic_source_directshow_module_name_string[];
+extern const char libacestream_default_dev_mic_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -136,10 +134,9 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                  long);  // BufferLen
   virtual STDMETHODIMP SampleCB (double,         // SampleTime
                                  IMediaSample*); // Sample
-  virtual STDMETHODIMP QueryInterface (const IID&,
-                                       void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
-  virtual STDMETHODIMP_ (ULONG) Release ();
+  inline virtual STDMETHODIMP QueryInterface (const IID& iid_in, void** interfaceHandle_inout) { ACE_UNUSED_ARG (iid_in); ACE_UNUSED_ARG (interfaceHandle_inout); ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return 1; }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { return 0; }
 
  private:
   // convenient types

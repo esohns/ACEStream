@@ -21,8 +21,7 @@
 #ifndef STREAM_ILINKCB_H
 #define STREAM_ILINKCB_H
 
-// forward declarations
-class ACE_Module_Base;
+#include "ace/Module.h"
 
 class Stream_ILinkCB
 {

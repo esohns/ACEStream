@@ -88,11 +88,6 @@ class Test_U_AudioEffect_DirectShow_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_U_AudioEffect_Statistic&); // return value: statistic data
-  virtual void report () const;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream (const Test_U_AudioEffect_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream& operator= (const Test_U_AudioEffect_DirectShow_Stream&))
@@ -157,18 +152,14 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_U_AudioEffect_Statistic&); // return value: statistic data
-  virtual void report () const;
-
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (const IID&,
                                        void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
-  virtual STDMETHODIMP_ (ULONG) Release ();
-  virtual STDMETHODIMP GetParameters (DWORD*,  // return value: flags
-                                      DWORD*); // return value: queue handle
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline virtual STDMETHODIMP_ (ULONG) Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; }
+  // *NOTE*: "...If you want default values for both parameters, return
+  //         E_NOTIMPL. ..."
+  inline virtual STDMETHODIMP GetParameters (DWORD* flags_out, DWORD* queue_out) { ACE_UNUSED_ARG (flags_out); ACE_UNUSED_ARG (queue_out); return E_NOTIMPL; }
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:

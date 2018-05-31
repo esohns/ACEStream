@@ -25,35 +25,41 @@
 
 #include "stream_common.h"
 
-#include "test_u_camsave_common.h"
-#include "test_u_camsave_message.h"
-#include "test_u_camsave_session_message.h"
+// forward declarations
+struct Stream_CamSave_SessionData;
+struct Test_U_GTK_CBData;
 
-class Stream_CamSave_EventHandler
- : public Stream_CamSave_ISessionNotify_t
+template <typename NotificationType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_CamSave_EventHandler_T
+ : public NotificationType
 {
  public:
-  Stream_CamSave_EventHandler (struct Stream_CamSave_GTK_CBData*); // GTK state
-  inline virtual ~Stream_CamSave_EventHandler () {}
+  Stream_CamSave_EventHandler_T (struct Stream_CamSave_GTK_CBData*); // GTK state
+  inline virtual ~Stream_CamSave_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const Stream_CamSave_SessionData&);
+                      const struct Stream_CamSave_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+                       const enum Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_CamSave_Message&);
+                       const DataMessageType&);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_CamSave_SessionMessage&);
+                       const SessionMessageType&);
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler (const Stream_CamSave_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler& operator= (const Stream_CamSave_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler_T (const Stream_CamSave_EventHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler_T& operator= (const Stream_CamSave_EventHandler_T&))
 
   struct Stream_CamSave_GTK_CBData*  CBData_;
   struct Stream_CamSave_SessionData* sessionData_;
 };
+
+// include template definition
+#include "test_u_camsave_eventhandler.inl"
 
 #endif
