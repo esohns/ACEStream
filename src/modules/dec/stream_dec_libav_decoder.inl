@@ -312,10 +312,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end ELSE
 #else
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.format != AV_PIX_FMT_NONE);
-
-  format_ = configuration_in.format;
+  format_ = getFormat (configuration_in.inputFormat);
 
   codecFormatHeight_ = configuration_in.sourceFormat.height;
   width = configuration_in.sourceFormat.width;

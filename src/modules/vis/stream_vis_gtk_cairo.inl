@@ -144,10 +144,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
-  if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo)
+  if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo))
     video_info_header_p =
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
-  else if (session_data_r.inputFormat->formattype == FORMAT_VideoInfo2)
+  else if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo2))
     video_info_header_2 =
     reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
   else
@@ -209,8 +209,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //                              width,
 //                              height,
 //                              1); // *TODO*: linesize alignment
-  pixel_format = session_data_r.format;
-  row_stride = av_image_get_linesize (session_data_r.format,
+  pixel_format = session_data_r.inputFormat;
+  row_stride = av_image_get_linesize (session_data_r.inputFormat,
                                       width,
                                       0);
   ACE_UNUSED_ARG (row_stride);

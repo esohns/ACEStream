@@ -176,9 +176,9 @@ struct Stream_CamSave_SessionData
    , resetToken (0)
    , session (NULL)
 #else
-//   , format (AV_PIX_FMT_RGB24) // output-
    , frameRate ()
-   , inputFormat ()
+   , inputFormat (AV_PIX_FMT_NONE)
+   , outputFormat (AV_PIX_FMT_NONE)
    , sourceFormat ()
 #endif // ACE_WIN32 || ACE_WIN64
    , statistic ()
@@ -229,9 +229,9 @@ struct Stream_CamSave_SessionData
   UINT                                resetToken;
   IMFMediaSession*                    session;
 #else
-//  enum AVPixelFormat                  format; // input-
   struct v4l2_fract                   frameRate; // time-per-frame
-  struct v4l2_format                  inputFormat;
+  enum AVPixelFormat                  inputFormat;
+  enum AVPixelFormat                  outputFormat;
   GdkRectangle                        sourceFormat; // gtk cairo/pixbuf module
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_CamSave_StatisticData statistic;

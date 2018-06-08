@@ -173,19 +173,23 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (captureFileDescriptor_ != -1);
-//      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.inputFormat == AV_PIX_FMT_NONE);
 
       int toggle = 1;
 
       // step0: retain current format as session data
+      struct v4l2_format input_format_s;
       if (unlikely (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                            session_data_r.inputFormat)))
+                                                            input_format_s)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
                     captureFileDescriptor_));
         goto error;
       } // end IF
+      session_data_r.inputFormat =
+              Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (input_format_s.fmt.pix.pixelformat);
+      ACE_ASSERT (session_data_r.inputFormat != AV_PIX_FMT_NONE);
 
       // step1: fill buffer queue(s)
       if (likely (captureFileDescriptor_ != -1))
@@ -473,19 +477,19 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inference
     captureFileDescriptor_ =
-        v4l2_open (configuration_in.interfaceIdentifier.c_str (),
+        v4l2_open (configuration_in.deviceIdentifier.c_str (),
                    open_mode);
     if (unlikely (captureFileDescriptor_ == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                  ACE_TEXT (configuration_in.deviceIdentifier.c_str ()),
                   open_mode));
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
-                ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                ACE_TEXT (configuration_in.deviceIdentifier.c_str ()),
                 captureFileDescriptor_));
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
@@ -495,19 +499,19 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                 Stream_Module_Device_Tools::canOverlay (captureFileDescriptor_)))
   {
     overlayFileDescriptor_ =
-        v4l2_open (configuration_in.interfaceIdentifier.c_str (),
+        v4l2_open (configuration_in.deviceIdentifier.c_str (),
                    open_mode);
     if (overlayFileDescriptor_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                  ACE_TEXT (configuration_in.deviceIdentifier.c_str ()),
                   open_mode));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
-                ACE_TEXT (configuration_in.interfaceIdentifier.c_str ()),
+                ACE_TEXT (configuration_in.deviceIdentifier.c_str ()),
                 captureFileDescriptor_));
   } // end IF
 

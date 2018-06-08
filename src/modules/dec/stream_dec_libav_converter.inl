@@ -264,7 +264,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 #else
-  inputFormat_ = configuration_in.format;
+  inputFormat_ = getFormat (configuration_in.inputFormat);
   outputFormat_ = configuration_in.outputFormat;
 #endif
 
@@ -521,7 +521,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     { ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        session_data_r.format =
+        session_data_r.outputFormat =
             ((outputFormat_ == AV_PIX_FMT_NONE) ? STREAM_DECODER_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT
                                                 : outputFormat_);
       } // end lock scope

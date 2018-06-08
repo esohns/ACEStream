@@ -1273,7 +1273,8 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   session_data_p->sourceFormat.width =
       configuration_p->inputFormat.fmt.pix.width;
   session_data_p->frameRate = configuration_p->frameRate;
-  session_data_p->inputFormat = configuration_p->inputFormat;
+  session_data_p->inputFormat =
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (configuration_p->inputFormat.fmt.pix.pixelformat);
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {

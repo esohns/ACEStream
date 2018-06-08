@@ -27,6 +27,7 @@
 
 #include "stream_macros.h"
 
+#include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
 #include "test_u_camsave_callbacks.h"
 

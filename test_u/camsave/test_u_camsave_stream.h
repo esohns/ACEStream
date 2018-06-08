@@ -241,11 +241,6 @@ class Stream_CamSave_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Stream_CamSave_StatisticData&); // return value: statistic data
-  virtual void report () const;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream (const Stream_CamSave_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))

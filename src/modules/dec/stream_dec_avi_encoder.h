@@ -388,8 +388,8 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
-  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); } // return value: media type handle
-  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in, const struct v4l2_format&) { return sessionData_in.frameRate; } // return value: frame rate handle
+  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); }
+  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in, const enum AVPixelFormat&) { return sessionData_in.frameRate; }
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 };

@@ -35,28 +35,20 @@ extern "C"
 
 #include "stream_task_base_synch.h"
 
-//#include "stream_dec_exports.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declaration(s)
-class ACE_Message_Block;
-class Stream_IAllocator;
-//struct AVBuffer {
-//  uint8_t*     data;
-//  int          size;
-//  volatile int refcount;
-//  void (*free)(void* opaque, uint8_t* data);
-//  void*        opaque;
-//  int          flags;
-//};
 struct AVFrame;
 struct SwsContext;
+class ACE_Message_Block;
+class Stream_IAllocator;
 
-//Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[];
 extern const char libacestream_default_dec_libav_decoder_module_name_string[];
 
-//Stream_Dec_Export enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
 enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
-//Stream_Dec_Export void stream_decoder_libav_nopfree_cb (void*, uint8_t*);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -127,6 +119,12 @@ class Stream_Decoder_LibAVDecoder_T
   // helper methods
   DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
                                     unsigned int);                       // requested size
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  template <typename FormatType> const enum AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
+
+  inline const enum AVPixelFormat& getFormat_impl (const struct v4l2_format& format_in) { return Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_in.fmt.pix.pixelformat); }
+#endif // ACE_WIN32 || ACE_WIN64
 
   DataMessageType*       buffer_;
 //  struct AVBuffer        buffer_;

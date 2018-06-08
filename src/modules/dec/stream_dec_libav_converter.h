@@ -36,6 +36,11 @@ extern "C"
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 // forward declaration(s)
 struct AVCodecContext;
 struct AVFrame;
@@ -83,7 +88,7 @@ class Stream_Decoder_LibAVConverter_T
   Stream_Decoder_LibAVConverter_T (ISTREAM_T*); // stream handle
 #else
   Stream_Decoder_LibAVConverter_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Decoder_LibAVConverter_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -113,6 +118,12 @@ class Stream_Decoder_LibAVConverter_T
   // helper methods
   DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
                                     unsigned int);                       // requested size
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  template <typename FormatType> const enum AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
+
+  inline const enum AVPixelFormat& getFormat_impl (const struct v4l2_format& format_in) { return Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_in.fmt.pix.pixelformat); }
+#endif // ACE_WIN32 || ACE_WIN64
 
   DataMessageType*   buffer_;
   struct SwsContext* context_;

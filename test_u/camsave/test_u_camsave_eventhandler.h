@@ -27,7 +27,7 @@
 
 // forward declarations
 struct Stream_CamSave_SessionData;
-struct Test_U_GTK_CBData;
+struct Stream_CamSave_GTK_CBData;
 
 template <typename NotificationType,
           typename DataMessageType,

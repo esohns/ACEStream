@@ -117,7 +117,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                 inherited::sibling ()));
     return;
   } // end IF
-  const SessionDataType& session_data_p = NULL;
+  const SessionDataType* session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (connection_manager_p);
