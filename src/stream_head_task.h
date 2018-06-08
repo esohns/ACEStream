@@ -31,6 +31,7 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class ACE_Time_Value;
+class Stream_IAllocator;
 class Stream_IMessageQueue;
 
 template <ACE_SYNCH_DECL,

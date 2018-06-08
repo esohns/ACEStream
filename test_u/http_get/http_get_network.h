@@ -109,9 +109,9 @@ struct HTTPGet_SocketHandlerConfiguration
 };
 
 struct HTTPGet_ConnectionConfiguration;
-typedef Net_StreamConnectionConfiguration_T<struct HTTPGet_ConnectionConfiguration,
-                                            struct Common_FlexParserAllocatorConfiguration,
-                                            HTTPGet_StreamConfiguration_t> HTTPGet_ConnectionConfiguration_t;
+typedef Net_ConnectionConfiguration_T<struct HTTPGet_ConnectionConfiguration,
+                                      struct Common_FlexParserAllocatorConfiguration,
+                                      HTTPGet_StreamConfiguration_t> HTTPGet_ConnectionConfiguration_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,

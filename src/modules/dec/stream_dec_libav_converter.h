@@ -29,16 +29,17 @@ extern "C"
 #endif /* __cplusplus */
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
+#include "stream_common.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_dec_exports.h"
 
 // forward declaration(s)
 struct AVCodecContext;
-class ACE_Message_Block;
+struct AVFrame;
+struct SwsContext;
 class Stream_IAllocator;
 
 extern const char libacestream_default_dec_libav_converter_module_name_string[];

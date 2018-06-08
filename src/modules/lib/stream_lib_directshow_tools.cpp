@@ -548,7 +548,7 @@ Stream_MediaFramework_DirectShow_Tools::removeFromROT (DWORD id_in)
                 ACE_TEXT ("removed filter graph from running object table (id was: %d)\n"),
                 id_in));
 
-  ROT_p->Release ();
+  ROT_p->Release (); ROT_p = NULL;
 
   return true;
 } // end IF

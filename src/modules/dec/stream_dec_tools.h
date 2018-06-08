@@ -27,6 +27,7 @@
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavcodec/avcodec.h"
 #include "libavutil/pixdesc.h"
 }
 #endif /* __cplusplus */
@@ -53,7 +54,6 @@ extern "C"
 #include "stream_dec_common.h"
 
 // forward declarations
-enum AVCodecID;
 enum AVPixelFormat;
 struct SwsContext;
 

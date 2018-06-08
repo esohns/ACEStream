@@ -108,9 +108,9 @@ struct Test_I_HTTPGet_ConnectionConfiguration
 
   struct Test_I_HTTPGet_UserData*                  userData;
 };
-typedef Net_StreamConnectionConfiguration_T<struct Test_I_HTTPGet_ConnectionConfiguration,
-                                            struct Common_FlexParserAllocatorConfiguration,
-                                            Test_I_StreamConfiguration_t> Test_I_HTTPGet_ConnectionConfiguration_t;
+typedef Net_ConnectionConfiguration_T<struct Test_I_HTTPGet_ConnectionConfiguration,
+                                      struct Common_FlexParserAllocatorConfiguration,
+                                      Test_I_StreamConfiguration_t> Test_I_HTTPGet_ConnectionConfiguration_t;
 typedef std::map<std::string,
                  Test_I_HTTPGet_ConnectionConfiguration_t> Test_I_HTTPGet_ConnectionConfigurations_t;
 typedef Test_I_HTTPGet_ConnectionConfigurations_t::iterator Test_I_HTTPGet_ConnectionConfigurationIterator_t;

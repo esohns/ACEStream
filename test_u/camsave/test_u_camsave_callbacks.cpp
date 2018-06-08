@@ -355,7 +355,6 @@ error_2:
   ACE_DIRENT* dirent_p = NULL;
   int file_descriptor = -1;
   int open_mode = O_RDONLY;
-  GtkTreeIter iterator;
   for (unsigned int i = 0;
        i < static_cast<unsigned int> (entries.length ());
        ++i)
@@ -392,7 +391,7 @@ error_2:
       goto close;
     } // end IF
 
-    listbox_entries_a.push_back (std::make_pair (device_capabilities.card,
+    listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
                                                  device_filename));
 
 close:
@@ -1429,10 +1428,10 @@ set_capture_format (struct Stream_CamSave_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_GTK_CBData*> (CBData_in);
+  struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -1626,10 +1625,10 @@ update_buffer_size (struct Stream_CamSave_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_GTK_CBData*> (CBData_in);
+  struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -2172,14 +2171,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_GTK_CBData*> (data_base_p);
+  struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
   filename_string = (*iterator_2).second.second.targetFileName;
-  is_fullscreen_b = (*stream_iterator).second.second.fullScreen;
+  is_fullscreen_b = (*iterator_2).second.second.fullScreen;
   buffer_size_i =
     cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
 #endif
@@ -2549,24 +2548,27 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
-  struct Stream_CamSave_GTK_CBData* data_p =
-    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
+//  struct Stream_CamSave_GTK_CBData* cb_data_base_p =
+//    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p);
+//  // sanity check(s)
+//  ACE_ASSERT (cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (userData_in);
+
   // clean up
   int result = -1;
-  if (data_p->fileDescriptor != -1)
+  if (cb_data_p->fileDescriptor != -1)
   {
-    result = v4l2_close (data_p->fileDescriptor);
+    result = v4l2_close (cb_data_p->fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  data_p->fileDescriptor));
-    data_p->fileDescriptor = -1;
+                  cb_data_p->fileDescriptor));
+    cb_data_p->fileDescriptor = -1;
   } // end IF
 #endif
 
@@ -3104,7 +3106,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
   stream_p = cb_data_p->stream;
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -3230,8 +3232,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (data_base_p->fileDescriptor != -1)
-    (*iterator_2).second.second.fileDescriptor = data_base_p->fileDescriptor;
+  if (cb_data_p->fileDescriptor != -1)
+    (*iterator_2).second.second.fileDescriptor = cb_data_p->fileDescriptor;
 #endif
 
   //GtkFileChooserButton* file_chooser_button_p =
@@ -3517,7 +3519,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -3657,7 +3659,7 @@ toggleaction_fullscreen_toggled_cb (GtkToggleAction* toggleAction_in,
   stream_base_p = cb_data_p->stream;
   stream_p = cb_data_p->stream;
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
   (*iterator_2).second.second.fullScreen = is_active;
@@ -3962,15 +3964,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
-  struct Stream_CamSave_GTK_CBData* data_base_p =
+  struct Stream_CamSave_GTK_CBData* cb_data_base_p =
     static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (cb_data_base_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+    cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   Stream_IStream_t* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3979,12 +3981,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_MediaFoundation_GTK_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (cb_data_base_p);
       stream_p = directshow_cb_data_p->stream;
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
@@ -3995,7 +3997,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (cb_data_base_p);
       stream_p = mediafoundation_cb_data_p->stream;
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
@@ -4007,21 +4009,21 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (cb_data_base_p);
   stream_p = cb_data_p->stream;
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
   ACE_ASSERT (stream_p);
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -4232,38 +4234,38 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  int result = -1;
-  if (data_p->fileDescriptor != -1)
+  int result_2 = -1;
+  if (cb_data_p->fileDescriptor != -1)
   {
-    result = v4l2_close (data_p->fileDescriptor);
-    if (result == -1)
+    result_2 = v4l2_close (cb_data_p->fileDescriptor);
+    if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  data_p->fileDescriptor));
+                  cb_data_p->fileDescriptor));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed v4l2 device (fd was: %d)...\n"),
-                data_p->fileDescriptor));
-    data_p->fileDescriptor = -1;
+                cb_data_p->fileDescriptor));
+    cb_data_p->fileDescriptor = -1;
   } // end IF
-  ACE_ASSERT (data_p->fileDescriptor == -1);
+  ACE_ASSERT (cb_data_p->fileDescriptor == -1);
   int open_mode =
       (((*iterator_2).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                     : O_RDONLY);
-  data_p->fileDescriptor = v4l2_open (device_path.c_str (),
-                                      open_mode);
-  if (data_p->fileDescriptor == -1)
+  cb_data_p->fileDescriptor = v4l2_open (device_identifier_string.c_str (),
+                                         open_mode);
+  if (cb_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (device_path.c_str ()), open_mode));
+                ACE_TEXT (device_identifier_string.c_str ()), open_mode));
     return;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
-              ACE_TEXT (device_path.c_str ()),
-              data_p->fileDescriptor));
+              ACE_TEXT (device_identifier_string.c_str ()),
+              cb_data_p->fileDescriptor));
 
-  result = load_formats (data_p->fileDescriptor,
+  result = load_formats (cb_data_p->fileDescriptor,
                          list_store_p);
 #endif
   if (!result)
@@ -4298,15 +4300,15 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
 
-  struct Stream_CamSave_GTK_CBData* data_base_p =
+  struct Stream_CamSave_GTK_CBData* cb_data_base_p =
     static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (cb_data_base_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+    cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_GTK_CBData* directshow_cb_data_p = NULL;
@@ -4314,12 +4316,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_MediaFoundation_GTK_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4329,7 +4331,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4340,19 +4342,19 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -4521,8 +4523,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*iterator_2).second.second.format =
-      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_i);
+//  (*iterator_2).second.second.inputFormat =
+//      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_i);
   (*iterator_2).second.second.inputFormat.fmt.pix.pixelformat = format_i;
 #endif
 
@@ -4564,9 +4566,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  result = load_resolutions (data_p->fileDescriptor,
+  result = load_resolutions (cb_data_p->fileDescriptor,
                              format_i,
-                             list_store_p))
+                             list_store_p);
 #endif
   if (!result)
   {
@@ -4577,7 +4579,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
-                data_p->fileDescriptor,
+                cb_data_p->fileDescriptor,
                 format_i));
 #endif
     return;
@@ -4602,15 +4604,15 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
 
-  struct Stream_CamSave_GTK_CBData* data_base_p =
+  struct Stream_CamSave_GTK_CBData* cb_data_base_p =
     static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (cb_data_base_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+    cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_GTK_CBData* directshow_cb_data_p = NULL;
@@ -4618,12 +4620,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_MediaFoundation_GTK_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4633,7 +4635,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4644,19 +4646,19 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   GtkTreeIter iterator_3;
   GtkComboBox* combo_box_p =
@@ -4905,10 +4907,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  result = load_rates (data_p->fileDescriptor,
+  result = load_rates (cb_data_p->fileDescriptor,
                        format_i,
                        width, height,
-                       list_store_p))
+                       list_store_p);
 #endif
   if (!result)
   {
@@ -4920,7 +4922,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(%d,%u,%u,%u), returning\n"),
-                data_p->fileDescriptor,
+                cb_data_p->fileDescriptor,
                 format_i,
                 width, height));
 #endif
@@ -4929,7 +4931,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-  if (n_rows)
+  if (!!n_rows)
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -4946,15 +4948,15 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_rate_changed_cb"));
 
-  struct Stream_CamSave_GTK_CBData* data_base_p =
+  struct Stream_CamSave_GTK_CBData* cb_data_base_p =
     static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (cb_data_base_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+    cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_GTK_CBData* directshow_cb_data_p = NULL;
@@ -4962,12 +4964,12 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   struct Stream_CamSave_MediaFoundation_GTK_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_DirectShow_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4977,7 +4979,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (data_base_p);
+        static_cast<struct Stream_CamSave_MediaFoundation_GTK_CBData*> (cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4988,19 +4990,19 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
-    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
+    static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -5191,8 +5193,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     frame_interval_denominator;
   (*iterator_2).second.second.frameRate.denominator = frame_interval;
 #endif
-  set_capture_format (data_base_p);
-  update_buffer_size (data_base_p);
+  set_capture_format (cb_data_base_p);
+  update_buffer_size (cb_data_base_p);
 } // combobox_rate_changed_cb
 
 gboolean
@@ -5376,7 +5378,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -5572,8 +5574,8 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     //                  static_cast<gchar*> (value)));
 
     // sanity check(s)
-    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (data_base_p->pixelBuffer) == 8);
-    ACE_ASSERT (gdk_pixbuf_get_colorspace (data_base_p->pixelBuffer) == GDK_COLORSPACE_RGB);
+    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (cb_data_p->pixelBuffer) == 8);
+    ACE_ASSERT (gdk_pixbuf_get_colorspace (cb_data_p->pixelBuffer) == GDK_COLORSPACE_RGB);
 //    ACE_ASSERT (gdk_pixbuf_get_n_channels (data_base_p->pixelBuffer) == 3);
 
 //    if (!gdk_pixbuf_get_has_alpha (data_p->pixelBuffer))
@@ -5587,7 +5589,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 //    } // end IF
 //    // sanity check(s)
 //    ACE_ASSERT (gdk_pixbuf_get_has_alpha (data_p->pixelBuffer));
-    ACE_ASSERT (gdk_pixbuf_get_n_channels (data_base_p->pixelBuffer) == 4);
+    ACE_ASSERT (gdk_pixbuf_get_n_channels (cb_data_p->pixelBuffer) == 4);
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    switch (data_base_p->mediaFramework)
@@ -5675,7 +5677,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
-  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 #endif

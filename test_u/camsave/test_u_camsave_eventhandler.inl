@@ -23,6 +23,8 @@
 
 #include "gtk/gtk.h"
 
+#include "common_ui_common.h"
+
 #include "stream_macros.h"
 
 #include "test_u_camsave_defines.h"

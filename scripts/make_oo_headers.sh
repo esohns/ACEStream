@@ -1,6 +1,6 @@
 #!/bin/sh
 # //%%%FILE%%%////////////////////////////////////////////////////////////////////
-# // File Name: exports.sh
+# // File Name: make_oo_headers.sh
 # //
 # // History:
 # //   Date   |Name | Description of modification
@@ -65,16 +65,16 @@ fi
 #fi
 
 echo generating headers from \"${TYPES_RDB}\"...
-${CPPUMAKER} -C -O ${OO_SDK_INCLUDE} ${TYPES_RDB}
+${CPPUMAKER} -C -O ${OO_SDK_INCLUDE} ${TYPES_RDB} ${OFFAPI_TYPES_RDB}
 if [ $? -ne 0 ]; then
  echo "ERROR: failed to cppumaker \"$(basename ${TYPES_RDB})\": $?, aborting"
  exit 1
 fi
-echo generating headers from \"${OFFAPI_TYPES_RDB}\"...
-${CPPUMAKER} -C -O ${OO_SDK_INCLUDE} ${OFFAPI_TYPES_RDB}
-if [ $? -ne 0 ]; then
- echo "ERROR: failed to cppumaker \"$(basename ${OFFAPI_TYPES_RDB})\": $?, aborting"
- exit 1
-fi
+#echo generating headers from \"${OFFAPI_TYPES_RDB}\"...
+#${CPPUMAKER} -C -O ${OO_SDK_INCLUDE} ${OFFAPI_TYPES_RDB}
+#if [ $? -ne 0 ]; then
+# echo "ERROR: failed to cppumaker \"$(basename ${OFFAPI_TYPES_RDB})\": $?, aborting"
+# exit 1
+#fi
 echo generating headers...DONE
 

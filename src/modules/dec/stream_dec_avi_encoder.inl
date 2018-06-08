@@ -62,6 +62,8 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#else
+#include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
@@ -2325,10 +2327,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (formatContext_->oformat);
 
       formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (session_data_r.format)
+      enum AVPixelFormat pixel_format_e =
+          Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (session_data_r.inputFormat.fmt.pix.pixelformat);
+      switch (pixel_format_e)
       {
         // RGB formats
-        case AV_PIX_FMT_RGB24:
+        case AV_PIX_FMT_BGR24:
         case AV_PIX_FMT_RGB24:
 //        case V4L2_PIX_FMT_BGR24:
 //        case V4L2_PIX_FMT_RGB24:
@@ -2361,7 +2365,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: invalid/unknown pixel format (was: %s), returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (session_data_r.format).c_str ())));
+                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixel_format_e).c_str ())));
           goto error;
         }
       } // end SWITCH
@@ -2397,7 +2401,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
 
       codec_context_p->bit_rate =
-          (av_image_get_buffer_size (session_data_r.format,
+          (av_image_get_buffer_size (pixel_format_e,
                                      session_data_r.sourceFormat.width,
                                      session_data_r.sourceFormat.height,
                                      1) * // *TODO*: linesize alignment
@@ -2410,7 +2414,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       codec_context_p->time_base.den = frame_rate_s.numerator;
 //      codec_context_p->gop_size = 10;
 //      codec_context_p->max_b_frames = 1;
-      codec_context_p->pix_fmt = session_data_r.format;
+      codec_context_p->pix_fmt = pixel_format_e;
 
       // transform v4l format to libavformat type (AVPixelFormat)
 //      switch (format_p->fmt.pix.pixelformat)
@@ -2482,7 +2486,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
-          (av_image_get_buffer_size (session_data_r.format,
+          (av_image_get_buffer_size (pixel_format_e,
                                      session_data_r.sourceFormat.width,
                                      session_data_r.sourceFormat.height,
                                      1) * // *TODO*: linesize alignment

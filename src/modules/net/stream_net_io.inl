@@ -117,6 +117,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                 inherited::sibling ()));
     return;
   } // end IF
+  const SessionDataType& session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (connection_manager_p);
@@ -124,18 +125,18 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   if (unlikely (!sibling_task_p->sessionData_))
     goto continue_; // something went wrong: session aborted ?
 
-  const SessionDataType& session_data_r = sibling_task_p->sessionData_->getR ();
+  session_data_p = &sibling_task_p->sessionData_->getR ();
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (session_data_r.lock);
+  ACE_ASSERT (session_data_p->lock);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-    ACE_ASSERT (!session_data_r.connectionStates.empty ());
-    ACE_ASSERT (session_data_r.connectionStates.size () == 1);
-    ACE_ASSERT ((*session_data_r.connectionStates.begin ()).first != ACE_INVALID_HANDLE);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
+    ACE_ASSERT (!session_data_p->connectionStates.empty ());
+    ACE_ASSERT (session_data_p->connectionStates.size () == 1);
+    ACE_ASSERT ((*session_data_p->connectionStates.begin ()).first != ACE_INVALID_HANDLE);
     connection_p =
-      connection_manager_p->get ((*session_data_r.connectionStates.begin ()).first);
+      connection_manager_p->get ((*session_data_p->connectionStates.begin ()).first);
   } // end lock scope
   if (unlikely (!connection_p))
   {
@@ -143,12 +144,12 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
                 inherited::mod_->name (),
-                (*session_data_r.connectionStates.begin ()).first));
+                (*session_data_p->connectionStates.begin ()).first));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
                 inherited::mod_->name (),
-                (*session_data_r.connectionStates.begin ()).first));
+                (*session_data_p->connectionStates.begin ()).first));
 #endif
     return;
   } // end IF

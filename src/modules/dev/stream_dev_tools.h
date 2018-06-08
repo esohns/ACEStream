@@ -35,8 +35,9 @@
 #include <strmif.h>
 #include <windef.h>
 #else
-#include <alsa/asoundlib.h>
 #include <linux/videodev2.h>
+
+#include "alsa/asoundlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

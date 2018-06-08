@@ -165,8 +165,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
         }
       } // end SWITCH
 #else
-      CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                           false); // N/A
+      CAMSAVE_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                        false); // N/A
 #endif
     } // end IF
   } // end IF

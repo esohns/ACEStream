@@ -1232,7 +1232,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   bool reset_setup_pipeline = false;
   struct Stream_CamSave_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p = NULL;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_CamSave_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -1262,7 +1262,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   ACE_ASSERT (iterator != configuration_in.end ());
 
   configuration_p =
-      dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> (&(*iterator).second.second);
+      dynamic_cast<struct Stream_CamSave_V4L_ModuleHandlerConfiguration*> (&(*iterator).second.second);
 
   // sanity check(s)
   ACE_ASSERT (configuration_p);
@@ -1290,7 +1290,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_p->format = configuration_p->format;
+//  session_data_p->format = configuration_p->inputFormat;
   session_data_p->targetFileName = configuration_p->targetFileName;
 
   // ---------------------------------------------------------------------------

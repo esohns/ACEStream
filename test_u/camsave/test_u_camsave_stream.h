@@ -205,7 +205,7 @@ class Stream_CamSave_Stream
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Stream_CamSave_ModuleHandlerConfiguration,
+                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
                         struct Stream_CamSave_SessionData, // session data
                         Stream_CamSave_SessionData_t,      // session data container (reference counted)
                         Test_U_ControlMessage_t,
@@ -223,7 +223,7 @@ class Stream_CamSave_Stream
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Stream_CamSave_ModuleHandlerConfiguration,
+                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
                         struct Stream_CamSave_SessionData,
                         Stream_CamSave_SessionData_t,
                         Test_U_ControlMessage_t,
@@ -259,6 +259,6 @@ class Stream_CamSave_Stream
   Stream_CamSave_V4L2_AVIEncoder_Module encoder_;
   Stream_CamSave_FileWriter_Module      fileWriter_;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

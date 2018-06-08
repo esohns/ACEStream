@@ -179,9 +179,9 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../lib)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 
 ############## next target ################
 set (source_files

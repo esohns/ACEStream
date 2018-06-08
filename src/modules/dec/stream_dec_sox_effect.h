@@ -26,7 +26,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "sox.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -37,12 +37,12 @@
 
 #include "stream_dev_common.h"
 
-#include "stream_dec_exports.h"
-
-extern Stream_Dec_Export const char libacestream_default_dec_sox_effect_module_name_string[];
+extern const char libacestream_default_dec_sox_effect_module_name_string[];
 
 // forward declarations
+struct v4l2_format;
 class ACE_Message_Block;
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -100,7 +100,7 @@ class Stream_Decoder_SoXEffect_T
   template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
 #else
   template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T (const Stream_Decoder_SoXEffect_T&))
@@ -112,7 +112,7 @@ class Stream_Decoder_SoXEffect_T
 #else
   struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
   inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Message_Block*          buffer_;
   struct sox_effects_chain_t* chain_;

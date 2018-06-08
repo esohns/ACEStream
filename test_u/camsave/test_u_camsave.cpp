@@ -163,11 +163,11 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     //unsigned int& bufferSize_out,
+                     std::string& deviceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
-                     std::string& deviceIdentifier_out,
+                     std::string& interfaceIdentifier_out,
 #endif
                      std::string& targetFileName_out,
                      std::string& UIFile_out,
@@ -203,6 +203,7 @@ do_processArguments (int argc_in,
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
+  interfaceIdentifier_out.clear ();
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -266,6 +267,16 @@ do_processArguments (int argc_in,
           UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
           UIFile_out.clear ();
+        break;
+      }
+      case 'i':
+      {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_ASSERT (false); // *TODO*
+#else
+        interfaceIdentifier_out =
+            ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+#endif
         break;
       }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -850,12 +861,11 @@ do_finalize_mediafoundation (struct Stream_CamSave_MediaFoundation_GTK_CBData& C
 
 void
 do_work (const std::string& deviceIdentifier_in,
-         //unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
          const std::string& interfaceIdentifier_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
          const std::string& UIDefinitionFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -866,8 +876,8 @@ do_work (const std::string& deviceIdentifier_in,
          struct Stream_CamSave_DirectShow_GTK_CBData& directShowCBData_in,
          struct Stream_CamSave_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
 #else
-         struct Stream_CamSave_GTK_CBData& CBData_in,
-#endif
+         struct Stream_CamSave_V4L_GTK_CBData& CBData_in,
+#endif // ACE_WIN32 || ACE_WIN64
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -883,9 +893,9 @@ do_work (const std::string& deviceIdentifier_in,
   struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
 #else
-  struct Stream_CamSave_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   Stream_CamSave_EventHandler_t ui_event_handler (&CBData_in);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
@@ -940,9 +950,10 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   ACE_ASSERT (CBData_in.configuration);
 
-  modulehandler_configuration.interfaceIdentifier = interfaceIdentifier_in;
+  modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
   // *TODO*: turn these into an option
   modulehandler_configuration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
@@ -1055,8 +1066,8 @@ do_work (const std::string& deviceIdentifier_in,
                                                        &heap_allocator,     // heap allocator handle
                                                        true);               // block ?
   Stream_CamSave_Stream stream;
-  Stream_CamSave_Module_EventHandler_Module event_handler (&stream,
-                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CamSave_MessageHandler_Module message_handler (&stream,
+                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
@@ -1071,9 +1082,9 @@ do_work (const std::string& deviceIdentifier_in,
                                                            modulehandler_configuration,
                                                            CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
                                                            CBData_in.configuration->streamConfiguration.configuration_);
-  stream_iterator =
+  v4l_stream_iterator =
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != CBData_in.configuration->streamConfiguration.end ());
+  ACE_ASSERT (v4l_stream_iterator != CBData_in.configuration->streamConfiguration.end ());
 
   if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
@@ -1468,14 +1479,14 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   //unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
+  std::string device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
-  std::string device_identifier;
 #else
-  std::string device_filename =
+  device_identifier =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  device_filename += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+  device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_identifier += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
 #endif
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1489,6 +1500,7 @@ ACE_TMAIN (int argc_in,
   UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
   bool log_to_file = false;
+  std::string interface_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
     MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -1503,18 +1515,18 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
-                            //buffer_size,
+                            device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #else
-                            device_filename,
-#endif
+                            interface_identifier,
+#endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
                             UI_definition_filename,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                             statistic_reporting_interval,
                             trace_information,
                             print_version_and_exit))
@@ -1608,7 +1620,7 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Stream_CamSave_Configuration configuration;
-  struct Stream_CamSave_GTK_CBData gtk_cb_data;
+  struct Stream_CamSave_V4L_GTK_CBData gtk_cb_data;
   gtk_cb_data.configuration = &configuration;
   gtk_cb_data.progressData.state = &gtk_cb_data;
 
@@ -1809,7 +1821,7 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
 #else
     gtk_manager_p =
-      CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ();
+      CAMSAVE_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
     result_2 = gtk_manager_p->initialize (argc_in,
                                           argv_in,
@@ -1843,24 +1855,23 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (device_identifier,
-           //buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else
-           device_filename,
-#endif
+           interface_identifier,
+#endif // ACE_WIN32 || ACE_WIN64
            target_filename,
            UI_definition_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
            statistic_reporting_interval,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_gtk_cb_data,
            mediafoundation_gtk_cb_data,
 #else
            gtk_cb_data,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

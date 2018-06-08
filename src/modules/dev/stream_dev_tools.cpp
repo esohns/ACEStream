@@ -617,9 +617,9 @@ Stream_Module_Device_Tools::dump (int fd_in)
 }
 
 std::string
-Stream_Module_Device_Tools::getALSAdeviceIdentifier (enum _snd_pcm_stream direction_in)
+Stream_Module_Device_Tools::getALSADeviceName (enum _snd_pcm_stream direction_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getALSAdeviceIdentifier"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getALSADeviceName"));
 
   std::string result_string;
 

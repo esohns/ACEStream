@@ -21,6 +21,8 @@
 #ifdef __cplusplus
 extern "C"
 {
+#include "libavcodec/avcodec.h"
+#include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
 #include "libswscale/swscale.h"
 }
@@ -375,7 +377,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
     AV_INPUT_BUFFER_PADDING_SIZE;
 #else
     FF_INPUT_BUFFER_PADDING_SIZE;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
