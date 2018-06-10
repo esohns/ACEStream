@@ -123,6 +123,7 @@ class Stream_Decoder_LibAVDecoder_T
 #else
   template <typename FormatType> const enum AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
 
+  inline const enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat& format_in) { return format_in; }
   inline const enum AVPixelFormat& getFormat_impl (const struct v4l2_format& format_in) { return Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_in.fmt.pix.pixelformat); }
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -1507,7 +1507,7 @@ ACE_TMAIN (int argc_in,
   gtk_cb_data_p = &gtk_cb_data;
   gtk_cb_data.configuration = &configuration;
   use_reactor =
-      (configuration.signalHandlerConfiguration.dispatch == COMMON_EVENT_DISPATCH_REACTOR);
+      (configuration.dispatchConfiguration.numberOfProactorThreads == 0);
 #endif
   ACE_ASSERT (gtk_cb_data_p);
 #if GTK_CHECK_VERSION (3,0,0)

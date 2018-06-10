@@ -1672,6 +1672,262 @@ Stream_Module_Device_Tools::formatToString (const struct _snd_pcm_hw_params* for
   return result;
 }
 
+struct v4l2_format
+Stream_Module_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::v4l2FormatToffmpegFormat"));
+
+  struct v4l2_format result;
+  ACE_OS::memset (&result, 0, sizeof (struct v4l2_format));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_YUV420P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; break;
+    case AV_PIX_FMT_YUYV422:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; break;
+    case AV_PIX_FMT_RGB24:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24; break;
+    case AV_PIX_FMT_BGR24:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24; break;
+    case AV_PIX_FMT_YUV422P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P; break;
+    case AV_PIX_FMT_YUV444P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV444; break;
+    case AV_PIX_FMT_YUV410P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV410; break;
+    case AV_PIX_FMT_YUV411P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV411P; break;
+    case AV_PIX_FMT_GRAY8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY; break;
+//    case AV_PIX_FMT_MONOWHITE:
+//    case AV_PIX_FMT_MONOBLACK:
+    case AV_PIX_FMT_PAL8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_PAL8; break;
+//    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUVJ422P:
+      // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; break;
+//    case AV_PIX_FMT_YUVJ444P:
+//    case AV_PIX_FMT_XVMC_MPEG2_MC:
+//    case AV_PIX_FMT_XVMC_MPEG2_IDCT:
+//    case AV_PIX_FMT_XVMC:
+    case AV_PIX_FMT_UYVY422:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY; break;
+//    case AV_PIX_FMT_UYYVYY411:
+//    case AV_PIX_FMT_BGR8:
+//    case AV_PIX_FMT_BGR4:
+//    case AV_PIX_FMT_BGR4_BYTE:
+//    case AV_PIX_FMT_RGB8:
+//    case AV_PIX_FMT_RGB4:
+//    case AV_PIX_FMT_RGB4_BYTE:
+    case AV_PIX_FMT_NV12:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12; break;
+    case AV_PIX_FMT_NV21:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV21; break;
+    case AV_PIX_FMT_ARGB:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_ARGB32; break;
+    case AV_PIX_FMT_RGBA:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32; break;
+    case AV_PIX_FMT_ABGR:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_ABGR32; break;
+    case AV_PIX_FMT_BGRA:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32; break;
+    case AV_PIX_FMT_GRAY16BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16_BE; break;
+    case AV_PIX_FMT_GRAY16LE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16; break;
+//    case AV_PIX_FMT_YUV440P:
+//    case AV_PIX_FMT_YUVJ440P:
+    case AV_PIX_FMT_YUVA420P:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; break;
+//    case AV_PIX_FMT_VDPAU_H264:
+//    case AV_PIX_FMT_VDPAU_MPEG1:
+//    case AV_PIX_FMT_VDPAU_MPEG2:
+//    case AV_PIX_FMT_VDPAU_WMV3:
+//    case AV_PIX_FMT_VDPAU_VC1:
+//     case AV_PIX_FMT_RGB48BE:
+//     case AV_PIX_FMT_RGB48LE:
+     case AV_PIX_FMT_RGB565BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X; break;
+    case AV_PIX_FMT_RGB565LE:
+     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565; break;
+    case AV_PIX_FMT_RGB555BE:
+     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB555X; break;
+    case AV_PIX_FMT_RGB555LE:
+     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB555; break;
+//    case AV_PIX_FMT_BGR565BE:
+//    case AV_PIX_FMT_BGR565LE:
+//    case AV_PIX_FMT_BGR555BE:
+//    case AV_PIX_FMT_BGR555LE:
+//    case AV_PIX_FMT_VAAPI_MOCO:
+//    case AV_PIX_FMT_VAAPI_IDCT:
+//    case AV_PIX_FMT_VAAPI_VLD:
+//    case AV_PIX_FMT_VAAPI:
+//    case AV_PIX_FMT_YUV420P16LE:
+//    case AV_PIX_FMT_YUV420P16BE:
+//    case AV_PIX_FMT_YUV422P16LE:
+//    case AV_PIX_FMT_YUV422P16BE:
+//    case AV_PIX_FMT_YUV444P16LE:
+//    case AV_PIX_FMT_YUV444P16BE:
+//    case AV_PIX_FMT_VDPAU_MPEG4:
+//    case AV_PIX_FMT_DXVA2_VLD:
+    case AV_PIX_FMT_RGB444LE:
+    case AV_PIX_FMT_RGB444BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB444; break;
+//    case AV_PIX_FMT_BGR444LE:
+//    case AV_PIX_FMT_BGR444BE:
+//    case AV_PIX_FMT_YA8:
+//    case AV_PIX_FMT_Y400A:
+//    case AV_PIX_FMT_GRAY8A:
+//    case AV_PIX_FMT_BGR48BE:
+//    case AV_PIX_FMT_BGR48LE:
+//    case AV_PIX_FMT_YUV420P9BE:
+//    case AV_PIX_FMT_YUV420P9LE:
+//    case AV_PIX_FMT_YUV420P10BE:
+//    case AV_PIX_FMT_YUV420P10LE:
+//    case AV_PIX_FMT_YUV422P10BE:
+//    case AV_PIX_FMT_YUV422P10LE:
+//    case AV_PIX_FMT_YUV444P9BE:
+//    case AV_PIX_FMT_YUV444P9LE:
+//    case AV_PIX_FMT_YUV444P10BE:
+//    case AV_PIX_FMT_YUV444P10LE:
+//    case AV_PIX_FMT_YUV422P9BE:
+//    case AV_PIX_FMT_YUV422P9LE:
+//    case AV_PIX_FMT_VDA_VLD:
+//    case AV_PIX_FMT_GBRP:
+//    case AV_PIX_FMT_GBR24P:
+//    case AV_PIX_FMT_GBRP9BE:
+//    case AV_PIX_FMT_GBRP9LE:
+//    case AV_PIX_FMT_GBRP10BE:
+//    case AV_PIX_FMT_GBRP10LE:
+//    case AV_PIX_FMT_GBRP16BE:
+//    case AV_PIX_FMT_GBRP16LE:
+//    case AV_PIX_FMT_YUVA422P:
+//    case AV_PIX_FMT_YUVA444P:
+//    case AV_PIX_FMT_YUVA420P9BE:
+//    case AV_PIX_FMT_YUVA420P9LE:
+//    case AV_PIX_FMT_YUVA422P9BE:
+//    case AV_PIX_FMT_YUVA422P9LE:
+//    case AV_PIX_FMT_YUVA444P9BE:
+//    case AV_PIX_FMT_YUVA444P9LE:
+//    case AV_PIX_FMT_YUVA420P10BE:
+//    case AV_PIX_FMT_YUVA420P10LE:
+//    case AV_PIX_FMT_YUVA422P10BE:
+//    case AV_PIX_FMT_YUVA422P10LE:
+//    case AV_PIX_FMT_YUVA444P10BE:
+//    case AV_PIX_FMT_YUVA444P10LE:
+//    case AV_PIX_FMT_YUVA420P16BE:
+//    case AV_PIX_FMT_YUVA420P16LE:
+//    case AV_PIX_FMT_YUVA422P16BE:
+//    case AV_PIX_FMT_YUVA422P16LE:
+//    case AV_PIX_FMT_YUVA444P16BE:
+//    case AV_PIX_FMT_YUVA444P16LE:
+//    case AV_PIX_FMT_VDPAU:
+//    case AV_PIX_FMT_XYZ12LE:
+//    case AV_PIX_FMT_XYZ12BE:
+    case AV_PIX_FMT_NV16:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV16; break;
+//    case AV_PIX_FMT_NV20LE:
+//    case AV_PIX_FMT_NV20BE:
+//    case AV_PIX_FMT_RGBA64BE:
+//    case AV_PIX_FMT_RGBA64LE:
+//    case AV_PIX_FMT_BGRA64BE:
+//    case AV_PIX_FMT_BGRA64LE:
+    case AV_PIX_FMT_YVYU422:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YVYU; break;
+//    case AV_PIX_FMT_VDA:
+//    case AV_PIX_FMT_YA16BE:
+//    case AV_PIX_FMT_YA16LE:
+//    case AV_PIX_FMT_GBRAP:
+//    case AV_PIX_FMT_GBRAP16BE:
+//    case AV_PIX_FMT_GBRAP16LE:
+//    case AV_PIX_FMT_QSV:
+//    case AV_PIX_FMT_MMAL:
+//    case AV_PIX_FMT_D3D11VA_VLD:
+//    case AV_PIX_FMT_CUDA:
+//    case AV_PIX_FMT_0RGB:
+//    case AV_PIX_FMT_RGB0:
+//    case AV_PIX_FMT_0BGR:
+//    case AV_PIX_FMT_BGR0:
+//    case AV_PIX_FMT_YUV420P12BE:
+//    case AV_PIX_FMT_YUV420P12LE:
+//    case AV_PIX_FMT_YUV420P14BE:
+//    case AV_PIX_FMT_YUV420P14LE:
+//    case AV_PIX_FMT_YUV422P12BE:
+//    case AV_PIX_FMT_YUV422P12LE:
+//    case AV_PIX_FMT_YUV422P14BE:
+//    case AV_PIX_FMT_YUV422P14LE:
+//    case AV_PIX_FMT_YUV444P12BE:
+//    case AV_PIX_FMT_YUV444P12LE:
+//    case AV_PIX_FMT_YUV444P14BE:
+//    case AV_PIX_FMT_YUV444P14LE:
+//    case AV_PIX_FMT_GBRP12BE:
+//    case AV_PIX_FMT_GBRP12LE:
+//    case AV_PIX_FMT_GBRP14BE:
+//    case AV_PIX_FMT_GBRP14LE:
+//    case AV_PIX_FMT_YUVJ411P:
+    case AV_PIX_FMT_BAYER_BGGR8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8; break;
+    case AV_PIX_FMT_BAYER_RGGB8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8; break;
+    case AV_PIX_FMT_BAYER_GBRG8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGBRG8; break;
+    case AV_PIX_FMT_BAYER_GRBG8:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGRBG8; break;
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_BGGR16BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR16; break;
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_RGGB16BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB16; break;
+    case AV_PIX_FMT_BAYER_GBRG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGBRG16; break;
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GRBG16BE:
+      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGRBG16; break;
+////     case AV_PIX_FMT_XVMC:
+//    case AV_PIX_FMT_YUV440P10LE:
+//    case AV_PIX_FMT_YUV440P10BE:
+//    case AV_PIX_FMT_YUV440P12LE:
+//    case AV_PIX_FMT_YUV440P12BE:
+//    case AV_PIX_FMT_AYUV64LE:
+//    case AV_PIX_FMT_AYUV64BE:
+//    case AV_PIX_FMT_VIDEOTOOLBOX:
+//    case AV_PIX_FMT_P010LE:
+//    case AV_PIX_FMT_P010BE:
+//    case AV_PIX_FMT_GBRAP12BE:
+//    case AV_PIX_FMT_GBRAP12LE:
+//    case AV_PIX_FMT_GBRAP10BE:
+//    case AV_PIX_FMT_GBRAP10LE:
+//    case AV_PIX_FMT_MEDIACODEC:
+//    case AV_PIX_FMT_GRAY12BE:
+//    case AV_PIX_FMT_GRAY12LE:
+//    case AV_PIX_FMT_GRAY10BE:
+//    case AV_PIX_FMT_GRAY10LE:
+//    case AV_PIX_FMT_P016LE:
+//    case AV_PIX_FMT_P016BE:
+//    case AV_PIX_FMT_D3D11:
+//    case AV_PIX_FMT_GRAY9BE:
+//    case AV_PIX_FMT_GRAY9LE:
+//    case AV_PIX_FMT_GBRPF32BE:
+//    case AV_PIX_FMT_GBRPF32LE:
+//    case AV_PIX_FMT_GBRAPF32BE:
+//    case AV_PIX_FMT_GBRAPF32LE:
+//    case AV_PIX_FMT_DRM_PRIME:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+
 enum AVPixelFormat
 Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 {

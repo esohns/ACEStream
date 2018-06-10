@@ -884,7 +884,7 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  allocator_configuration_p = &configuration.allocatorConfiguration;
+  allocator_configuration_p = &v4l2_configuration.allocatorConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_configuration_p);
   if (bufferSize_in)
@@ -1032,7 +1032,7 @@ do_work (const std::string& deviceIdentifier_in,
   stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                std::make_pair (module_configuration,
                                                                modulehandler_configuration)));
-  V4L2_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+  v4l2_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                   stream_configuration));
   stream_iterator =
     v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1219,7 +1219,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_MediaFoundation_EventHandler* mediafoundation_event_handler_p =
     NULL;
 #else
-  Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
+//  Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
 #endif
   struct Common_TimerConfiguration timer_configuration;
   timer_configuration.dispatch =
@@ -1229,7 +1229,7 @@ do_work (const std::string& deviceIdentifier_in,
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
-  int group_id = -1;
+//  int group_id = -1;
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_Source_Stream_StatisticReportingHandler_t* report_handler_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
@@ -1282,18 +1282,18 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_ConnectionConfiguration_t connection_configuration;
+  Test_I_Source_V4L2_ConnectionConfiguration_t connection_configuration;
 
   stream_iterator =
-    configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator != configuration.streamConfigurations.end ());
+    v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
 
   result =
-    connection_configuration.initialize (CBData_in.configuration->allocatorConfiguration,
+    connection_configuration.initialize (v4l2_configuration.allocatorConfiguration,
                                          (*stream_iterator).second);
   ACE_ASSERT (result);
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
+  v4l2_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                      connection_configuration));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1350,6 +1350,9 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
+  Test_I_Source_V4L2_ConnectionConfigurationIterator_t connection_iterator =
+    v4l2_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (connection_iterator != v4l2_configuration.connectionConfigurations.end ());
   Test_I_Source_V4L2_InetConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
@@ -1401,7 +1404,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L2_SignalHandler_t signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                      &v4l2CBData_in.subscribersLock);
-  module_event_handler_p =
+  event_handler_p =
     dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (event_handler.writer ());
 #endif
 
@@ -1626,7 +1629,7 @@ do_work (const std::string& deviceIdentifier_in,
   (*modulehandler_iterator).second.second.format =
       Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat);
   (*modulehandler_iterator).second.second.streamConfiguration =
-      &v4l2_configuration.streamConfiguration;
+      &(*stream_iterator).second;
 #endif
 
   // step0d: initialize regular (global) statistic reporting
@@ -1693,11 +1696,10 @@ do_work (const std::string& deviceIdentifier_in,
 #else
   v4l2_configuration.signalHandlerConfiguration.connectionManager =
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
+  v4l2_configuration.signalHandlerConfiguration.dispatchState =
+      &event_dispatch_state_s;
   v4l2_configuration.signalHandlerConfiguration.hasUI =
     !UIDefinitionFilename_in.empty ();
-  v4l2_configuration.signalHandlerConfiguration.dispatch =
-      (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                     : COMMON_EVENT_DISPATCH_PROACTOR);
   v4l2_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;
   result =
     signal_handler.initialize (v4l2_configuration.signalHandlerConfiguration);

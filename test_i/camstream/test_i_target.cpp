@@ -26,7 +26,7 @@
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -34,10 +34,10 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 //#include <uuids.h>
-//#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -54,13 +54,13 @@
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
-#ifdef HAVE_CONFIG_H
+#if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_common.h"
 #include "stream_misc_defines.h"
@@ -1070,7 +1070,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
 
   configuration.streamConfiguration.initialize (module_configuration,
-                                                (*modulehandler_iterator).second.second,
+                                                (*iterator).second.second,
                                                 configuration.streamConfiguration.allocatorConfiguration_,
                                                 configuration.streamConfiguration.configuration_);
 #endif
@@ -1660,6 +1660,8 @@ do_work (unsigned int bufferSize_in,
 #else
   configuration.signalHandlerConfiguration.connectionManager =
       connection_manager_p;
+  configuration.signalHandlerConfiguration.dispatchState =
+      &event_dispatch_state_s;
   configuration.signalHandlerConfiguration.hasUI =
       !UIDefinitionFilename_in.empty ();
   if (useReactor_in)
@@ -1672,9 +1674,6 @@ do_work (unsigned int bufferSize_in,
       report_handler_p;
   configuration.signalHandlerConfiguration.statisticReportingTimerId =
       timer_id;
-  configuration.signalHandlerConfiguration.dispatch =
-          (useReactor_in ? COMMON_EVENT_DISPATCH_REACTOR
-                         : COMMON_EVENT_DISPATCH_PROACTOR);
   result =
       signalHandler_in.initialize (configuration.signalHandlerConfiguration);
   event_handler_2 = &signalHandler_in;
@@ -2695,8 +2694,8 @@ ACE_TMAIN (int argc_in,
   if (number_of_dispatch_threads == 0)
     number_of_dispatch_threads = 1;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_CamStream_GTK_CBData* gtk_cb_data_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_data;
   struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
   switch (media_framework_e)

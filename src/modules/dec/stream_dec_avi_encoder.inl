@@ -662,19 +662,33 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   message_block_p =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
                                                                : sizeof (struct _riffchunk) + frameSize_)
                                                    : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                                                : sizeof (struct _riffchunk))));
+#else
+    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
+                                                               : (4 + 4) + frameSize_)
+                                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
+                                                               : (4 + 4))));
+#endif // ACE_WIN32 || ACE_WIN64
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                 inherited::mod_->name (),
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                 (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
                                                : sizeof (struct _riffchunk) + frameSize_)
                                    : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                                : sizeof (struct _riffchunk)))));
+#else
+                (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
+                                               : (4 + 4) + frameSize_)
+                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
+                                               : (4 + 4)))));
+#endif // ACE_WIN32 || ACE_WIN64
     goto error;
   } // end IF
 
@@ -750,7 +764,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   else
     message_block_p->cont (message_inout);
   frameOffsets_.push_back (currentFrameOffset_);
-  currentFrameOffset_ += (sizeof (struct _riffchunk) + frameSize_);
+  currentFrameOffset_ +=
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          (sizeof (struct _riffchunk) + frameSize_);
+#else
+          ((4 + 4) + frameSize_);
+#endif // ACE_WIN32 || ACE_WIN64
 
   result = inherited::put_next (message_block_p, NULL);
   if (result == -1)

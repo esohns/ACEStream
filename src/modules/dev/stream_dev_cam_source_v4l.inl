@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "linux/videodev2.h"
 #include "libv4l2.h"
 
 #include "ace/Log_Msg.h"
@@ -173,14 +172,15 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (captureFileDescriptor_ != -1);
-      ACE_ASSERT (session_data_r.inputFormat == AV_PIX_FMT_NONE);
+      struct v4l2_format format_s =
+          getFormat (session_data_r.inputFormat);
+      ACE_ASSERT (format_s.fmt.pix.pixelformat == 0);
 
       int toggle = 1;
 
       // step0: retain current format as session data
-      struct v4l2_format input_format_s;
       if (unlikely (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                            input_format_s)))
+                                                            format_s)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
@@ -188,7 +188,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       session_data_r.inputFormat =
-              Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (input_format_s.fmt.pix.pixelformat);
+        Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_s.fmt.pix.pixelformat);
       ACE_ASSERT (session_data_r.inputFormat != AV_PIX_FMT_NONE);
 
       // step1: fill buffer queue(s)

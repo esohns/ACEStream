@@ -21,6 +21,17 @@
 #ifndef STREAM_MODULE_CAMSOURCE_V4L_H
 #define STREAM_MODULE_CAMSOURCE_V4L_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include <linux/videodev2.h>
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/pixfmt.h"
+}
+#endif /* __cplusplus */
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -29,9 +40,15 @@
 #include "stream_headmoduletask_base.h"
 
 #include "stream_dev_common.h"
-#include "stream_dev_exports.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
-extern Stream_Dev_Export const char libacestream_default_dev_cam_source_v4l_module_name_string[];
+extern const char libacestream_default_dev_cam_source_v4l_module_name_string[];
+
+// forward declarations
+enum AVPixelFormat;
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -120,8 +137,14 @@ class Stream_Module_CamSource_V4L_T
   virtual int svc (void);
 
   // helper methods
-//  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistic
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  template <typename FormatType> const struct v4l2_format& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
+
+  inline const struct v4l2_format& getFormat_impl (const enum AVPixelFormat& format_in) { return Stream_Module_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return format_in; }
+#endif // ACE_WIN32 || ACE_WIN64
 
   int                              captureFileDescriptor_; // capture
   int                              overlayFileDescriptor_; // preview
@@ -129,7 +152,7 @@ class Stream_Module_CamSource_V4L_T
   Stream_Module_Device_BufferMap_t bufferMap_;
 #if defined (_DEBUG)
   bool                             debug_; // log device status (to kernel log)
-#endif
+#endif // _DEBUG
   bool                             isPassive_; // foreign device descriptor ?
 };
 

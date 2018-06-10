@@ -463,6 +463,11 @@ target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 target_link_libraries (${EXECUTABLE} ACEStream_Visualization)
 
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_LIBPNG_LIBRARIES})
+endif (UNIX)
+
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 cotire (${EXECUTABLE})

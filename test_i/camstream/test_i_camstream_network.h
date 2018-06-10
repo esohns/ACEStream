@@ -361,9 +361,9 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_StreamConfiguration_t;
 struct Test_I_Source_V4L2_ConnectionConfiguration;
-typedef Net_StreamConnectionConfiguration_T<struct Test_I_Source_V4L2_ConnectionConfiguration,
-                                            struct Stream_AllocatorConfiguration,
-                                            Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_ConnectionConfiguration_t;
+typedef Net_ConnectionConfiguration_T<struct Test_I_Source_V4L2_ConnectionConfiguration,
+                                      struct Stream_AllocatorConfiguration,
+                                      Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_ConnectionConfiguration_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Source_V4L2_ConnectionConfiguration_t,
@@ -569,9 +569,9 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
 struct Test_I_Target_ConnectionConfiguration;
-typedef Net_StreamConnectionConfiguration_T<struct Test_I_Target_ConnectionConfiguration,
-                                            struct Stream_AllocatorConfiguration,
-                                            Test_I_Target_StreamConfiguration_t> Test_I_Target_ConnectionConfiguration_t;
+typedef Net_ConnectionConfiguration_T<struct Test_I_Target_ConnectionConfiguration,
+                                      struct Stream_AllocatorConfiguration,
+                                      Test_I_Target_StreamConfiguration_t> Test_I_Target_ConnectionConfiguration_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_ConnectionConfiguration_t,

@@ -34,7 +34,14 @@
 #include <strmif.h>
 //#include <mtype.h>
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/pixfmt.h"
+}
+#endif // __cplusplus
 
 #include "gtk/gtk.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -255,7 +262,7 @@ struct Test_I_CamStream_V4L2_SessionData
   }
 
   struct v4l2_fract                 frameRate;
-  struct v4l2_format                inputFormat;
+  enum AVPixelFormat                inputFormat;
 
   struct Test_I_CamStream_UserData* userData;
 };

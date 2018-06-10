@@ -30,6 +30,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#else
+#include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_defines.h"
@@ -1044,11 +1046,12 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  session_data_r.inputFormat = configuration_p->format;
-#else
   session_data_r.inputFormat = configuration_p->inputFormat;
+#else
+  session_data_r.inputFormat =
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (configuration_p->inputFormat.fmt.pix.pixelformat);
 #endif
-  //  session_data_r.sessionID = configuration_p->sessionID;
+  //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
   //  configuration_in.moduleConfiguration.streamState = &state_;

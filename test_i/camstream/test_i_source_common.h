@@ -183,7 +183,6 @@ struct Test_I_Source_V4L2_SessionData
 {
   Test_I_Source_V4L2_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
-   , format (AV_PIX_FMT_NONE)
    , height (0)
    , width (0)
    , userData (NULL)
@@ -199,9 +198,8 @@ struct Test_I_Source_V4L2_SessionData
     return *this;
   };
 
-  enum AVPixelFormat                  format;
-  unsigned int                        height;
-  unsigned int                        width;
+  unsigned int height;
+  unsigned int width;
 
   struct Test_I_Source_V4L2_UserData* userData;
 };

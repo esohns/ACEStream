@@ -49,7 +49,9 @@ extern "C"
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_common.h"
 

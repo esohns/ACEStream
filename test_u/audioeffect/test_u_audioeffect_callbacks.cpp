@@ -1982,8 +1982,9 @@ error_2:
   char* effect_string_p = NULL;
   char buffer[BUFSIZ];
   ACE_OS::memset (buffer, 0, BUFSIZ);
-
+  int exit_status = 0;
   if (!Common_Tools::command (command_line_string,
+                              exit_status,
                               command_output_string))
   {
     ACE_DEBUG ((LM_ERROR,

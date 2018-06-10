@@ -355,7 +355,6 @@ error_2:
   ACE_DIRENT* dirent_p = NULL;
   int file_descriptor = -1;
   int open_mode = O_RDONLY;
-  GtkTreeIter iterator;
   for (unsigned int i = 0;
        i < static_cast<unsigned int> (entries.length ());
        ++i)
@@ -392,7 +391,7 @@ error_2:
       goto close;
     } // end IF
 
-    listbox_entries_a.push_back (std::make_pair (device_capabilities.card,
+    listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
                                                  device_filename));
 
 close:
@@ -1442,10 +1441,10 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (CBData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -1585,7 +1584,9 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (false);
+  ACE_ASSERT (false); // *TODO*
+  ACE_UNUSED_ARG (height);
+  ACE_UNUSED_ARG (width);
 #endif
 }
 
@@ -1653,10 +1654,10 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (CBData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -1710,8 +1711,9 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  frame_size_i = (*iterator_2).second.second.inputFormat.fmt.pix.sizeimage;
-#endif
+  frame_size_i =
+    (*modulehandler_iterator).second.second.inputFormat.fmt.pix.sizeimage;
+#endif // ACE_WIN32 || ACE_WIN64
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (frame_size_i));
 }
@@ -1728,7 +1730,7 @@ stream_processing_function (void* arg_in)
   result = std::numeric_limits<unsigned long>::max ();
 #else
   result = arg_in;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator;
   ACE_SYNCH_MUTEX* lock_p = NULL;
@@ -1803,6 +1805,8 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->CBData);
+  ACE_ASSERT (data_p->CBData->configuration);
+
   iterator =
     data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   lock_p = &data_p->CBData->lock;
@@ -1810,13 +1814,13 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->CBData->builders.end ());
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
+    data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != data_p->CBData->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (lock_p);
 
   {
@@ -1824,7 +1828,7 @@ stream_processing_function (void* arg_in)
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, -1);
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     // retrieve stream handle
     switch (protocol)
     {
@@ -1876,7 +1880,7 @@ stream_processing_function (void* arg_in)
           &data_p->CBData->stream->getR ();
         session_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
       case NET_TRANSPORTLAYER_UDP:
@@ -1927,7 +1931,7 @@ stream_processing_function (void* arg_in)
           &data_p->CBData->UDPStream->getR ();
         session_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
         break;
       }
       default:
@@ -1974,8 +1978,8 @@ stream_processing_function (void* arg_in)
       }
     } // end SWITCH
 #else
-    (*iterator_2).second.second.contextId = context_id;
-#endif
+    (*modulehandler_iterator).second.second.contextId = context_id;
+#endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
   if (!result_2)
   {
@@ -2105,10 +2109,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p->configuration);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -2368,7 +2372,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
   protocol = v4l2_data_p->configuration->protocol;
   use_reactor =
-          (v4l2_data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
+          (v4l2_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
   use_loopback =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
   buffer_size =
@@ -2750,11 +2754,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_3 =
-      v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfiguration.end ());
-  ACE_ASSERT (!(*iterator_3).second.second.window);
-  (*iterator_3).second.second.window = window_p;
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
+    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
+      (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
+  ACE_ASSERT (!(*iterator_4).second.second.window);
+  (*iterator_4).second.second.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2796,17 +2803,17 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  (*iterator_3).second.second.area = allocation;
+  (*iterator_4).second.second.area = allocation;
 
   ACE_ASSERT (!v4l2_data_p->pixelBuffer);
   v4l2_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window ((*iterator_3).second.second.window,
+      gdk_pixbuf_get_from_window ((*iterator_4).second.second.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE ((*iterator_3).second.second.window),
+                                    GDK_DRAWABLE ((*iterator_4).second.second.window),
                                     NULL,
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
@@ -2817,7 +2824,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  (*iterator_3).second.second.pixelBuffer = v4l2_data_p->pixelBuffer;
+  (*iterator_4).second.second.pixelBuffer = v4l2_data_p->pixelBuffer;
 #endif
 
   // step11: select default capture source (if any)
@@ -3385,7 +3392,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #else
   protocol = data_p->configuration->protocol;
   use_reactor =
-          (data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
+    (data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
 #endif
   if (protocol == NET_TRANSPORTLAYER_UDP)
   {
@@ -4533,10 +4540,10 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -4726,17 +4733,17 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
-  GtkTreeIter iterator_3;
+  GtkTreeIter iterator_4;
   if (gtk_combo_box_get_active_iter (combo_box_p,
-                                     &iterator_3))
+                                     &iterator_4))
   {
     GtkListStore* list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
     ACE_ASSERT (list_store_p);
-    GValue value = {0,};
+    GValue value = G_VALUE_INIT;
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                              &iterator_3,
+                              &iterator_4,
                               1, &value);
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4759,10 +4766,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       }
     } // end SWITCH
 #else
-    iterator_2 =
-        v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (iterator_2 != v4l2_data_p->configuration->streamConfiguration.end ());
-    (*iterator_2).second.second.interfaceIdentifier =
+    (*modulehandler_iterator).second.second.interfaceIdentifier =
         g_value_get_string (&value);
 #endif
     g_value_unset (&value);
@@ -4770,7 +4774,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   if (v4l2_data_p->fileDescriptor != -1)
-    (*iterator_2).second.second.fileDescriptor = v4l2_data_p->fileDescriptor;
+    (*modulehandler_iterator).second.second.fileDescriptor =
+      v4l2_data_p->fileDescriptor;
 #endif
 
   // retrieve port number
@@ -4810,10 +4815,10 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_4 =
+  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_5 =
     v4l2_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_4 != v4l2_data_p->configuration->connectionConfigurations.end ());
-  (*iterator_4).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
+  ACE_ASSERT (iterator_5 != v4l2_data_p->configuration->connectionConfigurations.end ());
+  (*iterator_5).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                  1);
 #endif
 
@@ -4926,8 +4931,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end SWITCH
 #else
   result_3 =
-    Stream_Module_Device_Tools::setFormat ((*iterator_2).second.second.fileDescriptor,
-                                           (*iterator_2).second.second.inputFormat);
+    Stream_Module_Device_Tools::setFormat ((*modulehandler_iterator).second.second.fileDescriptor,
+                                           (*modulehandler_iterator).second.second.inputFormat);
 #endif
   if (!result_3)
   {
@@ -5690,7 +5695,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         inet_address =
           (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         use_reactor =
-                (data_p->configuration->dispatch == COMMON_EVENT_DISPATCH_REACTOR);
+          (data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
@@ -6612,10 +6617,10 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -6632,7 +6637,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-  GValue value = {0,};
+  GValue value = G_VALUE_INIT;
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -6874,19 +6879,22 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     v4l2_data_p->fileDescriptor = -1;
   } // end IFs
   ACE_ASSERT (v4l2_data_p->fileDescriptor == -1);
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_3 =
-      v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfiguration.end ());
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
+      v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
+      (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   int open_mode =
-      (((*iterator_3).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+      (((*iterator_4).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                     : O_RDONLY);
-  v4l2_data_p->fileDescriptor = v4l2_open (device_path.c_str (),
+  v4l2_data_p->fileDescriptor = v4l2_open (device_identifier_string.c_str (),
                                            open_mode);
   if (v4l2_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (device_path.c_str ()),
+                ACE_TEXT (device_identifier_string.c_str ()),
                 open_mode));
     return;
   } // end IF
@@ -7011,10 +7019,10 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -7119,7 +7127,8 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.inputFormat.fmt.pix.pixelformat = format_i;
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat =
+      format_i;
 
   result =
     load_resolutions (v4l2_data_p->fileDescriptor,
@@ -7207,10 +7216,10 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -7408,8 +7417,8 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.inputFormat.fmt.pix.width = width;
-  (*iterator).second.second.inputFormat.fmt.pix.height = height;
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.width = width;
+  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.height = height;
 
   result = load_rates (v4l2_data_p->fileDescriptor,
                        format_i,
@@ -7499,10 +7508,10 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -7524,8 +7533,8 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
-  GValue value = {0,};
-  GValue value_2 = {0,};
+  GValue value = G_VALUE_INIT;
+  GValue value_2 = G_VALUE_INIT;
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             0, &value);
@@ -7633,8 +7642,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.frameRate.numerator = frame_rate;
-  (*iterator).second.second.frameRate.denominator = frame_rate_denominator;
+  (*modulehandler_iterator).second.second.frameRate.numerator = frame_rate;
+  (*modulehandler_iterator).second.second.frameRate.denominator =
+    frame_rate_denominator;
 #endif
   set_capture_format (data_p);
   update_buffer_size (data_p);
@@ -7714,10 +7724,10 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p->configuration);
 
-  Test_I_Source_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
     v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -7787,7 +7797,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*iterator).second.second.area = *allocation_in;
+  (*modulehandler_iterator).second.second.area = *allocation_in;
 #endif
 } // drawingarea_size_allocate_source_cb
 void

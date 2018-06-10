@@ -20,7 +20,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <qedit.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -30,7 +30,9 @@
 #include "stream_dev_common.h"
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
-#endif
+#else
+#include "stream_dev_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_defines.h"
 #include "stream_stat_defines.h"
@@ -1409,7 +1411,8 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   typename ConfigurationType::ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
+  session_data_r.inputFormat =
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*iterator).second.second.inputFormat.fmt.pix.pixelformat);
   session_data_r.frameRate = (*iterator).second.second.frameRate;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
@@ -1428,8 +1431,8 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //    return false;
 //  } // end IF
 //  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
-  session_data_r.height = session_data_r.inputFormat.fmt.pix.height;
-  session_data_r.width = session_data_r.inputFormat.fmt.pix.width;
+  session_data_r.height = (*iterator).second.second.inputFormat.fmt.pix.height;
+  session_data_r.width = (*iterator).second.second.inputFormat.fmt.pix.width;
 #endif
 
   // ---------------------------------------------------------------------------
@@ -1530,4 +1533,4 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   ACE_NOTREACHED (return;)
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
