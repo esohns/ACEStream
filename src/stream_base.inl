@@ -3316,7 +3316,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::report"));
 
-  int result = -1;
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING),
                                         true,

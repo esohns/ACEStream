@@ -424,8 +424,8 @@ struct Test_U_AudioEffect_SessionData
    , statistic ()
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , format ()
    , height (0)
+   , inputFormat ()
    , width (0)
 #endif // ACE_WIN32 || ACE_WIN64
   {}
@@ -433,8 +433,8 @@ struct Test_U_AudioEffect_SessionData
   struct Test_U_AudioEffect_Statistic           statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Stream_Module_Device_ALSAConfiguration format;
   unsigned int                                  height; // *TODO*: remove ASAP !
+  struct Stream_Module_Device_ALSAConfiguration inputFormat;
   unsigned int                                  width; // *TODO*: remove ASAP !
 #endif // ACE_WIN32 || ACE_WIN64
 };

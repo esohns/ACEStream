@@ -848,11 +848,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                      width_, height_);
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (format_p);
 #else
-      format_ = getFormat (&session_data_r.format);
+      format_ = getFormat (session_data_r.inputFormat);
       frame_rate_s = getFrameRate (session_data_r,
-                                   &format_);
+                                   format_);
       getResolution (session_data_r,
-                     &format_,
+                     format_,
                      width_, height_);
 #endif // ACE_WIN32 || ACE_WIN64
       frameSize_ = av_image_get_buffer_size (AV_PIX_FMT_RGB24,
@@ -1669,15 +1669,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
-                                       UserDataType>::getFormat_impl (const struct _AMMediaType* format_in)
+                                       UserDataType>::getFormat_impl (const struct _AMMediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*format_in,
+  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (format_in,
                                                               result_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1709,7 +1706,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
-                                       UserDataType>::getFormat_impl (const IMFMediaType* format_in)
+                                       UserDataType>::getFormat_impl (const IMFMediaType*& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
@@ -1719,7 +1716,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct _AMMediaType* result_p = NULL;
 
   HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*&> (format_in),
                                         GUID_NULL,
                                         &result_p);
   if (FAILED (result))
@@ -1755,13 +1752,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataType,
                                        FormatType,
                                        UserDataType>::getFrameRate_impl (const SessionDataType& sessionData_in,
-                                                                         const struct _AMMediaType* format_in)
+                                                                         const struct _AMMediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFrameRate_impl"));
-
-  // sanity check(s)
-  ACE_UNUSED_ARG (sessionData_in);
-  ACE_ASSERT (format_in);
 
   struct AVRational result;
   ACE_OS::memset (&result, 0, sizeof (struct AVRational));
@@ -1769,17 +1762,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (format_in->formattype == FORMAT_VideoInfo)
+  if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo))
   {
     video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)format_in->pbFormat;
+      (struct tagVIDEOINFOHEADER*)format_in.pbFormat;
     result.den =
       10000000 / static_cast<int> (video_info_header_p->AvgTimePerFrame);
   } // end IF
-  else if (format_in->formattype == FORMAT_VideoInfo2)
+  else if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo2))
   {
     video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)format_in ->pbFormat;
+      (struct tagVIDEOINFOHEADER2*)format_in.pbFormat;
     result.den =
       10000000 / static_cast<int> (video_info_header2_p->AvgTimePerFrame);
   } // end ELSE
@@ -1787,7 +1780,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media type format (was: %d), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (format_in->formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (format_in.formattype).c_str ())));
 
   return result;
 }
@@ -1812,15 +1805,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataType,
                                        FormatType,
                                        UserDataType>::getResolution_impl (const SessionDataType& sessionData_in,
-                                                                          const struct _AMMediaType* format_in,
+                                                                          const struct _AMMediaType& format_in,
                                                                           unsigned int& width_out,
                                                                           unsigned int& height_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getResolution_impl"));
-
-  // sanity check(s)
-  ACE_UNUSED_ARG (sessionData_in);
-  ACE_ASSERT (format_in);
 
   // initialize return value(s)
   width_out = 0;
@@ -1828,17 +1817,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (format_in->formattype == FORMAT_VideoInfo)
+  if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo))
   {
     video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)format_in->pbFormat;
+      (struct tagVIDEOINFOHEADER*)format_in.pbFormat;
     width_out = video_info_header_p->bmiHeader.biWidth;
     height_out = abs (video_info_header_p->bmiHeader.biHeight);
   } // end IF
-  else if (format_in->formattype == FORMAT_VideoInfo2)
+  else if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo2))
   {
     video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)format_in ->pbFormat;
+      (struct tagVIDEOINFOHEADER2*)format_in.pbFormat;
     width_out = video_info_header2_p->bmiHeader.biWidth;
     height_out = abs (video_info_header2_p->bmiHeader.biHeight);
   } // end ELSE
@@ -1846,7 +1835,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media type format (was: %d), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (format_in->formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (format_in.formattype).c_str ())));
 }
 #endif // ACE_WIN32 || ACE_WIN64
 

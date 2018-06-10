@@ -257,12 +257,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   // helper methods
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
-  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
 #else
-  template <typename FormatType2> enum AVPixelFormat& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType2> enum AVPixelFormat& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
 #endif // ACE_WIN32 || ACE_WIN64
-  template <typename FormatType2> AVRational& getFrameRate (const SessionDataType& sessionData_in, const FormatType2* format_in) { return getFrameRate_impl (sessionData_in, format_in); }
-  template <typename FormatType2> void getResolution (const SessionDataType& sessionData_in, const FormatType2* format_in, unsigned int& height_out, unsigned int& width_out) { getResolution_impl (sessionData_in, format_in, height_out, width_out); }
+  template <typename FormatType2> AVRational& getFrameRate (const SessionDataType& sessionData_in, const FormatType2& format_in) { return getFrameRate_impl (sessionData_in, format_in); }
+  template <typename FormatType2> void getResolution (const SessionDataType& sessionData_in, const FormatType2& format_in, unsigned int& height_out, unsigned int& width_out) { getResolution_impl (sessionData_in, format_in, height_out, width_out); }
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
   bool generateIndex (enum Stream_Decoder_AVIIndexType, // index version
                       ACE_Message_Block*);              // message buffer handle
@@ -273,22 +273,22 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
-  struct _AMMediaType& getFormat_impl (const IMFMediaType*);
+  struct _AMMediaType& getFormat_impl (const struct _AMMediaType&);
+  struct _AMMediaType& getFormat_impl (const IMFMediaType*&);
   struct AVRational& getFrameRate_impl (const SessionDataType&,
-                                        const struct _AMMediaType*);
+                                        const struct _AMMediaType&);
   void getResolution_impl (const SessionDataType&,
-                           const struct _AMMediaType*,
+                           const struct _AMMediaType&,
                            unsigned int&,
                            unsigned int&);
 #else
-  inline enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat* format_in) { ACE_ASSERT (format_in); enum AVPixelFormat format_e = *format_in; return format_e; }
-  inline enum AVPixelFormat& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { enum AVPixelFormat format_e = AV_PIX_FMT_NONE; ACE_ASSERT (false); ACE_NOTSUP_RETURN (format_e); ACE_NOTREACHED (return format_e;) }
-  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) }
-  inline void getResolution_impl (const SessionDataType& sessionData_in, const enum AVPixelFormat*, unsigned int& width_out, unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; }
-  inline void getResolution_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration*, unsigned int& width_out, unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat& format_in) { return const_cast<enum AVPixelFormat&> (format_in); }
+  inline enum AVPixelFormat& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&) { enum AVPixelFormat format_e = AV_PIX_FMT_NONE; ACE_ASSERT (false); ACE_NOTSUP_RETURN (format_e); ACE_NOTREACHED (return format_e;) }
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration&) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) }
+  inline void getResolution_impl (const SessionDataType& sessionData_in, const enum AVPixelFormat&, unsigned int& width_out, unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; }
+  inline void getResolution_impl (const SessionDataType&, const Stream_Module_Device_ALSAConfiguration&, unsigned int& width_out, unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 #endif // ACE_WIN32 || ACE_WIN64
-  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const enum AVPixelFormat*) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; }
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&, const enum AVPixelFormat&) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; }
 };
 
 //////////////////////////////////////////
