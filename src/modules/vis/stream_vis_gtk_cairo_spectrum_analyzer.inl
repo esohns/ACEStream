@@ -559,16 +559,17 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
       data_sample_size =
-        ((snd_pcm_format_width (session_data_r.format.format) / 8) *
-          session_data_r.format.channels);
-      sound_sample_size = data_sample_size / session_data_r.format.channels;
-//      is_signed_format = snd_pcm_format_signed (session_data_r.format.format);
+        ((snd_pcm_format_width (session_data_r.inputFormat.format) / 8) *
+          session_data_r.inputFormat.channels);
+      sound_sample_size =
+          data_sample_size / session_data_r.inputFormat.channels;
+//      is_signed_format = snd_pcm_format_signed (session_data_r.inputFormat.format);
       sample_byte_order =
-          ((snd_pcm_format_little_endian (session_data_r.format.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                              : -1);
+          ((snd_pcm_format_little_endian (session_data_r.inputFormat.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                                   : -1);
 
-      channels = session_data_r.format.channels;
-      sample_rate = session_data_r.format.rate;
+      channels = session_data_r.inputFormat.channels;
+      sample_rate = session_data_r.inputFormat.rate;
 #endif
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
