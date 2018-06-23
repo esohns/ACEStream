@@ -335,7 +335,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   // ******************* IO ************************
   module_p =
-    const_cast<MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING)));
+    const_cast<MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING),
+                                            true,    // sanitize module names ?
+                                            false)); // recurse upstream ?
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -772,21 +774,21 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                          moduleName_in.c_str ()) ||
         !ACE_OS::strcmp (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME),
                          moduleName_in.c_str ())));
-  std::string module_name_string = moduleName_in;
+  std::string module_name_string =
+      (moduleName_in.empty () ? ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")
+                              : moduleName_in);
   const typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T* module_p =
       NULL;
   typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::TASK_T* task_p =
       NULL;
 
   // sanity check(s)
-  if (moduleName_in.empty ())
-    module_name_string = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head");
+  ACE_ASSERT (!module_name_string.empty ());
 
   module_p = inherited::tail ();
   ACE_ASSERT (module_p);
   task_p =
-      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
-                                           TimePolicyType>::MODULE_T*> (module_p)->reader ();
+      const_cast<typename inherited::ISTREAM_T::MODULE_T*> (module_p)->reader ();
   ACE_ASSERT (task_p);
   ACE_ASSERT (task_p->module ());
 retry:
@@ -803,8 +805,7 @@ retry:
     {
       module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
       task_p =
-          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE,
-                                               TimePolicyType>::MODULE_T*> (module_p)->reader ();
+          const_cast<typename inherited::ISTREAM_T::MODULE_T*> (module_p)->reader ();
       ACE_ASSERT (task_p);
       ACE_ASSERT (task_p->module ());
       goto retry;

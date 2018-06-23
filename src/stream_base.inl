@@ -2908,8 +2908,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     // omit head/tail
     if ((!ACE_OS::strcmp (module_p->name (),
-                          ACE_TEXT (STREAM_MODULE_HEAD_NAME)) ||
+                          ACE_TEXT (STREAM_MODULE_HEAD_NAME))               ||
          !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Head"))) ||
+         !ACE_OS::strcmp (module_p->name (),
+                          ACE_TEXT (STREAM_MODULE_TAIL_NAME))               ||
         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
       continue;
 
@@ -2917,6 +2919,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
     if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                        ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+        ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                         ACE_TEXT ("ACE_Stream_Tail")))
       stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
 

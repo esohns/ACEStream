@@ -813,7 +813,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
+    { ACE_ASSERT (inherited::sessionData_);
+
       // schedule regular statistic collection ?
       // *NOTE*: the runtime-statistic module is responsible for regular
       //         reporting, the head module merely collects information
@@ -1857,7 +1858,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name (),
                         handle,
                         ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
         inherited::threads_.clear ();
       } // end IF
       break;
@@ -1893,7 +1894,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
                 ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                 result = ACE_Thread::resume (handle);
               } // end lock scope
               if (result == -1)
@@ -1934,6 +1935,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           inherited::sessionData_;
         if (likely (session_data_container_p))
           session_data_container_p->increase ();
+        else if (streamState_)
+        {
+          if (streamState_->sessionData)
+            ACE_NEW_NORETURN (session_data_container_p,
+                              SessionDataContainerType (streamState_->sessionData));
+        } // end ELSE IF
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,          // session message type
                                                      session_data_container_p,              // session data
                                                      (streamState_ ? streamState_->userData
