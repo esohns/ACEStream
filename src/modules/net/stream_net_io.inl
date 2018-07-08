@@ -368,13 +368,16 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   // *TODO*: remove this test(, it slows things down unnecessarily)
   if (inbound_)
   {
-    // sanity check(s)
-    ACE_ASSERT (inherited::sessionData_);
-
-    const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-
-    message_inout->initialize (session_data_r.sessionId, // session id
-                               NULL);                    // data block
+    if (likely (inherited::sessionData_))
+    {
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      message_inout->initialize (session_data_r.sessionId, // session id
+                                 NULL);                    // data block
+    } // end IF
+    else
+      ACE_DEBUG ((LM_WARNING, // *TODO*
+                  ACE_TEXT ("%s: cannot initialize inbound data message; there is no session data, continuing\n"),
+                  inherited::mod_->name ()));
   } // end IF
   else
   {

@@ -26,8 +26,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 # include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -161,7 +163,12 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_ALSA_LIBRARIES})
  target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_SOX_LIBRARIES})
 # target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_AVCODEC_LIBRARIES})
- target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_FFMPEG_LIBRARIES})
+# target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_FFMPEG_LIBRARIES})
+
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/libavcodec.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
 elseif (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Decoder dxguid.lib)
 # target_link_libraries (${PROJECT_NAME}_Decoder dxva2.lib)

@@ -61,14 +61,14 @@ class Stream_MessageBase_T
                                 CommandType> IDATA_MESSAGE_T;
 
   // implement (part of) Stream_IDataMessage_T
-  inline virtual Stream_MessageId_t id () const { return id_; };
-  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; };
-  inline virtual MessageType type () const { return type_; };
-  inline virtual CommandType command () const { ACE_ASSERT (inherited::data_block_); return static_cast<CommandType> (inherited::data_block_->msg_type ()); };
+  inline virtual Stream_MessageId_t id () const { return id_; }
+  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
+  inline virtual MessageType type () const { return type_; }
+  inline virtual CommandType command () const { ACE_ASSERT (inherited::data_block_); return static_cast<CommandType> (inherited::data_block_->msg_type ()); }
   virtual void defragment ();
 
   // implement Common_ISet_T
-  inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; };
+  inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; }
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -80,7 +80,7 @@ class Stream_MessageBase_T
 
   // debug tools
   // *NOTE*: these specializations cover the library testcase applications only
-  inline static std::string CommandTypeToString (CommandType) { return ACE_TEXT_ALWAYS_CHAR (""); };
+  inline static std::string CommandTypeToString (CommandType) { return ACE_TEXT_ALWAYS_CHAR (""); }
   static void MessageTypeToString (enum Stream_MessageType, // message type
                                    std::string&);           // corresp. string
 

@@ -925,16 +925,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      result = avcodec_get_context_defaults3 (codec_context_p,
-                                              codec_p);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
+//      result = avcodec_get_context_defaults3 (codec_context_p,
+//                                              codec_p);
+//      if (result < 0)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
+//                    inherited::mod_->name (),
+//                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+//        goto error;
+//      } // end IF
 
       codec_context_p->codec_id = codec_id;
 //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
@@ -944,8 +944,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
 //      codec_context_p->flags = 0;
 //      codec_context_p->flags2 = 0;
-      codec_context_p->time_base.num = frame_rate_s.den;
-      codec_context_p->time_base.den = frame_rate_s.num;
+      codec_context_p->time_base.num =
+          (frame_rate_s.den ? frame_rate_s.den : 1);
+      codec_context_p->time_base.den =
+          (frame_rate_s.num ? frame_rate_s.num : 1);
 //      codec_context_p->ticks_per_frame = 1;
       codec_context_p->width = width_;
       codec_context_p->height = height_;
@@ -1029,7 +1031,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->debug_mv = 0;
 //      codec_context_p->dct_algo = FF_DCT_AUTO;
 //      codec_context_p->idct_algo = FF_IDCT_AUTO;
-      codec_context_p->bits_per_raw_sample = bits_per_sample;
+      codec_context_p->bits_per_raw_sample = bits_per_sample / 3;
 //      codec_context_p->thread_count = 0;
 //      codec_context_p->thread_type = 0;
 //      codec_context_p->thread_safe_callbacks = 0;
@@ -1041,7 +1043,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->dump_separator = NULL;
 
       result = avcodec_open2 (codec_context_p,
-                              codec_p,
+                              codec_context_p->codec,
                               NULL);
       if (result < 0)
       {

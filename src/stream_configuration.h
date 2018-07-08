@@ -80,6 +80,9 @@ struct Stream_ModuleHandlerConfiguration
    , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
+#if defined (_DEBUG)
+   , debug (false)
+#endif // _DEBUG
    , demultiplex (false)
    , finishOnDisconnect (false)
    , hasHeader (false)
@@ -108,6 +111,9 @@ struct Stream_ModuleHandlerConfiguration
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                                  crunchMessages;
+#if defined (_DEBUG)
+  bool                                  debug;
+#endif // _DEBUG
   bool                                  demultiplex;                 // message handler module
   bool                                  finishOnDisconnect;          // header module(s)
   bool                                  hasHeader;

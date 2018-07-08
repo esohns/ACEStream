@@ -26,4 +26,3 @@
 
 const char libacestream_default_dev_mic_source_alsa_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING);
-

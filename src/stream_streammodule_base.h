@@ -428,7 +428,7 @@ class Stream_StreamModuleInputOnlyA_T
                                                                            NOTIFICATION_TYPE,\
                                                                            READER_TYPE,\
                                                                            WRITER_TYPE> CLASS_NAME##_Module
-//#define DATASTREAM_MODULE_INPUT_ONLY(SESSION_DATA_TYPE,\
+/*#define DATASTREAM_MODULE_INPUT_ONLY(SESSION_DATA_TYPE,\
 //                                     SESSION_EVENT_TYPE,\
 //                                     HANDLER_CONFIGURATION_TYPE,\
 //                                     NOTIFICATION_TYPE,\
@@ -454,7 +454,7 @@ class Stream_StreamModuleInputOnlyA_T
 //                                                                           struct Stream_ModuleConfiguration,\
 //                                                                           HANDLER_CONFIGURATION_TYPE,\
 //                                                                           NOTIFICATION_TYPE,\
-//                                                                           TASK_TYPE> NAME##_Module
+//                                                                           TASK_TYPE> NAME##_Module */
 #define DATASTREAM_MODULE_INPUT_ONLY(SESSION_DATA_TYPE,\
                                      SESSION_EVENT_TYPE,\
                                      HANDLER_CONFIGURATION_TYPE,\

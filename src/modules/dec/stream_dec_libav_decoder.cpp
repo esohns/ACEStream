@@ -24,11 +24,9 @@
 
 #include "stream_dec_defines.h"
 
-//Stream_Dec_Export const char libacestream_default_dec_libav_decoder_module_name_string[] =
 const char libacestream_default_dec_libav_decoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
-//Stream_Dec_Export enum AVPixelFormat
 enum AVPixelFormat
 stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
                                    const enum AVPixelFormat* formats_in)
@@ -42,9 +40,6 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
 
   enum AVPixelFormat* preferred_format_p =
     reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
-
-  // initialize return value(s)
-  enum AVPixelFormat result = AV_PIX_FMT_NONE;
 
   // try to find the preferred format first
   for (const enum AVPixelFormat* iterator = formats_in;
@@ -70,7 +65,7 @@ stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
               ACE_TEXT ("%s: does not support any uncompressed video format, aborting\n"),
               ACE_TEXT (avcodec_get_name (context_in->codec_id))));
 
-  return result;
+  return AV_PIX_FMT_NONE;
 }
 
 //void

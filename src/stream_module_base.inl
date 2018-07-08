@@ -209,6 +209,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   notify_ = configuration_->notify;
   stream_ = dynamic_cast<STREAM_T*> (configuration_->stream);
+  ACE_ASSERT (stream_);
 
   return true;
 }
@@ -448,10 +449,7 @@ continue_:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::name ()));
-
-      // clean up
       delete task_p;
-
       return NULL;
     } // end IF
 
@@ -469,10 +467,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
                 inherited::name ()));
-
-    // clean up
     delete task_p;
-
     return NULL;
   } // end IF
 
@@ -487,11 +482,8 @@ continue_2:
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                 inherited::name ()));
-
-    // clean up
     delete task_p;
     delete task_2;
-
     return NULL;
   } // end IF
 
@@ -516,10 +508,7 @@ continue_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),
                   inherited::name ()));
-
-      // clean up
       delete module_p;
-
       return NULL;
     } // end IF
   } // end IF
@@ -544,10 +533,7 @@ continue_3:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),
                   inherited::name ()));
-
-      // clean up
       delete module_p;
-
       return NULL;
     } // end IF
   } // end IF

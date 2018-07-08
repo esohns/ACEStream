@@ -33,7 +33,6 @@
 #include "stream_inotify.h"
 #include "stream_streammodule_base.h"
 
-//#include "stream_net_exports.h"
 #include "stream_net_io.h"
 
 // forward declarations
@@ -42,7 +41,6 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-//extern STREAM_NET_Export const char libacestream_default_net_stream_name_string[];
 extern const char libacestream_default_net_stream_name_string[];
 
 template <ACE_SYNCH_DECL,

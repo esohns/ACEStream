@@ -1161,7 +1161,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::notify (NotificationType notification_in,
-                                           bool recurseupstream_in)
+                                           bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1170,7 +1170,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // forward upstream ?
   if (upstream_ &&
-      recurseupstream_in)
+      recurseUpstream_in)
   {
     istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istreamcontrol_p))
@@ -1184,7 +1184,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->notify (notification_in,
-                                 recurseupstream_in);
+                                recurseUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1223,7 +1223,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                 !module_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Stream::top(), returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
@@ -2908,18 +2908,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     // omit head/tail
     if ((!ACE_OS::strcmp (module_p->name (),
-                          ACE_TEXT (STREAM_MODULE_HEAD_NAME))               ||
+                          ACE_TEXT (STREAM_MODULE_HEAD_NAME)) ||
          !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Head"))) ||
-         !ACE_OS::strcmp (module_p->name (),
-                          ACE_TEXT (STREAM_MODULE_TAIL_NAME))               ||
-        !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
+        (!ACE_OS::strcmp (module_p->name (),
+                          ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail"))))
       continue;
 
     stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
 
     ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
     if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
-                        ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+                        ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
         ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                         ACE_TEXT ("ACE_Stream_Tail")))
       stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
@@ -3068,8 +3068,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (configuration_->configuration_.resetSessionData &&
         sessionData_)
     {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
+      sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
 
     isInitialized_ = false;
