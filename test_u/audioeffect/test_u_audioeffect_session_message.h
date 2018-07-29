@@ -53,7 +53,7 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_DirectShow_Message,
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
@@ -64,7 +64,7 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
                                                 enum Stream_SessionMessageType,
                                                 Test_U_AudioEffect_DirectShow_SessionData_t*&, // session data container handle
                                                 struct Stream_UserData*);
-  inline virtual ~Test_U_AudioEffect_DirectShow_SessionMessage () {};
+  inline virtual ~Test_U_AudioEffect_DirectShow_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -101,7 +101,7 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_MediaFoundation_Message,
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 
@@ -112,7 +112,7 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
                                                      enum Stream_SessionMessageType,
                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t*&, // session data container handle
                                                      struct Stream_UserData*);
-  inline virtual ~Test_U_AudioEffect_MediaFoundation_SessionMessage () {};
+  inline virtual ~Test_U_AudioEffect_MediaFoundation_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -147,7 +147,7 @@ class Test_U_AudioEffect_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_Message,
                                                  Test_U_AudioEffect_SessionMessage>;
 
@@ -158,7 +158,7 @@ class Test_U_AudioEffect_SessionMessage
                                      enum Stream_SessionMessageType,
                                      Test_U_AudioEffect_SessionData_t*&, // session data container handle
                                      struct Stream_UserData*);
-  inline virtual ~Test_U_AudioEffect_SessionMessage () {};
+  inline virtual ~Test_U_AudioEffect_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;

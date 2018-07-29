@@ -25,7 +25,7 @@
 
 #include "stream_macros.h"
 
-#include "test_i_camstream_common.h"
+//#include "test_i_camstream_common.h"
 
 #include "test_i_callbacks.h"
 

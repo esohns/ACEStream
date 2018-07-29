@@ -90,9 +90,12 @@ struct Test_U_GTK_ThreadData
    , sessionId (0)
   {}
 
-  struct Test_U_GTK_CBData* CBData;
-  guint                     eventSourceId;
-  size_t                    sessionId;
+  struct Test_U_GTK_CBData*       CBData;
+  guint                           eventSourceId;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif
+  size_t                          sessionId;
 };
 
 typedef Common_ITaskControl_T<ACE_MT_SYNCH,

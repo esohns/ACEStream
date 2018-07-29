@@ -21,20 +21,25 @@
 #ifndef STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 #define STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 
-#include "ace/Global_Macros.h"
-
 #include <d3d9.h>
 #include <evr.h>
+#include <Guiddef.h>
+#include <mfidl.h>
+#include <mfobjects.h>
+#include <PropIdl.h>
+#include <strmif.h>
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
 #include "common_time_common.h"
 
-#include "stream_imodule.h"
+#include "stream_common.h"
+#include "stream_iallocator.h"
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediafoundation_target.h"
-
-//#include "stream_vis_exports.h"
 
 extern const char libacestream_default_vis_mediafoundation_module_name_string[];
 
@@ -63,8 +68,23 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
  , public Common_IInitialize_T<struct _AMMediaType>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
  , public IMFMediaSourceEx
+#else
+ , public IMFMediaSource
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
+
  public:
   Stream_Vis_Target_MediaFoundation_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_MediaFoundation_T ();
@@ -85,8 +105,8 @@ class Stream_Vis_Target_MediaFoundation_T
   // implement IMFMediaSourceEx (IUnknown, IMediaEventGenerator, IMFMediaSource)
   STDMETHODIMP QueryInterface (const struct _GUID&, // IID
                                void**);
-  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
-  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); };
+  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); }
 
   STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // callback handle
                               IUnknown*);        // callback state object handle
@@ -121,17 +141,6 @@ class Stream_Vis_Target_MediaFoundation_T
   STDMETHODIMP SetD3DManager (IUnknown*); // handle to the DXGI manager
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
@@ -147,20 +156,28 @@ class Stream_Vis_Target_MediaFoundation_T
                                               UserDataType> OWN_TYPE_T;
 
   // helper methods
-  bool initialize_Session (const HWND,               // (target) window handle
-                           const struct tagRECT&,    // (target) window area
-                           TOPOID,                   // renderer node id
-                           IMFMediaSink*&,           // return value: media sink handle
-                           IMFVideoDisplayControl*&, // return value: video display control handle
+  bool initialize_Session (const HWND,                // (target) window handle
+                           const struct tagRECT&,     // (target) window area
+                           TOPOID,                    // renderer node id
+                           IMFMediaSink*&,            // return value: media sink handle
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+                           IMFVideoDisplayControl2*&, // return value: video display control handle
+#else
+                           IMFVideoDisplayControl*&,  // return value: video display control handle
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
                            //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
-                           IMFMediaSession*);        // media session handle
+                           IMFMediaSession*);         // media session handle
 
   IDirect3DDevice9Ex*        direct3DDevice_;
   IMFMediaSession*           mediaSession_;
   IMFPresentationDescriptor* presentationDescriptor_;
   long                       referenceCount_;
   //IMFStreamSink*             streamSink_;
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+  //IMFVideoDisplayControl2*   videoDisplayControl_;
+#else
   //IMFVideoDisplayControl*    videoDisplayControl_;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
   ////IMFVideoSampleAllocator* videoSampleAllocator_;
 };
 
@@ -187,6 +204,15 @@ class Stream_Vis_Target_MediaFoundation_2
                                                          SessionDataType,
                                                          SessionDataContainerType>
 {
+  typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         SessionDataType,
+                                                         SessionDataContainerType> inherited;
+
  public:
   Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_MediaFoundation_2 ();
@@ -210,15 +236,6 @@ class Stream_Vis_Target_MediaFoundation_2
   //                                IMFAttributes*);     // media sample attributes
 
  private:
-  typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                                         TimePolicyType,
-                                                         ConfigurationType,
-                                                         ControlMessageType,
-                                                         DataMessageType,
-                                                         SessionMessageType,
-                                                         SessionDataType,
-                                                         SessionDataContainerType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 (const Stream_Vis_Target_MediaFoundation_2&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2& operator= (const Stream_Vis_Target_MediaFoundation_2&))

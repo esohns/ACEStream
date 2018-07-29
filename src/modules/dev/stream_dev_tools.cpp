@@ -30,7 +30,7 @@
 #include <d3d9types.h>
 #include <dvdmedia.h>
 #include <dxva2api.h>
-#include <minwindef.h>
+//#include <minwindef.h>
 #include <strmif.h>
 #include <uuids.h>
 #include <windef.h>

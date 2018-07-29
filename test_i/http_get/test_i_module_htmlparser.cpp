@@ -236,7 +236,8 @@ characters (void* userData_in,
                     ACE_TEXT (date_string.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
 
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);

@@ -26,7 +26,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include <streams.h>
+//#include <streams.h>
+#include <control.h>
 #include <qedit.h>
 
 #include "common_time_common.h"

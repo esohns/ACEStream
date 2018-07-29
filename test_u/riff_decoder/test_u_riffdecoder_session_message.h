@@ -64,7 +64,7 @@ class Test_U_RIFFDecoder_SessionMessage
                                      enum Stream_SessionMessageType,     // session message type
                                      Test_U_RIFFDecoder_SessionData_t*&, // session data container handle
                                      struct Stream_UserData*);           // user data handle
-  inline virtual ~Test_U_RIFFDecoder_SessionMessage () {};
+  inline virtual ~Test_U_RIFFDecoder_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;

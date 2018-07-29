@@ -1218,8 +1218,10 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
     ACE_ASSERT (SUCCEEDED (result));
     //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
     //ACE_ASSERT (SUCCEEDED (result));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
     result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
     ACE_ASSERT (SUCCEEDED (result));
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
     result = MFCreateMediaSession (attributes_p,
                                    &IMFMediaSession_inout);
     if (FAILED (result))

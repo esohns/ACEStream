@@ -107,7 +107,12 @@
 
 // useful macros
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <sdkddkver.h>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0603) // _WIN32_WINNT_WINBLUE
 #include <mmsyscom.h>
+#else
+#include <MMSystem.h>
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0603)
 #else
 #include <cstdint>
 

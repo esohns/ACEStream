@@ -120,7 +120,7 @@ DATA           [\x00-\xFF]
                              yylval->chunk_meta.riff_list_identifier =
                                  MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunks);
-                             return yytokentype::FOURCC; }
+                             return yytokentype::_FOURCC; }
 } // end <RIFF_type>
 <chunks>{
 "LIST"                     { ACE_ASSERT (yyleng == 4);
@@ -142,7 +142,7 @@ DATA           [\x00-\xFF]
                              yylval->chunk_meta.identifier =
                                  MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunk_size);
-                             return yytokentype::FOURCC; }
+                             return yytokentype::_FOURCC; }
 } // end <chunks>
 <chunk_size>{
 {CHUNK_SIZE}               { ACE_ASSERT (yyleng == 4);

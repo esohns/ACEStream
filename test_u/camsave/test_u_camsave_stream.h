@@ -21,18 +21,22 @@
 #ifndef TEST_U_CAMSAVE_STREAM_H
 #define TEST_U_CAMSAVE_STREAM_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
                       //         (see: stream_lib_common.h)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
+#else
+#include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include <mfidl.h>
 #include <mfobjects.h>
 #include <winnt.h>
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -96,7 +100,7 @@ class Stream_CamSave_DirectShow_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_Stream (const Stream_CamSave_DirectShow_Stream&))
@@ -173,7 +177,7 @@ class Stream_CamSave_MediaFoundation_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_Stream (const Stream_CamSave_MediaFoundation_Stream&))
@@ -189,8 +193,8 @@ class Stream_CamSave_MediaFoundation_Stream
   Stream_CamSave_MediaFoundation_FileWriter_Module      fileWriter_;
 
   // media session
-  IMFMediaSession*                                  mediaSession_;
-  ULONG                                             referenceCount_;
+  IMFMediaSession*                                      mediaSession_;
+  ULONG                                                 referenceCount_;
 };
 #else
 class Stream_CamSave_Stream

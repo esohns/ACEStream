@@ -222,12 +222,14 @@ elseif (WIN32)
  # *NOTE*: workaround
  set(_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "D:/projects/DShowBaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
 # DirectShow
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+# include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
 
  # assimp
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/include)
@@ -298,7 +300,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (audioeffect_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     targetver.h
      test_u_audioeffect.cpp
      test_u_audioeffect_callbacks.cpp
      test_u_audioeffect_callbacks.h
@@ -394,6 +395,14 @@ if (UNIX)
   endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
 elseif (WIN32)
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ set (DIRECTX_SDK_DIRECTORY
+      "C:/Program Files/Microsoft DirectX SDK (June 2010)")
+#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
+ link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
+ target_link_libraries (${EXECUTABLE} "${DIRECTX_SDK_DIRECTORY}/Lib/x86/dxguid.lib")
  target_link_libraries (${EXECUTABLE} mfplat.lib)
  target_link_libraries (${EXECUTABLE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE} Dmoguids.lib)
@@ -428,7 +437,8 @@ elseif (WIN32)
   endif ()
  endif (GTK_SUPPORT)
 
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
 endif ()
@@ -445,7 +455,7 @@ target_link_libraries (${EXECUTABLE} CommonMath)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 if (GTK_SUPPORT)
  #target_link_libraries (${EXECUTABLE} CommonUI)
@@ -566,7 +576,7 @@ elseif (WIN32)
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
                           ENVIRONMENT foo=bar)
- endif ()
+ endif (GTK3_SUPPORT)
 endif ()
 
 add_test (NAME ${EXECUTABLE}_test

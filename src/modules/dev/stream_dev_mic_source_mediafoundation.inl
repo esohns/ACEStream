@@ -480,8 +480,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (SUCCEEDED (result_2));
         //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
         //ACE_ASSERT (SUCCEEDED (result_2));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
         result_2 = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
         ACE_ASSERT (SUCCEEDED (result_2));
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
         result_2 = MFCreateMediaSession (attributes_p,
                                          &mediaSession_);
         if (FAILED (result_2))
@@ -757,13 +759,17 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType>::QueryInterface (const IID& IID_in,
-                                                                                 void** interface_out)
+                                                                           void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::QueryInterface"));
 
   static const QITAB query_interface_table[] =
   {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback2),
+#else
+    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
     { 0 },
   };
 

@@ -29,10 +29,9 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <guiddef.h>
-#include <coguid.h>
-#include <combaseapi.h>
-#include <control.h>
+#include <CGuid.h>
+#include <Guiddef.h>
+#include <Dshow.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
@@ -523,10 +522,13 @@ struct Stream_CamSave_StreamState
 {
   Stream_CamSave_StreamState ()
    : Stream_State ()
+   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  struct Stream_CamSave_UserData* userData;
+  struct Stream_CamSave_SessionData* sessionData;
+
+  struct Stream_CamSave_UserData*    userData;
 };
 
 struct Stream_CamSave_StreamConfiguration

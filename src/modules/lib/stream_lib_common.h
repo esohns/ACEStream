@@ -21,10 +21,13 @@
 #ifndef STREAM_LIB_COMMON_H
 #define STREAM_LIB_COMMON_H
 
-#include <list>
-#include <string>
-
 #include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <list>
+#include <map>
+#include <string>
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
 #include <strmif.h>
@@ -143,6 +146,16 @@ struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
 typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
 typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::const_iterator Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t;
+
+struct Stream_MediaFramework_GUID_OperatorLess
+{
+  inline bool operator () (REFGUID lhs_in, REFGUID rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
+};
+typedef std::map<struct _GUID,
+                 std::string,
+                 struct Stream_MediaFramework_GUID_OperatorLess> Stream_MediaFramework_GUIDToStringMap_t;
+typedef Stream_MediaFramework_GUIDToStringMap_t::iterator Stream_MediaFramework_GUIDToStringMapIterator_t;
+typedef Stream_MediaFramework_GUIDToStringMap_t::const_iterator Stream_MediaFramework_GUIDToStringMapConstIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

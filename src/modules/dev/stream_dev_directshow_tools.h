@@ -25,7 +25,8 @@
 
 #include <winnt.h>
 #include <guiddef.h>
-#include <coguid.h>
+//#include <coguid.h>
+#include <CGuid.h>
 #include <strmif.h>
 
 #include "ace/Global_Macros.h"

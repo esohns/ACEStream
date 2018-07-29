@@ -1100,7 +1100,8 @@ yyuserAction (yyRuleNum yyn, size_t yyrhslen, yyGLRStackItem* yyvsp,
                                                                    regex,
                                                                    std::regex_constants::match_default))
                                              {
-                                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//                                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                                               ACE_ASSERT (!match_results.empty ());
                                                ACE_ASSERT (match_results[1].matched);
                                                ACE_ASSERT (match_results[2].matched);
 
@@ -3029,7 +3030,7 @@ yyprint (FILE* file_in,
   std::string format_string;
   switch (type_in)
   {
-    case FOURCC:
+    case _FOURCC:
     case _SIZE:
     case DATA:
     {

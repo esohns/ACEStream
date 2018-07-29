@@ -46,7 +46,7 @@ class Test_U_RIFFDecoder_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
+                        struct Test_U_RIFFDecoder_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_RIFFDecoder_AllocatorConfiguration,
@@ -64,7 +64,7 @@ class Test_U_RIFFDecoder_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
+                        struct Test_U_RIFFDecoder_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Test_U_RIFFDecoder_AllocatorConfiguration,
@@ -85,12 +85,7 @@ class Test_U_RIFFDecoder_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
-  virtual void report () const;
+  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Stream (const Test_U_RIFFDecoder_Stream&))

@@ -36,7 +36,7 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 //#include <mtype.h>
-#include <streams.h>
+//#include <streams.h>
 
 #include "gdk/gdkwin32.h"
 #else
@@ -161,8 +161,7 @@ load_capture_devices (GtkListStore* listStore_in)
         goto error;
       } // end IF
       ACE_ASSERT (enum_moniker_p);
-      enumerator_p->Release ();
-      enumerator_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
 
       VariantInit (&variant_s);
       while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
@@ -207,8 +206,7 @@ load_capture_devices (GtkListStore* listStore_in)
                       ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
-        properties_p->Release ();
-        properties_p = NULL;
+        properties_p->Release (); properties_p = NULL;
         ACE_Wide_To_Ascii converter_2 (variant_s.bstrVal);
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -216,11 +214,9 @@ load_capture_devices (GtkListStore* listStore_in)
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
                                                      converter_2.char_rep ()));
 
-        moniker_p->Release ();
-        moniker_p = NULL;
+        moniker_p->Release (); moniker_p = NULL;
       } // end WHILE
-      enum_moniker_p->Release ();
-      enum_moniker_p = NULL;
+      enum_moniker_p->Release (); enum_moniker_p = NULL;
 
 error:
       if (properties_p)
@@ -251,6 +247,7 @@ error:
         goto error_2;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -265,6 +262,11 @@ error:
       result_2 = MFEnumDeviceSources (attributes_p,
                                       &devices_pp,
                                       &count);
+#else
+      ACE_ASSERT (false);
+      ACE_NOTSUP_RETURN (false);
+      ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -272,14 +274,14 @@ error:
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
-      attributes_p->Release ();
-      attributes_p = NULL;
+      attributes_p->Release (); attributes_p = NULL;
       ACE_ASSERT (devices_pp);
 
       for (UINT32 index = 0; index < count; index++)
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
@@ -309,6 +311,7 @@ error:
         } // end IF
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
                                                      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a))));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
       } // end FOR
 
 error_2:
@@ -412,7 +415,7 @@ clean:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Dirent_Selector::close(\"%s\"): \"%m\", continuing\n"),
                 ACE_TEXT (directory.c_str ())));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkTreeIter iterator;
   for (std::vector<std::pair<std::string, std::string> >::const_iterator iterator_2 = listbox_entries_a.begin ();
@@ -432,7 +435,7 @@ clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct less_guid
 {
-  bool operator() (const GUID& lhs_in, const GUID& rhs_in) const
+  bool operator() (REFGUID lhs_in, REFGUID rhs_in) const
   {
     //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
     //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
@@ -6677,16 +6680,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //} // end IF
       if ((*mediafoundation_modulehandler_iterator).second.second.mediaSource)
       {
-        (*mediafoundation_modulehandler_iterator).second.second.mediaSource->Release ();
-        (*mediafoundation_modulehandler_iterator).second.second.mediaSource =
-          NULL;
+        (*mediafoundation_modulehandler_iterator).second.second.mediaSource->Release (); (*mediafoundation_modulehandler_iterator).second.second.mediaSource = NULL;
       } // end IF
       if ((*mediafoundation_modulehandler_iterator).second.second.session)
       {
-        (*mediafoundation_modulehandler_iterator).second.second.session->Release ();
-        (*mediafoundation_modulehandler_iterator).second.second.session = NULL;
+        (*mediafoundation_modulehandler_iterator).second.second.session->Release (); (*mediafoundation_modulehandler_iterator).second.second.session = NULL;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier,
                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                        (*mediafoundation_modulehandler_iterator).second.second.mediaSource))
@@ -6697,6 +6698,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
         return;
       } // end IF
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
       //if (!Stream_Module_Device_Tools::getSourceReader (mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource,
       //                                                  symbolic_link_p,
       //                                                  symbolic_link_size,
@@ -6708,11 +6710,8 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
       //              ACE_TEXT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
-
-      //  // clean up
       //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
       //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
-
       //  return;
       //} // end IF
       //ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader);
@@ -6739,8 +6738,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 
-  Test_I_Stream_MediaFoundation_CamSource* mediafoundation_source_impl_p =
-    NULL;
+  Test_I_Stream_MediaFoundation_CamSource* mediafoundation_source_impl_p = NULL;
   Test_I_Stream_DirectShow_CamSource* directshow_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
   switch (data_p->mediaFramework)
@@ -6749,13 +6747,11 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       if (directshow_data_p->streamConfiguration)
       {
-        directshow_data_p->streamConfiguration->Release ();
-        directshow_data_p->streamConfiguration = NULL;
+        directshow_data_p->streamConfiguration->Release (); directshow_data_p->streamConfiguration = NULL;
       } // end IF
       if ((*directshow_modulehandler_iterator).second.second.builder)
       {
-        (*directshow_modulehandler_iterator).second.second.builder->Release ();
-        (*directshow_modulehandler_iterator).second.second.builder = NULL;
+        (*directshow_modulehandler_iterator).second.second.builder->Release (); (*directshow_modulehandler_iterator).second.second.builder = NULL;
       } // end IF
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -6774,8 +6770,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
       ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_data_p->streamConfiguration);
-
-      buffer_negotiation_p->Release ();
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6785,6 +6780,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       ACE_ASSERT (mediafoundation_source_impl_p);
 
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
                                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                            (*mediafoundation_modulehandler_iterator).second.second.mediaSource,
@@ -6796,6 +6792,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
         return;
       } // end IF
       ACE_ASSERT (topology_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
       // sanity check(s)
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.session);
@@ -6805,15 +6802,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), returning\n")));
+        topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
       topology_p->Release (); topology_p = NULL;
 
       if ((*mediafoundation_modulehandler_iterator).second.second.inputFormat)
       {
-        (*mediafoundation_modulehandler_iterator).second.second.inputFormat->Release ();
-        (*mediafoundation_modulehandler_iterator).second.second.inputFormat =
-          NULL;
+        (*mediafoundation_modulehandler_iterator).second.second.inputFormat->Release (); (*mediafoundation_modulehandler_iterator).second.second.inputFormat = NULL;
       } // end IF
       HRESULT result =
         MFCreateMediaType (&(*mediafoundation_modulehandler_iterator).second.second.inputFormat);

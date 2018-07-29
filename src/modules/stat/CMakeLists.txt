@@ -36,11 +36,10 @@ set (source_files
      stream_stat_statistic_report.cpp
      stream_stat_statistic_report.h
      stream_stat_statistic_report.inl)
-if (WIN32)
- set (source_files
-      ${source_files}
-      targetver.h)
-endif (WIN32)
+#if (WIN32)
+# set (source_files
+#      ${source_files})
+#endif (WIN32)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -89,31 +88,16 @@ export (TARGETS ${PROJECT_NAME}_Statistic
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-if (WIN32)
- install (FILES
-          stream_stat_common.h
-          stream_stat_defines.h
-          stream_stat_exports.h
-          stream_stat_statistic_analysis.h
-          stream_stat_statistic_analysis.inl
-          stream_stat_statistic_report.h
-          stream_stat_statistic_report.inl
-          targetver.h
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-elseif (UNIX)
- install (FILES
-          stream_stat_common.h
-          stream_stat_defines.h
-          stream_stat_exports.h
-          stream_stat_statistic_analysis.h
-          stream_stat_statistic_analysis.inl
-          stream_stat_statistic_report.h
-          stream_stat_statistic_report.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-endif ()
-
+install (FILES
+         stream_stat_common.h
+         stream_stat_defines.h
+         stream_stat_exports.h
+         stream_stat_statistic_analysis.h
+         stream_stat_statistic_analysis.inl
+         stream_stat_statistic_report.h
+         stream_stat_statistic_report.inl
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Statistic
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

@@ -556,7 +556,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 ACE_TEXT (line_string.c_str ())));
     return NULL;
   } // end IF
-  ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//  ACE_ASSERT (match_results.ready () && !match_results.empty ());
+  ACE_ASSERT (!match_results.empty ());
 
   ACE_NEW_NORETURN (result_p,
                     HTTP_Record ());
@@ -608,7 +609,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
           offset += line_string.size () + 1; // don't forget the missing '\n'
           continue;
         } // end IF
-        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+//        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+        ACE_ASSERT (!match_results_2.empty ());
         ACE_ASSERT (match_results_2[1].matched);
         break;
       } // end WHILE
@@ -640,7 +642,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                regex,
                                std::regex_constants::match_default))
           continue;
-        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+//        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+        ACE_ASSERT (!match_results_2.empty ());
         ACE_ASSERT (match_results_2[2].matched);
         location = match_results_2[2].str ();
         break;

@@ -27,6 +27,8 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <dshow.h>
+
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
@@ -117,7 +119,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::initialize"));
 
@@ -129,7 +131,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -139,7 +141,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -148,8 +150,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
 
   struct Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
     const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -238,7 +240,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
                                                                graphBuilder_,
                                                                buffer_negotiation_p,
                                                                stream_config_p,
-                                                               const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.filterGraphConfiguration))
+                                                               const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.filterGraphConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -249,8 +251,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   ACE_ASSERT (stream_config_p);
 
   // clean up
-  stream_config_p->Release ();
-  stream_config_p = NULL;
+  stream_config_p->Release (); stream_config_p = NULL;
 
   reference_count = graphBuilder_->AddRef ();
   (*iterator).second.second.builder = graphBuilder_;
@@ -513,7 +514,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
@@ -704,7 +705,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::initialize"));
 
@@ -716,7 +717,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -726,7 +727,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -735,8 +736,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
 
   struct Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
     const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -943,7 +944,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
@@ -1427,96 +1428,4 @@ error:
 
   return false;
 }
-
-bool
-Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_Statistic& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::collect"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  int result = -1;
-
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
-  ACE_ASSERT (module_p);
-  Test_U_AudioEffect_Module_Statistic_WriterTask_t* statistic_impl_p =
-    dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!statistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
-
-  // synch access
-  Test_U_AudioEffect_SessionData& session_data_r =
-    const_cast<Test_U_AudioEffect_SessionData&> (inherited::sessionData_->getR ());
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->acquire ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      return false;
-    } // end IF
-  } // end IF
-
-  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
-
-  // delegate to the statistic module
-  bool result_2 = false;
-  try {
-    result_2 = statistic_impl_p->collect (data_out);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (stream_name_string_)));
-  }
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-  else
-    session_data_r.statistic = data_out;
-
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->release ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (stream_name_string_)));
-  } // end IF
-
-  return result_2;
-}
-
-void
-Test_U_AudioEffect_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* statisticReport__impl = NULL;
-//   statisticReport__impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//statisticReport__.writer ());
-//   if (!statisticReport__impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (statisticReport__impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

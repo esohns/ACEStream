@@ -557,7 +557,8 @@ endElement (void* userData_in,
                     ACE_TEXT (data_p->characters.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
       ACE_ASSERT (match_results[3].matched);
@@ -590,7 +591,8 @@ endElement (void* userData_in,
                     ACE_TEXT (data_p->characters.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
       ACE_ASSERT (match_results[3].matched);
@@ -657,7 +659,8 @@ endElement (void* userData_in,
                     ACE_TEXT (data_p->characters.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
       data_p->record->item->ISIN = match_results[1].str ();
@@ -671,7 +674,8 @@ endElement (void* userData_in,
                             regex,
                             std::regex_constants::match_default))
       {
-        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+        ACE_ASSERT (!match_results.empty ());
         ACE_ASSERT (match_results[1].matched);
       } // end IF
       else
@@ -687,7 +691,8 @@ endElement (void* userData_in,
                             regex,
                             std::regex_constants::match_default))
       {
-        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+        ACE_ASSERT (!match_results.empty ());
         ACE_ASSERT (match_results[1].matched);
       } // end IF
       else
@@ -723,7 +728,8 @@ endElement (void* userData_in,
                     ACE_TEXT (data_p->characters.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
 
       data_p->record->item->symbol = match_results[1].str ();
@@ -755,7 +761,8 @@ endElement (void* userData_in,
                     ACE_TEXT (data_p->characters.c_str ())));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
       //ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
       ACE_ASSERT (match_results[3].matched);

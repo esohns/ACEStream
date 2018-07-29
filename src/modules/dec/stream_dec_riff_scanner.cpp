@@ -2659,7 +2659,7 @@ YY_RULE_SETUP
                              yylval->chunk_meta.riff_list_identifier =
                                  MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunks);
-                             return yytokentype::FOURCC; }
+                             return yytokentype::_FOURCC; }
   YY_BREAK
 // end <RIFF_type>
 
@@ -2687,7 +2687,7 @@ YY_RULE_SETUP
                              yylval->chunk_meta.identifier =
                                  MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunk_size);
-                             return yytokentype::FOURCC; }
+                             return yytokentype::_FOURCC; }
   YY_BREAK
 // end <chunks>
 
@@ -2733,7 +2733,8 @@ YY_RULE_SETUP
                                                    regex,
                                                    std::regex_constants::match_default))
                              {
-                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                               ACE_ASSERT (!match_results.empty ());
                                ACE_ASSERT (match_results[1].matched);
                                ACE_ASSERT (match_results[2].matched);
 

@@ -24,14 +24,6 @@
 #include <map>
 #include <string>
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixdesc.h"
-}
-#endif /* __cplusplus */
-
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
@@ -46,6 +38,14 @@ extern "C"
 #include "sox.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixdesc.h"
+}
+#endif /* __cplusplus */
+
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
 
@@ -59,7 +59,6 @@ extern "C"
 enum AVPixelFormat;
 struct SwsContext;
 
-//void Stream_Dec_Export stream_decoder_libav_log_cb (void*, int, const char*, va_list);
 void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
 
 class Stream_Module_Decoder_Tools
@@ -98,7 +97,7 @@ class Stream_Module_Decoder_Tools
   // direct show
   // *NOTE*: loads a filter graph (source side)
   static bool loadAudioRendererGraph (const struct _AMMediaType&,                                       // media type
-                                      const int,                                                        // output handle [0: null]
+                                      int,                                                              // output handle [0: null]
                                       IGraphBuilder*,                                                   // graph handle
                                       REFGUID,                                                          // DMO effect CLSID [GUID_NULL: no effect]
                                       const union Stream_MediaFramework_DirectShow_AudioEffectOptions&, // DMO effect options
@@ -106,7 +105,7 @@ class Stream_Module_Decoder_Tools
   static bool loadVideoRendererGraph (REFGUID,                                                 // device category (GUID_NULL: retain first filter w/o input pins)
                                       const struct _AMMediaType&,                              // capture media type (i.e. capture device output)
                                       const struct _AMMediaType&,                              // output media type (sample grabber-)
-                                      const HWND,                                              // window handle [NULL: NullRenderer]
+                                      HWND,                                                    // window handle [NULL: NullRenderer]
                                       IGraphBuilder*,                                          // graph builder handle
                                       Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // return value: graph configuration
   // *NOTE*: loads a filter graph (target side). If the first parameter is NULL,
@@ -121,28 +120,36 @@ class Stream_Module_Decoder_Tools
                                        Stream_MediaFramework_DirectShow_GraphConfiguration_t&); // return value: graph layout
 
   // media foundation
-  static bool loadAudioRendererTopology (const std::string&,                   // device name ("FriendlyName")
-                                         IMFMediaType*,                        // [return value] sample grabber sink input media type handle
-                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
-                                         int,                                  // audio output handle [0: do not use tee/renderer]
-                                         TOPOID&,                              // return value: sample grabber sink node id
-                                         TOPOID&,                              // return value: audio renderer sink node id
-                                         IMFTopology*&);                       // input/return value: topology handle
-  static bool loadVideoRendererTopology (const std::string&,                   // device name ("FriendlyName")
-                                         const IMFMediaType*,                  // sample grabber sink input media type handle
-                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
-                                         const HWND,                           // window handle [NULL: do not use tee/EVR]
-                                         TOPOID&,                              // return value: sample grabber sink node id
-                                         TOPOID&,                              // return value: EVR sink node id
-                                         IMFTopology*&);                       // input/return value: topology handle
+  static bool loadAudioRendererTopology (const std::string&,             // device name ("FriendlyName")
+                                         IMFMediaType*,                  // [return value] sample grabber sink input media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                         IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                         IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                         int,                            // audio output handle [0: do not use tee/renderer]
+                                         TOPOID&,                        // return value: sample grabber sink node id
+                                         TOPOID&,                        // return value: audio renderer sink node id
+                                         IMFTopology*&);                 // input/return value: topology handle
+  static bool loadVideoRendererTopology (const std::string&,             // device name ("FriendlyName")
+                                         const IMFMediaType*,            // sample grabber sink input media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                         IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                         IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                         HWND,                           // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,                        // return value: sample grabber sink node id
+                                         TOPOID&,                        // return value: EVR sink node id
+                                         IMFTopology*&);                 // input/return value: topology handle
   static bool loadVideoRendererTopology (const IMFMediaType*, // input media type handle
-                                         const HWND,          // window handle [NULL: do not use tee/EVR]
+                                         HWND,                // window handle [NULL: do not use tee/EVR]
                                          TOPOID&,             // return value: EVR sink node id
                                          IMFTopology*&);      // input/return value: topology handle
 
   static bool loadTargetRendererTopology (const std::string&,  // URL
                                           const IMFMediaType*, // media source output media type handle
-                                          const HWND,          // window handle [NULL: do not use tee/EVR]
+                                          HWND,                // window handle [NULL: do not use tee/EVR]
                                           TOPOID&,             // return value: EVR sink node id
                                           IMFTopology*&);      // input/return value: topology handle
 #endif // ACE_WIN32 || ACE_WIN64

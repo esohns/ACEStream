@@ -9,16 +9,6 @@ endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
-if (WIN32)
- cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
-endif ()
-
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -32,13 +22,15 @@ elseif (WIN32)
 # *NOTE*: workaround
 # set(_PF86 "ProgramFiles(x86)")
 # cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
-# set (DIRECTSHOW_BASECLASSES_DIRECTORY
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "D:/projects/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 ##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-## message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
-# target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
@@ -65,7 +57,7 @@ set (source_files
      stream_lib_defines.h
      stream_lib_exports.h
      stream_lib_tools.cpp
-		 stream_lib_tools.h)
+     stream_lib_tools.h)
 if (WIN32)
  set (source_files
       ${source_files}
@@ -106,8 +98,7 @@ if (WIN32)
       stream_lib_mediafoundation_target.h
       stream_lib_mediafoundation_target.inl
       stream_lib_mediafoundation_tools.cpp
-      stream_lib_mediafoundation_tools.h
-      targetver.h)
+      stream_lib_mediafoundation_tools.h)
 endif (WIN32)
 
 # Include dir for installed targets
@@ -141,14 +132,14 @@ add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 if (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-#  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
  else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-#  target_link_libraries (${PROJECT_NAME}_Miscellaneous strmbase.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif ()
-# target_link_libraries (${PROJECT_NAME}_Miscellaneous winmm.lib)
+# target_link_libraries (${PROJECT_NAME}_MediaFramework winmm.lib)
  target_link_libraries (${PROJECT_NAME}_MediaFramework ${ACE_LIBRARY})
-endif ()
+endif (WIN32)
 
 set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
@@ -191,7 +182,6 @@ if (WIN32)
           stream_lib_mediafoundation_target.inl
           stream_lib_mediafoundation_tools.h
           stream_lib_tools.h
-          targetver.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 elseif (UNIX)

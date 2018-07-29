@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <cstdint>
+
 #include "ace/Log_Msg.h"
 
 #include "stream_defines.h"
@@ -50,7 +52,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::Stream_CachedMessageAllocator_T"));
 
   // sanity check(s)
-  if (!maximumNumberOfMessages_in)
+  if (unlikely (!maximumNumberOfMessages_in))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
@@ -80,7 +82,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_RETURN(ACE_Data_Block), continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(0), aborting\n")));
@@ -103,14 +105,11 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType(), continuing\n")));
   }
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate ControlMessageType(): \"%m\", aborting\n")));
-
-    // clean up
-    data_block_p->release ();
-
+    data_block_p->release (); data_block_p = NULL;
     return NULL;
   } // end IF
 
@@ -142,7 +141,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_RETURN(%u), continuing\n"),
                 bytes_in));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
@@ -175,15 +174,12 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), continuing\n"),
                 bytes_in));
   }
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate [Session]MessageType(%u): \"%m\", aborting\n"),
                 bytes_in));
-
-    // clean up
-    data_block_p->release ();
-
+    data_block_p->release (); data_block_p = NULL;
     return NULL;
   } // end IF
 
@@ -225,7 +221,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
                 bytes_in));
     result_p = NULL;
   }
-  if (!result_p)
+  if (unlikely (!result_p))
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate [Session]MessageType(%u): \"%m\", aborting\n"),
                 bytes_in));
@@ -284,318 +280,4 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
       break;
     }
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::cache_depth"));
-
-  return dataBlockAllocator_.cache_depth ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::cache_size"));
-
-  return dataBlockAllocator_.cache_size ();
-}
-
-//////////////////////////////////////////
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void*
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::calloc (size_t,
-                                                             size_t,
-                                                             char)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::calloc"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::remove (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::remove"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::bind (const char*, void*, int)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::bind"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::trybind (const char*, void*&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::trybind"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::find (const char*, void*&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::find"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::find (const char*)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::find"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::unbind (const char*)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::unbind"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::unbind (const char*, void*&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::unbind"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::sync (ssize_t, int)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::sync"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::sync (void*, size_t, int)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::sync"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::protect (ssize_t, int)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::protect"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-int
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::protect (void*, size_t, int)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::protect"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
-
-//////////////////////////////////////////
-
-#if defined (ACE_HAS_MALLOC_STATS)
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::print_stats (void) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::print_stats"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-#endif /* ACE_HAS_MALLOC_STATS */
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::dump (void) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::dump"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }

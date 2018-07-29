@@ -23,36 +23,24 @@
 
 #include <queue>
 
-#ifdef  _MSC_VER
-//#if (_MSC_VER >= 1200)
-//#pragma warning(push)
-//#endif
-//// disable some level-4 warnings, use #pragma warning(default:###) to re-enable
-//#pragma warning(disable:4100) // warning C4100: unreferenced formal parameter
-//#pragma warning(disable:4201) // warning C4201: nonstandard extension used : nameless struct/union
-//#pragma warning(disable:4511) // warning C4511: copy constructor could not be generated
-//#pragma warning(disable:4512) // warning C4512: assignment operator could not be generated
-//#pragma warning(disable:4514) // warning C4514: "unreferenced inline function has been removed"
-
-#if _MSC_VER>=1100
-#define AM_NOVTABLE __declspec(novtable)
-#else
-#define AM_NOVTABLE
-#endif
-#endif  // MSC_VER
-
 // *IMPORTANT NOTE*: the MSVC compiler does not like streams.h to be included
 //                   several times (complains about media GUIDs being defined
 //                   multiple times)
 //                   --> to work around this, the following are included instead
 //                   DO NOT TOUCH (unless you know what you are doing)
 //#include <streams.h>
-#include <strmif.h>
+#include <Dshow.h>
 #include <wxdebug.h>
 #include <combase.h>
+#include <strmif.h>
+#include <sdkddkver.h>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
+#else
+#include <windef.h>
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
 #include <wtypes.h>
-#include <mmiscapi2.h>
+//#include <mmiscapi2.h>
 #include <wxutil.h>
 #include <mmreg.h>
 #include <mtype.h>
@@ -86,6 +74,7 @@ class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitializeP_T<MediaType>
 {
+  typedef CSource inherited;
   typedef Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType,
                                                                            Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
                                                                                                                          SessionMessageType,
@@ -133,13 +122,11 @@ class Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T
   ConfigurationType* filterConfiguration_;
 
  private:
-  typedef CSource inherited;
-
   // ctor used by the COM class factory
-  Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (LPTSTR,              // name
-                                                 LPUNKNOWN,           // aggregating IUnknown interface handle ('owner')
-                                                 const struct _GUID&, // CLSID
-                                                 HRESULT*);           // return value: result
+  Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (LPTSTR,    // name
+                                                           LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
+                                                           REFGUID,   // CLSID
+                                                           HRESULT*); // return value: result
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T (const Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T& operator= (const Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T&))
@@ -171,6 +158,8 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitialize_T<MediaType>
 {
+  typedef CBasePin inherited;
+
  public:
   Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT*,    // return value: result
                                                                     FilterType*, // filter handle
@@ -210,7 +199,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
                            LPVOID,  // pInstanceData
                            DWORD,   // cbInstanceData
                            LPVOID,  // pPropData
-                           DWORD) { return E_NOTIMPL; }; // cbPropData
+                           DWORD) { return E_NOTIMPL; } // cbPropData
   STDMETHODIMP Get (REFGUID, // guidPropSet
                     DWORD,   // dwPropID
                     LPVOID,  // pInstanceData
@@ -313,8 +302,6 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   ACE_Message_Queue_Base*     queue_;                // inbound queue (active object)
 
  private:
-  typedef CBasePin inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (const Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T& operator= (const Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T&))

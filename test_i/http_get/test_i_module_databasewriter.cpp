@@ -32,7 +32,7 @@
 
 #include "test_i_common.h"
 
-Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (typename inherited::ISTREAM_T* stream_in)
+Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  //, commit_ (false)
 {

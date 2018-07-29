@@ -40,13 +40,19 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/image>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 elseif (WIN32)
- cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
- set (PROGRAM_FILES_DIRECTORY "$ENV{PROGRAMFILES(X86)}")
+# *NOTE*: workaround
+# set(_PF86 "ProgramFiles(x86)")
+# cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "D:/projects/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             "$<BUILD_INTERFACE:${PROGRAM_FILES_DIRECTORY}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses>")
+                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
@@ -66,11 +72,12 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party>)
 endif ()
-#message (STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 
@@ -170,21 +177,32 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
 elseif (WIN32)
-# target_link_libraries (${PROJECT_NAME}_Decoder dxguid.lib)
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ set (DIRECTX_SDK_DIRECTORY
+      "C:/Program Files/Microsoft DirectX SDK (June 2010)")
+# message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
+ link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
+ target_link_libraries (${PROJECT_NAME}_Decoder "${DIRECTX_SDK_DIRECTORY}/Lib/x86/dxguid.lib")
 # target_link_libraries (${PROJECT_NAME}_Decoder dxva2.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder strmiids.lib)
-# if (MSVC)
+ if (MSVC)
+#  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
+  if (MSVC_VERSION GREATER 1600)
 #  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
    target_link_libraries (${PROJECT_NAME}_Decoder vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
-#  endif ()
-# endif ()
+  endif ()
+ endif (MSVC)
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
+# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/avcodec.lib)
+# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/avformat.lib)
+# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
+# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/libavcodec.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
 
  target_link_libraries (${PROJECT_NAME}_Decoder Common)
 endif ()

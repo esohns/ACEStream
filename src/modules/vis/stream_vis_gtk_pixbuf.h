@@ -31,8 +31,6 @@
 
 #include "stream_task_base_synch.h"
 
-//#include "stream_vis_exports.h"
-
 // forward declarations
 struct SwsContext;
 

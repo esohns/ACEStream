@@ -251,6 +251,7 @@ error:
         goto error_2;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -261,7 +262,9 @@ error:
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       result_2 = MFEnumDeviceSources (attributes_p,
                                       &devices_pp,
                                       &count);
@@ -272,14 +275,19 @@ error:
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
-      attributes_p->Release ();
-      attributes_p = NULL;
+#else
+      ACE_ASSERT (false);
+      ACE_NOTSUP_RETURN (false);
+      ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+      attributes_p->Release (); attributes_p = NULL;
       ACE_ASSERT (devices_pp);
 
       for (UINT32 index = 0; index < count; index++)
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
@@ -309,6 +317,11 @@ error:
         } // end IF
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
                                                      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a))));
+#else
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (false);
+        ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
       } // end FOR
 
 error_2:
@@ -1783,8 +1796,8 @@ stream_processing_function (void* arg_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      typename Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
-        const_cast<typename Stream_CamSave_DirectShow_StreamConfiguration_t&> (directshow_cb_data_p->configuration->streamConfiguration).find (ACE_TEXT_ALWAYS_CHAR (""));
+      Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
+        const_cast<Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T&> (directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("")));
       ACE_ASSERT (iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       if ((*iterator).second.second.direct3DDevice)
       {
@@ -4050,7 +4063,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4082,12 +4095,17 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (buffer_negotiation_p);
       ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
 
-      buffer_negotiation_p->Release ();
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
+#else
+      IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (device_identifier_string,
                                                                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                        media_source_p))
@@ -4098,6 +4116,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT (media_source_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
       std::string module_name =
         ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME);
@@ -4108,7 +4127,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Base_T::find(\"%s\"), returning\n"),
                     ACE_TEXT (module_name.c_str ())));
-        media_source_p->Release ();
+        media_source_p->Release (); media_source_p = NULL;
         return;
       } // end IF
       Stream_CamSave_MediaFoundation_DisplayNull* display_impl_p =
@@ -4117,6 +4136,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
       IMFTopology* topology_p = NULL;
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
                                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                            media_source_p,
@@ -4125,11 +4145,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(), returning\n")));
-        media_source_p->Release ();
+        media_source_p->Release (); media_source_p = NULL;
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
       ACE_ASSERT (topology_p);
-      media_source_p->Release ();
+      media_source_p->Release (); media_source_p = NULL;
 
       // sanity check(s)
       ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
@@ -4141,10 +4162,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), returning\n")));
-        topology_p->Release ();
+        topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
-      topology_p->Release ();
+      topology_p->Release (); topology_p = NULL;
 
       if ((*mediafoundation_stream_iterator).second.second.inputFormat)
       {
@@ -4192,14 +4213,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4209,7 +4230,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
+#else
+      IMFMediaSource* media_source_p = NULL;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4222,14 +4247,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result = load_formats (media_source_p,
                              list_store_p);
-      media_source_p->Release ();
+      media_source_p->Release (); media_source_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4392,7 +4417,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4506,19 +4531,17 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), returning\n")));
-        
-        topology_p->Release ();
-
+        topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
-      topology_p->Release ();
+      topology_p->Release (); topology_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4529,7 +4552,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4540,7 +4563,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
+#else
+      IMFMediaSource* media_source_p = NULL;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4554,14 +4581,14 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       result = load_resolutions (media_source_p,
                                  GUID_s,
                                  list_store_p);
-      media_source_p->Release ();
+      media_source_p->Release (); media_source_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4575,7 +4602,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(\"%s\"), returning\n"),
-                Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, data_base_p->mediaFramework).c_str ()));
+                Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, cb_data_base_p->mediaFramework).c_str ()));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
@@ -4724,7 +4751,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4844,19 +4871,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), returning\n")));
-        
-        topology_p->Release ();
-
+        topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
-      topology_p->Release ();
+      topology_p->Release (); topology_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4868,7 +4893,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4880,7 +4905,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
+#else
+      IMFMediaSource* media_source_p = NULL;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4895,14 +4924,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                            GUID_s,
                            width,
                            list_store_p);
-      media_source_p->Release ();
+      media_source_p->Release (); media_source_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4917,7 +4946,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(%s,%u), returning\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, data_base_p->mediaFramework).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, cb_data_base_p->mediaFramework).c_str ()),
                 width));
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -5034,7 +5063,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -5170,19 +5199,17 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), returning\n")));
-        
-        topology_p->Release ();
-
+        topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
-      topology_p->Release ();
+      topology_p->Release (); topology_p = NULL;
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH

@@ -25,18 +25,14 @@
 #include <list>
 #include <string>
 
-#include "ace/Global_Macros.h"
-
-//#include <cguid.h>
 #include <d3d9.h>
 #include <dxva2api.h>
-
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
-
 #include <strmif.h>
-#include <mtype.h>
+
+#include "ace/Global_Macros.h"
 
 class Stream_MediaFramework_MediaFoundation_Tools
 {
@@ -76,9 +72,17 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool getTopology (const IMFMediaSession*, // media session handle
                            IMFTopology*&);         // return value: topology handle
   static bool getMediaSource (const IMFMediaSession*, // media session handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&);    // return value: media source handle
+#else
+                              IMFMediaSource*&);      // return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   static bool getMediaSource (const IMFTopology*,  // topology handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&); // return value: media source handle
+#else
+                              IMFMediaSource*&);      // return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
   ////         currently broken
   ////         --> pass NULL and use a different visualization module (e.g. the
@@ -94,17 +98,29 @@ class Stream_MediaFramework_MediaFoundation_Tools
                                       TOPOID&);           // return value: topology node id
 
   static bool loadSourceTopology (const std::string&, // URL
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                   IMFMediaSourceEx*&, // input/return value: media source handle
+#else
+                                  IMFMediaSource*&,   // input/return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                   IMFTopology*&);     // return value: topology handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   static bool loadSourceTopology (IMFMediaSourceEx*, // media source handle
+#else
+  static bool loadSourceTopology (IMFMediaSource*,   // media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                   IMFTopology*&);    // return value: topology handle
 
   // -------------------------------------
 
-  static bool addGrabber (const IMFMediaType*,                  // sample grabber sink input media type handle
-                          const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
-                          IMFTopology*,                         // topology handle
-                          TOPOID&);                             // return value: grabber node id
+  static bool addGrabber (const IMFMediaType*,            // sample grabber sink input media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                          IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
+#else
+                          IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                          IMFTopology*,                   // topology handle
+                          TOPOID&);                       // return value: grabber node id
   static bool addRenderer (const HWND,   // window handle
                            IMFTopology*, // topology handle
                            TOPOID&);     // return value: renderer node id
@@ -130,22 +146,33 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static std::string mediaTypeToString (const IMFMediaType*); // media type
   static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
   static std::string activateToString (IMFActivate*); // activate handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   static std::string mediaSourceToString (IMFMediaSourceEx*); // media source handle
+#else
+  static std::string mediaSourceToString (IMFMediaSource*); // media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   //static std::string transformToString (IMFTransform*); // transform handle
+
+  // *NOTE*: this wraps MFTEnum()/MFTEnumEx()
+  static bool load (REFGUID,                       // category
+                    UINT32,                        // flags
+                    const MFT_REGISTER_TYPE_INFO*, // input media type {NULL: all}
+                    const MFT_REGISTER_TYPE_INFO*, // output media type {NULL: all}
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                    IMFActivate**&,                // return value: module handles
+#else
+                    IMFAttributes*,                // attributes
+                    CLSID*&,                       // return value: module handles
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                    UINT32&);                      // return value: number of handles
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Tools (const Stream_MediaFramework_MediaFoundation_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Tools& operator= (const Stream_MediaFramework_MediaFoundation_Tools&))
 
-  struct less_guid
-  {
-    inline bool operator () (const struct _GUID& lhs_in, const struct _GUID& rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
-  };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
-  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
-  static GUID_TO_STRING_MAP_T Stream_MediaMajorTypeToStringMap;
-  static GUID_TO_STRING_MAP_T Stream_MediaSubTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaMajorTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaSubTypeToStringMap;
 
   //// *NOTE*: (if the media type is not a 'native' format) "... The Source Reader
   ////         will automatically load the decoder. ..."

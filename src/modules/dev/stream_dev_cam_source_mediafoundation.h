@@ -74,8 +74,11 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
- //, public IMFSampleGrabberSinkCallback
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
+#else
+ , public IMFSampleGrabberSinkCallback
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
  //, public IMFAsyncCallback
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -92,7 +95,6 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
-  typedef IMFSampleGrabberSinkCallback2 inherited2;
 
  public:
   // convenient types

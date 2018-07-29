@@ -319,7 +319,8 @@ do_processArguments (int argc_in,
                       ACE_TEXT (URI_out.c_str ())));
           return false;
         } // end IF
-        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//        ACE_ASSERT (match_results.ready () && !match_results.empty ());
+        ACE_ASSERT (!match_results.empty ());
 
         ACE_ASSERT (match_results[1].matched);
         hostName_out = match_results[1];
@@ -346,9 +347,8 @@ do_processArguments (int argc_in,
                               regex,
                               std::regex_constants::match_default))
         {
-          ACE_ASSERT (match_results_2.ready ()  &&
-                      !match_results_2.empty () &&
-                      match_results_2[1].matched);
+//          ACE_ASSERT (match_results_2.ready ()  && !match_results_2.empty () && match_results_2[1].matched);
+          ACE_ASSERT (!match_results_2.empty () && match_results_2[1].matched);
           dotted_decimal_string = hostName_out;
         } // end IF
         if (!Net_Common_Tools::getAddress (hostName_out,
@@ -378,7 +378,8 @@ do_processArguments (int argc_in,
                       ACE_TEXT (URI_out.c_str ())));
           return false;
         } // end IF
-        ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
+//        ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
+        ACE_ASSERT (!match_results_3.empty ());
 
         if (!match_results_3[2].matched)
           URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);

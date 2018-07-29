@@ -1,4 +1,11 @@
-﻿cmake_minimum_required (VERSION 2.8)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/PreToolChain.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/SetToolChain.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/ToolChain.cmake)
+# *NOTE*: or use the cmake.exe '-T' option instead
+include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/SetTargetPlatform.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/TargetPlatform.cmake)
+
+cmake_minimum_required (VERSION 2.8)
 
 cmake_policy (SET CMP0069 NEW) # IPO is enforced when enabled
 include (CheckIPOSupported)
@@ -107,7 +114,7 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  endif ()
  add_definitions (-D_DEBUG)
  if (WIN32)
-  add_definitions (-D_ITERATOR_DEBUG_LEVEL=1)
+  add_definitions (-D_ITERATOR_DEBUG_LEVEL=2)
   add_definitions (-DDEBUG) # activate DirectShow debug logging
  endif ()
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _DEBUG)

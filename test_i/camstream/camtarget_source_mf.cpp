@@ -22,8 +22,60 @@
 #include "ace/Log_Msg.h"
 #include "ace/Synch.h"
 
+#include <Dshow.h>
 #include <initguid.h>
-#include <strsafe.h>
+#include <strmif.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#include <WinReg.h>
+#else
+#include "common_tools.h"
+
+//WINADVAPI
+LSTATUS
+APIENTRY
+RegDeleteTreeA (__in        HKEY     hKey,
+                __in_opt    LPCSTR  lpSubKey)
+{
+  return (Common_Tools::deleteKey (hKey, lpSubKey) ? -1 : ERROR_SUCCESS);
+};
+//WINADVAPI
+LSTATUS
+APIENTRY
+RegDeleteTreeW (__in        HKEY     hKey,
+                __in_opt    LPCWSTR  lpSubKey)
+{
+  return RegDeleteTreeA (hKey, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (lpSubKey)));
+};
+#ifdef UNICODE
+#define RegDeleteTree  RegDeleteTreeW
+#else
+#define RegDeleteTree  RegDeleteTreeA
+#endif // !UNICODE
+
+//WINADVAPI
+LSTATUS
+APIENTRY
+RegDeleteKeyValueA (__in     HKEY   hKey,
+                    __in_opt LPCSTR lpSubKey,
+                    __in_opt LPCSTR lpValueName)
+{
+  return (Common_Tools::deleteKeyValue (hKey, lpSubKey, lpValueName) ? -1 : ERROR_SUCCESS);
+};
+//WINADVAPI
+LSTATUS
+APIENTRY
+RegDeleteKeyValueW (__in      HKEY     hKey,
+                    __in_opt  LPCWSTR lpSubKey,
+                    __in_opt  LPCWSTR lpValueName)
+{
+  return RegDeleteKeyValueA (hKey, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (lpSubKey)), ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (lpValueName)));
+};
+#ifdef UNICODE
+#define RegDeleteKeyValue  RegDeleteKeyValueW
+#else
+#define RegDeleteKeyValue  RegDeleteKeyValueA
+#endif // !UNICODE
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
 #include "class_factory.h"
 #include "registry.h"       // Helpers to register COM objects.
@@ -76,18 +128,18 @@ DWORD g_numClassFactories = ARRAYSIZE (g_ClassFactories);
 //  TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
 
 BOOL APIENTRY
-DllMain (HANDLE hModule, 
-         DWORD  ul_reason_for_call, 
-         LPVOID lpReserved)
+DllMain (HANDLE module_in,
+         DWORD  reason_in,
+         LPVOID lpReserved_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::DllMain"));
+  //STREAM_TRACE (ACE_TEXT ("::DllMain"));
 
-  ACE_UNUSED_ARG (lpReserved);
+  ACE_UNUSED_ARG (lpReserved_in);
 
-  switch (ul_reason_for_call)
+  switch (reason_in)
   {
     case DLL_PROCESS_ATTACH:
-      g_hModule = (HMODULE)hModule;
+      g_hModule = (HMODULE)module_in;
       //TRACE_INIT();
       break;
     case DLL_THREAD_ATTACH:
@@ -104,7 +156,7 @@ DllMain (HANDLE hModule,
 STDAPI
 DllCanUnloadNow ()
 {
-  STREAM_TRACE (ACE_TEXT ("::DllCanUnloadNow"));
+  //STREAM_TRACE (ACE_TEXT ("::DllCanUnloadNow"));
 
   return (!ClassFactory::IsLocked () ? S_OK : S_FALSE);
 }
@@ -112,54 +164,77 @@ DllCanUnloadNow ()
 STDAPI
 DllRegisterServer ()
 {
-  STREAM_TRACE (ACE_TEXT ("::DllRegisterServer"));
+  //STREAM_TRACE (ACE_TEXT ("::DllRegisterServer"));
 
   HRESULT result = S_OK;
 
-  // Register the bytestream handler's CLSID as a COM object.
+  // register the bytestream handler's CLSID
   result =
     RegisterObject (g_hModule,
                     CLSID_ACEStream_MediaFramework_MF_MediaSource,
-                    ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
-                    ACE_TEXT_ALWAYS_CHAR ("Both"));
+                    ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT ("Both"));
   if (FAILED (result))
-    goto done;
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to RegisterObject(%s): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
 
-  //// Register the bytestream handler as the handler for the MPEG-1 file extension.
-  //result = RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler, // CLSID 
-  //                                    sFileExtension,                       // Supported file extension
-  //                                    sByteStreamHandlerDescription);       // Description
+  //// register the bytestream handler as the handler for the MPEG-1 file extension
+  //result =
+  //  RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler,                                 // CLSID 
+  //                             fileExtension_in,                                                     // Supported file extension
+  //                             ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION)); // Description
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to RegisterByteStreamHandler(%s,\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::GUIDToString (CLSID_MFSampleMPEG1ByteStreamHandler).c_str ()),
+  //              fileExtension_in,
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //  return result;
+  //} // end IF
 
-done:
   return result;
 }
 STDAPI
 DllUnregisterServer ()
 {
-  STREAM_TRACE (ACE_TEXT ("::DllUnregisterServer"));
+  //STREAM_TRACE (ACE_TEXT ("::DllUnregisterServer"));
 
-  // Unregister the CLSIDs
-  UnregisterObject (CLSID_ACEStream_MediaFramework_MF_MediaSource);
+  // unregister the CLSIDs
+  HRESULT result = UnregisterObject (CLSID_ACEStream_MediaFramework_MF_MediaSource);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to UnregisterObject(%s): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
 
-  //// Unregister the bytestream handler for the file extension.
-  //UnregisterByteStreamHandler(CLSID_ACEStream_MF_MediaSource, sFileExtension);
+  //// unregister the bytestream handler for the file extension
+  //UnregisterByteStreamHandler (CLSID_ACEStream_MediaFramework_MF_MediaSource, fileExtension_in);
 
-  return S_OK;
+  return result;
 }
 
 STDAPI
 DllGetClassObject (REFCLSID CLSID_in,
-                   REFIID riid,
-                   void** ppv)
+                   REFIID IID_in,
+                   void** handle_out)
 {
-  STREAM_TRACE (ACE_TEXT ("::DllGetClassObject"));
+  //STREAM_TRACE (ACE_TEXT ("::DllGetClassObject"));
 
+  HRESULT result = CLASS_E_CLASSNOTAVAILABLE;
+
+  // find an entry in the static look-up table
   ClassFactory* class_factory_p = NULL;
-  HRESULT result = CLASS_E_CLASSNOTAVAILABLE; // Default to failure
-
-  // Find an entry in our look-up table for the specified CLSID.
   for (DWORD index = 0; index < g_numClassFactories; index++)
-    if (*g_ClassFactories[index].pclsid == CLSID_in)
+    if (InlineIsEqualGUID (*g_ClassFactories[index].pclsid, CLSID_in))
     {
       // Found an entry. Create a new class factory object.
       ACE_NEW_NORETURN (class_factory_p,
@@ -175,21 +250,19 @@ DllGetClassObject (REFCLSID CLSID_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
-  result = class_factory_p->QueryInterface (riid, ppv);
+  ACE_ASSERT (class_factory_p);
+  result = class_factory_p->QueryInterface (IID_in, handle_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ClassFactory::QueryInterface() (CLSID was: %s, IID was: %s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_in).c_str ()),
-                ACE_TEXT (Common_Tools::GUIDToString (riid).c_str ()),
+                ACE_TEXT (Common_Tools::GUIDToString (IID_in).c_str ()),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    class_factory_p->Release ();
-
+    class_factory_p->Release (); class_factory_p = NULL;
     return result;
   } // end IF
-  class_factory_p->Release ();
+  class_factory_p->Release (); class_factory_p = NULL;
 
   return result;
 }
@@ -200,27 +273,37 @@ DllGetClassObject (REFCLSID CLSID_in,
 //       all of the default options.)
 ///////////////////////////////////////////////////////////////////////
 HRESULT
-CreateRegistryKey (HKEY hKey,
-                   LPCTSTR subkey,
-                   HKEY *phKey)
+CreateRegistryKey (HKEY parentKey_in,
+                   LPCTSTR key_in,
+                   HKEY* key_out)
 {
-  STREAM_TRACE (ACE_TEXT ("::CreateRegistryKey"));
+  //STREAM_TRACE (ACE_TEXT ("::CreateRegistryKey"));
+
+  HRESULT result = E_FAIL;
 
   // sanity check(s)
-  ACE_ASSERT (phKey);
+  ACE_ASSERT (key_out);
 
-  LONG result =
-    RegCreateKeyEx (hKey,                 // parent key
-                    subkey,               // name of subkey
+  LONG result_2 =
+    RegCreateKeyEx (parentKey_in,         // parent key
+                    key_in,               // name of subkey
                     0,                    // reserved
                     NULL,                 // class string (can be NULL)
                     REG_OPTION_NON_VOLATILE,
                     KEY_ALL_ACCESS,
                     NULL,                 // security attributes
-                    phKey,
+                    key_out,
                     NULL);                // receives the "disposition" (is it a new or existing key)
+  if (unlikely (result_2 != ERROR_SUCCESS))
+  {
+    result = HRESULT_FROM_WIN32 (result_2);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to RegDeleteKeyValue(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
 
-  return HRESULT_FROM_WIN32 (result);
+  return result;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -236,94 +319,121 @@ CreateRegistryKey (HKEY hKey,
 //       illustrated in this sample.
 ///////////////////////////////////////////////////////////////////////
 HRESULT
-RegisterByteStreamHandler (REFCLSID guid,
-                           const TCHAR* sFileExtension,
-                           const TCHAR* sDescription)
+RegisterByteStreamHandler (REFCLSID CLSID_in,
+                           const TCHAR* fileExtension_in,
+                           const TCHAR* description_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::RegisterByteStreamHandler"));
+  //STREAM_TRACE (ACE_TEXT ("::RegisterByteStreamHandler"));
+
+  // Open HKCU/<byte stream handlers>/<file extension>
+  // Create {clsid} = <description> key
 
   HRESULT result = S_OK;
   int result_2 = -1;
-
-  // Open HKCU/<byte stream handlers>/<file extension>
-
-  // Create {clsid} = <description> key
-
-  HKEY    hKey = NULL;
-  HKEY    hSubKey = NULL;
-
-  OLECHAR szCLSID[CHARS_IN_GUID];
-  size_t  cchDescription = 0;
-  result = StringCchLength (sDescription,
+  HKEY key_p = NULL;
+  HKEY subkey_p = NULL;
+  std::string clsid_string = Common_Tools::GUIDToString (CLSID_in);
+  size_t length_i = 0;
+  result = StringCchLength (description_in,
                             STRSAFE_MAX_CCH,
-                            &cchDescription);
-  if (SUCCEEDED (result))
-    result_2 = StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID);
-  if (result_2 == CHARS_IN_GUID + 1)
-    result =
+                            &length_i);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to StringCchLength(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
+  result =
       CreateRegistryKey (HKEY_LOCAL_MACHINE,
                          ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
-                         &hKey);
-  if (SUCCEEDED (result))
-    result = CreateRegistryKey (hKey,
-                                sFileExtension,
-                                &hSubKey);
-  if (SUCCEEDED (result))
-    result =
-      RegSetValueEx (hSubKey,
-                     ACE_TEXT_WCHAR_TO_TCHAR (szCLSID),
-                     0,
-                     REG_SZ,
-                     reinterpret_cast<const BYTE*> (sDescription),
-                     static_cast<DWORD> ((cchDescription + 1) * sizeof (TCHAR)));
-  if (hSubKey)
-    RegCloseKey (hSubKey);
-  if (hKey)
-    RegCloseKey (hKey);
+                         &key_p);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateRegistryKey(%s): \"%s\", aborting\n"),
+                ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
+  ACE_ASSERT (key_p);
+  result = CreateRegistryKey (key_p,
+                              fileExtension_in,
+                              &subkey_p);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateRegistryKey(%s): \"%s\", aborting\n"),
+                fileExtension_in,
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    goto clean;
+  } // end IF
+  ACE_ASSERT (subkey_p);
+  result =
+    RegSetValueEx (subkey_p,
+                   ACE_TEXT_CHAR_TO_TCHAR (clsid_string.c_str ()),
+                   0,
+                   REG_SZ,
+                   reinterpret_cast<const BYTE*> (description_in),
+                   static_cast<DWORD> ((length_i + 1) * sizeof (TCHAR)));
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to RegSetValueEx(%s): \"%s\", aborting\n"),
+                fileExtension_in,
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    goto clean;
+  } // end IF
+
+clean:
+  if (subkey_p)
+    RegCloseKey (subkey_p);
+  if (key_p)
+    RegCloseKey (key_p);
 
   return result;
 }
 HRESULT
-UnregisterByteStreamHandler (REFCLSID guid,
-                             const TCHAR* sFileExtension)
+UnregisterByteStreamHandler (REFCLSID CLSID_in,
+                             const TCHAR* fileExtension_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::UnregisterByteStreamHandler"));
+  //STREAM_TRACE (ACE_TEXT ("::UnregisterByteStreamHandler"));
 
-  TCHAR szKey[MAX_PATH];
-  OLECHAR szCLSID[CHARS_IN_GUID];
-
-  DWORD result = 0;
-  HRESULT result_2 = S_OK;
+  HRESULT result = S_OK;
+  TCHAR buffer_a[MAX_PATH];
+  std::string clsid_string = Common_Tools::GUIDToString (CLSID_in);
+  LSTATUS result_2;
 
   // create the subkey name
-  result_2 =
-    StringCchPrintf (szKey,
-                     MAX_PATH,
-                     TEXT ("%s\\%s"),
+  result =
+    StringCchPrintf (buffer_a,
+                     sizeof (TCHAR[MAX_PATH]),
+                     ACE_TEXT ("%s\\%s"),
                      ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
-                     sFileExtension);
-  if (FAILED (result_2))
-    goto done;
-
-  // create the CLSID name in canonical form
-  result = StringFromGUID2 (guid,
-                            szCLSID, CHARS_IN_GUID);
-  if (result != CHARS_IN_GUID + 1)
-    goto done;
+                     fileExtension_in);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to StringCchPrintf(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
+  } // end IF
 
   // delete the CLSID entry under the subkey
   // Note: There might be multiple entries for this file extension, so we
   //       should not delete the entire subkey, just the entry for this CLSID
-  result = RegDeleteKeyValue (HKEY_LOCAL_MACHINE,
-                              szKey,
-                              ACE_TEXT_WCHAR_TO_TCHAR (szCLSID));
-  if (result != ERROR_SUCCESS)
+  result_2 =
+    RegDeleteKeyValue (HKEY_LOCAL_MACHINE,
+                       buffer_a,
+                       ACE_TEXT_CHAR_TO_TCHAR (clsid_string.c_str ()));
+  if (unlikely (result_2 != ERROR_SUCCESS))
   {
-    result_2 = HRESULT_FROM_WIN32 (result);
-    if (FAILED (result_2))
-      goto done;
+    result = HRESULT_FROM_WIN32 (result_2);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to RegDeleteKeyValue(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return result;
   } // end IF
 
-done:
-  return result_2;
+  return S_OK;
 }

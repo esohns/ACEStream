@@ -92,7 +92,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_DirectShow_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::initialize"));
 
@@ -103,7 +103,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const typename inherited::CONFIGUR
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_CamSave_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   Stream_CamSave_DirectShow_Source* source_impl_p = NULL;
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -123,9 +123,9 @@ Stream_CamSave_DirectShow_Stream::initialize (const typename inherited::CONFIGUR
   std::string log_file_name;
 
   iterator =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
   ACE_ASSERT (iterator_2 != configuration_in.end ());
@@ -387,7 +387,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -397,7 +397,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -868,7 +868,7 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_MediaFoundation_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::initialize"));
 
@@ -879,13 +879,13 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const typename inherited::CON
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_CamSave_SessionData* session_data_p = NULL;
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
     NULL;
   Stream_CamSave_MediaFoundation_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -895,7 +895,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const typename inherited::CON
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -905,7 +905,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const typename inherited::CON
   session_data_p =
     &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->getR ());
   iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+      const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -1136,7 +1136,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (media_type_p)
     media_type_p->Release ();

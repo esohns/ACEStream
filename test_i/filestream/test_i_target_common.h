@@ -107,11 +107,11 @@ struct Test_I_Target_StreamState
 {
   Test_I_Target_StreamState ()
    : Test_I_StreamState ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  struct Test_I_Target_SessionData* currentSessionData;
+  struct Test_I_Target_SessionData* sessionData;
 
   struct Test_I_Target_UserData*    userData;
 };

@@ -125,7 +125,6 @@ set (EXECUTABLE RIFF_decoder)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     targetver.h
      test_u_riffdecoder.cpp
      test_u_riffdecoder_common.h
      test_u_riffdecoder_common_modules.h

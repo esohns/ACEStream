@@ -21,14 +21,16 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
-
-#include <combaseapi.h>
-#include <control.h>
 #include <evr.h>
 #include <strmif.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
 #include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -38,7 +40,6 @@
 
 // forward declarations
 struct IVideoWindow;
-struct IMFVideoDisplayControl;
 class Stream_IAllocator;
 
 extern const char libacestream_default_vis_directshow_module_name_string[];

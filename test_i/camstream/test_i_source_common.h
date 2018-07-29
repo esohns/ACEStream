@@ -26,12 +26,16 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <combaseapi.h>
-#include <control.h>
+#include <Dshow.h>
 #include <evr.h>
 #include <mfapi.h>
 #include <strmif.h>
+#include <sdkddkver.h>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
 #include <windef.h>
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
 #else
 //#include <linux/videodev2.h>
 #ifdef __cplusplus
@@ -455,7 +459,11 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx*                                         mediaSource;
+#else
+  IMFMediaSource*                                           mediaSource;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
   IMFMediaSession*                                          session;
   IMFMediaType*                                             sourceFormat;
   Test_I_Source_MediaFoundation_ISessionNotify_t*           subscriber;

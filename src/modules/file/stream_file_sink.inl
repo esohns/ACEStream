@@ -364,7 +364,8 @@ continue_:
                     buffer));
         return;
       } // end IF
-      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
 
       ACE_ASSERT (match_results[1].matched);
       std::string file_name = match_results.str (1);

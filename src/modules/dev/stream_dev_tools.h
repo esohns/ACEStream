@@ -31,9 +31,13 @@
 #include <d3d9types.h>
 #include <dxva2api.h>
 #include <guiddef.h>
+#include <sdkddkver.h>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
-#include <strmif.h>
+#else
 #include <windef.h>
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#include <strmif.h>
 #else
 #include <linux/videodev2.h>
 

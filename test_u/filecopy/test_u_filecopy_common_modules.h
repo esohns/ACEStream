@@ -40,26 +40,26 @@
 
 // declare module(s)
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-                                    ACE_Message_Block,
+                                    Test_U_ControlMessage_t,
                                     Stream_Filecopy_Message,
                                     Stream_Filecopy_SessionMessage,
                                     Stream_Filecopy_ModuleHandlerConfiguration,
                                     enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
-                                    struct Stream_State,
+                                    struct Stream_Filecopy_StreamState,
                                     struct Stream_Filecopy_SessionData,
                                     Stream_Filecopy_SessionData_t,
                                     Test_U_Statistic_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Stream_Filecopy_FileReader;
 //typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-//                                    ACE_Message_Block,
+//                                    Test_U_ControlMessage_t,
 //                                    Stream_Filecopy_Message,
 //                                    Stream_Filecopy_SessionMessage,
 //                                    Stream_Filecopy_ModuleHandlerConfiguration,
 //                                    enum Stream_ControlType,
 //                                    enum Stream_SessionMessageType,
-//                                    struct Stream_State,
+//                                    struct Stream_Filecopy_StreamState,
 //                                    struct Stream_Filecopy_SessionData,
 //                                    Stream_Filecopy_SessionData_t,
 //                                    Test_U_Statistic_t,
@@ -69,7 +69,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,               
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_source_module_name_string,
-                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                                  // stream notification interface type
                               Stream_Filecopy_FileReader);                       // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
 //                              enum Stream_SessionMessageType,                    // session event type
@@ -80,7 +80,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,               
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_Filecopy_ModuleHandlerConfiguration,
-                                                      ACE_Message_Block,
+                                                      Test_U_ControlMessage_t,
                                                       Stream_Filecopy_Message,
                                                       Stream_Filecopy_SessionMessage,
                                                       Stream_CommandType_t,
@@ -91,7 +91,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Stream_Filecopy_ModuleHandlerConfiguration,
-                                                      ACE_Message_Block,
+                                                      Test_U_ControlMessage_t,
                                                       Stream_Filecopy_Message,
                                                       Stream_Filecopy_SessionMessage,
                                                       Stream_CommandType_t,
@@ -102,7 +102,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
 //                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
-//                                                      ACE_Message_Block,
+//                                                      Test_U_ControlMessage_t,
 //                                                      Stream_Filecopy_Message,
 //                                                      Stream_Filecopy_SessionMessage,
 //                                                      Stream_CommandType_t,
@@ -113,7 +113,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
 //                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
-//                                                      ACE_Message_Block,
+//                                                      Test_U_ControlMessage_t,
 //                                                      Stream_Filecopy_Message,
 //                                                      Stream_Filecopy_SessionMessage,
 //                                                      Stream_CommandType_t,
@@ -125,7 +125,7 @@ DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                // 
                           enum Stream_SessionMessageType,                    // session event type
                           struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
-                          Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+                          Stream_INotify_t,                                  // stream notification interface type
                           Stream_Filecopy_Module_Statistic_ReaderTask_t,     // reader type
                           Stream_Filecopy_Module_Statistic_WriterTask_t,     // writer type
                           Stream_Filecopy_StatisticReport);                  // name
@@ -140,7 +140,7 @@ DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                // 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Stream_Filecopy_ModuleHandlerConfiguration,
-                                   ACE_Message_Block,
+                                   Test_U_ControlMessage_t,
                                    Stream_Filecopy_Message,
                                    Stream_Filecopy_SessionMessage,
                                    struct Stream_Filecopy_SessionData> Stream_Filecopy_FileWriter;
@@ -148,7 +148,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,               
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,
-                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                                  // stream notification interface type
                               Stream_Filecopy_FileWriter);                       // writer type
 
 #endif

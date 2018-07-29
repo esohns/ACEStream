@@ -622,11 +622,12 @@ do_initialize_mediafoundation (IMFMediaType*& mediaType_inout,
 
   HRESULT result = E_FAIL;
 
+  struct _GUID subTypeGUID = GUID_NULL;
+
   // sanity check(s)
   if (mediaType_inout)
   {
-    mediaType_inout->Release ();
-    mediaType_inout = NULL;
+    mediaType_inout->Release (); mediaType_inout = NULL;
   } // end IF
 
   if (!coInitialize_in)
@@ -660,8 +661,8 @@ continue_:
   //// *TODO*: cannot use GetBitmapSubtype(), as it returns MEDIASUBTYPE_RGB32
   ////         for uncompressed RGB (the Color Space Converter expects
   ////         MEDIASUBTYPE_ARGB32)
-  struct _GUID subTypeGUID = MFVideoFormat_ARGB32;
-  if (subTypeGUID == GUID_NULL)
+  subTypeGUID = MFVideoFormat_ARGB32;
+  if (InlineIsEqualGUID (subTypeGUID, GUID_NULL))
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
@@ -2046,9 +2047,9 @@ do_work (unsigned int bufferSize_in,
         //              &timeout));
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        typename Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
+        Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
           NULL;
-        typename Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
+        Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
           NULL;
 #else
         typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =

@@ -52,7 +52,7 @@ class Test_U_RIFFDecoder_Message
 
  public:
   Test_U_RIFFDecoder_Message (unsigned int); // size
-  inline virtual ~Test_U_RIFFDecoder_Message () {};
+  inline virtual ~Test_U_RIFFDecoder_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet

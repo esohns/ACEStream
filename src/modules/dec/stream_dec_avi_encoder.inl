@@ -24,7 +24,8 @@
 //#include <xiosbase>
 
 #include <amvideo.h>
-#include <mmiscapi.h>
+//#include <mmiscapi.h>
+#include <MMSystem.h>
 #include <aviriff.h>
 #include <dvdmedia.h>
 #include <fourcc.h>
@@ -61,7 +62,7 @@ extern "C"
 #include "stream_dec_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dev_directshow_tools.h"
+#include "stream_lib_directshow_tools.h"
 #else
 #include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -675,15 +676,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
   if (!message_block_p)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                 inherited::mod_->name (),
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                 (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
                                                : sizeof (struct _riffchunk) + frameSize_)
                                    : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                                : sizeof (struct _riffchunk)))));
 #else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
+                inherited::mod_->name (),
                 (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
                                                : (4 + 4) + frameSize_)
                                    : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
@@ -837,14 +841,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType* format_p = &getFormat (session_data_r.inputFormat);
+      struct _AMMediaType* format_p = &getFormat (*session_data_r.inputFormat);
       format_ =
         Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (format_p->subtype,
                                                                   STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
       frame_rate_s = getFrameRate (session_data_r,
-                                   format_p);
+                                   *format_p);
       getResolution (session_data_r,
-                     format_p,
+                     *format_p,
                      width_, height_);
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (format_p);
 #else
@@ -1231,7 +1235,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (session_data_r.inputFormat);
 
   // *NOTE*: need to reclaim this memory (see below)
-  struct _AMMediaType* media_type_p = &getFormat (session_data_r.inputFormat);
+  struct _AMMediaType* media_type_p = &getFormat (*session_data_r.inputFormat);
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
@@ -1708,17 +1712,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
-                                       UserDataType>::getFormat_impl (const IMFMediaType*& format_in)
+                                       UserDataType>::getFormat_impl (const IMFMediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
   // sanity check(s)
-  ACE_ASSERT (format_in);
+//  ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
 
   HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*&> (format_in),
+    MFCreateAMMediaTypeFromMFMediaType (&const_cast<IMFMediaType&> (format_in),
                                         GUID_NULL,
                                         &result_p);
   if (FAILED (result))
@@ -3151,8 +3155,8 @@ continue_:
       ACE_ASSERT (session_data_r.inputFormat);
 
       struct _AMMediaType& media_type_r =
-        inherited::getFormat (session_data_r.inputFormat);
-      ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
+        inherited::getFormat (*session_data_r.inputFormat);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
 
       wave_header_size =
         (sizeof (struct _rifflist)  +
@@ -3291,8 +3295,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (session_data_r.inputFormat);
 
   struct _AMMediaType& media_type_r =
-    inherited::getFormat (session_data_r.inputFormat);
-  ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
+    inherited::getFormat (*session_data_r.inputFormat);
+  ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
 
   //ACE_ASSERT (media_type_p->pbFormat);
   //struct tWAVEFORMATEX* waveformatex_p =

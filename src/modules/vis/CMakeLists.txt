@@ -51,6 +51,8 @@ endif ()
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+elseif (WIN32)
+ add_definitions (-D__STDC_CONSTANT_MACROS)
 endif ()
 
 set (LLVM_COMPILER_ID_STRING "Clang")
@@ -101,10 +103,11 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
  # *NOTE*: workaround
- set(_PF86 "ProgramFiles(x86)")
+# set(_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -252,7 +255,7 @@ if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
+# target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
 

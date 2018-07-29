@@ -8,6 +8,8 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
+//#include "targetver.h"
+
 // Windows Header Files
 #include <windows.h>
 #endif
@@ -37,10 +39,6 @@
 #if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
 #include "libACENetwork_config.h"
-#endif
-
-#if defined _MSC_VER
-#include "targetver.h"
 #endif
 
 // *TODO*: reference additional headers your program requires here

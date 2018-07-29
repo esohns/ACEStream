@@ -31,11 +31,11 @@
 Test_I_Target_Stream::Test_I_Target_Stream ()
  : inherited ()
  , netIO_ (this,
-           ACE_TEXT_ALWAYS_CHAR ("NetIO"))
+           ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileWriter"))
+                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
@@ -79,14 +79,14 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  typename inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
+  inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_Net_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -97,7 +97,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -163,7 +163,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return result;

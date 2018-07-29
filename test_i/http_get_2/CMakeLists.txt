@@ -52,6 +52,7 @@ if (SSL_SUPPORT)
   set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
   find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
                 PATHS ENV ACE_ROOT
+                PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
                 PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
                 DOC "searching for ${ACE_SSL_LIB_FILE}"
                 NO_DEFAULT_PATH)
@@ -118,7 +119,8 @@ elseif (WIN32)
  elseif (DEFINED ENV{UNO_PATH})
    set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
  else ()
-  message (FATAL_ERROR "%OO_SDK_HOME%/%UNO_PATH% not set, aborting")
+  message (WARNING "%OO_SDK_HOME%/%UNO_PATH% not set, falling back")
+  set (OO_SDK_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../openoffice/sdk)
  endif ()
 # *NOTE*: workaround
 # set(_PF86 "ProgramFiles(x86)")
@@ -133,7 +135,8 @@ elseif (WIN32)
   string (REGEX REPLACE "\\\\" "/" OO_APP_DIRECTORY $ENV{UNO_PATH})
 #  set (OO_APP_DIRECTORY $ENV{UNO_PATH})
  else ()
-  message (FATAL_ERROR "%UNO_PATH% not set, aborting")
+  message (WARNING "%UNO_PATH% not set, falling back")
+  string (REGEX REPLACE "\\\\" "/" OO_APP_DIRECTORY ${OO_SDK_DIRECTORY}/program)
  endif ()
 # message (STATUS "Apache OpenOffice UNO directory: \"${OO_APP_DIRECTORY}\"")
 # *NOTE*: the OpenOffice SDK provides its own snprintf; however MSVC complains
@@ -364,7 +367,8 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_cppuhelpergcc3.so)
  #target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/libuno_salhelpergcc3.so)
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE} ntdll.lib)
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+# target_link_libraries (${EXECUTABLE} ntdll.lib)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mf.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)

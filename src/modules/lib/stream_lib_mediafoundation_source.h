@@ -60,7 +60,11 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
+#else
+ , public IMFSampleGrabberSinkCallback
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 {
  public:
   //// convenience types

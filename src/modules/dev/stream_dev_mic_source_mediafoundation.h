@@ -70,8 +70,11 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       struct Stream_UserData>
- //, public IMFSampleGrabberSinkCallback
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
  , public IMFSampleGrabberSinkCallback2
+#else
+ , public IMFSampleGrabberSinkCallback
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
  //, public IMFAsyncCallback
 {
  public:

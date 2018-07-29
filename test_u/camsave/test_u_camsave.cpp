@@ -163,18 +163,16 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     std::string& deviceIdentifier_out,
+                     std::string& interfaceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
-#else
-                     std::string& interfaceIdentifier_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      std::string& targetFileName_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out)
@@ -187,12 +185,14 @@ do_processArguments (int argc_in,
   // initialize results
   //bufferSize_out = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  interfaceIdentifier_out.clear ();
   showConsole_out = false;
 #else
-  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceIdentifier_out += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
-#endif
+  interfaceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  interfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  interfaceIdentifier_out +=
+    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
@@ -203,11 +203,10 @@ do_processArguments (int argc_in,
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
-  interfaceIdentifier_out.clear ();
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   printVersionAndExit_out = false;
@@ -215,10 +214,10 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("cf::g::hi:lms:tv"),
+                              ACE_TEXT ("cf::g::hlms:tv"),
 #else
-                              ACE_TEXT ("d:f::g::hi:ls:tv"),
-#endif
+                              ACE_TEXT ("f::g::hi:ls:tv"),
+#endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -244,13 +243,7 @@ do_processArguments (int argc_in,
         showConsole_out = true;
         break;
       }
-#else
-      case 'd':
-      {
-        deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-        break;
-      }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'f':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
@@ -269,23 +262,22 @@ do_processArguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
       case 'i':
       {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (false); // *TODO*
-#else
         interfaceIdentifier_out =
             ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-#endif
         break;
       }
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'm':
       {
         mediaFramework_out = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'l':
       {
         logToFile_out = true;
@@ -648,7 +640,11 @@ do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
+#else
+  IMFMediaSource* media_source_p = NULL;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
   IMFTopology* topology_p = NULL;
 
   // sanity check(s)
@@ -701,6 +697,7 @@ continue_:
   //ACE_ASSERT (IAMBufferNegotiation_out);
   //ACE_ASSERT (IAMStreamConfig_out);
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                    media_source_p))
@@ -723,8 +720,8 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
-  media_source_p->Release ();
-  media_source_p = NULL;
+  media_source_p->Release (); media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
 continue_2:
   IMFAttributes* attributes_p = NULL;
@@ -742,8 +739,10 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
   //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   result = MFCreateMediaSession (attributes_p,
                                  &IMFMediaSession_out);
   if (FAILED (result))
@@ -751,13 +750,10 @@ continue_2:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    attributes_p->Release ();
-
+    attributes_p->Release (); attributes_p = NULL;
     goto error;
   } // end IF
-  attributes_p->Release ();
+  attributes_p->Release (); attributes_p = NULL;
 
   if (!loadDevice_in)
     goto continue_3;
@@ -775,8 +771,7 @@ continue_2:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  topology_p->Release ();
-  topology_p = NULL;
+  topology_p->Release (); topology_p = NULL;
 
 continue_3:
   return true;
@@ -788,18 +783,15 @@ error:
     topology_p->Release ();
 //  if (IAMStreamConfig_out)
 //  {
-//    IAMStreamConfig_out->Release ();
-//    IAMStreamConfig_out = NULL;
+//    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
 //  } // end IF
 //  if (IGraphBuilder_out)
 //  {
-//    IGraphBuilder_out->Release ();
-//    IGraphBuilder_out = NULL;
+//    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
 //  } // end IF
   if (IMFMediaSession_out)
   {
-    IMFMediaSession_out->Release ();
-    IMFMediaSession_out = NULL;
+    IMFMediaSession_out->Release (); IMFMediaSession_out = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -845,8 +837,7 @@ do_finalize_mediafoundation (struct Stream_CamSave_MediaFoundation_GTK_CBData& C
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    (*iterator).second.second.session->Release ();
-    (*iterator).second.second.session = NULL;
+    (*iterator).second.second.session->Release (); (*iterator).second.second.session = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -1305,7 +1296,7 @@ do_work (const std::string& deviceIdentifier_in,
     if (!showConsole_in)
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
   {
@@ -1354,7 +1345,7 @@ do_work (const std::string& deviceIdentifier_in,
       goto clean;
     } // end IF
     stream_p = &stream;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     ACE_ASSERT (stream_p);
     // *NOTE*: this will block until the file has been copied...
     stream_p->start ();
@@ -1395,7 +1386,7 @@ clean:
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1429,7 +1420,7 @@ do_printVersion (const std::string& programName_in)
             << ACE_TEXT (": ")
             << ACE_TEXT (ACESTREAM_PACKAGE_VERSION)
             << std::endl
-#endif
+#endif // HAVE_CONFIG_H
             ;
 
   converter.str ("");
@@ -1467,7 +1458,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
@@ -1487,7 +1478,7 @@ ACE_TMAIN (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   device_identifier += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
@@ -1504,7 +1495,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
     MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;

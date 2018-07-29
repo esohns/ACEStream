@@ -34,7 +34,7 @@
 //#include <dxva.h>
 #include <Dmodshow.h>
 #include <evr.h>
-#include <fourcc.h>
+//#include <fourcc.h>
 #include <ks.h>
 #include <ksmedia.h>
 #include <mediaobj.h>

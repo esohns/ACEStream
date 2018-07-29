@@ -580,7 +580,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      DataMessageType,
                                      SessionMessageType,
                                      SessionDataType,
-                                     SessionDataContainerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
+                                     SessionDataContainerType>::OnProcessSample (REFGUID majorMediaType_in,
                                                                                  DWORD flags_in,
                                                                                  LONGLONG timeStamp_in,
                                                                                  LONGLONG duration_in,
@@ -614,7 +614,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      DataMessageType,
                                      SessionMessageType,
                                      SessionDataType,
-                                     SessionDataContainerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
+                                     SessionDataContainerType>::OnProcessSampleEx (REFGUID majorMediaType_in,
                                                                                    DWORD flags_in,
                                                                                    LONGLONG timeStamp_in,
                                                                                    LONGLONG duration_in,
@@ -710,8 +710,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (presentationClock_)
   {
-    presentationClock_->Release ();
-    presentationClock_ = NULL;
+    presentationClock_->Release (); presentationClock_ = NULL;
   } // end IF
 
   ULONG reference_count = presentationClock_in->AddRef ();
@@ -965,7 +964,11 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      SessionMessageType,
                                      SessionDataType,
                                      SessionDataContainerType>::initialize_MediaFoundation (const struct _AMMediaType& mediaType_in,
-                                                                                            const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                                                                            IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
+#else
+                                                                                            IMFSampleGrabberSinkCallback* sampleGrabberSinkCallback_in,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                                                                             TOPOID& sampleGrabberSinkNodeId_out,
                                                                                             IMFMediaSession*& IMFMediaSession_inout)
 {
@@ -1017,7 +1020,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (media_type_p,
-                                                                IMFSampleGrabberSinkCallback2_in,
+                                                                sampleGrabberSinkCallback_in,
                                                                 topology_p,
                                                                 node_id))
   {
@@ -1029,8 +1032,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                     &topology_node_p);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_ASSERT (topology_node_p);
-  topology_node_p->Release ();
-  topology_node_p = NULL;
+  topology_node_p->Release (); topology_node_p = NULL;
 
   result = IMFMediaSession_inout->SetTopology (topology_flags,
                                                topology_p);
@@ -1045,8 +1047,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
 #endif // _DEBUG
-  topology_p->Release ();
-  topology_p = NULL;
+  topology_p->Release (); topology_p = NULL;
 
   return true;
 
@@ -1057,25 +1058,4 @@ error:
     topology_p->Release ();
 
   return false;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-void
-Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataType,
-                                     SessionDataContainerType>::finalize_MediaFoundation ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Target_T::finalize_MediaFoundation"));
-
 }

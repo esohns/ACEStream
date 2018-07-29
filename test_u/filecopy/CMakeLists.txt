@@ -149,7 +149,6 @@ set (filecopy_EXE_SRCS
      stdafx.h
      ../test_u_common.h
      ../test_u_defines.h
-     targetver.h
      test_u_filecopy.cpp
      test_u_filecopy_callbacks.cpp
      test_u_filecopy_callbacks.h
@@ -213,7 +212,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} Ole32.lib)
  target_link_libraries (${EXECUTABLE} Quartz.lib)
  target_link_libraries (${EXECUTABLE} Shell32.lib)
- target_link_libraries (${EXECUTABLE} ucrtd.lib)
+ #target_link_libraries (${EXECUTABLE} ucrtd.lib)
  target_link_libraries (${EXECUTABLE} User32.lib)
  target_link_libraries (${EXECUTABLE} Userenv.lib)
 # *TODO*: repair WIN32 pkgconfig support

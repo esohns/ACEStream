@@ -46,7 +46,7 @@ class Stream_Filecopy_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
+                        struct Stream_Filecopy_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Stream_AllocatorConfiguration,
@@ -64,7 +64,7 @@ class Stream_Filecopy_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
+                        struct Stream_Filecopy_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
                         struct Stream_AllocatorConfiguration,
@@ -85,12 +85,7 @@ class Stream_Filecopy_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
-  virtual void report () const;
+  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream (const Stream_Filecopy_Stream&))

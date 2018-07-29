@@ -38,8 +38,10 @@ endif ()
 add_definitions (-DACE_HAS_DLL)
 
 if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-endif ()
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "D:/projects/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+endif (WIN32)
 
 include (FindPkgConfig)
 if (UNIX)
@@ -92,8 +94,6 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
-
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
@@ -102,6 +102,9 @@ if (UNIX)
  else ()
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
@@ -112,7 +115,6 @@ if (UNIX)
 else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
- include_directories ($ENV{ACE_ROOT})
 # *TODO*: repair pkgconfig support
 # include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 # gtk
@@ -137,6 +139,8 @@ else ()
 
 # libav
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+
+ include_directories ($ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -259,18 +263,12 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE_SOURCE} ntdll.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} dxguid.lib)
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+
  target_link_libraries (${EXECUTABLE_SOURCE} evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} mfplat.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} strmiids.lib)
- link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/${CMAKE_BUILD_TYPE})
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/${CMAKE_BUILD_TYPE}/strmbasd.lib)
- else ()
-  target_link_libraries (${EXECUTABLE_SOURCE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/${CMAKE_BUILD_TYPE}/strmbase.lib)
- endif ()
  target_link_libraries (${EXECUTABLE_SOURCE} winmm.lib)
 # *TODO*: repair WIN32 pkgconfig support
  if (GTK3_SUPPORT)
@@ -293,7 +291,8 @@ elseif (WIN32)
   target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
  endif ()
 
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
+# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
+ target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
 endif ()
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
@@ -410,15 +409,17 @@ if (WIN32)
  add_dependencies (${LIBRARY_DS} Common)
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
 
+ set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+
  target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${LIBRARY_DS} strmbasd.lib)
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
  else ()
-  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${LIBRARY_DS} strmbase.lib)
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif ()
  target_link_libraries (${LIBRARY_DS} Common)
 
@@ -482,15 +483,7 @@ if (WIN32)
  add_dependencies (${LIBRARY_MF} ${PROJECT_NAME})
 
  target_link_libraries (${LIBRARY_MF} ${ACE_LIBRARY})
-# target_link_libraries (${LIBRARY_MF} strmiids.lib)
-# target_link_libraries (${LIBRARY_MF} winmm.lib)
-# if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-#  target_link_libraries (${LIBRARY_MF} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
-# else ()
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-#  target_link_libraries (${LIBRARY_MF} strmbase.lib)
-# endif ()
+
  target_link_libraries (${LIBRARY_MF} Common)
 
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME})
@@ -549,39 +542,6 @@ endif ()
       test_i_target_signalhandler.inl
       test_i_target_stream.cpp
       test_i_target_stream.h)
-#elseif (WIN32)
-# set (camtarget_EXE_SRCS
-#      stdafx.cpp
-#      stdafx.h
-#      test_i_callbacks.cpp
-#      test_i_callbacks.h
-#      test_i_camstream_common.h
-#      test_i_camstream_defines.h
-#      test_i_camstream_network.h
-#      test_i_common_modules.h
-#      test_i_connection_manager_common.h
-#      test_i_module_eventhandler.cpp
-#      test_i_module_eventhandler.h
-#      test_i_module_eventhandler.inl
-#      test_i_source_stream.cpp
-#      test_i_source_stream.h
-#      test_i_source_stream.inl
-#      test_i_target.cpp
-#      test_i_target_common.h
-#      test_i_target_eventhandler.cpp
-#      test_i_target_eventhandler.h
-#      test_i_target_eventhandler.inl
-#      test_i_target_listener_common.h
-#      test_i_target_message.cpp
-#      test_i_target_message.h
-#      test_i_target_session_message.cpp
-#      test_i_target_session_message.h
-#      test_i_target_signalhandler.cpp
-#      test_i_target_signalhandler.h
-#      test_i_target_signalhandler.inl
-#      test_i_target_stream.cpp
-#      test_i_target_stream.h)
-#endif ()
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_TARGET camtarget)
@@ -629,17 +589,9 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE_TARGET} ntdll.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
  target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)
  target_link_libraries (${EXECUTABLE_TARGET} winmm.lib)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${EXECUTABLE_TARGET} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
- else ()
-  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${EXECUTABLE_TARGET} strmbase.lib)
- endif ()
- target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
 # *TODO*: repair WIN32 pkgconfig support
  if (GTK3_SUPPORT)
   target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
@@ -661,8 +613,10 @@ elseif (WIN32)
   target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
  endif ()
 
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
+# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
+ target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
 endif ()
+
 target_link_libraries (${EXECUTABLE_TARGET} Common)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (WIN32)

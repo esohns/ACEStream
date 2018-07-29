@@ -35,7 +35,7 @@ elseif (WIN32)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT
-#               PATH_SUFFIXES lib\\${CMAKE_CFG_INTDIR}\\Win32
+               PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
                DOC "searching for ${ACE_LIB_FILE}")
 endif ()
@@ -79,7 +79,11 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer>)
 else ()
- include_directories ($ENV{ACE_ROOT})
+ if (DEFINED ENV{ACE_ROOT})
+  include_directories ($ENV{ACE_ROOT})
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE)
+ endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer)
 endif ()
 #include_directories (${Common_INCLUDE_DIRS})
@@ -238,10 +242,13 @@ set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL
 set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 if (WIN32)
-# if (MSVC)
+ if (MSVC)
+#  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
+  if (MSVC_VERSION GREATER 1600)
 #  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
    target_link_libraries (${PROJECT_NAME} vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
-#  endif ()
+  endif ()
+ endif (MSVC)
 # endif ()
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 

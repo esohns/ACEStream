@@ -146,20 +146,20 @@ using namespace std;
 }
 
 /* *NOTE*: 'SIZE' is a typedef on Win32 */
-%token <size>      RIFF   "riff"
-%token <size>      _SIZE  "size"
-%token <size>      FOURCC "fourcc"
-%token <size>      LIST   "list"
-%token <size>      DATA   "data"
-%token <size>      END 0  "end_of_buffer"
+%token <size>      RIFF    "riff"
+%token <size>      _SIZE   "size"
+%token <size>      _FOURCC "fourcc"
+%token <size>      LIST    "list"
+%token <size>      DATA    "data"
+%token <size>      END 0   "end_of_buffer"
 
 %type <chunk_meta> riff_list_meta chunk
 %type <size>       buffer chunks
 
 //%precedence DATA
-//%precedence SIZE
-//%precedence FOURCC
-//%left FOURCC
+//%precedence _SIZE
+//%precedence _FOURCC
+//%left _FOURCC
 
 %code provides {
 extern void yy_debug (int);
@@ -326,8 +326,8 @@ yyprint (FILE* file_in,
   std::string format_string;
   switch (type_in)
   {
-    case FOURCC:
-    case SIZE:
+    case _FOURCC:
+    case _SIZE:
     case DATA:
     {
       format_string = ACE_TEXT_ALWAYS_CHAR (" %s");

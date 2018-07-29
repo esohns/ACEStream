@@ -24,10 +24,15 @@
 #include <map>
 #include <string>
 
+#include <sdkddkver.h>
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
-#include <winnt.h>
-#include <guiddef.h>
-#include <coguid.h>
+#else
+#include <windef.h>
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+//#include <winnt.h>
+#include <CGuid.h>
+#include <Guiddef.h>
 #include <evr.h>
 #include <mtype.h>
 #include <strmif.h>
@@ -167,17 +172,11 @@ class Stream_MediaFramework_DirectShow_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools (const Stream_MediaFramework_DirectShow_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools& operator= (const Stream_MediaFramework_DirectShow_Tools&))
 
-  struct less_guid
-  {
-    inline bool operator () (REFGUID lhs_in, REFGUID rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
-  };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
-  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
-  static GUID_TO_STRING_MAP_T Stream_MediaMajorTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaMajorTypeToStringMap;
   typedef std::map<WORD, std::string> WORD_TO_STRING_MAP_T;
   typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
   static WORD_TO_STRING_MAP_T Stream_WaveFormatTypeToStringMap;
-  static GUID_TO_STRING_MAP_T Stream_WaveFormatSubTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_WaveFormatSubTypeToStringMap;
 
   static ACE_HANDLE logFileHandle;
 

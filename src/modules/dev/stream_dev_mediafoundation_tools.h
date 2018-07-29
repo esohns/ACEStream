@@ -45,7 +45,11 @@ class Stream_Module_Device_MediaFoundation_Tools
   //                              IMFMediaType*&);  // return value: media type
   //static bool setCaptureFormat (IMFSourceReaderEx*,   // source handle
   //                              const IMFMediaType*); // media type
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   static bool getCaptureFormat (IMFMediaSourceEx*, // source handle
+#else
+  static bool getCaptureFormat (IMFMediaSource*,   // source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                 IMFMediaType*&);   // return value: media type
   static bool setCaptureFormat (IMFTopology*,         // topology handle
                                 const IMFMediaType*); // media type
@@ -54,16 +58,28 @@ class Stream_Module_Device_MediaFoundation_Tools
 
   static bool getMediaSource (const std::string&,  // device identifier
                               REFGUID,             // device category
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&); // return value: media source handle
+#else
+                              IMFMediaSource*&);   // return value: media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
   // -------------------------------------
   // *NOTE*: if the fourth argument is NULL, the topology has no sink and cannot
   //         be loaded
-  static bool loadDeviceTopology (const std::string&,                   // device identifier
-                                  REFGUID,                              // device category
-                                  IMFMediaSourceEx*&,                   // input/return value: (capture) media source handle
-                                  const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not insert 'dummy' sink]
-                                  IMFTopology*&);                       // return value: topology handle
+  static bool loadDeviceTopology (const std::string&,             // device identifier
+                                  REFGUID,                        // device category
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                  IMFMediaSourceEx*&,             // input/return value: (capture) media source handle
+#else
+                                  IMFMediaSource*&,               // input/return value: (capture) media source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                  IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                  IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                  IMFTopology*&);                 // return value: topology handle
 
   // -------------------------------------
 
@@ -72,7 +88,11 @@ class Stream_Module_Device_MediaFoundation_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools (const Stream_Module_Device_MediaFoundation_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools& operator= (const Stream_Module_Device_MediaFoundation_Tools&))
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   static bool setCaptureFormat (IMFMediaSourceEx*,    // source handle
+#else
+  static bool setCaptureFormat (IMFMediaSource*,      // source handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                 const IMFMediaType*); // media type
 };
 

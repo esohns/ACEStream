@@ -98,6 +98,17 @@ struct Stream_Filecopy_SessionData
 };
 typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
+struct Stream_Filecopy_StreamState
+ : Stream_State
+{
+  Stream_Filecopy_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  struct Stream_Filecopy_SessionData* sessionData;
+};
+
 struct Stream_Filecopy_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
@@ -138,7 +149,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
-typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_Filecopy_IStreamNotify_t;
+//typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_Filecopy_IStreamNotify_t;
 
 typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_ISubscribe_t;
 

@@ -21,12 +21,19 @@
 #ifndef STREAM_LIB_DIRECTSHOW_ALLOCATOR_H
 #define STREAM_LIB_DIRECTSHOW_ALLOCATOR_H
 
+#include <dshow.h>
+#include <wxdebug.h>
+#include <combase.h>
+#include <mtype.h>
+#include <reftime.h>
+#include <wxutil.h>
+#include <wxlist.h>
+#include <amfilter.h>
+//#include <Streams.h>
+
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_Base.h"
 #include "ace/Synch_Traits.h"
-
-#include <dshow.h>
-#include <streams.h>
 
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"

@@ -228,7 +228,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
-set (EXECUTABLE HTTP_get)
+set (EXECUTABLE HTTP_get_1)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
@@ -275,7 +275,7 @@ cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit di
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${HTTP_get_EXE_SRCS})
+                ${HTTP_get_1_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (WIN32)
  if (NOT BUILD_TEST_I)
@@ -305,8 +305,8 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE} ntdll.lib)
- target_link_libraries (${EXECUTABLE} dxguid.lib)
+# target_link_libraries (${EXECUTABLE} ntdll.lib)
+ #target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mf.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
 # *TODO*: repair pkgconfig support

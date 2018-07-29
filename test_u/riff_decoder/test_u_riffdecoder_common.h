@@ -47,7 +47,7 @@ class Test_U_RIFFDecoder_SessionMessage;
 struct Test_U_RIFFDecoder_AllocatorConfiguration
  : Stream_AllocatorConfiguration
 {
-  inline Test_U_RIFFDecoder_AllocatorConfiguration ()
+  Test_U_RIFFDecoder_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
     defaultBufferSize = TEST_U_RIFFDECODER_DEFAULT_BUFFER_SIZE;
@@ -55,7 +55,7 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
     paddingBytes = COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE;
-  };
+  }
 };
 
 //extern const char stream_name_string_[];
@@ -79,23 +79,34 @@ struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
 struct Test_U_RIFFDecoder_SessionData
  : Stream_SessionData
 {
-  inline Test_U_RIFFDecoder_SessionData ()
+  Test_U_RIFFDecoder_SessionData ()
    : Stream_SessionData ()
    , frameSize (0)
-  {};
+  {}
 
   unsigned int frameSize;
 };
 typedef Stream_SessionData_T<struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
 
+struct Test_U_RIFFDecoder_StreamState
+ : Stream_State
+{
+  Test_U_RIFFDecoder_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  struct Test_U_RIFFDecoder_SessionData* sessionData;
+};
+
 struct Test_U_RIFFDecoder_Configuration
  : Test_U_Configuration
 {
-  inline Test_U_RIFFDecoder_Configuration ()
+  Test_U_RIFFDecoder_Configuration ()
    : Test_U_Configuration ()
    , parserConfiguration ()
    , streamConfiguration ()
-  {};
+  {}
 
   struct Common_ParserConfiguration        parserConfiguration;
   Test_U_RIFFDecoder_StreamConfiguration_t streamConfiguration;
@@ -136,6 +147,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_RIFFDecoder_Message,
                                           Test_U_RIFFDecoder_SessionMessage> Test_U_RIFFDecoder_MessageAllocator_t;
 
-typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_U_RIFFDecoder_IStreamNotify_t;
+//typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_U_RIFFDecoder_IStreamNotify_t;
 
 #endif

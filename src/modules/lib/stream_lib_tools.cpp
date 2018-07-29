@@ -29,8 +29,9 @@
 #include <dvdmedia.h>
 #include <dxva.h>
 #include <fourcc.h>
-#include <mfapi.h>
 #include <uuids.h>
+//#include <ksuuids.h>
+#include <mfapi.h>
 #include <wmcodecdsp.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -47,9 +48,9 @@
 
 // initialize statics
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_MediaFramework_Tools::GUID_TO_STRING_MAP_T Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap;
-Stream_MediaFramework_Tools::GUID_TO_STRING_MAP_T Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
-Stream_MediaFramework_Tools::GUID_TO_STRING_MAP_T Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
+Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap;
+Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
+Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
 #endif // ACE_WIN32 || ACE_WIN64
 
 bool
@@ -104,9 +105,11 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_DolbyAC3, ACE_TEXT_ALWAYS_CHAR ("DolbyAC3")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_MPEG2Audio, ACE_TEXT_ALWAYS_CHAR ("MPEG2Audio")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_DVD_LPCMAudio, ACE_TEXT_ALWAYS_CHAR ("DVD_LPCMAudio")));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_UVCH264Video, ACE_TEXT_ALWAYS_CHAR ("UVCH264Video")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_JPEGImage, ACE_TEXT_ALWAYS_CHAR ("JPEGImage")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.insert (std::make_pair (FORMAT_Image, ACE_TEXT_ALWAYS_CHAR ("Image")));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
   // DirectShow
   //////////////////////////////////////// AUDIO
@@ -176,10 +179,13 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_PROGRAM, ACE_TEXT_ALWAYS_CHAR("MPEG2_PROGRAM")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT_STRIDE, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT_STRIDE")));
+// *NOTE*: see ksuuids.h
+#if ( (NTDDI_VERSION >= NTDDI_WINXPSP2) && (NTDDI_VERSION < NTDDI_WS03) ) || (NTDDI_VERSION >= NTDDI_WS03SP1)
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ATSC_SI, ACE_TEXT_ALWAYS_CHAR("ATSC_SI")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_DVB_SI, ACE_TEXT_ALWAYS_CHAR("DVB_SI")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_ISDB_SI, ACE_TEXT_ALWAYS_CHAR("ISDB_SI")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2DATA, ACE_TEXT_ALWAYS_CHAR("MPEG2DATA")));
+#endif
   // MPEG-2 (kernel)
 
   /////////////////////////////////////// Stream
@@ -325,14 +331,18 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH263_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH263_F")));
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG1_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_A")));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG1_VLD")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_A")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_B")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_C")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2_D")));
 
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG2and1_VLD, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG2and1_VLD")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_NoFGT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_MoComp_FGT")));
@@ -341,10 +351,12 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_E, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_NoFGT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_F, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_FGT")));
 
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_WithFMOASO_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_WithFMOASO_NoFGT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_Progressive_NoFGT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Stereo_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Stereo_NoFGT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeH264_VLD_Multiview_NoFGT, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeH264_VLD_Multiview_NoFGT")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV8_A, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_PostProc")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeWMV8_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeWMV8_MoComp")));
@@ -357,14 +369,18 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_B, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_MoComp")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_C, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_IDCT")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_D, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_VLD")));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeVC1_D2010, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeVC1_D2010")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_Simple, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_Simple")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_NoGMC")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeMPEG4pt2_VLD_AdvSimple_GMC")));
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_ModeHEVC_VLD_Main10, ACE_TEXT_ALWAYS_CHAR ("DXVA_ModeHEVC_VLD_Main10")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap.insert (std::make_pair (DXVA_NoEncrypt, ACE_TEXT_ALWAYS_CHAR ("DXVA_NoEncrypt")));
 
@@ -422,13 +438,14 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_DVC,  ACE_TEXT_ALWAYS_CHAR ("DVC")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H264, ACE_TEXT_ALWAYS_CHAR ("H264")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MJPG, ACE_TEXT_ALWAYS_CHAR ("MJPG")));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_420O, ACE_TEXT_ALWAYS_CHAR ("420O")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC, ACE_TEXT_ALWAYS_CHAR ("HEVC")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_HEVC_ES, ACE_TEXT_ALWAYS_CHAR ("HEVC_ES")));
-#if (WINVER >= _WIN32_WINNT_WIN8)
+
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H263, ACE_TEXT_ALWAYS_CHAR ("H263")));
-#endif
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_H264_ES, ACE_TEXT_ALWAYS_CHAR ("H264_ES")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFVideoFormat_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
 
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
@@ -445,11 +462,13 @@ Stream_MediaFramework_Tools::initialize ()
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_ADTS, ACE_TEXT_ALWAYS_CHAR ("ADTS")));
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("AMR_NB")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("AMR_WB")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
   Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
+#endif // _WIN32_WINNT && (_WIN32_WINNT > 0x0601) // _WIN32_WINNT_WIN8
 #endif // ACE_WIN32 || ACE_WIN64
 
   return true;
@@ -577,7 +596,7 @@ Stream_MediaFramework_Tools::mediaFormatTypeToString (REFGUID mediaFormatType_in
 
   std::string result;
 
-  GUID_TO_STRING_MAP_ITERATOR_T iterator =
+  Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator =
     Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.find (mediaFormatType_in);
   if (iterator == Stream_MediaFramework_Tools::Stream_MediaFramework_FormatTypeToStringMap.end ())
   {
@@ -616,7 +635,7 @@ Stream_MediaFramework_Tools::mediaSubTypeToString (REFGUID mediaSubType_in,
     return Stream_MediaFramework_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
   } // end IF
 
-  GUID_TO_STRING_MAP_ITERATOR_T iterator;
+  Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -666,7 +685,7 @@ Stream_MediaFramework_Tools::mediaMajorTypeToString (REFGUID mediaMajorType_in,
 
   std::string result;
 
-  GUID_TO_STRING_MAP_ITERATOR_T iterator;
+  Stream_MediaFramework_GUIDToStringMapConstIterator_t iterator;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

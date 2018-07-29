@@ -82,7 +82,7 @@ extern int yydebug;
     END = 0,
     RIFF = 258,
     _SIZE = 259,
-    FOURCC = 260,
+    _FOURCC = 260,
     LIST = 261,
     DATA = 262
   };

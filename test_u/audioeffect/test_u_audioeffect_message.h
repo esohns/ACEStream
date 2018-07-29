@@ -54,7 +54,7 @@ class Test_U_AudioEffect_DirectShow_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_DirectShow_Message,
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
@@ -67,7 +67,7 @@ class Test_U_AudioEffect_DirectShow_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
@@ -103,7 +103,7 @@ class Test_U_AudioEffect_MediaFoundation_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_MediaFoundation_Message,
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 
@@ -116,7 +116,7 @@ class Test_U_AudioEffect_MediaFoundation_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
@@ -149,20 +149,20 @@ class Test_U_AudioEffect_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_ControlMessage_t,
+                                                 Test_U_ControlMessage_t,
                                                  Test_U_AudioEffect_Message,
                                                  Test_U_AudioEffect_SessionMessage>;
 
  public:
   Test_U_AudioEffect_Message (unsigned int); // size
-  inline virtual ~Test_U_AudioEffect_Message () {};
+  inline virtual ~Test_U_AudioEffect_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:

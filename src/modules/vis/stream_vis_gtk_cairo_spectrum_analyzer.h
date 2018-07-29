@@ -39,6 +39,7 @@
 #else
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "gdk/gdk.h"
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)

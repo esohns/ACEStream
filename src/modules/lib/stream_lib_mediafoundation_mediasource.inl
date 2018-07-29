@@ -542,7 +542,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     SessionMessageType,
                                                     ProtocolMessageType,
                                                     ConfigurationType,
-                                                    MediaType>::Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize (const ConfigurationType& configuration_in)
+                                                    MediaType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::initialize"));
 

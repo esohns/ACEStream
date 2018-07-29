@@ -109,13 +109,19 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
-  backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
-  foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
+  gboolean result_2 =
+    gdk_rgba_parse (&backgroundColor_,
+                    ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)")); // opaque black
+  ACE_ASSERT (result_2);
+  result_2 =
+    gdk_rgba_parse (&foregroundColor_,
+                    ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
+  ACE_ASSERT (result_2);
 #else
   backgroundColor_ = { 0, 0, 0, 0 };             // opaque black
   foregroundColor_ = { 0, 65535, 65535, 65535 }; // opaque white
-#endif
-#endif
+#endif // GTK_CHECK_VERSION (3,0,0)
+#endif // GTKGL_SUPPORT
 
   randomGenerator_ = std::bind (randomDistribution_, randomEngine_);
 }
@@ -188,32 +194,35 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,10,0)
     if (cairoSurface_)
     {
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = NULL;
+      cairo_surface_destroy (cairoSurface_); cairoSurface_ = NULL;
     } // end IF
 #else
     if (pixelBuffer_)
     {
-      g_object_unref (pixelBuffer_);
-      pixelBuffer_ = NULL;
+      g_object_unref (pixelBuffer_); pixelBuffer_ = NULL;
     } // end IF
-#endif
+#endif // GTK_CHECK_VERSION (3,10,0)
     if (cairoContext_)
     {
-      cairo_destroy (cairoContext_);
-      cairoContext_ = NULL;
+      cairo_destroy (cairoContext_); cairoContext_ = NULL;
     } // end IF
 #if defined (GTKGL_SUPPORT)
     OpenGLInstructions_ = NULL;
     OpenGLInstructionsLock_ = NULL;
     //OpenGLTextureId_ = 0;
 #if GTK_CHECK_VERSION (3,0,0)
-    backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
-    foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
+    gboolean result_2 =
+      gdk_rgba_parse (&backgroundColor_,
+                      ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)")); // opaque black
+    ACE_ASSERT (result_2);
+    result_2 =
+      gdk_rgba_parse (&foregroundColor_,
+                      ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
+    ACE_ASSERT (result_2);
 #else /* GTK_CHECK_VERSION (3,0,0) */
     backgroundColor_ = { 0, 0, 0, 0 };             // opaque black
     foregroundColor_ = { 0, 65535, 65535, 65535 }; // opaque white
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
     OpenGLWindow_ = NULL;
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -229,7 +238,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     mode2D_ = NULL;
 #if defined (GTKGL_SUPPORT)
     mode3D_ = NULL;
-#endif
+#endif // GTKGL_SUPPORT
   } // end IF
 
   mode2D_ =

@@ -5,7 +5,8 @@
 #if defined _MSC_VER
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-// *NOTE*: work around quirky MSVC...
+// *NOTE*: MSVC2013 conflicts std::min/std::max in minwindef.h To
+//         work around that, define NOMINMAX
 #define NOMINMAX
 
 // Windows Header Files

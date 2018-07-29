@@ -1005,7 +1005,11 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
   if (!item_count)
   {
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
     IMFMediaSourceEx* media_source_p = NULL;
+#else
+    IMFMediaSource* media_source_p = NULL;
+#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
     if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_p,
                                                                       media_source_p))
     {
@@ -1020,10 +1024,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
-
-      // clean up
-      media_source_p->Release ();
-
+      media_source_p->Release (); media_source_p = NULL;
       goto error;
     } // end IF
     media_source_p->Release ();
@@ -1051,8 +1052,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
               ACE_TEXT (stream_name_string_),
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
 #endif
-  media_type_p->Release ();
-  media_type_p = NULL;
+  media_type_p->Release (); media_type_p = NULL;
 
   if (session_data_r.inputFormat)
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
@@ -1089,8 +1089,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  media_type_p->Release ();
-  media_type_p = NULL;
+  media_type_p->Release (); media_type_p = NULL;
   ACE_ASSERT (session_data_r.inputFormat);
 
   if (mediaSession_)
@@ -1101,8 +1100,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
   if ((*iterator).second.second.session)
   {
@@ -1127,8 +1125,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  topology_p->Release ();
-  topology_p = NULL;
+  topology_p->Release (); topology_p = NULL;
   ACE_ASSERT (mediaSession_);
 
   if (!(*iterator).second.second.session)
@@ -1200,13 +1197,11 @@ error:
   session_data_r.direct3DManagerResetToken = 0;
   if (session_data_r.session)
   {
-    session_data_r.session->Release ();
-    session_data_r.session = NULL;
+    session_data_r.session->Release (); session_data_r.session = NULL;
   } // end IF
   if (mediaSession_)
   {
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
   if (COM_initialized)

@@ -37,7 +37,11 @@ template <typename TimePolicyType,
           typename ConfigurationType,
           typename MediaType>
 class Stream_MediaFramework_MediaFoundation_MediaSource_T
+#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
  : public IMFMediaSourceEx
+#else
+ : public IMFMediaSource
+#endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
  , public Common_IInitialize_T<ConfigurationType>
 {
  public:
@@ -59,7 +63,7 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   // IUnknown
   STDMETHODIMP QueryInterface (REFIID,
                                void**);
-  inline STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); };
+  inline STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
   STDMETHODIMP_ (ULONG) Release ();
   // IMFMediaEventGenerator
   STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // asynchronous callback handle

@@ -76,7 +76,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,               
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                                  // stream notification interface type
                               Stream_Filecopy_Module_EventHandler);              // writer type
 
 #endif

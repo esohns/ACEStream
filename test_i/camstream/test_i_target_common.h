@@ -33,8 +33,7 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <combaseapi.h>
-#include <control.h>
+#include <Dshow.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
@@ -80,7 +79,7 @@ class Test_I_Target_MediaFoundation_Stream_SessionMessage;
 struct v4l2_window;
 class Test_I_Target_Stream_Message;
 class Test_I_Target_Stream_SessionMessage;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 template <typename ConfigurationType,
           typename ConnectionManagerType>
 class Test_I_Target_SignalHandler_T;
@@ -106,7 +105,7 @@ struct Test_I_Target_MediaFoundation_MessageData
   IMFMediaBuffer* sample;
   LONGLONG        sampleTime;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //struct Test_I_Target_DirectShow_ConnectionConfiguration;
@@ -146,7 +145,7 @@ struct Test_I_Target_UserData
    : Stream_UserData ()
   {}
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_Target_ConnectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -200,6 +199,7 @@ struct Test_I_Target_DirectShow_SessionData
   struct Test_I_Target_DirectShow_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+
 struct Test_I_Target_MediaFoundation_SessionData
  : Test_I_CamStream_MediaFoundation_SessionData
 {
@@ -255,7 +255,7 @@ struct Test_I_Target_SessionData
   struct Test_I_Target_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_FilterConfiguration
@@ -273,7 +273,7 @@ struct Test_I_Target_DirectShow_FilterConfiguration
   Stream_Module_t*                                                module; // handle
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
@@ -313,10 +313,8 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
     inputFormat =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
     if (!inputFormat)
-    {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
-    } // end IF
     else
       ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 
@@ -463,7 +461,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
   unsigned int                              width;
   GdkWindow*                                window;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_ListenerConfiguration
@@ -520,7 +518,7 @@ struct Test_I_Target_ListenerConfiguration
 };
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
                         Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IListener_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_SignalHandlerConfiguration
@@ -572,7 +570,7 @@ struct Test_I_Target_SignalHandlerConfiguration
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration,
                                       Test_I_Target_InetConnectionManager_t> Test_I_Target_SignalHandler_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_StreamConfiguration
@@ -612,7 +610,7 @@ struct Test_I_Target_StreamConfiguration
 
   struct Test_I_Target_UserData* userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_StreamState
@@ -620,23 +618,26 @@ struct Test_I_Target_DirectShow_StreamState
 {
   Test_I_Target_DirectShow_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  struct Test_I_Target_DirectShow_SessionData* currentSessionData;
+  struct Test_I_Target_DirectShow_SessionData* sessionData;
+
   struct Test_I_Target_DirectShow_UserData*    userData;
 };
+
 struct Test_I_Target_MediaFoundation_StreamState
  : Stream_State
 {
   Test_I_Target_MediaFoundation_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  struct Test_I_Target_MediaFoundation_SessionData* currentSessionData;
+  struct Test_I_Target_MediaFoundation_SessionData* sessionData;
+
   struct Test_I_Target_MediaFoundation_UserData*    userData;
 };
 #else
@@ -645,14 +646,15 @@ struct Test_I_Target_StreamState
 {
   Test_I_Target_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {}
 
-  struct Test_I_Target_SessionData* currentSessionData;
+  struct Test_I_Target_SessionData* sessionData;
+
   struct Test_I_Target_UserData*    userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_Configuration
@@ -744,7 +746,7 @@ struct Test_I_Target_Configuration
 
   struct Test_I_Target_UserData                   userData;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
@@ -767,7 +769,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -776,7 +778,7 @@ typedef Common_ISubscribe_T<Test_I_Target_DirectShow_ISessionNotify_t> Test_I_Ta
 typedef Common_ISubscribe_T<Test_I_Target_MediaFoundation_ISessionNotify_t> Test_I_Target_MediaFoundation_ISubscribe_t;
 #else
 typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_GTK_CBData
@@ -822,7 +824,7 @@ struct Test_I_Target_GTK_CBData
   guint                               progressEventSourceId;
   Test_I_Target_Subscribers_t         subscribers;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GtkBuilderDefinition_t;
@@ -845,6 +847,6 @@ typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
                                 struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
                       typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

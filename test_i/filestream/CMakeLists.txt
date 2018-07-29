@@ -223,7 +223,7 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE_SOURCE} ntdll.lib)
+# target_link_libraries (${EXECUTABLE_SOURCE} ntdll.lib)
 
 # target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
 # target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
@@ -395,7 +395,7 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE_TARGET} ntdll.lib)
+# target_link_libraries (${EXECUTABLE_TARGET} ntdll.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)

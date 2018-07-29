@@ -56,7 +56,7 @@ class Test_I_Module_DataBaseWriter
                                       Test_I_HTTPGet_ConnectionConfigurationIterator_t> inherited;
 
  public:
-  Test_I_Module_DataBaseWriter (typename inherited::ISTREAM_T*); // stream handle
+  Test_I_Module_DataBaseWriter (inherited::ISTREAM_T*); // stream handle
   virtual ~Test_I_Module_DataBaseWriter ();
 
   // implement (part of) Stream_ITaskBase

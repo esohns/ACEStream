@@ -25,7 +25,11 @@
 #include <dshow.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
                       //         (see: stream_lib_common.h)
-#include <streams.h>
+//#include <streams.h>
+#include <WinNT.h>
+#include <wxdebug.h>
+#include <combase.h>
+#include <dllsetup.h>
 #include <strmif.h>
 
 #include "common_time_common.h"

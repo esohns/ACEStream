@@ -42,7 +42,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
@@ -52,7 +52,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
@@ -79,7 +79,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
@@ -89,7 +89,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
@@ -117,13 +117,13 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData, 
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Test_U_AudioEffect_IStreamNotify_t,                              // stream notification interface type
+                              Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Module_EventHandler);              // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Test_U_AudioEffect_IStreamNotify_t,                                   // stream notification interface type
+                              Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Module_EventHandler);              // writer type
 
 #else
@@ -131,7 +131,7 @@ class Test_U_AudioEffect_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Stream_SessionId_t,
@@ -141,7 +141,7 @@ class Test_U_AudioEffect_Module_EventHandler
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                         Test_U_AudioEffect_ControlMessage_t,
+                                         Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Stream_SessionId_t,
@@ -163,12 +163,12 @@ class Test_U_AudioEffect_Module_EventHandler
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
-                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
-                              Test_U_AudioEffect_Module_EventHandler);       // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_AudioEffect_Module_EventHandler);                     // writer type
 
 #endif
 

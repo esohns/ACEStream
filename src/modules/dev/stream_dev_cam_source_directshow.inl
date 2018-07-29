@@ -1291,6 +1291,9 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
+  struct _GUID media_subtype = GUID_NULL;
+  struct _GUID decompressor_guid = GUID_NULL;
+
   if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
                                                                CLSID_VideoInputDeviceCategory,
                                                                graph_builder_p,
@@ -1398,9 +1401,9 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
-  struct _GUID media_subtype = media_type_p->subtype;
+  media_subtype = media_type_p->subtype;
   Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
-  struct _GUID decompressor_guid = CLSID_Colour;
+  decompressor_guid = CLSID_Colour;
   LPCWSTR decompressor_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   bool needs_converter = false;
   if (InlineIsEqualGUID (media_subtype, MEDIASUBTYPE_YUY2))
@@ -1423,7 +1426,8 @@ continue_:
     goto error;
   } // end ELSE
   IBaseFilter* filter_2 = NULL;
-  if (!windowHandle_in) goto continue_2;
+  if (!windowHandle_in)
+    goto continue_2;
   result =
     graph_builder_p->FindFilterByName (decompressor_name,
                                        &filter_2);
@@ -1663,9 +1667,8 @@ continue_2:
 
   // *NOTE*: apparently, this is necessary
   //         (see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd373396(v=vs.85).aspx)
-  graph_builder_p->Release ();
-  graph_builder_p = NULL;
-  stream_config_p->Release ();
+  graph_builder_p->Release (); graph_builder_p = NULL;
+  stream_config_p->Release (); stream_config_p = NULL;
 
   return true;
 
@@ -1679,18 +1682,15 @@ error:
 
   if (ISampleGrabber_out)
   {
-    ISampleGrabber_out->Release ();
-    ISampleGrabber_out = NULL;
+    ISampleGrabber_out->Release (); ISampleGrabber_out = NULL;
   } // end IF
   if (IAMDroppedFrames_out)
   {
-    IAMDroppedFrames_out->Release ();
-    IAMDroppedFrames_out = NULL;
+    IAMDroppedFrames_out->Release (); IAMDroppedFrames_out = NULL;
   } // end IF
   if (ICaptureGraphBuilder2_out)
   {
-    ICaptureGraphBuilder2_out->Release ();
-    ICaptureGraphBuilder2_out = NULL;
+    ICaptureGraphBuilder2_out->Release (); ICaptureGraphBuilder2_out = NULL;
   } // end IF
 
   return false;

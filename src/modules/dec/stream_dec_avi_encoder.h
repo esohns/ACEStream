@@ -274,7 +274,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType& getFormat_impl (const struct _AMMediaType&);
-  struct _AMMediaType& getFormat_impl (const IMFMediaType*&);
+  struct _AMMediaType& getFormat_impl (const IMFMediaType&);
   struct AVRational& getFrameRate_impl (const SessionDataType&,
                                         const struct _AMMediaType&);
   void getResolution_impl (const SessionDataType&,

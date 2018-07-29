@@ -75,16 +75,9 @@ class Stream_MediaFramework_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_Tools& operator= (const Stream_MediaFramework_Tools&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct less_guid
-  {
-    inline bool operator () (const struct _GUID& lhs_in, const struct _GUID& rhs_in) const { return (lhs_in.Data1 < rhs_in.Data1); }
-  };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
-  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
-
-  static GUID_TO_STRING_MAP_T Stream_MediaFramework_FormatTypeToStringMap;
-  static GUID_TO_STRING_MAP_T Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
-  static GUID_TO_STRING_MAP_T Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_FormatTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
+  static Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
