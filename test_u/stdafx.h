@@ -2,15 +2,15 @@
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
-#if defined _MSC_VER
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#if defined (_MSC_VER)
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
 // Windows Header Files
 #include <windows.h>
-#endif
+#endif // _MSC_VER
 
 // C RunTime Header Files
 //#include <sstream>
@@ -24,7 +24,7 @@
 //#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)
 #include "valgrind/valgrind.h"
-#endif
+#endif // VALGRIND_SUPPORT
 
 #include "common.h"
 #include "common_macros.h"
@@ -36,4 +36,4 @@
 
 #if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H

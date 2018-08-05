@@ -111,17 +111,6 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
  include_directories ($ENV{ACE_ROOT})
 
-# gtk
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
-# libglade
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
-
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
@@ -223,22 +212,6 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
-# target_link_libraries (${EXECUTABLE_SOURCE} ntdll.lib)
-
-# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
-# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
-
-# *TODO*: repair WIN32 pkgconfig support
-# gtk
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
-# libglade
-# target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
@@ -254,6 +227,8 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_File)
 target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Network)
 target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Statistic)
+
+target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Test_I)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
@@ -395,18 +370,6 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
-# target_link_libraries (${EXECUTABLE_TARGET} ntdll.lib)
-# *TODO*: repair WIN32 pkgconfig support
-# gtk
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
-# libglade
-# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
 target_link_libraries (${EXECUTABLE_TARGET} Common)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
@@ -423,26 +386,10 @@ target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Network)
 target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Statistic)
 
+target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Test_I)
+
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)
-
-if (UNIX)
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_LIBXML_LIBRARIES})
- target_link_libraries (${EXECUTABLE_TARGET} ${JSON_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${DHCPCTL_LIBRARY})
- # target_link_libraries (${EXECUTABLE} ${DHCP_LIBRARY})
- # target_link_libraries (${EXECUTABLE} -Wl,--start-group ${OMAPI_LIBRARY} ${ISC_LIBRARY} ${DNS_LIBRARY} -Wl,--end-group)
- target_link_libraries (${EXECUTABLE_TARGET} ${OMAPI_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${IRS_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${DNS_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} -Wl,--start-group ${DNS_LIBRARY} ${GSS_KRB5_LIBRARY} ${KRB5_LIBRARY} -Wl,--end-group)
- target_link_libraries (${EXECUTABLE_TARGET} ${KRB5_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${ISC_CFG_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${ISC_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_SSL_LIBRARIES})
- target_link_libraries (${EXECUTABLE_TARGET} ${GEOIP_LIBRARY})
- target_link_libraries (${EXECUTABLE_TARGET} ${GSS_LIBRARY})
-endif (UNIX)
 
 # add PCH
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

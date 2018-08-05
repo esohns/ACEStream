@@ -1464,7 +1464,12 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1486,7 +1491,12 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value_2;
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -4744,7 +4754,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
     ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
     GValue value = G_VALUE_INIT;
+#else
+    GValue value;
+    g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                               &iterator_4,
                               1, &value);
@@ -6640,7 +6655,12 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
@@ -7040,7 +7060,12 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -7241,7 +7266,12 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -7267,7 +7297,12 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value_2;
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -7529,8 +7564,14 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value, value_2;
+  g_value_init (&value, G_TYPE_UINT);
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             0, &value);
@@ -7813,45 +7854,53 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
-  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+      NULL;
+
+  Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+  switch (data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-
+        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
       ACE_ASSERT (directshow_data_p->configuration);
 
+      directshow_stream_iterator =
+        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
-        directshow_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_data_p->configuration->streamConfiguration.end ());
+        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_data_p =
-        static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-
+        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
       ACE_ASSERT (mediafoundation_data_p->configuration);
 
+      mediafoundation_stream_iterator =
+        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
-        mediafoundation_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
+        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
+
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7862,6 +7911,13 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
+    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7942,7 +7998,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+      NULL;
+
+  Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   switch (data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7950,8 +8012,15 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
       directshow_data_p =
         static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
       ACE_ASSERT (directshow_data_p->configuration);
+
+      directshow_stream_iterator =
+        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+      directshow_modulehandler_iterator =
+        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7959,8 +8028,15 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
       mediafoundation_data_p =
         static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
       ACE_ASSERT (mediafoundation_data_p->configuration);
+
+      mediafoundation_stream_iterator =
+        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+      mediafoundation_modulehandler_iterator =
+        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
+
       break;
     }
     default:
@@ -7977,6 +8053,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p);
   ACE_ASSERT (v4l2_data_p->configuration);
+
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
+    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7984,13 +8067,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      (*directshow_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      (*directshow_modulehandler_iterator).second.second.area.left =
         event_in->configure.x;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      (*directshow_modulehandler_iterator).second.second.area.right =
         event_in->configure.width;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      (*directshow_modulehandler_iterator).second.second.area.top =
         event_in->configure.y;
 
       //HRESULT result =
@@ -8008,13 +8091,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      (*mediafoundation_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      (*mediafoundation_modulehandler_iterator).second.second.area.left =
         event_in->configure.x;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+      (*mediafoundation_modulehandler_iterator).second.second.area.right =
         event_in->configure.width;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      (*mediafoundation_modulehandler_iterator).second.second.area.top =
         event_in->configure.y;
       break;
     }
@@ -8027,9 +8110,9 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =
+  (*modulehandler_iterator).second.second.area.height =
       event_in->configure.height;
-  v4l2_data_p->configuration->moduleHandlerConfiguration.area.width =
+  (*modulehandler_iterator).second.second.area.width =
       event_in->configure.width;
 #endif
 
@@ -8053,7 +8136,13 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+      NULL;
+
+  Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   switch (data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8061,8 +8150,15 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
       directshow_data_p =
         static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
       ACE_ASSERT (directshow_data_p->configuration);
+
+      directshow_stream_iterator =
+        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+      directshow_modulehandler_iterator =
+        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8070,8 +8166,15 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
       mediafoundation_data_p =
         static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
       ACE_ASSERT (mediafoundation_data_p->configuration);
+
+      mediafoundation_stream_iterator =
+        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+      mediafoundation_modulehandler_iterator =
+        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
+
       break;
     }
     default:
@@ -8088,6 +8191,13 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p);
   ACE_ASSERT (v4l2_data_p->configuration);
+
+  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
+    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8095,13 +8205,13 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      (*directshow_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      (*directshow_modulehandler_iterator).second.second.area.left =
         event_in->configure.x;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      (*directshow_modulehandler_iterator).second.second.area.right =
         event_in->configure.width;
-      directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      (*directshow_modulehandler_iterator).second.second.area.top =
         event_in->configure.y;
 
       //HRESULT result =
@@ -8119,13 +8229,13 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      (*mediafoundation_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      (*mediafoundation_modulehandler_iterator).second.second.area.left =
         event_in->configure.x;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+      (*mediafoundation_modulehandler_iterator).second.second.area.right =
         event_in->configure.width;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      (*mediafoundation_modulehandler_iterator).second.second.area.top =
         event_in->configure.y;
       break;
     }
@@ -8138,9 +8248,9 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =
+  (*modulehandler_iterator).second.second.area.height =
     event_in->configure.height;
-  v4l2_data_p->configuration->moduleHandlerConfiguration.area.width =
+  (*modulehandler_iterator).second.second.area.width =
     event_in->configure.width;
 #endif
 

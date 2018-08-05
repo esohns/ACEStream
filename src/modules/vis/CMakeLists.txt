@@ -17,21 +17,25 @@ include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil)
- if (GTK3_SUPPORT)
-  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
-  if (GTKGL_SUPPORT AND GTKGLAREA_SUPPORT)
-   pkg_check_modules (PKG_GTKGLAREA3 REQUIRED gtkgl-3.0)
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
+   pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
+   if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-3.0)
+    endif (GTKGLAREA_SUPPORT)
+   endif (GTKGL_SUPPORT)
+  else ()
+   pkg_check_modules (PKG_GTK REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
+   if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-2.0)
+    else ()
+     pkg_check_modules (PKG_GTKGL REQUIRED gdkglext-1.0 gtkglext-1.0)
+    endif (GTKGLAREA_SUPPORT)
+   endif (GTKGL_SUPPORT)
   endif ()
- else ()
-  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
-  if (GTKGL_SUPPORT)
-   if (GTKGLAREA_SUPPORT)
-    pkg_check_modules (PKG_GTKGLAREA2 REQUIRED gtkgl-2.0)
-   else ()
-    pkg_check_modules (PKG_GTKGL2 REQUIRED gdkglext-1.0 gtkglext-1.0)
-   endif ()
-  endif ()
- endif ()
+ endif (GTK_SUPPORT)
 elseif (WIN32)
  if (GTK3_SUPPORT)
 # *TODO*: repair pkg-config support
@@ -44,10 +48,10 @@ endif ()
 
 if (GTKGL_SUPPORT)
  add_definitions (-DGTKGL_SUPPORT)
-endif ()
+endif (GTKGL_SUPPORT)
 if (GTKGLAREA_SUPPORT)
  add_definitions (-DGTKGLAREA_SUPPORT)
-endif ()
+endif (GTKGLAREA_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -69,28 +73,32 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
- if (GTK3_SUPPORT)
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
 #  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 #                              $<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              ${PKG_GTK3_INCLUDE_DIRS})
-  if (GTKGL_SUPPORT AND GTKGLAREA_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${PKG_GTKGLAREA3_INCLUDE_DIRS}>)
+                               ${PKG_GTK_INCLUDE_DIRS})
+   if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
+    endif (GTKGLAREA_SUPPORT)
+   endif (GTKGL_SUPPORT)
+  else ()
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
+   if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
+    else ()
+     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
+    endif (GTKGLAREA_SUPPORT)
+   endif (GTKGL_SUPPORT)
   endif ()
- else ()
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
-  if (GTKGL_SUPPORT)
-   if (GTKGLAREA_SUPPORT)
-    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                $<BUILD_INTERFACE:${PKG_GTKGLAREA2_INCLUDE_DIRS}>)
-   else ()
-    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                $<BUILD_INTERFACE:${PKG_GTKGL2_INCLUDE_DIRS}>)
-   endif ()
-  endif ()
- endif (GTK3_SUPPORT)
+ endif (GTK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -117,47 +125,57 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
 # *TODO*: repair pkgconfig support
 # gtk
- if (GTK3_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/atk-1.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/cairo>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/pango-1.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/lib/glib-2.0/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/glib-2.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/gtk-3.0>)
- else ()
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/atk-1.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gdk-pixbuf-2.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/cairo>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/pango-1.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/glib-2.0/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/glib-2.0>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/gtk-2.0/include>)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gtk-2.0>)
- endif ()
- if (GTKGL_SUPPORT)
-  if (GTKGLAREA_SUPPORT)
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
-  endif (GTKGLAREA_SUPPORT)
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/atk-1.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gdk-pixbuf-2.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/cairo>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/pango-1.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/glib-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gtk-3.0>)
+  else ()
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/atk-1.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gdk-pixbuf-2.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/cairo>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/pango-1.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/glib-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/glib-2.0>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/gtk-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gtk-2.0>)
+  endif ()
+  if (GTKGL_SUPPORT)
+   if (GTK3_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
+    endif (GTKGLAREA_SUPPORT)
+   else ()
+    if (GTKGLAREA_SUPPORT)
+     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
+    else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglext)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglext/gdk)
- endif (GTKGL_SUPPORT)
+    endif (GTKGLAREA_SUPPORT)
+   endif ()
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
 
 # libavformat
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -260,12 +278,15 @@ if (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
 
 # gtk
- if (GTK3_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/lib/cairo.lib)
- endif ()
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
+   target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/gdk_pixbuf-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/cairo.lib)
+  endif (GTK3_SUPPORT)
+ endif (GTK_SUPPORT)
 
  target_link_libraries (${PROJECT_NAME}_Visualization Common)
-endif ()
+endif (WIN32)
 
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

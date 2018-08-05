@@ -58,10 +58,10 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataContainerType,
                                    StatisticContainerType,
                                    TimerManagerType>::Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* stream_in)
- : inherited (stream_in,                                                          // stream handle
-              false,                                                              // auto-start ?
-              Stream_HeadModuleConcurrency::STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
-              true)                                                               // generate session messages ?
+ : inherited (stream_in,                            // stream handle
+              false,                                // auto-start ?
+              STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
+              true)                                 // generate session messages ?
  , isFirst_ (true)
  , lock_ ()
  //, eventHandle_ (ACE_INVALID_HANDLE)

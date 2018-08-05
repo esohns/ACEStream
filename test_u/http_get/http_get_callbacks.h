@@ -21,9 +21,9 @@
 #ifndef HTTP_GET_CALLBACKS_H
 #define HTTP_GET_CALLBACKS_H
 
-#include "ace/config-macros.h"
+#include "gtk/gtk.h"
 
-#include <gtk/gtk.h>
+#include "ace/config-macros.h"
 
 // thread functions
 ACE_THR_FUNC_RETURN stream_processing_function (void*);

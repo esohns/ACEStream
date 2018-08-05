@@ -1706,11 +1706,11 @@ button_about_clicked_cb (GtkButton* button_in,
   } // end IF
 
   // draw it
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,8,0)
   if (!gtk_widget_is_visible (about_dialog))
 #else
   if (!gtk_widget_get_visible (about_dialog))
-#endif
+#endif // GTK_CHECK_VERSION(3,8,0)
     gtk_widget_show_all (about_dialog);
 }
 

@@ -849,17 +849,14 @@ Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (const IMFTo
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("media session topology has no sink nodes, aborting\n")));
-
-    // clean up
-    collection_p->Release ();
-
+    collection_p->Release (); collection_p = NULL;
     return false;
   } // end IF
   IMFTopologyNode* topology_node_p = NULL;
   IUnknown* unknown_p = NULL;
   result = collection_p->GetElement (0, &unknown_p);
   ACE_ASSERT (SUCCEEDED (result));
-  collection_p->Release ();
+  collection_p->Release (); collection_p = NULL;
   ACE_ASSERT (unknown_p);
   result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_p));
   if (FAILED (result))
@@ -867,38 +864,31 @@ Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId (const IMFTo
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    unknown_p->Release ();
-
+    unknown_p->Release (); unknown_p = NULL;
     return false;
   } // end IF
-  unknown_p->Release ();
-  unknown_p = NULL;
+  unknown_p->Release (); unknown_p = NULL;
   result = topology_node_p->GetTopoNodeID (&nodeId_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::GetTopoNodeID(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    topology_node_p->Release ();
-
+    topology_node_p->Release (); topology_node_p = NULL;
     return false;
   } // end IF
-  topology_node_p->Release ();
+  topology_node_p->Release (); topology_node_p = NULL;
 
   return true;
 }
 
 bool
 Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::string& URL_in,
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                                                  IMFMediaSourceEx*& mediaSource_inout,
 #else
                                                                  IMFMediaSource*& mediaSource_inout,
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                                                  IMFTopology*& topology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology"));
@@ -906,8 +896,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
   // initialize return value(s)
   if (topology_out)
   {
-    topology_out->Release ();
-    topology_out = NULL;
+    topology_out->Release (); topology_out = NULL;
   } // end IF
 
   bool release_source = false;
@@ -965,6 +954,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
   ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
   {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     IMFSourceResolver* source_resolver_p = NULL;
     result = MFCreateSourceResolver (&source_resolver_p);
     if (FAILED (result))
@@ -990,27 +980,28 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
                   ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (URL_in.c_str ()),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      source_resolver_p->Release ();
-
+      source_resolver_p->Release (); source_resolver_p = NULL;
       goto error;
     } // end IF
     ACE_ASSERT (unknown_p);
     ACE_ASSERT (object_type = MF_OBJECT_MEDIASOURCE);
-    source_resolver_p->Release ();
+    source_resolver_p->Release (); source_resolver_p = NULL;
     result = unknown_p->QueryInterface (IID_PPV_ARGS (&mediaSource_inout));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      unknown_p->Release ();
-
+      unknown_p->Release (); unknown_p = NULL;
       goto error;
     } // end IF
-    unknown_p->Release ();
+    unknown_p->Release (); unknown_p = NULL;
     release_source = true;
+#else
+    ACE_ASSERT (false);
+    ACE_NOTSUP_RETURN (false);
+    ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   } // end IF
   ACE_ASSERT (mediaSource_inout);
   result = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
@@ -1041,13 +1032,11 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
-  presentation_descriptor_p->Release ();
-  presentation_descriptor_p = NULL;
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   result = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
                                         stream_descriptor_p);
   ACE_ASSERT (SUCCEEDED (result));
-  stream_descriptor_p->Release ();
-  stream_descriptor_p = NULL;
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
 
   result = topology_out->AddNode (topology_node_p);
   if (FAILED (result))
@@ -1063,8 +1052,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
               ACE_TEXT ("added source node (id: %q)...\n"),
               node_id));
 
-  topology_node_p->Release ();
-  topology_node_p = NULL;
+  topology_node_p->Release (); topology_node_p = NULL;
 
   return true;
 
@@ -1079,24 +1067,22 @@ error:
     stream_descriptor_p->Release ();
   if (release_source)
   {
-    mediaSource_inout->Release ();
-    mediaSource_inout = NULL;
+    mediaSource_inout->Release (); mediaSource_inout = NULL;
   } // end IF
   if (topology_out)
   {
-    topology_out->Release ();
-    topology_out = NULL;
+    topology_out->Release (); topology_out = NULL;
   } // end IF
 
   return false;
 }
 
 bool
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (IMFMediaSourceEx* mediaSource_in,
 #else
 Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* mediaSource_in,
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                                                  IMFTopology*& topology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology"));
@@ -1104,8 +1090,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource*
   // initialize return value(s)
   if (topology_out)
   {
-    topology_out->Release ();
-    topology_out = NULL;
+    topology_out->Release (); topology_out = NULL;
   } // end IF
 
   IMFTopologyNode* topology_node_p = NULL;
@@ -1187,25 +1172,21 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource*
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
-  presentation_descriptor_p->Release ();
-  presentation_descriptor_p = NULL;
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   result = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
                                         stream_descriptor_p);
   ACE_ASSERT (SUCCEEDED (result));
 
   result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
   ACE_ASSERT (SUCCEEDED (result));
-  stream_descriptor_p->Release ();
-  stream_descriptor_p = NULL;
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
   result = media_type_handler_p->GetCurrentMediaType (&media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_handler_p->Release ();
-  media_type_handler_p = NULL;
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
   result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                   &sub_type);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_p->Release ();
-  media_type_p = NULL;
+  media_type_p->Release (); media_type_p = NULL;
 
   result = topology_out->AddNode (topology_node_p);
   if (FAILED (result))
@@ -1222,8 +1203,7 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource*
               node_id,
               ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
 
-  topology_node_p->Release ();
-  topology_node_p = NULL;
+  topology_node_p->Release (); topology_node_p = NULL;
 
   return true;
 
@@ -1236,8 +1216,7 @@ error:
     stream_descriptor_p->Release ();
   if (topology_out)
   {
-    topology_out->Release ();
-    topology_out = NULL;
+    topology_out->Release (); topology_out = NULL;
   } // end IF
 
   return false;
@@ -1278,11 +1257,8 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      unknown_p->Release ();
-      collection_p->Release ();
-
+      unknown_p->Release (); unknown_p = NULL;
+      collection_p->Release (); collection_p = NULL;
       return false;
     } // end IF
     unknown_p->Release ();
@@ -1301,10 +1277,10 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
       break;
     } // end IF
 
-    topology_node_p->Release ();
+    topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
-  collection_p->Release ();
-  topology_node_p->Release ();
+  collection_p->Release (); collection_p = NULL;
+  topology_node_p->Release (); topology_node_p = NULL;
   if (!direct3D_device_manager_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1332,7 +1308,7 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
     ACE_ASSERT (SUCCEEDED (result));
     if (node_type != MF_TOPOLOGY_TRANSFORM_NODE)
     {
-      topology_node_p->Release ();
+      topology_node_p->Release (); topology_node_p = NULL;
       continue;
     } // end IF
 
@@ -1346,14 +1322,11 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      unknown_p->Release ();
-      topology_node_p->Release ();
-
+      unknown_p->Release (); unknown_p = NULL;
+      topology_node_p->Release (); topology_node_p = NULL;
       goto error;
     } // end IF
-    unknown_p->Release ();
+    unknown_p->Release (); unknown_p = NULL;
 
     result = transform_p->GetAttributes (&attributes_p);
     ACE_ASSERT (SUCCEEDED (result));
@@ -1363,13 +1336,12 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
     if (!is_Direct3D_aware)
     {
       // clean up
-      attributes_p->Release ();
-      transform_p->Release ();
-      topology_node_p->Release ();
-
+      attributes_p->Release (); attributes_p = NULL;
+      transform_p->Release (); transform_p = NULL;
+      topology_node_p->Release (); topology_node_p = NULL;
       continue;
     } // end IF
-    attributes_p->Release ();
+    attributes_p->Release (); attributes_p = NULL;
 
     result = transform_p->ProcessMessage (MFT_MESSAGE_SET_D3D_MANAGER,
                                           pointer_p);
@@ -1378,14 +1350,11 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::ProcessMessage(MFT_MESSAGE_SET_D3D_MANAGER): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      transform_p->Release ();
-      topology_node_p->Release ();
-
+      transform_p->Release (); transform_p = NULL;
+      topology_node_p->Release (); topology_node_p = NULL;
       goto error;
     } // end IF
-    transform_p->Release ();
+    transform_p->Release (); transform_p = NULL;
 
     result = topology_node_p->SetUINT32 (MF_TOPONODE_D3DAWARE, TRUE);
     ACE_ASSERT (SUCCEEDED (result));
@@ -1396,9 +1365,9 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
                 ACE_TEXT ("node (id was: %q) enabled MR_VIDEO_ACCELERATION_SERVICE...\n"),
                 node_id));
 
-    topology_node_p->Release ();
+    topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
-  direct3D_device_manager_p->Release ();
+  direct3D_device_manager_p->Release (); direct3D_device_manager_p = NULL;
 
   return true;
 

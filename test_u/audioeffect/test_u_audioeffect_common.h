@@ -26,13 +26,11 @@
 #include <map>
 #include <string>
 
-#include "ace/Singleton.h"
-#include "ace/Synch_Traits.h"
-
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <strmif.h>
 #include <mfapi.h>
 #include <mfidl.h>
+#include <strmif.h>
 #else
 #include "alsa/asoundlib.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -43,23 +41,28 @@
 #else
 #include <GL/gl.h>
 #endif // ACE_WIN32 || ACE_WIN64
-#endif
+#endif // GTKGL_SUPPORT
 
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
 #else
+#if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gdkgl.h"
-#endif
+#endif // GTKGLAREA_SUPPORT
+#endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gdkgl.h"
 #else
 #include "gtk/gtkgl.h" // gtkglext
-#endif
-#endif
-#endif
+#endif // GTKGLAREA_SUPPORT
+#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTKGL_SUPPORT
+
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_statistic_handler.h"
@@ -210,17 +213,21 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , GdkWindow2D (NULL)
    , mute (false)
    , surfaceLock (NULL)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,11,0)
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTK_CHECK_VERSION (3,11,0) */
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
    , OpenGLWindow (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
+   , OpenGLContext (NULL)
+#else
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -278,11 +285,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   GdkWindow*                                              GdkWindow2D;
   bool                                                    mute;
   ACE_SYNCH_MUTEX*                                        surfaceLock;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,11,0)
   cairo_surface_t*                                        cairoSurface2D;
 #else
   GdkPixbuf*                                              pixelBuffer2D;
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTK_CHECK_VERSION (3,11,0) */
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*       OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                        OpenGLInstructionsLock;
@@ -296,7 +303,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  GtkGLArea*                                              OpenGLWindow;
+  GglaArea*                                               OpenGLWindow;
 #else
   GdkGLContext*                                           OpenGLContext;
   GdkWindow*                                              OpenGLWindow;

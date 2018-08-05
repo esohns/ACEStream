@@ -39,13 +39,15 @@
 #else
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#include "gdk/gdk.h"
+//#include "gdk/gdk.h"
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
 #else
+#if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gtkglarea.h"
+#endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
@@ -117,7 +119,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
  , public Common_ISetP_T<cairo_surface_t>
 #else
  , public Common_ISetP_T<GdkPixbuf>
@@ -164,13 +166,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 
   virtual int svc (void);
 
-#if GTK_CHECK_VERSION (3,10,0)
   bool initialize_Cairo (GdkWindow*,
                          cairo_t*&,
+#if GTK_CHECK_VERSION(3,10,0)
                          cairo_surface_t*&);
 #else
-  bool initialize_Cairo (GdkWindow*,
-                         cairo_t*&,
                          GdkPixbuf*&);
 #endif // GTK_CHECK_VERSION (3,10,0)
   virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
@@ -202,27 +202,30 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
   ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
   //GLuint                                                   OpenGLTextureId_;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
   GdkRGBA                                                  backgroundColor_;
   GdkRGBA                                                  foregroundColor_;
-#else /* GTK_CHECK_VERSION (3,0,0) */
+#else
   GdkColor                                                 backgroundColor_;
   GdkColor                                                 foregroundColor_;
-#endif
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#endif /* GTK_CHECK_VERSION (3,0,0) */
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
   GtkGLArea*                                               OpenGLWindow_;
 #else
+#if defined (GTKGLAREA_SUPPORT)
   GglaArea*                                                OpenGLWindow_;
+#else
+  GdkWindow*                                               OpenGLWindow_;
+#endif // GTKGLAREA_SUPPORT
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-//  GglaArea*                                                OpenGLWindow_;
-  GtkGLArea*                                               OpenGLWindow_;
+  GglaArea*                                                OpenGLWindow_;
 #else
   GdkGLContext*                                            OpenGLContext_;
   GdkGLDrawable*                                           OpenGLWindow_;
-#endif
+#endif // GTKGLAREA_SUPPORT
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
   double                                                   channelFactor_;

@@ -21,7 +21,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "alsa/asoundlib.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -32,7 +32,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
@@ -58,18 +58,18 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                TimerManagerType>::Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T* stream_in)
 #else
                                                TimerManagerType>::Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , cairoContext_ (NULL)
  , surfaceLock_ (NULL)
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
  , cairoSurface_ (NULL)
 #else
  , pixelBuffer_ (NULL)
-#endif
+#endif // GTK_CHECK_VERSION (3,10,0)
 #if defined (GTKGL_SUPPORT)
  , OpenGLInstructions_ (NULL)
  , OpenGLInstructionsLock_ (NULL)
@@ -77,7 +77,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , backgroundColor_ ()
  , foregroundColor_ ()
  , OpenGLWindow_ (NULL)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -93,33 +93,34 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , mode2D_ (NULL)
 #if defined (GTKGL_SUPPORT)
  , mode3D_ (NULL)
-#endif
+#endif // GTKGL_SUPPORT
  , renderHandler_ (this)
  , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
  , randomDistribution_ (0, 255)
 #else
  , randomDistribution_ (0, 65535)
-#endif
+#endif // GTK_CHECK_VERSION(3,0,0)
  , randomEngine_ ()
  , randomGenerator_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
   gboolean result_2 =
     gdk_rgba_parse (&backgroundColor_,
-                    ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)")); // opaque black
+                    ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
   ACE_ASSERT (result_2);
   result_2 =
     gdk_rgba_parse (&foregroundColor_,
                     ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
   ACE_ASSERT (result_2);
 #else
-  backgroundColor_ = { 0, 0, 0, 0 };             // opaque black
-  foregroundColor_ = { 0, 65535, 65535, 65535 }; // opaque white
+  ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
+  foregroundColor_.pixel = 0;
+  foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif // GTK_CHECK_VERSION (3,0,0)
 #endif // GTKGL_SUPPORT
 
@@ -147,13 +148,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   if (unlikely (cairoSurface_))
     cairo_surface_destroy (cairoSurface_);
 #else
   if (unlikely (pixelBuffer_))
     g_object_unref (pixelBuffer_);
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
   if (unlikely (cairoContext_))
     cairo_destroy (cairoContext_);
 }
@@ -181,8 +182,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize"));
 
-//  int result = -1;
-
   if (unlikely (inherited::isInitialized_))
   {
     // (re-)activate() the message queue
@@ -191,7 +190,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     inherited::msg_queue (NULL);
 
     surfaceLock_ = NULL;
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
     if (cairoSurface_)
     {
       cairo_surface_destroy (cairoSurface_); cairoSurface_ = NULL;
@@ -210,21 +209,22 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     OpenGLInstructions_ = NULL;
     OpenGLInstructionsLock_ = NULL;
     //OpenGLTextureId_ = 0;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
     gboolean result_2 =
       gdk_rgba_parse (&backgroundColor_,
-                      ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)")); // opaque black
+                      ACE_TEXT_ALWAYS_CHAR ("rgba (0, 0, 0, 1.0)"));       // opaque black
     ACE_ASSERT (result_2);
     result_2 =
       gdk_rgba_parse (&foregroundColor_,
                       ACE_TEXT_ALWAYS_CHAR ("rgba (255, 255, 255, 1.0)")); // opaque white
     ACE_ASSERT (result_2);
-#else /* GTK_CHECK_VERSION (3,0,0) */
-    backgroundColor_ = { 0, 0, 0, 0 };             // opaque black
-    foregroundColor_ = { 0, 65535, 65535, 65535 }; // opaque white
+#else
+    ACE_OS::memset (&backgroundColor_, 0, sizeof (struct _GdkColor));                            // opaque black
+    foregroundColor_.pixel = 0;
+    foregroundColor_.red = 65535; foregroundColor_.green = 65535; foregroundColor_.blue = 65535; // opaque white
 #endif /* GTK_CHECK_VERSION (3,0,0) */
     OpenGLWindow_ = NULL;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -249,7 +249,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     goto continue_;
 
   surfaceLock_ = configuration_in.surfaceLock;
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   if (configuration_in.cairoSurface2D)
     cairoSurface_ =
       cairo_surface_reference (configuration_in.cairoSurface2D);
@@ -259,24 +259,24 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     g_object_ref (configuration_in.pixelBuffer2D);
     pixelBuffer_ = configuration_in.pixelBuffer2D;
   } // end IF
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
 
-#if GTK_CHECK_VERSION (3,10,0)
-  if (!initialize_Cairo (configuration_in.GdkWindow2D,
-                         cairoContext_,
-                         cairoSurface_))
+#if GTK_CHECK_VERSION(3,10,0)
+  if (unlikely (!initialize_Cairo (configuration_in.GdkWindow2D,
+                                   cairoContext_,
+                                   cairoSurface_)))
 #else
   if (unlikely (!initialize_Cairo (configuration_in.GdkWindow2D,
                                    cairoContext_,
                                    pixelBuffer_)))
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (cairoSurface_);
 
   height_ = cairo_image_surface_get_height (cairoSurface_);
@@ -286,15 +286,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   height_ = gdk_pixbuf_get_height (pixelBuffer_);
   width_ = gdk_pixbuf_get_width (pixelBuffer_);
-#endif
-  //ACE_ASSERT (height_);
-  //ACE_ASSERT (width_);
+#endif // GTK_CHECK_VERSION(3,10,0)
+  ACE_ASSERT (height_); ACE_ASSERT (width_);
 
 continue_:
 #if defined (GTKGL_SUPPORT)
   mode3D_ =
     &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
-#endif
+#endif // GTKGL_SUPPORT
 
 #if defined (GTKGL_SUPPORT)
   // initialize OpenGL ?
@@ -305,7 +304,7 @@ continue_:
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
   //OpenGLTextureId_ = configuration_in.OpenGLTextureId;
   OpenGLWindow_ = configuration_in.OpenGLWindow;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -319,7 +318,7 @@ continue_:
   {
     //ACE_ASSERT (OpenGLTextureId_ > 0);
   } // end IF
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -366,12 +365,12 @@ continue_2:
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+  ACE_ASSERT (InlineIsEqualGUID (media_type_p->formattype, FORMAT_WaveFormatEx));
 
   ACE_ASSERT (media_type_p->pbFormat);
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   bool result_2 = false;
   unsigned int channels, sample_rate;
@@ -387,7 +386,7 @@ continue_2:
 
   channels = configuration_in.format->channels;
   sample_rate = configuration_in.format->rate;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   result_2 =
     inherited2::Initialize (channels,
                             configuration_in.spectrumAnalyzerResolution,
@@ -548,7 +547,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         return;
       } // end IF
-      ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_p->formattype, FORMAT_WaveFormatEx));
       ACE_ASSERT (media_type_p->pbFormat);
 
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
@@ -579,7 +578,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       channels = session_data_r.inputFormat.channels;
       sample_rate = session_data_r.inputFormat.rate;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
                                              true,
@@ -648,7 +647,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
                     inherited::mod_->name (),
                     renderHandlerTimerId_));
-#endif
+#endif // _DEBUG
 
         inherited::start ();
         shutdown = true;
@@ -706,7 +705,7 @@ error:
                       ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
                       inherited::mod_->name (),
                       renderHandlerTimerId_));
-#endif
+#endif // _DEBUG
         renderHandlerTimerId_ = -1;
       } // end IF
 
@@ -721,31 +720,28 @@ error:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
-#endif
+#endif // _DEBUG
       } // end IF
 
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
       if (cairoSurface_)
       {
-        cairo_surface_destroy (cairoSurface_);
-        cairoSurface_ = NULL;
+        cairo_surface_destroy (cairoSurface_); cairoSurface_ = NULL;
       } // end IF
 #else
       if (pixelBuffer_)
       {
-        g_object_unref (pixelBuffer_);
-        pixelBuffer_ = NULL;
+        g_object_unref (pixelBuffer_); pixelBuffer_ = NULL;
       } // end IF
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
       if (cairoContext_)
       {
-        cairo_destroy (cairoContext_);
-        cairoContext_ = NULL;
+        cairo_destroy (cairoContext_); cairoContext_ = NULL;
       } // end IF
 #if defined (GTKGL_SUPPORT)
       //OpenGLTextureId_ = 0;
       OpenGLWindow_ = NULL;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
@@ -812,10 +808,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        // clean up
-        message_block_p->release ();
-        message_block_p = NULL;
-
+        message_block_p->release (); message_block_p = NULL;
         goto done;
       }
       case ACE_Message_Block::MB_EVENT:
@@ -823,10 +816,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       // *WARNING*: control falls through
       default:
       {
-        // clean up
-        message_block_p->release ();
-        message_block_p = NULL;
-
+        message_block_p->release (); message_block_p = NULL;
         break;
       }
     } // end SWITCH
@@ -837,7 +827,6 @@ done:
   return result;
 }
 
-#if GTK_CHECK_VERSION (3,10,0)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -858,145 +847,106 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                SessionDataContainerType,
                                                TimerManagerType>::initialize_Cairo (GdkWindow* window_in,
                                                                                     cairo_t*& cairoContext_out,
+#if GTK_CHECK_VERSION(3,10,0)
                                                                                     cairo_surface_t*& cairoSurface_out)
+#else
+                                                                                    GdkPixbuf*& pixelBuffer_out)
+#endif // GTK_CHECK_VERSION(3,10,0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
 
   // sanity check(s)
   ACE_ASSERT (window_in);
   ACE_ASSERT (!cairoContext_out);
+#if GTK_CHECK_VERSION(3,10,0)
   //ACE_ASSERT (!cairoSurface_out);
+#else
+  //ACE_ASSERT (!pixelBuffer_out);
+#endif // GTK_CHECK_VERSION(3,10,0)
 
   // initialize return value(s)
   cairoContext_out = NULL;
+#if GTK_CHECK_VERSION(3,10,0)
   //cairoSurface_out = NULL;
+#else
+  //pixelBuffer_out = NULL;
+#endif // GTK_CHECK_VERSION(3,10,0)
 
   int width, height;
   //gdk_threads_enter ();
   width = gdk_window_get_width (window_in);
   height = gdk_window_get_height (window_in);
 
+#if GTK_CHECK_VERSION(3,10,0)
   if (!cairoSurface_out)
+#else
+  if (!pixelBuffer_out)
+#endif // GTK_CHECK_VERSION(3,10,0)
   {
+#if GTK_CHECK_VERSION(3,10,0)
     cairoSurface_out =
-#if GTK_CHECK_VERSION (3,10,0)
+//#if GTK_CHECK_VERSION(3,10,0)
         gdk_window_create_similar_image_surface (window_in,
                                                  CAIRO_FORMAT_RGB24,
                                                  width, height,
                                                  1);
-#else
-        gdk_window_create_similar_surface (window_in,
-                                           CAIRO_CONTENT_COLOR_ALPHA,
-                                           width, height);
+//#else
+//        gdk_window_create_similar_surface (window_in,
+//                                           CAIRO_CONTENT_COLOR_ALPHA,
+//                                           width, height);
 //    cairo_surface_type_t type = cairo_surface_get_type (cairoSurface_out);
 //    ACE_ASSERT (type == CAIRO_SURFACE_TYPE_IMAGE);
-#endif
+//#endif // GTK_CHECK_VERSION(3,10,0)
     if (unlikely (!cairoSurface_out))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to gdk_window_create_similar_surface(), aborting\n"),
                   inherited::mod_->name ()));
-
-      // clean up
-      //gdk_threads_leave ();
-
       return false;
     } // end IF
     ACE_ASSERT (cairo_image_surface_get_height (cairoSurface_out) == height);
     ACE_ASSERT (cairo_image_surface_get_width (cairoSurface_out) == width);
+#else
+    pixelBuffer_out =
+#if GTK_CHECK_VERSION(3,0,0)
+        gdk_pixbuf_get_from_window (window_in,
+                                    0, 0, width, height);
+#else
+        gdk_pixbuf_get_from_drawable (NULL,
+                                      GDK_DRAWABLE (window_in),
+                                      NULL,
+                                      0, 0,
+                                      0, 0, width, height);
+#endif // GTK_CHECK_VERSION(3,0,0)
+    if (!pixelBuffer_out)
+    {
+#if GTK_CHECK_VERSION(3,0,0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+                  inherited::mod_->name ()));
+#else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(), aborting\n"),
+                  inherited::mod_->name ()));
+#endif // GTK_CHECK_VERSION(3,0,0)
+      return false;
+    } // end IF
+    ACE_ASSERT (gdk_pixbuf_get_height (pixelBuffer_out) == height);
+    ACE_ASSERT (gdk_pixbuf_get_width (pixelBuffer_out) == width);
+#endif // GTK_CHECK_VERSION(3,10,0)
   } // end IF
-
+#if GTK_CHECK_VERSION(3,10,0)
+  ACE_ASSERT (cairoSurface_out);
   cairoContext_out = cairo_create (cairoSurface_out);
   if (unlikely (!cairoContext_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to cairo_create(), aborting\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    //gdk_threads_leave ();
-
     return false;
   } // end IF
-  cairo_status_t status = cairo_status (cairoContext_out);
-  ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
-
-  cairo_set_source_surface (cairoContext_out,
-                            cairoSurface_out,
-                            0.0, 0.0);
-
-  cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
-  cairo_set_line_width (cairoContext_out, 1.0);
-  cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
-  cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
-
-  //gdk_threads_leave ();
-
-  return true;
-}
 #else
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename TimerManagerType>
-bool
-Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType,
-                                               TimerManagerType>::initialize_Cairo (GdkWindow* window_in,
-                                                                                    cairo_t*& cairoContext_out,
-                                                                                    GdkPixbuf*& pixelBuffer_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
-
-  ACE_ASSERT (window_in);
-  ACE_ASSERT (!cairoContext_out);
-  //ACE_ASSERT (!pixelBuffer_out);
-
-  // initialize return value(s)
-  cairoContext_out = NULL;
-  //pixelBuffer_out = NULL;
-
-  int width, height;
-
-  //gdk_threads_enter ();
-
-  width = gdk_window_get_width (window_in);
-  height = gdk_window_get_height (window_in);
-
-  if (!pixelBuffer_out)
-  {
-    pixelBuffer_out =
-        gdk_pixbuf_get_from_drawable (NULL,
-                                      GDK_DRAWABLE (window_in),
-                                      NULL,
-                                      0, 0,
-                                      0, 0, width, height);
-    if (!pixelBuffer_out)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_drawable(), aborting\n"),
-                  inherited::mod_->name ()));
-
-      // clean up
-      //gdk_threads_leave ();
-
-      return false;
-    } // end IF
-    ACE_ASSERT (gdk_pixbuf_get_height (pixelBuffer_out) == height);
-    ACE_ASSERT (gdk_pixbuf_get_width (pixelBuffer_out) == width);
-  } // end IF
-
+  ACE_ASSERT (pixelBuffer_out);
   cairoContext_out = gdk_cairo_create (window_in);
 //  cairoContext_out = cairo_create ();
   if (unlikely (!cairoContext_out))
@@ -1004,29 +954,29 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to gdk_cairo_create(), aborting\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    //gdk_threads_leave ();
-
     return false;
   } // end IF
-  cairo_status_t status = cairo_status (cairoContext_out);
-  ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
+#endif // GTK_CHECK_VERSION(3,10,0)
+  ACE_ASSERT (cairoContext_out);
+  ACE_ASSERT (cairo_status (cairoContext_out) == CAIRO_STATUS_SUCCESS);
 
+#if GTK_CHECK_VERSION(3,10,0)
+  cairo_set_source_surface (cairoContext_out,
+                            cairoSurface_out,
+                            0.0, 0.0);
+#else
   gdk_cairo_set_source_pixbuf (cairoContext_out,
                                pixelBuffer_out,
                                0.0, 0.0);
+#endif // GTK_CHECK_VERSION(3,10,0)
 
   cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
   cairo_set_line_width (cairoContext_out, 1.0);
   cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
   cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
 
-  //gdk_threads_leave ();
-
   return true;
 }
-#endif
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1055,7 +1005,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
     {
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
       foregroundColor_.red   = randomGenerator_ () / 255.0;
       foregroundColor_.green = randomGenerator_ () / 255.0;
       foregroundColor_.blue  = randomGenerator_ () / 255.0;
@@ -1065,14 +1015,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       foregroundColor_.green = randomGenerator_ ();
       foregroundColor_.blue  = randomGenerator_ ();
       //foregroundColor_.alpha = ;
-#endif
-#endif
+#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTKGL_SUPPORT
       break;
     }
     case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
     {
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
       backgroundColor_.red   = randomGenerator_ () / 255.0;
       backgroundColor_.green = randomGenerator_ () / 255.0;
       backgroundColor_.blue  = randomGenerator_ () / 255.0;
@@ -1082,8 +1032,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       backgroundColor_.green = randomGenerator_ ();
       backgroundColor_.blue  = randomGenerator_ ();
       //backgroundColor_.alpha = ;
-#endif
-#endif
+#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTKGL_SUPPORT
       break;
     }
     default:
@@ -1130,7 +1080,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   inherited::control (ACE_Message_Block::MB_EVENT);
 }
 
-#if GTK_CHECK_VERSION (3,10,0)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -1149,12 +1098,20 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                SessionMessageType,
                                                SessionDataType,
                                                SessionDataContainerType,
+#if GTK_CHECK_VERSION(3,10,0)
                                                TimerManagerType>::setP (cairo_surface_t* surface_in)
+#else
+                                               TimerManagerType>::setP (GdkPixbuf* pixelBuffer_in)
+#endif // GTK_CHECK_VERSION (3,10,0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
+#if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (surface_in);
+#else
+  ACE_ASSERT (pixelBuffer_in);
+#endif // GTK_CHECK_VERSION (3,10,0)
 
   int result = -1;
   bool release_lock = false;
@@ -1169,37 +1126,93 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       release_lock = true;
   } // end IF
 
+#if GTK_CHECK_VERSION (3,10,0)
   if (cairoSurface_)
     cairo_surface_destroy (cairoSurface_);
   cairoSurface_ = cairo_surface_reference (surface_in);
+#else
+  if (pixelBuffer_)
+  {
+    g_object_unref (pixelBuffer_); pixelBuffer_ = NULL;
+  } // end IF
+  g_object_ref (pixelBuffer_in);
+  pixelBuffer_ = pixelBuffer_in;
+#endif // GTK_CHECK_VERSION (3,10,0)
 
   if (cairoContext_)
   {
-    cairo_destroy (cairoContext_);
-    cairoContext_ = NULL;
+    cairo_destroy (cairoContext_); cairoContext_ = NULL;
   } // end IF
+#if GTK_CHECK_VERSION (3,10,0)
   if (unlikely (!initialize_Cairo (NULL,
                                    cairoContext_,
                                    cairoSurface_)))
+#else
+  if (unlikely (!initialize_Cairo (NULL,
+                                   cairoContext_,
+                                   pixelBuffer_)))
+#endif // GTK_CHECK_VERSION (3,10,0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize_Cairo(), aborting\n"),
                 inherited::mod_->name ()));
     goto unlock;
   } // end IF
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (cairoSurface_);
 
   height_ = cairo_image_surface_get_height (cairoSurface_);
   width_ = cairo_image_surface_get_width (cairoSurface_);
 #else
+  ACE_ASSERT (cairoContext_);
   ACE_ASSERT (pixelBuffer_);
+
+  gdk_cairo_set_source_pixbuf (cairoContext_,
+                               pixelBuffer_,
+                               0.0, 0.0);
+  cairo_reset_clip (cairoContext_);
+
+  unsigned int data_sample_size = 0;
+  unsigned int sound_sample_size = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (inherited::sessionData_);
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();  
+  struct _AMMediaType* media_type_p = NULL;
+  media_type_p = getFormat (session_data_r.inputFormat);
+  if (unlikely (!media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to retrieve media type, returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+  ACE_ASSERT (InlineIsEqualGUID (media_type_p->formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (media_type_p->pbFormat);
+  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  data_sample_size = waveformatex_p->nBlockAlign;
+  sound_sample_size = (data_sample_size * 8) / waveformatex_p->wBitsPerSample;
+
+  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+#else
+  data_sample_size =
+    ((snd_pcm_format_width (session_data_r.format.format) / 8) *
+      session_data_r.format.channels);
+  sound_sample_size = data_sample_size / session_data_r.format.channels;
+#endif // ACE_WIN32 || ACE_WIN64
 
   height_ = gdk_pixbuf_get_height (pixelBuffer_);
   width_ = gdk_pixbuf_get_width (pixelBuffer_);
-#endif
-  ACE_ASSERT (height_);
-  ACE_ASSERT (width_);
+
+  channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
+  scaleFactorX_ =
+      width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+  scaleFactorY_ =
+      height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
+#endif // GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (height_); ACE_ASSERT (width_);
 
 unlock:
   if (release_lock)
@@ -1212,118 +1225,6 @@ unlock:
                   inherited::mod_->name ()));
   } // end IF
 }
-#else
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename TimerManagerType>
-void
-Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType,
-                                               TimerManagerType>::setP (GdkPixbuf* pixelBuffer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::setP"));
-
-  // sanity check(s)
-  ACE_ASSERT (pixelBuffer_in);
-  ACE_ASSERT (inherited::sessionData_);
-
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-
-  int result = -1;
-  bool release_lock = false;
-  if (surfaceLock_)
-  {
-    result = surfaceLock_->acquire ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-    else
-      release_lock = true;
-  } // end IF
-
-  if (pixelBuffer_)
-  {
-    g_object_unref (pixelBuffer_);
-    pixelBuffer_ = NULL;
-  } // end IF
-  g_object_ref (pixelBuffer_in);
-  pixelBuffer_ = pixelBuffer_in;
-
-  if (cairoContext_)
-  {
-    gdk_cairo_set_source_pixbuf (cairoContext_,
-                                 pixelBuffer_,
-                                 0.0, 0.0);
-    cairo_reset_clip (cairoContext_);
-  } // end IF
-
-  unsigned int data_sample_size = 0;
-  unsigned int sound_sample_size = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType* media_type_p = NULL;
-  media_type_p = getFormat (session_data_r.format);
-  if (unlikely (!media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve media type, returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
-  ACE_ASSERT (media_type_p->pbFormat);
-
-  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
-  ACE_ASSERT (waveformatex_p);
-
-  data_sample_size = waveformatex_p->nBlockAlign;
-  sound_sample_size = (data_sample_size * 8) / waveformatex_p->wBitsPerSample;
-
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
-#else
-  data_sample_size =
-    ((snd_pcm_format_width (session_data_r.format.format) / 8) *
-      session_data_r.format.channels);
-  sound_sample_size = data_sample_size /
-    session_data_r.format.channels;
-#endif
-
-  height_ = gdk_pixbuf_get_height (pixelBuffer_);
-  width_ = gdk_pixbuf_get_width (pixelBuffer_);
-
-  channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
-  scaleFactorX_ =
-      width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
-  scaleFactorY_ =
-      height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
-
-//unlock:
-  if (release_lock)
-  {
-    ACE_ASSERT (surfaceLock_);
-    result = surfaceLock_->release ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-  } // end IF
-}
-#endif
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1351,7 +1252,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (mode2D_);
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT (mode3D_);
-#endif
+#endif // GTKGL_SUPPORT
 
   int result = -1;
   bool release_lock = false;
@@ -1427,10 +1328,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
     } // end SWITCH
   } // end FOR
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_mark_dirty (cairoSurface_);
   cairo_surface_flush (cairoSurface_);
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
 
 unlock:
   if (release_lock)
@@ -1445,7 +1346,7 @@ unlock:
 #if defined (GTKGL_SUPPORT)
   struct Stream_Module_Visualization_OpenGLInstruction opengl_instruction;
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
   if (!OpenGLWindow_)// ||
       //(OpenGLTextureId_ == 0))
 #else
@@ -1466,8 +1367,8 @@ unlock:
     case STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT:
     {
       //gdk_threads_enter ();
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
       // *TODO*: (for reasons yet unkown,) gtk_gl_area_make_current() crashes.
       //         Most probably, it needs to be called from a (the) gtk context
       //         --> move everything OpenGL into a callback function that can be
@@ -1494,8 +1395,8 @@ unlock:
 
       ACE_ASSERT (OpenGLInstructions_);
       ACE_ASSERT (OpenGLInstructionsLock_);
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
         opengl_instruction.color = backgroundColor_;
         opengl_instruction.type =
@@ -1507,20 +1408,20 @@ unlock:
         OpenGLInstructions_->push_back (opengl_instruction);
       } // end lock scope
 #else
-      glClearColor ((GLclampf)backgroundColor_.red   / 65535.0F,
-                    (GLclampf)backgroundColor_.green / 65535.0F,
-                    (GLclampf)backgroundColor_.blue  / 65535.0F,
+      glClearColor (static_cast<GLclampf> (backgroundColor_.red)   / 65535.0F,
+                    static_cast<GLclampf> (backgroundColor_.green) / 65535.0F,
+                    static_cast<GLclampf> (backgroundColor_.blue)  / 65535.0F,
                     1.0F);
-      glColor4f (foregroundColor_.red   / 65535.0F,
-                 foregroundColor_.green / 65535.0F,
-                 foregroundColor_.blue  / 65535.0F,
+      glColor4f (static_cast<GLfloat> (foregroundColor_.red)   / 65535.0F,
+                 static_cast<GLfloat> (foregroundColor_.green) / 65535.0F,
+                 static_cast<GLfloat> (foregroundColor_.blue)  / 65535.0F,
                  1.0F);
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
       //gdk_threads_leave ();
 
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
+#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,16,0)
 #else /* GTK_CHECK_VERSION (3,16,0) */
       //ggla_area_swap_buffers (OpenGLWindow_);
 #endif /* GTK_CHECK_VERSION (3,16,0) */
@@ -1627,4 +1528,4 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   return result_p;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

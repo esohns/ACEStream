@@ -17,7 +17,7 @@ if (UNIX)
   elseif (GTK3_SUPPORT)
    pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
   endif ()
- endif ()
+ endif (GTK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE>)
 
@@ -32,41 +32,65 @@ if (UNIX)
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui>)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui/gtk>)
- endif ()
+ endif (GTK_SUPPORT)
 elseif (WIN32)
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE)
- endif ()
+# *TODO*: repair WIN32 pkgconfig support
 # gtk
  if (GTK_SUPPORT)
   if (GTK2_SUPPORT)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/atk-1.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/gdk-pixbuf-2.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/cairo)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/pango-1.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/glib-2.0/include)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/glib-2.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/gtk-2.0/include)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/gtk-2.0)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/atk-1.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/gdk-pixbuf-2.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/cairo>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/pango-1.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/glib-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/glib-2.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/gtk-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/gtk-2.0>)
   elseif (GTK3_SUPPORT)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/atk-1.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/cairo)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/pango-1.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/glib-2.0)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../gtk/gtk/Win32/debug/include/gtk-3.0)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/atk-1.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/gdk-pixbuf-2.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/cairo>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/pango-1.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/glib-2.0/include>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/glib-2.0>)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/gtk-3.0>)
   endif ()
- endif ()
+# libglade
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
+ endif (GTK_SUPPORT)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src)
+ if (DEFINED ENV{ACE_ROOT})
+  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
+ else ()
+  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE>)
+ endif (DEFINED ENV{ACE_ROOT})
+
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src>)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer)
  if (GTK_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/gtk)
- endif ()
+  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui>)
+  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/gtk>)
+ endif (GTK_SUPPORT)
 endif ()
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
@@ -74,6 +98,31 @@ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
+
+if (WIN32)
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gio-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/glib-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gobject-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gthread-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gdk_pixbuf-2.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gdk-win32-3.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gtk-win32-3.0.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/pango-1.0.lib)
+  else ()
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgio-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libglib-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgobject-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgthread-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgdk-win32-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libgtk-win32-2.0.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libcairo.dll.a)
+   target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libpango-1.0.dll.a)
+  endif (GTK3_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (WIN32)
 
 set (source_files
      test_u_common.h
@@ -86,7 +135,7 @@ if (GTK_SUPPORT)
       test_u_gtk_eventhandler.cpp
       test_u_gtk_eventhandler.h
       test_u_gtk_eventhandler.inl)
-endif ()
+endif (GTK_SUPPORT)
 #install (FILES
 #         ${PROJECT_NAME}_Test_U_GTK_SRCS
 #         DESTINATION include)
@@ -122,5 +171,11 @@ if (NOT BUILD_TEST_U)
  set_target_properties (test_u PROPERTIES EXCLUDE_FROM_ALL 1)
  if (WIN32)
   set_target_properties (test_u PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
- endif ()
-endif ()
+ endif (WIN32)
+endif (NOT BUILD_TEST_U)
+
+# ----------------------------------------
+
+# enable (unit/integration) tests
+#include (CTest)
+enable_testing ()

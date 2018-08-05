@@ -112,31 +112,11 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
-else ()
+elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
 # *TODO*: repair pkgconfig support
 # include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
-# gtk
- if (GTK3_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
- endif ()
-
 # libav
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
@@ -206,7 +186,7 @@ set (camsource_EXE_SRCS
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
+endif (UNIX)
 
 set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
@@ -233,19 +213,22 @@ if (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
  endif ()
-endif ()
+endif (WIN32)
 
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
+
 add_dependencies (${EXECUTABLE_SOURCE} Common)
 add_dependencies (${EXECUTABLE_SOURCE} CommonUI)
 add_dependencies (${EXECUTABLE_SOURCE} CommonUI_GTK)
+
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_MediaFramework)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
-add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
+
+add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
@@ -270,26 +253,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE_SOURCE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} strmiids.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} winmm.lib)
-# *TODO*: repair WIN32 pkgconfig support
- if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
- else ()
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgio-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libglib-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgobject-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgthread-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk-win32-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgtk-win32-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libcairo.dll.a)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
- endif ()
 
 # target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
@@ -299,7 +262,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
+endif (WIN32)
 #target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
 
@@ -311,6 +274,8 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
+
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
@@ -329,55 +294,52 @@ source_group (resources FILES ${RESOURCE_FILES})
 install (TARGETS ${EXECUTABLE_SOURCE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
-if (WIN32)
+if (UNIX)
+ install (FILES etc/source.glade
+          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
+elseif (WIN32)
  install (FILES etc/source.glade
           DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
-elseif (UNIX)
- install (FILES etc/source.glade
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
- create_target_launcher (${EXECUTABLE_SOURCE}
-#                         ARGS "-g./etc/source.glade -l -t"
-                         ARGS "-g -l -t"
-#                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                         ENVIRONMENT foo=bar)
+ if (GTK_SUPPORT)
+  set (ARGS "-g./etc/source.glade -l -t")
+ else ()
+  set (ARGS "-g -l -t")
+ endif (GTK_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE_SOURCE}
-#                         ARGS "-g.\\\\etc\\\\source.glade -l -t"
-                         ARGS "-c -g -l -t"
-#                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                                              G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                         ENVIRONMENT foo=bar)
+ if (GTK_SUPPORT)
+  set (ARGS "-g.\\\\etc\\\\source.glade -l -t")
+ else ()
+  set (ARGS "-c -g -l -t")
+ endif (GTK_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           G:/software/Development/dll
+                           ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+ if (GTK_SUPPORT)
+  if (GTK3_SUPPORT)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${PROJECT_SOURCE_DIR}/../gtk3/bin)
+  else ()
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+  endif (GTK3_SUPPORT)
+ endif (GTK_SUPPORT)
 endif ()
+create_target_launcher (${EXECUTABLE_SOURCE}
+                        ARGS ${ARGS}
+#                         FORWARD_ARGS
+                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
+                        ENVIRONMENT foo=bar)
 
 add_test (NAME ${EXECUTABLE_SOURCE}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE_SOURCE} -l -t
@@ -411,7 +373,6 @@ if (WIN32)
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
- target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -421,6 +382,8 @@ if (WIN32)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif ()
+ target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
+
  target_link_libraries (${LIBRARY_DS} Common)
 
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME})
@@ -592,26 +555,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
  target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)
  target_link_libraries (${EXECUTABLE_TARGET} winmm.lib)
-# *TODO*: repair WIN32 pkgconfig support
- if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
- else ()
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgio-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libglib-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgobject-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgthread-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk-win32-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgtk-win32-2.0.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libcairo.dll.a)
-  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
- endif ()
 
 # target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
@@ -636,6 +579,8 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
+
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)

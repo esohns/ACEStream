@@ -21,8 +21,8 @@
 #ifndef STREAM_LIB_MEDIAFOUNDATION_TOOLS_H
 #define STREAM_LIB_MEDIAFOUNDATION_TOOLS_H
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
 #include <d3d9.h>

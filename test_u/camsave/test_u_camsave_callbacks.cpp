@@ -42,6 +42,7 @@
 #include <mfreadwrite.h>
 //#include <streams.h>
 
+#include "gdk/gdkkeysyms.h"
 #include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
@@ -1461,7 +1462,13 @@ set_capture_format (struct Stream_CamSave_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
+
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1483,7 +1490,12 @@ set_capture_format (struct Stream_CamSave_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value_2;
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -3214,7 +3226,12 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
     ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
     GValue value = G_VALUE_INIT;
+#else
+    GValue value;
+    g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                               &iterator_3,
                               1, &value);
@@ -4046,7 +4063,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -4703,7 +4725,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -4730,7 +4757,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value_2;
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -5045,8 +5077,15 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
   GValue value_2 = G_VALUE_INIT;
+#else
+  GValue value;
+  g_value_init (&value, G_TYPE_UINT);
+  GValue value_2;
+  g_value_init (&value_2, G_TYPE_UINT);
+#endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -5839,9 +5878,15 @@ key_cb (GtkWidget* widget_in,
 
   switch (eventKey_in->keyval)
   {
+#if GTK_CHECK_VERSION(3,0,0)
     case GDK_KEY_Escape:
     case GDK_KEY_f:
     case GDK_KEY_F:
+#else
+    case GDK_Escape:
+    case GDK_f:
+    case GDK_F:
+#endif // GTK_CHECK_VERSION(3,0,0)
     {
       GtkToggleAction* toggle_action_p =
         GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,

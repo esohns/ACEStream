@@ -56,19 +56,19 @@ struct Test_U_GTK_CBData
   : Common_UI_GTK_GLState
 #else
   : Common_UI_GTK_State
-#endif
+#endif // GTKGL_SUPPORT
 {
   Test_U_GTK_CBData ()
 #if defined (GTKGL_SUPPORT)
    : Common_UI_GTK_GLState ()
 #else
    : Common_UI_GTK_State ()
-#endif
+#endif // GTKGL_SUPPORT
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
    , progressEventSourceId (0)
   {}
@@ -77,7 +77,7 @@ struct Test_U_GTK_CBData
   struct Test_U_Configuration*    configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_GTK_ProgressData  progressData;
   guint                           progressEventSourceId;
 };
@@ -94,7 +94,7 @@ struct Test_U_GTK_ThreadData
   guint                           eventSourceId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   size_t                          sessionId;
 };
 
