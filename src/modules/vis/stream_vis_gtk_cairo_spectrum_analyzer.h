@@ -221,7 +221,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-  GglaArea*                                                OpenGLWindow_;
+  GtkGLArea*                                               OpenGLWindow_;
 #else
   GdkGLContext*                                            OpenGLContext_;
   GdkGLDrawable*                                           OpenGLWindow_;

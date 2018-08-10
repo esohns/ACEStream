@@ -25,11 +25,11 @@
 #include <string>
 
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 //#include <winnt.h>
 #include <CGuid.h>
 #include <Guiddef.h>

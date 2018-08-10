@@ -6,6 +6,8 @@ CMAKE_DEPENDENT_OPTION (GTK3_SUPPORT "enable GTK 3 support" ON
                         "GTK_SUPPORT" OFF)
 CMAKE_DEPENDENT_OPTION (GTK2_SUPPORT "enable GTK 2 support" ON
                         "GTK_SUPPORT; NOT GTK3_SUPPORT" OFF)
+CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
+                        "GTK_SUPPORT" OFF)
 
 add_library (${PROJECT_NAME}_Test_U STATIC "")
 
@@ -121,6 +123,10 @@ if (WIN32)
    target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libcairo.dll.a)
    target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/lib/libpango-1.0.dll.a)
   endif (GTK3_SUPPORT)
+  if (GTKGL_SUPPORT)
+   target_link_libraries (${PROJECT_NAME}_Test_U OpenGL32.lib)
+   target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+  endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
 endif (WIN32)
 

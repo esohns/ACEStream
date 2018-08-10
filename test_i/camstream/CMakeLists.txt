@@ -275,10 +275,10 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
-
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
+
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -390,6 +390,8 @@ if (WIN32)
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Device)
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_MediaFramework)
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Miscellaneous)
+
+ target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Test_I)
 
  set_target_properties (${LIBRARY_DS} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
@@ -580,10 +582,10 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
-
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)
+
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

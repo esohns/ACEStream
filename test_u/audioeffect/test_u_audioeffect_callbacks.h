@@ -67,7 +67,7 @@ bool load_rates (int,            // (capture) device file descriptor
                  unsigned int,   // resolution (width)
                  unsigned int,   // resolution (height)
                  GtkListStore*); // return value: supported rates
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // thread functions
 ACE_THR_FUNC_RETURN stream_processing_function (void*);
@@ -101,12 +101,12 @@ extern "C"
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_2d_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_2d_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
   G_MODULE_EXPORT gboolean drawingarea_2d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
-#endif
+#endif // GTK_CHECK_VERSION(3,0,0)
   G_MODULE_EXPORT gboolean drawingarea_2d_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);

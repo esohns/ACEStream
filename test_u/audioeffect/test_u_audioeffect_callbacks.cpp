@@ -3413,47 +3413,25 @@ idle_initialize_UI_cb (gpointer userData_in)
   /* Attribute list for gtkglarea widget. Specifies a
      list of Boolean attributes and enum/integer
      attribute/value pairs. The last attribute must be
-     GGLA_NONE. See glXChooseVisual manpage for further
+     GDK_GL_NONE. See glXChooseVisual manpage for further
      explanation.
   */
   int attribute_list[] = {
-    GGLA_RGBA,
-    GGLA_RED_SIZE,   1,
-    GGLA_GREEN_SIZE, 1,
-    GGLA_BLUE_SIZE,  1,
-    GGLA_DOUBLEBUFFER,
-    GGLA_NONE
+    GDK_GL_RGBA,
+    GDK_GL_RED_SIZE,   1,
+    GDK_GL_GREEN_SIZE, 1,
+    GDK_GL_BLUE_SIZE,  1,
+    GDK_GL_DOUBLEBUFFER,
+    GDK_GL_NONE
   };
 
-  GglaArea* gl_area_p = GGLA_AREA (ggla_area_new (attribute_list));
+  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list));
   if (!gl_area_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to ggla_area_new(), aborting\n")));
+                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  ///* Attribute list for gtkglarea widget. Specifies a
-  //   list of Boolean attributes and enum/integer
-  //   attribute/value pairs. The last attribute must be
-  //   GGLA_NONE. See glXChooseVisual manpage for further
-  //   explanation.
-  //*/
-  //int attribute_list_a[] = {
-  //  GDK_GL_RGBA,
-  //  GDK_GL_RED_SIZE,   1,
-  //  GDK_GL_GREEN_SIZE, 1,
-  //  GDK_GL_BLUE_SIZE,  1,
-  //  GDK_GL_DOUBLEBUFFER,
-  //  GDK_GL_NONE
-  //};
-
-  //GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list_a));
-  //if (!gl_area_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
-  //  return G_SOURCE_REMOVE;
-  //} // end ELSE
 #else
   GdkGLConfigMode features = static_cast<GdkGLConfigMode> (GDK_GL_MODE_DOUBLE  |
                                                            GDK_GL_MODE_ALPHA   |
@@ -9851,7 +9829,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
+  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
 #else
   bool result = gdk_gl_drawable_make_current (drawable_p,
                                               context_p);
@@ -9901,22 +9879,24 @@ glarea_realize_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  GglaArea* gl_area_p = GGLA_AREA (widget_in);
+  GtkGLArea* gl_area_p = GTK_GL_AREA (widget_in);
   ACE_ASSERT (gl_area_p);
 
-  ggla_area_make_current (gl_area_p);
+  gint result_2 = gtk_gl_area_make_current (gl_area_p);
+  ACE_UNUSED_ARG (result_2);
 #else
-GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
-if (!context_p)
-{
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
-              gl_area_p));
-  goto error;
-} // end IF
+  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_gl_area_get_context(%@), returning\n"),
+                gl_area_p));
+    goto error;
+  } // end IF
 
-  gdk_gl_drawable_make_current (drawable_p,
-                                context_p);
+  result_2 = gdk_gl_drawable_make_current (drawable_p,
+                                           context_p);
+  ACE_UNUSED_ARG (result_2);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
   ACE_ASSERT (gl_area_p);
@@ -11151,7 +11131,7 @@ glarea_configure_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
+  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
 #else
   if (!gdk_gl_drawable_make_current (drawable_p,
                                      context_p))
@@ -11297,7 +11277,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
+  if (!gtk_gl_area_make_current (GTK_GL_AREA (widget_in)))
 #else
   bool result = gdk_gl_drawable_make_current (drawable_p,
                                               context_p);
@@ -11408,7 +11388,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,16,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  ggla_area_swap_buffers (GGLA_AREA (widget_in));
+  gtk_gl_area_swap_buffers (GTK_GL_AREA (widget_in));
 #else
   gdk_gl_drawable_gl_end (drawable_p);
   gdk_gl_drawable_swap_buffers (drawable_p);
@@ -11553,8 +11533,7 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
 
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-  {
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
+  { //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
     cairo_paint (context_in);
   } // end lock scope
 #endif // GTK_CHECK_VERSION(3,16,0)
