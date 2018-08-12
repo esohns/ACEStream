@@ -221,7 +221,11 @@ struct Stream_CamSave_SessionData
   }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                 direct3DDevice;
+#else
+  IDirect3DDevice9*                   direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   UINT                                direct3DManagerResetToken;
   struct _AMMediaType*                inputFormat; // input-
   TOPOID                              rendererNodeId;
@@ -407,7 +411,11 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
 
   struct tagRECT                                        area;
   IGraphBuilder*                                        builder;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                                   direct3DDevice;
+#else
+  IDirect3DDevice9*                                     direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   struct _GUID                                          filterCLSID;
   struct Stream_CamSave_DirectShow_FilterConfiguration* filterConfiguration;
   struct _AMMediaType*                                  inputFormat;
@@ -447,7 +455,11 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
   }
 
   struct tagRECT                                   area;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                              direct3DDevice;
+#else
+  IDirect3DDevice9*                                direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   IMFMediaType*                                    inputFormat;
   TOPOID                                           rendererNodeId;
   TOPOID                                           sampleGrabberNodeId;

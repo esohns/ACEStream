@@ -1005,11 +1005,11 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
   if (!item_count)
   {
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
     IMFMediaSourceEx* media_source_p = NULL;
 #else
     IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
     if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_p,
                                                                       media_source_p))
     {
@@ -1027,7 +1027,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       media_source_p->Release (); media_source_p = NULL;
       goto error;
     } // end IF
-    media_source_p->Release ();
+    media_source_p->Release (); media_source_p = NULL;
 
     if (!Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (media_type_p,
                                                                      (*iterator).second.second.inputFormat))
@@ -1092,6 +1092,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   media_type_p->Release (); media_type_p = NULL;
   ACE_ASSERT (session_data_r.inputFormat);
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -1125,7 +1126,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  topology_p->Release (); topology_p = NULL;
   ACE_ASSERT (mediaSession_);
 
   if (!(*iterator).second.second.session)
@@ -1133,6 +1133,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     reference_count = mediaSession_->AddRef ();
     (*iterator).second.second.session = mediaSession_;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  topology_p->Release (); topology_p = NULL;
 
   // -------------------------------------------------------------
 
@@ -1184,17 +1186,17 @@ error:
   {
 #if defined (_DEBUG)
     Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
-#endif
+#endif // _DEBUG
     topology_p->Release ();
   } // end IF
   if (session_data_r.direct3DDevice)
   {
-    session_data_r.direct3DDevice->Release ();
-    session_data_r.direct3DDevice = NULL;
+    session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.inputFormat)
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
   session_data_r.direct3DManagerResetToken = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
   {
     session_data_r.session->Release (); session_data_r.session = NULL;
@@ -1203,6 +1205,7 @@ error:
   {
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (COM_initialized)
     CoUninitialize ();
@@ -1262,19 +1265,6 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConnectorType>::~Test_I_Source_V4L2_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::~Test_I_Source_V4L2_Stream_T"));
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT result = E_FAIL;
-  if (mediaSession_)
-  {
-    result = mediaSession_->Shutdown ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    mediaSession_->Release ();
-  } // end IF
-#endif
 
   // *NOTE*: implements an ordered shutdown on destruction
   inherited::shutdown ();
@@ -1400,8 +1390,6 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
   // *TODO*: remove type inferences
   typename ConfigurationType::ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1428,7 +1416,6 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
   session_data_r.height = (*iterator).second.second.inputFormat.fmt.pix.height;
   session_data_r.width = (*iterator).second.second.inputFormat.fmt.pix.width;
-#endif
 
   // ---------------------------------------------------------------------------
   // sanity check(s)

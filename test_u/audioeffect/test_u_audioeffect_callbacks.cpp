@@ -36,14 +36,18 @@
 #include <mfreadwrite.h>
 #include <uuids.h>
 
+#if defined (GTKGL_SUPPORT)
 #include <gl/GL.h>
 #include <gl/GLU.h>
+#endif /* GTKGL_SUPPORT */
 #else
 #include "alsa/asoundlib.h"
 
+#if defined (GTKGL_SUPPORT)
 #include "GL/gl.h"
 #include "GL/glu.h"
-#endif
+#endif /* GTKGL_SUPPORT */
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "gdk/gdk.h"
 #include "gtk/gtk.h"
@@ -51,8 +55,10 @@
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
 #else
+#if defined (GTKGLAREA_SUPPORT)
 #include "gtkgl/gdkgl.h"
 #include "gtkgl/gtkglarea.h"
+#endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
@@ -66,7 +72,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "ace/Dirent_Selector.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -94,14 +100,14 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_dev_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
 #include "stream_lib_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_common_modules.h"
@@ -7432,6 +7438,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (topology_p);
 
       // sanity check(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second.session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_modulehandler_configuration_iterator).second.second.session,
@@ -7441,6 +7448,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n")));
         goto error;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 
       if ((*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat)
@@ -7811,6 +7819,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -7818,6 +7827,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      ACE_ASSERT (media_source_p);
 
       //if (!load_sample_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 = load_sample_rates (media_source_p,
@@ -8055,11 +8066,11 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 
   bool result_2 = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8083,7 +8094,9 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     {
       // sanity check(s)
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
@@ -8097,6 +8110,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -8104,6 +8118,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       //if (!load_sample_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 = load_sample_resolutions (media_source_p,
@@ -8133,7 +8148,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       load_sample_resolutions (data_p->handle,
                                *(*modulehandler_configuration_iterator).second.second.format,
                                list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8146,7 +8161,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_sample_resolutions(%d), returning\n"),
                 data_p->handle));
     return;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   gint n_rows =
@@ -8179,7 +8194,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return;
 
@@ -8203,7 +8218,7 @@ error_2:
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_frequency_changed_cb
 
 void
@@ -8369,11 +8384,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   bool result_2 = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8397,7 +8412,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     {
       // sanity check(s)
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.session);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       HRESULT result =
         (*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
@@ -8411,6 +8428,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -8418,6 +8436,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       //if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 = load_channels (media_source_p,
@@ -8448,7 +8467,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       load_channels (data_p->handle,
                      *(*modulehandler_configuration_iterator).second.second.format,
                      list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8461,7 +8480,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_channels(%d), returning\n"),
                 data_p->handle));
     return;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   gint n_rows =
@@ -8494,7 +8513,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return;
 
@@ -8518,7 +8537,7 @@ error_2:
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // combobox_resolution_changed_cb
 
 void
@@ -8586,7 +8605,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -8621,7 +8640,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
   ACE_UNUSED_ARG (format_e);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = Common_Tools::StringToGUID (format_string);
@@ -8634,7 +8653,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   } // end IF
 #else
 //  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
@@ -8744,7 +8763,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 
   (*modulehandler_configuration_iterator).second.second.format->channels =
       number_of_channels;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   update_buffer_size (userData_in);
 } // combobox_channels_changed_cb
@@ -8819,7 +8838,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
       data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -8843,7 +8862,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
 #if defined (GTKGL_SUPPORT)
       else
         area_p = &directshow_data_p->area3D;
-#endif
+#endif // GTKGL_SUPPORT
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8854,7 +8873,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
 #if defined (GTKGL_SUPPORT)
     else
       area_p = &mediafoundation_data_p->area3D;
-#endif
+#endif // GTKGL_SUPPORT
       break;
     }
     default:
@@ -8872,8 +8891,8 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
 #if defined (GTKGL_SUPPORT)
   else
     area_p = &data_p->area3D;
-#endif
-#endif
+#endif // GTKGL_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (lock_p);
   ACE_ASSERT (area_p);
   ACE_ASSERT (event_in->type == GDK_CONFIGURE);
@@ -8918,7 +8937,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
     (*modulehandler_configuration_iterator).second.second.area2D = *area_p;
   else
     (*modulehandler_configuration_iterator).second.second.area3D = *area_p;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   if (widget_in != GTK_WIDGET (drawing_area_p))
     return TRUE;
@@ -8949,7 +8968,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
                                   0, 0,                    // source coordinates (of drawable)
                                   0, 0,                    // destination coordinates
                                   event_in->configure.width, event_in->configure.height);
-#endif GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION(3,0,0)
   if (!pixel_buffer_p)
   { // *NOTE*: most probable reason: window hasn't been mapped yet
 //    ACE_DEBUG ((LM_ERROR,

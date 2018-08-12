@@ -298,8 +298,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea*                                              OpenGLWindow;
 #else
+#if defined (GTKGLAREA_SUPPORT)
 //  GglaContext*                                      OpenGLContext;
   GglaArea*                                               OpenGLWindow;
+#endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)

@@ -65,6 +65,7 @@ class Stream_Module_Device_MediaFoundation_Tools
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
   // -------------------------------------
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // *NOTE*: if the fourth argument is NULL, the topology has no sink and cannot
   //         be loaded
   static bool loadDeviceTopology (const std::string&,             // device identifier
@@ -80,6 +81,7 @@ class Stream_Module_Device_MediaFoundation_Tools
                                   IMFSampleGrabberSinkCallback*,  // sample grabber sink callback handle [NULL: do not use tee/grabber]
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                   IMFTopology*&);                 // return value: topology handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   // -------------------------------------
 

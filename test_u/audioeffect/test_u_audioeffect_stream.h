@@ -166,8 +166,9 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream (const Test_U_AudioEffect_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream& operator= (const Test_U_AudioEffect_MediaFoundation_Stream&))
 
-  // media session
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession* mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ULONG            referenceCount_;
 };
 #else

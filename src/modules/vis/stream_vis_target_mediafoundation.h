@@ -68,11 +68,11 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
  , public Common_IInitialize_T<struct _AMMediaType>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
  , public IMFMediaSourceEx
 #else
  , public IMFMediaSource
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -103,7 +103,7 @@ class Stream_Vis_Target_MediaFoundation_T
   virtual bool initialize (const struct _AMMediaType&); // media type
 
   // implement IMFMediaSourceEx (IUnknown, IMediaEventGenerator, IMFMediaSource)
-  STDMETHODIMP QueryInterface (const struct _GUID&, // IID
+  STDMETHODIMP QueryInterface (const IID&, // IID
                                void**);
   inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); }
   inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); }
@@ -156,28 +156,32 @@ class Stream_Vis_Target_MediaFoundation_T
                                               UserDataType> OWN_TYPE_T;
 
   // helper methods
-  bool initialize_Session (const HWND,                // (target) window handle
+  bool initialize_Session (HWND,                      // (target) window handle
                            const struct tagRECT&,     // (target) window area
                            TOPOID,                    // renderer node id
                            IMFMediaSink*&,            // return value: media sink handle
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                            IMFVideoDisplayControl2*&, // return value: video display control handle
 #else
                            IMFVideoDisplayControl*&,  // return value: video display control handle
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                            //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
                            IMFMediaSession*);         // media session handle
 
-  IDirect3DDevice9Ex*        direct3DDevice_;
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//  IDirect3DDevice9Ex*        direct3DDevice_;
+//#else
+//  IDirect3DDevice9*          direct3DDevice_;
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   IMFMediaSession*           mediaSession_;
   IMFPresentationDescriptor* presentationDescriptor_;
   long                       referenceCount_;
   //IMFStreamSink*             streamSink_;
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   //IMFVideoDisplayControl2*   videoDisplayControl_;
 #else
   //IMFVideoDisplayControl*    videoDisplayControl_;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   ////IMFVideoSampleAllocator* videoSampleAllocator_;
 };
 
@@ -215,7 +219,7 @@ class Stream_Vis_Target_MediaFoundation_2
 
  public:
   Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_Target_MediaFoundation_2 ();
+  inline virtual ~Stream_Vis_Target_MediaFoundation_2 () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -227,13 +231,13 @@ class Stream_Vis_Target_MediaFoundation_2
   //virtual const ConfigurationType& get () const;
 
   //// override (part of) IMFSampleGrabberSinkCallback2
-  //STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
-  //                                DWORD,               // flags
-  //                                LONGLONG,            // timestamp
-  //                                LONGLONG,            // duration
-  //                                const BYTE*,         // buffer
-  //                                DWORD,               // buffer size
-  //                                IMFAttributes*);     // media sample attributes
+  //STDMETHODIMP OnProcessSampleEx (REFGUID,         // major media type
+  //                                DWORD,           // flags
+  //                                LONGLONG,        // timestamp
+  //                                LONGLONG,        // duration
+  //                                const BYTE*,     // buffer
+  //                                DWORD,           // buffer size
+  //                                IMFAttributes*); // media sample attributes
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 ())

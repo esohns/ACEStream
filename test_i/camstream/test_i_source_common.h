@@ -31,11 +31,11 @@
 #include <mfapi.h>
 #include <strmif.h>
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #else
 //#include <linux/videodev2.h>
 #ifdef __cplusplus
@@ -46,11 +46,11 @@ extern "C"
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "gtk/gtk.h"
+
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
-
-#include "gtk/gtk.h"
 
 #include "common_statistic_handler.h"
 
@@ -64,7 +64,6 @@ extern "C"
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
-
 
 #include "test_i_camstream_common.h"
 #include "test_i_camstream_network.h"
@@ -200,7 +199,7 @@ struct Test_I_Source_V4L2_SessionData
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
-  };
+  }
 
   unsigned int height;
   unsigned int width;
@@ -403,7 +402,11 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                                  direct3DDevice;
+#else
+  IDirect3DDevice9*                                    direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   struct _GUID                                         filterCLSID;
   struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
   struct _AMMediaType*                                 inputFormat; // source module

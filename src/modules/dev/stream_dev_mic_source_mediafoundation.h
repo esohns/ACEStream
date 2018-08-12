@@ -34,8 +34,6 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-//#include "stream_dev_exports.h"
-
 extern const char libacestream_default_dev_mic_source_mediafoundation_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -77,6 +75,21 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
  //, public IMFAsyncCallback
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      struct Stream_UserData> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -122,8 +135,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
-  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); };
+  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); }
+  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); }
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index
@@ -139,19 +152,19 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
   STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
   STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
                                float); // new playback rate
-  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
-                                DWORD,               // flags
-                                LONGLONG,            // timestamp
-                                LONGLONG,            // duration
-                                const BYTE*,         // buffer
-                                DWORD);              // buffer size
-  STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
-                                  DWORD,               // flags
-                                  LONGLONG,            // timestamp
-                                  LONGLONG,            // duration
-                                  const BYTE*,         // buffer
-                                  DWORD,               // buffer size
-                                  IMFAttributes*);     // media sample attributes
+  STDMETHODIMP OnProcessSample (REFGUID,     // major media type
+                                DWORD,       // flags
+                                LONGLONG,    // timestamp
+                                LONGLONG,    // duration
+                                const BYTE*, // buffer
+                                DWORD);      // buffer size
+  STDMETHODIMP OnProcessSampleEx (REFGUID,         // major media type
+                                  DWORD,           // flags
+                                  LONGLONG,        // timestamp
+                                  LONGLONG,        // duration
+                                  const BYTE*,     // buffer
+                                  DWORD,           // buffer size
+                                  IMFAttributes*); // media sample attributes
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
   //// implement IMFAsyncCallback
@@ -160,22 +173,6 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
   //STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      TimerManagerType,
-                                      struct Stream_UserData> inherited;
-  typedef IMFSampleGrabberSinkCallback2 inherited2;
-
   typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                   ControlMessageType,
                                                   DataMessageType,
@@ -189,20 +186,26 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                                   StatisticContainerType,
                                                   TimerManagerType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T (const Stream_Dev_Mic_Source_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T& operator= (const Stream_Dev_Mic_Source_MediaFoundation_T&))
 
-  //virtual int svc (void);
-
   // helper methods
   // *NOTE*: (if any,) fire-and-forget the media source handle (third argument)
-  bool initialize_MediaFoundation (const std::string&,                  // (source) device name (FriendlyName)
-                                   int,                                 // (target) output handle [0: none]
-                                   const IMFMediaType*,                 // media type handle
-                                   IMFMediaSource*&,                    // media source handle (in/out)
-                                   const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
-                                   IMFTopology*&);                      // return value: topology handle
+  bool initialize_MediaFoundation (const std::string&,             // (source) device name (FriendlyName)
+                                   int,                            // (target) output handle [0: none]
+                                   const IMFMediaType*,            // media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                   IMFMediaSourceEx*&,             // media source handle (in/out)
+#else
+                                   IMFMediaSource*&,               // media source handle (in/out)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                   IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                   IMFSampleGrabberSinkCallback*,  // grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                   IMFTopology*&);                 // return value: topology handle
 
   LONGLONG              baseTimeStamp_;
 
@@ -216,8 +219,10 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
   long                  referenceCount_;
   TOPOID                sampleGrabberSinkNodeId_;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*      mediaSession_;
   bool                  releaseSessionSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 };
 
 // include template definition

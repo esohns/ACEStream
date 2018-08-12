@@ -66,10 +66,18 @@ class Stream_MediaFramework_MediaFoundation_Source_T
  , public IMFSampleGrabberSinkCallback
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 {
- public:
-  //// convenience types
-  //typedef Common_IInitialize_T<ConfigurationType> IINITIALIZE_T;
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
 
+ public:
   Stream_MediaFramework_MediaFoundation_Source_T ();
   virtual ~Stream_MediaFramework_MediaFoundation_Source_T ();
 
@@ -87,7 +95,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); };
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); }
   virtual STDMETHODIMP_ (ULONG) Release ();
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
@@ -104,19 +112,19 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
   STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
                                float); // new playback rate
-  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
-                                DWORD,               // flags
-                                LONGLONG,            // timestamp
-                                LONGLONG,            // duration
-                                const BYTE*,         // buffer
-                                DWORD);              // buffer size
-  STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
-                                  DWORD,               // flags
-                                  LONGLONG,            // timestamp
-                                  LONGLONG,            // duration
-                                  const BYTE*,         // buffer
-                                  DWORD,               // buffer size
-                                  IMFAttributes*);     // attributes handle
+  STDMETHODIMP OnProcessSample (REFGUID,     // major media type
+                                DWORD,       // flags
+                                LONGLONG,    // timestamp
+                                LONGLONG,    // duration
+                                const BYTE*, // buffer
+                                DWORD);      // buffer size
+  STDMETHODIMP OnProcessSampleEx (REFGUID,         // major media type
+                                  DWORD,           // flags
+                                  LONGLONG,        // timestamp
+                                  LONGLONG,        // duration
+                                  const BYTE*,     // buffer
+                                  DWORD,           // buffer size
+                                  IMFAttributes*); // attributes handle
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
 
@@ -124,51 +132,50 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   SessionDataType*      sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType> inherited;
-
   // convenient types
   typedef Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataContainerType,
-                                               SessionDataType,
-                                               MediaType,
-                                               UserDataType> OWN_TYPE_T;
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         SessionDataContainerType,
+                                                         SessionDataType,
+                                                         MediaType,
+                                                         UserDataType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T (const Stream_MediaFramework_MediaFoundation_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T& operator= (const Stream_MediaFramework_MediaFoundation_Source_T&))
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
-  bool initialize_MediaFoundation (const HWND,                           // (target) window handle [NULL: NullRenderer]
-                                   const IMFMediaType*,                  // media type handle
-                                   IMFMediaSource*&,                     // media source handle (in/out)
-                                   WCHAR*&,                              // return value: symbolic link
-                                   UINT32&,                              // return value: symbolic link size
-                                   const IDirect3DDeviceManager9*,       // Direct3D device manager handle
-                                   const IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
-                                   TOPOID&,                              // return value: sample grabber sink node id
-                                   TOPOID&,                              // return value: EVR sink node id
-                                   IMFMediaSession*&);                   // input/return value: media session handle
+  bool initialize_MediaFoundation (HWND,                           // (target) window handle [NULL: NullRenderer]
+                                   const IMFMediaType*,            // media type handle
+                                   IMFMediaSource*&,               // media source handle (in/out)
+                                   WCHAR*&,                        // return value: symbolic link
+                                   UINT32&,                        // return value: symbolic link size
+                                   IDirect3DDeviceManager9*,       // Direct3D device manager handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                   IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                   IMFSampleGrabberSinkCallback*,  // grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                   TOPOID&,                        // return value: sample grabber sink node id
+                                   TOPOID&//,                        // return value: EVR sink node id
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                                   ,IMFMediaSession*&);             // input/return value: media session handle
+#else
+                                   );
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   void finalize_MediaFoundation ();
 
   bool                  isFirst_;
 
   LONGLONG              baseTimeStamp_;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*      mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   IMFPresentationClock* presentationClock_;
   volatile long         referenceCount_;
 };

@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 #define STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 
-#include "ace/Global_Macros.h"
-
 #include <d3d9.h>
 #include <guiddef.h>
 #include <mfobjects.h>
 #include <strmif.h>
+
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
@@ -109,14 +109,22 @@ class Stream_Vis_Target_Direct3D_T
   // helper methods
   HRESULT initialize_Direct3DDevice (HWND,                       // (target) window handle
                                      const struct _AMMediaType&, // media type
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                      IDirect3DDevice9Ex*,        // Direct3D device handle
+#else
+                                     IDirect3DDevice9*,          // Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                      LONG&,                      // return value: width
                                      LONG&,                      // return value: height
                                      LONG&,                      // return value: stride
                                      struct tagRECT&);           // return value: destination rectangle
   bool initialize_Direct3D (HWND,                            // (target) window handle
                             const struct _AMMediaType&,      // (inbound) media type
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                             IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+#else
+                            IDirect3DDevice9*&,              // return value: Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                             struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
                             LONG&,                           // return value: width
                             LONG&,                           // return value: height
@@ -130,17 +138,27 @@ class Stream_Vis_Target_Direct3D_T
   //         destination rectangles
   struct tagRECT letterbox_rectangle (const struct tagRECT&,  // source rectangle
                                       const struct tagRECT&); // destination rectangle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   void checkCooperativeLevel (IDirect3DDevice9Ex*, // Direct3D device handle
+#else
+  void checkCooperativeLevel (IDirect3DDevice9*,   // Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                               bool&);              // return value: reset device ?
   HRESULT resetDevice (HWND,                            // (target) window handle
                        struct _D3DPRESENT_PARAMETERS_&, // in/out: Direct3D presentation parameters
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                        struct D3DDISPLAYMODEEX&,        // in/out: Direct3D fullscreen display mode
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                        LONG&,                           // in/out width
                        LONG&,                           // in/out height
                        LONG&,                           // return value: stride
                        const struct _AMMediaType&,      // media type
                        enum _D3DFORMAT,                 // Direct3D format
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                        IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+#else
+                       IDirect3DDevice9*&,              // return value: Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                        IDirect3DSwapChain9*&,           // return value: Direct3D swap chain handle
                        struct tagRECT&);                // return value:: destination rectangle
 
@@ -148,14 +166,20 @@ class Stream_Vis_Target_Direct3D_T
   LONG                                        defaultStride_;
   struct tagRECT                              destinationRectangle_;
   enum _D3DFORMAT                             format_;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   struct D3DDISPLAYMODEEX                     fullscreenDisplayMode_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   struct _D3DPRESENT_PARAMETERS_              presentationParameters_;
   LONG                                        height_;
   LONG                                        width_;
   HWND                                        window_;
 
-  IDirect3DDevice9Ex*                         IDirect3DDevice9Ex_;
-  IDirect3DSwapChain9*                        IDirect3DSwapChain9_;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  IDirect3DDevice9Ex*                         deviceHandle_;
+#else
+  IDirect3DDevice9*                           deviceHandle_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  IDirect3DSwapChain9*                        swapChain_;
   // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
   //         memory to a Direct3D surface in (video) memory and converts the
   //         inbound (i.e. capture) format to RGB-32 for visualization
@@ -186,7 +210,11 @@ class Stream_Vis_Target_Direct3D_T
   HRESULT getFormat (DWORD,                // index
                      struct _GUID&) const; // return value: sub-type
   HRESULT createSwapChain (HWND,                   // (target) window handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                            IDirect3DDevice9Ex*,    // Direct3D device handle
+#else
+                           IDirect3DDevice9*,      // Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                            UINT32,                 // width
                            UINT32,                 // height
                            REFGUID,                // (input) media subtype

@@ -35,7 +35,7 @@
 #include <uuids.h>
 #include <windef.h>
 #include <WinUser.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #ifdef __cplusplus
 extern "C"
@@ -60,7 +60,7 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_lib_tools.h"
 
@@ -105,7 +105,7 @@ stream_monitor_enum_cb (HMONITOR monitor_in,
 
   return FALSE;
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 void
 Stream_Module_Device_Tools::initialize (bool initializeFrameworks_in)
@@ -118,16 +118,20 @@ Stream_Module_Device_Tools::initialize (bool initializeFrameworks_in)
     Stream_Module_Device_DirectShow_Tools::initialize (true);
     Stream_Module_Device_MediaFoundation_Tools::initialize ();
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
+Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
                                                const struct _AMMediaType& mediaType_in,
-                                               IDirect3DDevice9Ex*& IDirect3DDevice9Ex_out,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                                               IDirect3DDevice9Ex*& deviceHandle_out,
+#else
+                                               IDirect3DDevice9*& deviceHandle_out,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                                struct _D3DPRESENT_PARAMETERS_& presentationParameters_out,
-                                               IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
+                                               IDirect3DDeviceManager9*& deviceManager_out,
                                                UINT& resetToken_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getDirect3DDevice"));
@@ -135,18 +139,16 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   HRESULT result = E_FAIL;
 
   // initialize return value(s)
-  if (IDirect3DDevice9Ex_out)
+  if (deviceHandle_out)
   {
-    IDirect3DDevice9Ex_out->Release ();
-    IDirect3DDevice9Ex_out = NULL;
+    deviceHandle_out->Release (); deviceHandle_out = NULL;
   } // end IF
   ACE_OS::memset (&presentationParameters_out,
                   0,
                   sizeof (struct _D3DPRESENT_PARAMETERS_));
-  if (IDirect3DDeviceManager9_out)
+  if (deviceManager_out)
   {
-    IDirect3DDeviceManager9_out->Release ();
-    IDirect3DDeviceManager9_out = NULL;
+    deviceManager_out->Release (); deviceManager_out = NULL;
   } // end IF
   ACE_ASSERT (resetToken_out == 0);
 
@@ -180,9 +182,14 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
     return false;
   } // end ELSE
 
-  IDirect3D9Ex* Direct3D9_p = NULL;
-  result = Direct3DCreate9Ex (D3D_SDK_VERSION, &Direct3D9_p);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  IDirect3D9Ex* idirect3D_p = NULL;
+  result = Direct3DCreate9Ex (D3D_SDK_VERSION, &idirect3D_p);
   if (FAILED (result))
+#else
+  IDirect3D9* idirect3D_p = Direct3DCreate9 (D3D_SDK_VERSION);
+  if (!idirect3D_p)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Direct3DCreate9Ex(%d): \"%s\", aborting\n"),
@@ -210,7 +217,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   ACE_OS::memset (&d3d_display_mode,
                   0,
                   sizeof (struct _D3DDISPLAYMODE));
-  result = Direct3D9_p->GetAdapterDisplayMode (D3DADAPTER_DEFAULT,
+  result = idirect3D_p->GetAdapterDisplayMode (D3DADAPTER_DEFAULT,
                                                &d3d_display_mode);
   if (FAILED (result))
   {
@@ -219,7 +226,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  result = Direct3D9_p->CheckDeviceType (D3DADAPTER_DEFAULT,
+  result = idirect3D_p->CheckDeviceType (D3DADAPTER_DEFAULT,
                                          D3DDEVTYPE_HAL,
                                          d3d_display_mode.Format,
                                          D3DFMT_X8R8G8B8,
@@ -269,13 +276,22 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   presentationParameters_out.PresentationInterval =
     D3DPRESENT_INTERVAL_IMMEDIATE;
   result =
-    Direct3D9_p->CreateDeviceEx (D3DADAPTER_DEFAULT,          // adapter
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+    idirect3D_p->CreateDeviceEx (D3DADAPTER_DEFAULT,          // adapter
                                  D3DDEVTYPE_HAL,              // device type
                                  windowHandle_in,             // focus window handle
                                  behavior_flags,              // behavior flags
                                  &presentationParameters_out, // presentation parameters
                                  NULL,                        // (fullscreen) display mode
-                                 &IDirect3DDevice9Ex_out);    // return value: device handle
+                                 &deviceHandle_out);    // return value: device handle
+#else
+    idirect3D_p->CreateDevice (D3DADAPTER_DEFAULT,          // adapter
+                               D3DDEVTYPE_HAL,              // device type
+                               windowHandle_in,             // focus window handle
+                               behavior_flags,              // behavior flags
+                               &presentationParameters_out, // presentation parameters
+                               &deviceHandle_out);    // return value: device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -283,10 +299,11 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  Direct3D9_p->Release (); Direct3D9_p = NULL;
+  ACE_ASSERT (deviceHandle_out);
+  idirect3D_p->Release (); idirect3D_p = NULL;
 
   result = DXVA2CreateDirect3DDeviceManager9 (&resetToken_out,
-                                              &IDirect3DDeviceManager9_out);
+                                              &deviceManager_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -296,8 +313,8 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   } // end IF
 
   result =
-    IDirect3DDeviceManager9_out->ResetDevice (IDirect3DDevice9Ex_out,
-                                              resetToken_out);
+    deviceManager_out->ResetDevice (deviceHandle_out,
+                                    resetToken_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -309,20 +326,18 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   goto continue_;
 
 error:
-  if (Direct3D9_p)
-    Direct3D9_p->Release ();
-  if (IDirect3DDevice9Ex_out)
+  if (idirect3D_p)
+    idirect3D_p->Release ();
+  if (deviceHandle_out)
   {
-    IDirect3DDevice9Ex_out->Release ();
-    IDirect3DDevice9Ex_out = NULL;
+    deviceHandle_out->Release (); deviceHandle_out = NULL;
   } // end IF
   ACE_OS::memset (&presentationParameters_out,
                   0,
                   sizeof (struct _D3DPRESENT_PARAMETERS_));
-  if (IDirect3DDeviceManager9_out)
+  if (deviceManager_out)
   {
-    IDirect3DDeviceManager9_out->Release ();
-    IDirect3DDeviceManager9_out = NULL;
+    deviceManager_out->Release (); deviceManager_out = NULL;
   } // end IF
   resetToken_out = 0;
 
@@ -377,8 +392,12 @@ Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceIdentifie
 }
 
 bool
-Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex* IDirect3DDevice9Ex_in,
-                                                       IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex* deviceHandle_in,
+#else
+Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9* deviceHandle_in,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                                                       IDirect3DDeviceManager9*& deviceManager_out,
                                                        UINT& resetToken_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeDirect3DManager"));
@@ -386,19 +405,18 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex*
   HRESULT result = E_FAIL;
 
   // initialize return value(s)
-  if (IDirect3DDeviceManager9_out)
+  if (deviceManager_out)
   {
-    IDirect3DDeviceManager9_out->Release ();
-    IDirect3DDeviceManager9_out = NULL;
+    deviceManager_out->Release (); deviceManager_out = NULL;
   } // end IF
   ACE_ASSERT (resetToken_out == 0);
 
   // sanity check(s)
-  ACE_ASSERT (IDirect3DDevice9Ex_in);
+  ACE_ASSERT (deviceHandle_in);
 
   result =
     DXVA2CreateDirect3DDeviceManager9 (&resetToken_out,
-                                       &IDirect3DDeviceManager9_out);
+                                       &deviceManager_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -408,8 +426,12 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex*
   } // end IF
 
   result =
-    IDirect3DDeviceManager9_out->ResetDevice (const_cast<IDirect3DDevice9Ex*> (IDirect3DDevice9Ex_in),
-                                              resetToken_out);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+    deviceManager_out->ResetDevice (const_cast<IDirect3DDevice9Ex*> (deviceHandle_in),
+#else
+    deviceManager_out->ResetDevice (const_cast<IDirect3DDevice9*> (deviceHandle_in),
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                                    resetToken_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -421,10 +443,9 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex*
   goto continue_;
 
 error:
-  if (IDirect3DDeviceManager9_out)
+  if (deviceManager_out)
   {
-    IDirect3DDeviceManager9_out->Release ();
-    IDirect3DDeviceManager9_out = NULL;
+    deviceManager_out->Release (); deviceManager_out = NULL;
   } // end IF
   resetToken_out = 0;
 
@@ -477,21 +498,25 @@ Stream_Module_Device_Tools::dump (struct _snd_pcm* deviceHandle_in)
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               rate_min, rate_max));
 
-  result = snd_pcm_hw_params_get_period_time_min (format_p,
-                                                  &period_time_min, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_period_time_min (format_p,
+                                           &period_time_min, &subunit_direction);
   ACE_ASSERT (result >= 0);
-  result = snd_pcm_hw_params_get_period_time_max (format_p,
-                                                  &period_time_max, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_period_time_max (format_p,
+                                           &period_time_max, &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available period times: %u-%u (us)...\n"),
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               period_time_min, period_time_max));
-  result = snd_pcm_hw_params_get_period_size_min (format_p,
-                                                  &period_size_min, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_period_size_min (format_p,
+                                           &period_size_min, &subunit_direction);
   ACE_ASSERT (result >= 0);
-  result = snd_pcm_hw_params_get_period_size_max (format_p,
-                                                  &period_size_max, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_period_size_max (format_p,
+                                           &period_size_max, &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available period sizes: %u-%u (frames)...\n"),
@@ -508,11 +533,13 @@ Stream_Module_Device_Tools::dump (struct _snd_pcm* deviceHandle_in)
               ACE_TEXT (snd_pcm_name (deviceHandle_in)),
               periods_min, periods_max));
 
-  result = snd_pcm_hw_params_get_buffer_time_min (format_p,
-                                                  &buffer_time_min, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_buffer_time_min (format_p,
+                                           &buffer_time_min, &subunit_direction);
   ACE_ASSERT (result >= 0);
-  result = snd_pcm_hw_params_get_buffer_time_max (format_p,
-                                                  &buffer_time_max, &subunit_direction);
+  result =
+    snd_pcm_hw_params_get_buffer_time_max (format_p,
+                                           &buffer_time_max, &subunit_direction);
   ACE_ASSERT (result >= 0);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: available buffer times: %u-%u (us)...\n"),
@@ -670,8 +697,7 @@ continue_:
       goto clean;
     } // end IF
     hint_string = string_p;
-    free (string_p);
-    string_p = NULL;
+    free (string_p); string_p = NULL;
 
     // filter hardware devices
     device_type = hint_string;
@@ -693,8 +719,7 @@ continue_:
 //    } // end IF
 
 //    // clean up
-//    free (string_p);
-//    string_p = NULL;
+//    free (string_p); string_p = NULL;
     break;
   } // end FOR
 
@@ -2099,4 +2124,4 @@ Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 
   return result;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64

@@ -305,6 +305,8 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 
 elseif (WIN32)
+ set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+
 # target_link_libraries (${EXECUTABLE} ntdll.lib)
  #target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mf.lib)

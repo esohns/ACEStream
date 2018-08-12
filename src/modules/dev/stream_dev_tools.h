@@ -24,19 +24,17 @@
 #include <string>
 
 #include "ace/config-lite.h"
-#include "ace/Global_Macros.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <d3d9.h>
 #include <d3d9types.h>
 #include <dxva2api.h>
 #include <guiddef.h>
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include <strmif.h>
 #else
 #include <linux/videodev2.h>
@@ -59,15 +57,21 @@ extern "C"
 class Stream_IAllocator;
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "ace/Global_Macros.h"
+
 class Stream_Module_Device_Tools
 {
  public:
   static void initialize (bool = true); // initialize media frameworks ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool getDirect3DDevice (const HWND,                      // target window handle
+  static bool getDirect3DDevice (HWND,                            // target window handle
                                  const struct _AMMediaType&,      // media format handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                  IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+#else
+                                 IDirect3DDevice9*&,              // return value: Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                  struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
                                  IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
                                  UINT&);                          // return value: reset token
@@ -85,7 +89,11 @@ class Stream_Module_Device_Tools
   static bool getDisplayDevice (const std::string&, // device identifier
                                 HMONITOR&);         // return value: monitor handle
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
+#else
+  static bool initializeDirect3DManager (const IDirect3DDevice9*,   // Direct3D device handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                          IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
                                          UINT&);                    // return value: reset token
 #else

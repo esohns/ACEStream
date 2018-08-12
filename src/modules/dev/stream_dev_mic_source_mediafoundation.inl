@@ -58,8 +58,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
-                                                                                                          bool autoStart_in,
-                                                                                                          enum Stream_HeadModuleConcurrency concurrency_in)
+                                                                                                    bool autoStart_in,
+                                                                                                    enum Stream_HeadModuleConcurrency concurrency_in)
  : inherited (stream_in,
               autoStart_in,
               concurrency_in,
@@ -72,8 +72,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
  , presentationClock_ (NULL)
  , referenceCount_ (0)
  , sampleGrabberSinkNodeId_ (0)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
  , releaseSessionSession_ (false)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::Stream_Dev_Mic_Source_MediaFoundation_T"));
 
@@ -106,7 +108,9 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::~Stream_Dev_Mic_Source_MediaFoundation_T"));
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (symbolicLinkSize_)
     CoTaskMemFree (symbolicLink_);
@@ -114,6 +118,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   if (presentationClock_)
     presentationClock_->Release ();
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     result = mediaSession_->Shutdown ();
@@ -124,6 +129,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 }
 
 template <ACE_SYNCH_DECL,
@@ -186,19 +192,18 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
     if (symbolicLinkSize_)
     {
-      CoTaskMemFree (symbolicLink_);
-      symbolicLink_ = NULL;
+      CoTaskMemFree (symbolicLink_); symbolicLink_ = NULL;
       symbolicLinkSize_ = 0;
     } // end IF
 
     if (presentationClock_)
     {
-      presentationClock_->Release ();
-      presentationClock_ = NULL;
+      presentationClock_->Release (); presentationClock_ = NULL;
     } // end IF
     referenceCount_ = 0;
     sampleGrabberSinkNodeId_ = 0;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     if (mediaSession_)
     {
       result_2 = mediaSession_->Shutdown ();
@@ -207,8 +212,9 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-      mediaSession_->Release ();
+      mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   } // end IF
 
   result = inherited::initialize (configuration_in,
@@ -407,6 +413,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       COM_initialized = true;
 
       // sanity check(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (!mediaSession_);
 
       releaseSessionSession_ = true;
@@ -424,6 +431,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         session_data_r.session = mediaSession_;
       } // end IF
       else
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       {
         // sanity check(s)
         ACE_ASSERT (inherited::configuration_->inputFormat);
@@ -449,10 +457,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
-
-          // clean up
-          topology_p->Release ();
-
+          topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
 #if defined (_DEBUG)
@@ -468,10 +473,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-
-          // clean up
-          topology_p->Release ();
-
+          topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
         result_2 = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
@@ -480,10 +482,11 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (SUCCEEDED (result_2));
         //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
         //ACE_ASSERT (SUCCEEDED (result_2));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
         result_2 = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
         ACE_ASSERT (SUCCEEDED (result_2));
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
         result_2 = MFCreateMediaSession (attributes_p,
                                          &mediaSession_);
         if (FAILED (result_2))
@@ -491,15 +494,14 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-
-          // clean up
-          attributes_p->Release ();
-          topology_p->Release ();
-
+          attributes_p->Release (); attributes_p = NULL;
+          topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
-        attributes_p->Release ();
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+        attributes_p->Release (); attributes_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
         DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
                                 //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                                 //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
@@ -510,17 +512,17 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-
-          // clean up
-          topology_p->Release ();
-
+          topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
-        reference_count = mediaSession_->AddRef ();
-        session_data_r.session = mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       } // end ELSE
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediaSession_);
-      ACE_ASSERT (session_data_r.session);
+      //ACE_ASSERT (session_data_r.session);
+      reference_count = mediaSession_->AddRef ();
+      session_data_r.session = mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       break;
 
@@ -530,6 +532,7 @@ error:
       //if (source_node_p)
       //  source_node_p->Release ();
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       bool shutdown_session = true;
       if (session_data_r.session &&
           releaseSessionSession_)
@@ -540,8 +543,7 @@ error:
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         shutdown_session = false;
-        session_data_r.session->Release ();
-        session_data_r.session = NULL;
+        session_data_r.session->Release (); session_data_r.session = NULL;
       } // end IF
       if (mediaSession_)
       {
@@ -553,14 +555,13 @@ error:
                         ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                         ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         } // end IF
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       if (symbolicLinkSize_)
       {
-        CoTaskMemFree (symbolicLink_);
-        symbolicLink_ = NULL;
+        CoTaskMemFree (symbolicLink_); symbolicLink_ = NULL;
         symbolicLinkSize_ = 0;
       } // end IF
 
@@ -596,8 +597,10 @@ error:
                     ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       COM_initialized = true;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!mediaSession_)
         goto continue_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       //IMFMediaSource* media_source_p = NULL;
       //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
@@ -614,14 +617,16 @@ error:
       //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       //media_source_p->Release ();
 continue_:
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       bool shutdown_session = true;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       if (presentationClock_)
       {
-        presentationClock_->Release ();
-        presentationClock_ = NULL;
+        presentationClock_->Release (); presentationClock_ = NULL;
       } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (session_data_r.session &&
           releaseSessionSession_)
       {
@@ -631,8 +636,7 @@ continue_:
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         shutdown_session = false;
-        session_data_r.session->Release ();
-        session_data_r.session = NULL;
+        session_data_r.session->Release (); session_data_r.session = NULL;
       } // end IF
       if (mediaSession_)
       {
@@ -644,9 +648,9 @@ continue_:
                         ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                         ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         } // end IF
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       if (COM_initialized)
         CoUninitialize ();
@@ -1077,7 +1081,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType>::OnClockStart (MFTIME systemClockTime_in,
-                                                                               LONGLONG clockStartOffset_in)
+                                                                         LONGLONG clockStartOffset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockStart"));
 
@@ -1213,7 +1217,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType>::OnClockSetRate (MFTIME systemClockTime_in,
-                                                                                 float playbackRate_in)
+                                                                           float playbackRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockSetRate"));
 
@@ -1248,17 +1252,16 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        TimerManagerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
-                                                                                  DWORD flags_in,
-                                                                                  LONGLONG timeStamp_in,
-                                                                                  LONGLONG duration_in,
-                                                                                  const BYTE* buffer_in,
-                                                                                  DWORD bufferSize_in)
+                                        TimerManagerType>::OnProcessSample (REFGUID majorMediaType_in,
+                                                                            DWORD flags_in,
+                                                                            LONGLONG timeStamp_in,
+                                                                            LONGLONG duration_in,
+                                                                            const BYTE* buffer_in,
+                                                                            DWORD bufferSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnProcessSample"));
 
   IMFAttributes* attributes_p = NULL;
-
   return OnProcessSampleEx (majorMediaType_in,
                             flags_in,
                             timeStamp_in,
@@ -1291,13 +1294,13 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        TimerManagerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
-                                                                                    DWORD flags_in,
-                                                                                    LONGLONG timeStamp_in,
-                                                                                    LONGLONG duration_in,
-                                                                                    const BYTE* buffer_in,
-                                                                                    DWORD bufferSize_in,
-                                                                                    IMFAttributes* attributes_in)
+                                        TimerManagerType>::OnProcessSampleEx (REFGUID majorMediaType_in,
+                                                                              DWORD flags_in,
+                                                                              LONGLONG timeStamp_in,
+                                                                              LONGLONG duration_in,
+                                                                              const BYTE* buffer_in,
+                                                                              DWORD bufferSize_in,
+                                                                              IMFAttributes* attributes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnProcessSampleEx"));
 
@@ -1398,8 +1401,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (presentationClock_)
   {
-    presentationClock_->Release ();
-    presentationClock_ = NULL;
+    presentationClock_->Release (); presentationClock_ = NULL;
   } // end IF
 
   if (presentationClock_in)
@@ -1809,11 +1811,19 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         TimerManagerType>::initialize_MediaFoundation (const std::string& deviceName_in,
-                                                                                             int audioOutput_in,
-                                                                                             const IMFMediaType* IMFMediaType_in,
-                                                                                             IMFMediaSource*& IMFMediaSource_inout,
-                                                                                             const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
-                                                                                             IMFTopology*& IMFTopology_out)
+                                                                                       int audioOutput_in,
+                                                                                       const IMFMediaType* IMFMediaType_in,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                                                                       IMFMediaSourceEx*& IMFMediaSource_inout,
+#else
+                                                                                       IMFMediaSource*& IMFMediaSource_inout,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                                                                       IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
+#else
+                                                                                       IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                                                                       IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::initialize_MediaFoundation"));
 
@@ -1867,23 +1877,20 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 error:
   if (release_media_source)
   {
-    IMFMediaSource_inout->Release ();
-    IMFMediaSource_inout = NULL;
+    IMFMediaSource_inout->Release (); IMFMediaSource_inout = NULL;
   } // end IF
   if (symbolicLinkSize_out)
   {
     // sanity check(s)
     ACE_ASSERT (symbolicLink_out);
 
-    CoTaskMemFree (symbolicLink_out);
-    symbolicLink_out = NULL;
+    CoTaskMemFree (symbolicLink_out); symbolicLink_out = NULL;
     symbolicLinkSize_out = 0;
   } // end IF
-  if (IMFSourceReaderEx_out)
-  {
-    IMFSourceReaderEx_out->Release ();
-    IMFSourceReaderEx_out = NULL;
-  } // end IF
+  //if (IMFSourceReaderEx_out)
+  //{
+  //  IMFSourceReaderEx_out->Release (); IMFSourceReaderEx_out = NULL;
+  //} // end IF
 
   return false;
 }

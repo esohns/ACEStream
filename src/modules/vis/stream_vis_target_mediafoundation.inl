@@ -53,7 +53,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     SessionDataContainerType,
                                     UserDataType>::Stream_Vis_Target_MediaFoundation_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
- , direct3DDevice_ (NULL)
+ //, direct3DDevice_ (NULL)
  , mediaSession_ (NULL)
  , presentationDescriptor_ (NULL)
  , referenceCount_ (1)
@@ -104,8 +104,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-  if (direct3DDevice_)
-    direct3DDevice_->Release ();
+  //if (direct3DDevice_)
+  //  direct3DDevice_->Release ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -257,7 +257,11 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 
       ULONG reference_count = 0;
       IMFMediaSink* media_sink_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+      IMFVideoDisplayControl2* video_display_control_p = NULL;
+#else
       IMFVideoDisplayControl* video_display_control_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
       DWORD count = 0;
 
       result_2 = CoInitializeEx (NULL,
@@ -288,34 +292,42 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.inputFormat);
 
-      if (!direct3DDevice_)
-      {
-        if (!session_data_r.direct3DDevice)
-        { ACE_ASSERT (!session_data_r.direct3DManagerResetToken);
-          struct _D3DPRESENT_PARAMETERS_ presentation_parameters;
-          ACE_OS::memset (&presentation_parameters,
-                          0,
-                          sizeof (struct _D3DPRESENT_PARAMETERS_));
-          IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-          if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
-                                                              *session_data_r.inputFormat,
-                                                              session_data_r.direct3DDevice,
-                                                              presentation_parameters,
-                                                              direct3D_manager_p,
-                                                              session_data_r.direct3DManagerResetToken))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n"),
-                        inherited::mod_->name ()));
-            goto error;
-          } // end IF
-          ACE_ASSERT (direct3D_manager_p);
-          direct3D_manager_p->Release ();
-        } // end IF
-        ACE_ASSERT (session_data_r.direct3DDevice);
-        reference_count = session_data_r.direct3DDevice->AddRef ();
-        direct3DDevice_ = session_data_r.direct3DDevice;
-      } // end IF
+//      if (!direct3DDevice_)
+//      {
+//        if (!session_data_r.direct3DDevice)
+//        {
+//          struct _D3DPRESENT_PARAMETERS_ presentation_parameters;
+//          ACE_OS::memset (&presentation_parameters,
+//                          0,
+//                          sizeof (struct _D3DPRESENT_PARAMETERS_));
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//          IDirect3DDevice9Ex* device_handle_p =
+//#else
+//          IDirect3DDevice9* device_handle_p =
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//            session_data_r.direct3DDevice;
+//          ACE_ASSERT (!session_data_r.direct3DManagerResetToken);
+//          IDirect3DDeviceManager9* direct3D_manager_p = NULL;
+//          if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
+//                                                              *session_data_r.inputFormat,
+//                                                              device_handle_p,
+//                                                              presentation_parameters,
+//                                                              direct3D_manager_p,
+//                                                              session_data_r.direct3DManagerResetToken))
+//          {
+//            ACE_DEBUG ((LM_ERROR,
+//                        ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n"),
+//                        inherited::mod_->name ()));
+//            goto error;
+//          } // end IF
+//          ACE_ASSERT (device_handle_p);
+//          ACE_ASSERT (direct3D_manager_p);
+//          direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+//        } // end IF
+//        ACE_ASSERT (session_data_r.direct3DDevice);
+//        reference_count = session_data_r.direct3DDevice->AddRef ();
+//        direct3DDevice_ = session_data_r.direct3DDevice;
+//      } // end IF
 
       if (!mediaSession_)
       {
@@ -367,8 +379,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //  goto error;
       //} // end IF
       //ACE_ASSERT (streamSink_);
-      media_sink_p->Release ();
-      media_sink_p = NULL;
+      media_sink_p->Release (); media_sink_p = NULL;
 
       //IMediaTypeHandler* media_type_handler_p = NULL;
       //result = streamSink_->GetMediaTypeHandler (&media_type_handler_p);
@@ -419,17 +430,12 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(\"%s\"): \"%s\", aborting\n"),
       //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      //  // clean up
-      //  media_type_p->Release ();
-      //  media_type_handler_p->Release ();
-
+      //  media_type_p->Release (); media_type_p = NULL;
+      //  media_type_handler_p->Release (); media_type_handler_p = NULL;
       //  goto error;
       //} // end IF
-      //media_type_p->Release ();
-      //media_type_p = NULL;
-      //media_type_handler_p->Release ();
-      //media_type_handler_p = NULL;
+      //media_type_p->Release (); media_type_p = NULL;
+      //media_type_handler_p->Release (); media_type_handler_p = NULL;
 
       //result = streamSink_->QueryInterface (IID_PPV_ARGS (&get_service_p));
       //if (FAILED (result))
@@ -449,11 +455,9 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //  goto error;
       //} // end IF
-      //get_service_p->Release ();
-      //get_service_p = NULL;
+      //get_service_p->Release (); get_service_p = NULL;
 
-      video_display_control_p->Release ();
-      video_display_control_p = NULL;
+      video_display_control_p->Release (); video_display_control_p = NULL;
       //if (configuration_->windowController)
       //{
       //  reference_count = configuration_->windowController->AddRef ();
@@ -469,13 +473,11 @@ error:
         video_display_control_p->Release ();
       //if (videoSampleAllocator_)
       //{
-      //  videoSampleAllocator_->Release ();
-      //  videoSampleAllocator_ = NULL;
+      //  videoSampleAllocator_->Release (); videoSampleAllocator_ = NULL;
       //} // end IF
       //if (streamSink_)
       //{
-      //  streamSink_->Release ();
-      //  streamSink_ = NULL;
+      //  streamSink_->Release (); streamSink_ = NULL;
       //} // end IF
       if (mediaSession_)
       {
@@ -485,14 +487,12 @@ error:
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
-      if (direct3DDevice_)
-      {
-        direct3DDevice_->Release ();
-        direct3DDevice_ = NULL;
-      } // end IF
+      //if (direct3DDevice_)
+      //{
+      //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
+      //} // end IF
 
       session_data_r.aborted = true;
 
@@ -525,18 +525,15 @@ continue_:
       //    ACE_DEBUG ((LM_ERROR,
       //                ACE_TEXT ("failed to IMFVideoSampleAllocator::UninitializeSampleAllocator(): \"%s\", continuing\n"),
       //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-      //  videoSampleAllocator_->Release ();
-      //  videoSampleAllocator_ = NULL;
+      //  videoSampleAllocator_->Release (); videoSampleAllocator_ = NULL;
       //} // end IF
       //if (videoDisplayControl_)
       //{
-      //  videoDisplayControl_->Release ();
-      //  videoDisplayControl_ = NULL;
+      //  videoDisplayControl_->Release (); videoDisplayControl_ = NULL;
       //} // end IF
       //if (streamSink_)
       //{
-      //  streamSink_->Release ();
-      //  streamSink_ = NULL;
+      //  streamSink_->Release (); streamSink_ = NULL;
       //} // end IF
       if (mediaSession_)
       {
@@ -546,14 +543,12 @@ continue_:
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
-      if (direct3DDevice_)
-      {
-        direct3DDevice_->Release ();
-        direct3DDevice_ = NULL;
-      } // end IF
+      //if (direct3DDevice_)
+      //{
+      //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
+      //} // end IF
 
       if (COM_initialized)
         CoUninitialize ();
@@ -592,23 +587,19 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   {
     //if (videoSampleAllocator_)
     //{
-    //  videoSampleAllocator_->Release ();
-    //  videoSampleAllocator_ = NULL;
+    //  videoSampleAllocator_->Release (); videoSampleAllocator_ = NULL;
     //} // end IF
     //if (videoDisplayControl_)
     //{
-    //  videoDisplayControl_->Release ();
-    //  videoDisplayControl_ = NULL;
+    //  videoDisplayControl_->Release (); videoDisplayControl_ = NULL;
     //} // end IF
     //if (streamSink_)
     //{
-    //  streamSink_->Release ();
-    //  streamSink_ = NULL;
+    //  streamSink_->Release (); streamSink_ = NULL;
     //} // end IF
     //if (presentationDescriptor_)
     //{
-    //  presentationDescriptor_->Release ();
-    //  presentationDescriptor_ = NULL;
+    //  presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
     //} // end IF
     if (mediaSession_)
     {
@@ -617,28 +608,27 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
       //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      mediaSession_->Release ();
-      mediaSession_ = NULL;
+      mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
-    if (direct3DDevice_)
-    {
-      direct3DDevice_->Release ();
-      direct3DDevice_ = NULL;
-    } // end IF
+    //if (direct3DDevice_)
+    //{
+    //  direct3DDevice_->Release (); direct3DDevice_ = NULL;
+    //} // end IF
 
     inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type inferences
-  ULONG reference_count = 0;
-  if (configuration_in.direct3DDevice)
-  {
-    reference_count = configuration_in.direct3DDevice->AddRef ();
-    direct3DDevice_ = configuration_in.direct3DDevice;
-  } // end IF
+  //if (configuration_in.direct3DDevice)
+  //{
+  //  ULONG reference_count = configuration_in.direct3DDevice->AddRef ();
+  //  ACE_UNUSED_ARG (reference_count);
+  //  direct3DDevice_ = configuration_in.direct3DDevice;
+  //} // end IF
   if (configuration_in.session)
   {
-    reference_count = configuration_in.session->AddRef ();
+    ULONG reference_count = configuration_in.session->AddRef ();
+    ACE_UNUSED_ARG (reference_count);
     mediaSession_ = configuration_in.session;
   } // end IF
 
@@ -1151,8 +1141,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (presentationDescriptor_)
   {
-    presentationDescriptor_->Release ();
-    presentationDescriptor_ = NULL;
+    presentationDescriptor_->Release (); presentationDescriptor_ = NULL;
   } // end IF
 
   HRESULT result = E_FAIL;
@@ -1184,10 +1173,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    delete[] stream_descriptors_pp;
-
+    delete[] stream_descriptors_pp; stream_descriptors_pp = NULL;
     return false;
   } // end IF
   result = MFInitMediaTypeFromAMMediaType (media_type_p,
@@ -1198,11 +1184,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    delete[] stream_descriptors_pp;
-    media_type_p->Release ();
-
+    delete[] stream_descriptors_pp; stream_descriptors_pp = NULL;
+    media_type_p->Release (); media_type_p = NULL;
     return false;
   } // end IF
 
@@ -1215,11 +1198,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    delete [] stream_descriptors_pp;
-    media_type_p->Release ();
-
+    delete [] stream_descriptors_pp; stream_descriptors_pp = NULL;
+    media_type_p->Release (); media_type_p = NULL;
     return false;
   } // end IF
   ACE_OS::memset (media_types_pp,
@@ -1247,11 +1227,10 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       // clean up
       for (unsigned int j = 0; j < i; ++j)
         stream_descriptors_pp[j]->Release ();
-      delete [] stream_descriptors_pp;
+      delete [] stream_descriptors_pp; stream_descriptors_pp = NULL;
       for (unsigned int j = 0; j < number_of_media_types; ++j)
         media_types_pp[j]->Release ();
-      delete [] media_types_pp;
-
+      delete [] media_types_pp; media_types_pp = NULL;
       return false;
     } // end IF
     stream_descriptors_pp[i] = stream_descriptor_p;
@@ -1263,7 +1242,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_ASSERT (media_type_handler_p);
     result = media_type_handler_p->SetCurrentMediaType (media_types_pp[0]);
     ACE_ASSERT (SUCCEEDED (result));
-    media_type_handler_p->Release ();
+    media_type_handler_p->Release (); media_type_handler_p = NULL;
   } // end FOR
 
   // Create the presentation descriptor.
@@ -1276,15 +1255,12 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to MFCreatePresentationDescriptor(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
     for (unsigned int j = 0; j < number_of_streams; ++j)
       stream_descriptors_pp[j]->Release ();
-    delete [] stream_descriptors_pp;
+    delete [] stream_descriptors_pp; stream_descriptors_pp = NULL;
     //for (int j = 0; j < number_of_media_types; ++j)
     //  media_types_pp[j]->Release ();
-    //delete [] media_types_pp;
-
+    //delete [] media_types_pp; media_types_pp = NULL;
     return false;
   } // end IF
   ACE_ASSERT (presentationDescriptor_);
@@ -1429,17 +1405,14 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    unknown_p->Release ();
-
+    unknown_p->Release (); unknown_p = NULL;
     goto error;
   } // end IF
   ACE_ASSERT (stream_sink_p);
-  unknown_p->Release ();
+  unknown_p->Release (); unknown_p = NULL;
   result = stream_sink_p->GetMediaSink (&IMFMediaSink_out);
   ACE_ASSERT (SUCCEEDED (result));
-  stream_sink_p->Release ();
+  stream_sink_p->Release (); stream_sink_p = NULL;
   
   goto continue_;
 
@@ -1485,13 +1458,10 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::ActivateObject(IID_IMFMediaSink) \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  activate_p->Release ();
-
+  //  activate_p->Release (); activate_p = NULL;
   //  goto error;
   //} // end IF
-  //activate_p->Release ();
+  //activate_p->Release (); activate_p = NULL;
 
   ////result = MFCreateVideoRenderer (IID_PPV_ARGS (&IMFMediaSink_out));
   ////if (FAILED (result))
@@ -1518,10 +1488,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateSystemTimeSource(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  presentation_clock_p->Release ();
-
+  //  presentation_clock_p->Release (); presentation_clock_p = NULL;
   //  goto error;
   //} // end IF
   //result = presentation_clock_p->SetTimeSource (presentation_time_source_p);
@@ -1530,11 +1497,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFPresentationClock::SetTimeSource(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  presentation_time_source_p->Release ();
-  //  presentation_clock_p->Release ();
-
+  //  presentation_time_source_p->Release (); presentation_time_source_p = NULL;
+  //  presentation_clock_p->Release (); presentation_clock_p = NULL;
   //  goto error;
   //} // end IF
   //presentation_time_source_p->Release ();
@@ -1544,10 +1508,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFMediaSink::SetPresentationClock(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  presentation_clock_p->Release ();
-
+  //  presentation_clock_p->Release (); presentation_clock_p = NULL;
   //  goto error;
   //} // end IF
   //result = presentation_clock_p->Start (0);
@@ -1556,13 +1517,10 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  presentation_clock_p->Release ();
-
+  //  presentation_clock_p->Release (); presentation_clock_p = NULL;
   //  goto error;
   //} // end IF
-  //presentation_clock_p->Release ();
+  //presentation_clock_p->Release (); presentation_clock_p = NULL;
 
   ////IMFTransform* transform_p = NULL;
   ////result =
@@ -1603,10 +1561,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  topology_node_p->Release ();
-
+  //  topology_node_p->Release (); topology_node_p = NULL;
   //  goto error;
   //} // end IF
   //node_id = 0;
@@ -1642,7 +1597,7 @@ continue_:
     // debug info
 #if defined (_DEBUG)
     Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
-#endif
+#endif // _DEBUG
   } // end IF
 
   result =
@@ -1665,13 +1620,10 @@ continue_:
                 ACE_TEXT ("%s: failed to IMFVideoPresenter::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    video_presenter_p->Release ();
-
+    video_presenter_p->Release (); video_presenter_p = NULL;
     goto error;
   } // end IF
-  video_presenter_p->Release ();
+  video_presenter_p->Release (); video_presenter_p = NULL;
   result =
     get_service_p->GetService (MR_VIDEO_RENDER_SERVICE,
                                IID_PPV_ARGS (&IMFVideoDisplayControl_out));
@@ -1681,13 +1633,10 @@ continue_:
                 ACE_TEXT ("%s: failed to IMFGetService::GetService(MR_VIDEO_RENDER_SERVICE): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    get_service_p->Release ();
-
+    get_service_p->Release (); get_service_p = NULL;
     goto error;
   } // end IF
-  get_service_p->Release ();
+  get_service_p->Release (); get_service_p = NULL;
   ACE_ASSERT (IMFVideoDisplayControl_out);
 
   //result = IMFVideoDisplayControl_out->SetVideoWindow (windowHandle_in);
@@ -1766,8 +1715,7 @@ continue_:
   //  goto error;
   //} // end IF
 
-  topology_p->Release ();
-  topology_p = NULL;
+  topology_p->Release (); topology_p = NULL;
 
   goto continue_2;
 
@@ -1783,13 +1731,11 @@ error:
   //} // end IF
   if (IMFVideoDisplayControl_out)
   {
-    IMFVideoDisplayControl_out->Release ();
-    IMFVideoDisplayControl_out = NULL;
+    IMFVideoDisplayControl_out->Release (); IMFVideoDisplayControl_out = NULL;
   } // end IF
   if (IMFMediaSink_out)
   {
-    IMFMediaSink_out->Release ();
-    IMFMediaSink_out = NULL;
+    IMFMediaSink_out->Release (); IMFMediaSink_out = NULL;
   } // end IF
 
   return false;
@@ -1826,27 +1772,6 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::Stream_Vis_Target_MediaFoundation_2"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
-                                    TimePolicyType,
-                                    ConfigurationType,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::~Stream_Vis_Target_MediaFoundation_2 ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::~Stream_Vis_Target_MediaFoundation_2"));
 
 }
 
@@ -1900,10 +1825,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::SetSampleTime(): \"%s\", returning\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  sample_p->Release ();
-
+  //  sample_p->Release (); sample_p = NULL;
   //  return;
   //} // end IF
 
@@ -1918,10 +1840,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::GetBufferByIndex(): \"%s\", returning\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  sample_p->Release ();
-
+  //  sample_p->Release (); sample_p = NULL;
   //  return;
   //} // end IF
   //ACE_ASSERT (media_buffer_p);
@@ -1931,14 +1850,11 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::AddBuffer(): \"%s\", returning\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  media_buffer_p->Release ();
-  //  sample_p->Release ();
-
+  //  media_buffer_p->Release (); media_buffer_p = NULL;
+  //  sample_p->Release (); sample_p = NULL;
   //  return;
   //} // end IF
-  //media_buffer_p->Release ();
+  //media_buffer_p->Release (); media_buffer_p = NULL;
 
   //result = streamSink_->ProcessSample (sample_p);
   //result = streamSink_->ProcessSample (message_data_r.sample);
@@ -1947,13 +1863,10 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-  //  // clean up
-  //  //sample_p->Release ();
-
+  //  //sample_p->Release (); sample_p = NULL;
   //  return;
   //} // end IF
-  //sample_p->Release ();
+  //sample_p->Release (); sample_p = NULL;
 }
 
 template <ACE_SYNCH_DECL,

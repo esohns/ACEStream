@@ -4177,6 +4177,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       // sanity check(s)
       ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_stream_iterator).second.second.session,
                                                                      true,
@@ -4187,12 +4188,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 
       if ((*mediafoundation_stream_iterator).second.second.inputFormat)
       {
-        (*mediafoundation_stream_iterator).second.second.inputFormat->Release ();
-        (*mediafoundation_stream_iterator).second.second.inputFormat = NULL;
+        (*mediafoundation_stream_iterator).second.second.inputFormat->Release (); (*mediafoundation_stream_iterator).second.second.inputFormat = NULL;
       } // end IF
       HRESULT result_2 =
         MFCreateMediaType (&(*mediafoundation_stream_iterator).second.second.inputFormat);
@@ -4239,7 +4240,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (cb_data_base_p->mediaFramework)
@@ -4252,11 +4253,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
 #else
       IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4264,6 +4266,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (media_source_p);
 
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -4314,7 +4317,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   result = load_formats (cb_data_p->fileDescriptor,
                          list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4540,6 +4543,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       } // end IF
 
       IMFTopology* topology_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology ((*mediafoundation_stream_iterator).second.second.session,
                                                                      topology_p))
       {
@@ -4547,6 +4551,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (topology_p);
       if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
                                                                          (*mediafoundation_stream_iterator).second.second.inputFormat))
@@ -4585,11 +4590,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
 #else
       IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4597,6 +4603,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (media_source_p);
 
       //if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -4890,6 +4897,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       } // end IF
 
       IMFTopology* topology_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology ((*mediafoundation_stream_iterator).second.second.session,
                                                                      topology_p))
       {
@@ -4897,6 +4905,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (topology_p);
       if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
                                                                          (*mediafoundation_stream_iterator).second.second.inputFormat))
@@ -4922,7 +4931,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   (*iterator_2).second.second.sourceFormat.width = width;
   (*iterator_2).second.second.inputFormat.fmt.pix.height = height;
   (*iterator_2).second.second.inputFormat.fmt.pix.width = width;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (cb_data_base_p->mediaFramework)
@@ -4942,6 +4951,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
       IMFMediaSource* media_source_p = NULL;
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
                                                                         media_source_p))
       {
@@ -4949,6 +4959,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (media_source_p);
 
       //if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -4972,7 +4983,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                        format_i,
                        width, height,
                        list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4986,7 +4997,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 cb_data_p->fileDescriptor,
                 format_i,
                 width, height));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return;
   } // end IF
 
@@ -5062,7 +5073,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != cb_data_base_p->builders.end ());
 
   GtkTreeIter iterator_3;
@@ -5225,6 +5236,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
       } // end IF
 
       IMFTopology* topology_p = NULL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::getTopology ((*mediafoundation_stream_iterator).second.second.session,
                                                                      topology_p))
       {
@@ -5232,6 +5244,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getTopology(), returning\n")));
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (topology_p);
       if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
                                                                          (*mediafoundation_stream_iterator).second.second.inputFormat))
@@ -5258,7 +5271,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   (*iterator_2).second.second.frameRate.numerator =
     frame_interval_denominator;
   (*iterator_2).second.second.frameRate.denominator = frame_interval;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (cb_data_base_p);
   update_buffer_size (cb_data_base_p);
 } // combobox_rate_changed_cb

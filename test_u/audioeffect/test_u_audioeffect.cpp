@@ -544,8 +544,7 @@ continue_:
   ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
 
-  buffer_negotiation_p->Release ();
-  buffer_negotiation_p = NULL;
+  buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   if (!mediaType_out)
   {
@@ -654,7 +653,7 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  media_filter_p->Release ();
+  media_filter_p->Release (); media_filter_p = NULL;
 
   return true;
 
@@ -666,13 +665,11 @@ error:
 
   if (IGraphBuilder_out)
   {
-    IGraphBuilder_out->Release ();
-    IGraphBuilder_out = NULL;
+    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
   } // end IF
   if (IAMStreamConfig_out)
   {
-    IAMStreamConfig_out->Release ();
-    IAMStreamConfig_out = NULL;
+    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
 
   if (mediaType_out)

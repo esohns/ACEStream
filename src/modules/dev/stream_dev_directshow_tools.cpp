@@ -821,13 +821,11 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   // sanity check(s)
   if (IAMBufferNegotiation_out)
   {
-    IAMBufferNegotiation_out->Release ();
-    IAMBufferNegotiation_out = NULL;
+    IAMBufferNegotiation_out->Release (); IAMBufferNegotiation_out = NULL;
   } // end IF
   if (IAMStreamConfig_out)
   {
-    IAMStreamConfig_out->Release ();
-    IAMStreamConfig_out = NULL;
+    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
 
   std::wstring filter_name;
@@ -842,25 +840,13 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   IKsPropertySet* property_set_p = NULL;
   struct _GUID GUID_s = GUID_NULL;
   DWORD returned_size = 0;
-
+  std::string device_path_string;
+  LONG device_id = -1;
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
+
   if (!IGraphBuilder_inout)
   {
-    //ICaptureGraphBuilder2* builder_2 = NULL;
-    //result =
-    //  CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
-    //                    CLSCTX_INPROC_SERVER,
-    //                    IID_PPV_ARGS (&builder_2));
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-    //  return false;
-    //} // end IF
-    //ACE_ASSERT (builder_2);
-
     result = CoCreateInstance (CLSID_FilterGraph, NULL,
                                CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS (&IGraphBuilder_inout));
@@ -873,17 +859,6 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
       return false;
     } // end IF
     ACE_ASSERT (IGraphBuilder_inout);
-
-    //result = builder_2->SetFiltergraph (IGraphBuilder_inout);
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-    //  builder_2->Release ();
-    //  goto error;
-    //} // end IF
-    //builder_2->Release ();
   } // end IF
   else
   {
@@ -940,33 +915,56 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-      enum_moniker_p->Release ();
-      moniker_p->Release ();
-      goto error;
-    } // end IF
-    ACE_ASSERT (properties_p);
-    result =
-      properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
-                          &variant_s,
-                          0);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-      properties_p->Release (); properties_p = NULL;
       moniker_p->Release (); moniker_p = NULL;
       enum_moniker_p->Release (); enum_moniker_p = NULL;
       goto error;
     } // end IF
-    properties_p->Release (); properties_p = NULL;
-    ACE_Wide_To_Ascii converter (variant_s.bstrVal);
+    ACE_ASSERT (properties_p);
+    if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
+    {
+      result =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+        properties_p->Release (); properties_p = NULL;
+        moniker_p->Release (); moniker_p = NULL;
+        enum_moniker_p->Release (); enum_moniker_p = NULL;
+        goto error;
+      } // end IF
+      ACE_Wide_To_Ascii converter (variant_s.bstrVal);
+      device_path_string = converter.char_rep ();
+    } // end IF
+    else if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
+    {
+      result =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING),
+                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+        properties_p->Release (); properties_p = NULL;
+        moniker_p->Release (); moniker_p = NULL;
+        enum_moniker_p->Release (); enum_moniker_p = NULL;
+        goto error;
+      } // end IF
+      device_id = variant_s.lVal;
+    } // end IF
     result = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result));
+    properties_p->Release (); properties_p = NULL;
     if (devicePath_in.empty () ||
         !ACE_OS::strcmp (devicePath_in.c_str (),
-                         converter.char_rep ()))
+                         device_path_string.c_str ()))
       break;
     moniker_p->Release (); moniker_p = NULL;
   } // end WHILE
@@ -1170,18 +1168,15 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
 error:
   if (IGraphBuilder_inout)
   {
-    IGraphBuilder_inout->Release ();
-    IGraphBuilder_inout = NULL;
+    IGraphBuilder_inout->Release (); IGraphBuilder_inout = NULL;
   } // end IF
   if (IAMBufferNegotiation_out)
   {
-    IAMBufferNegotiation_out->Release ();
-    IAMBufferNegotiation_out = NULL;
+    IAMBufferNegotiation_out->Release (); IAMBufferNegotiation_out = NULL;
   } // end IF
   if (IAMStreamConfig_out)
   {
-    IAMStreamConfig_out->Release ();
-    IAMStreamConfig_out = NULL;
+    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
   graphLayout_out.clear ();
 

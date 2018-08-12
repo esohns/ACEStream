@@ -858,8 +858,9 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
               ACE_TEXT ("%s: input format: \"%s\"\n"),
               ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (configuration_p->inputFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
-#endif
+#endif // _DEBUG
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -868,8 +869,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
   if (configuration_p->session)
   {
@@ -894,8 +894,6 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  topology_p->Release ();
-  topology_p = NULL;
   ACE_ASSERT (mediaSession_);
 
   if (!configuration_p->session)
@@ -903,6 +901,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     reference_count = mediaSession_->AddRef ();
     configuration_p->session = mediaSession_;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  topology_p->Release (); topology_p = NULL;
 
   // ---------------------------------------------------------------------------
 
@@ -925,8 +925,7 @@ error:
       setup_pipeline;
   if (session_data_r.direct3DDevice)
   {
-    session_data_r.direct3DDevice->Release ();
-    session_data_r.direct3DDevice = NULL;
+    session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.inputFormat)
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);

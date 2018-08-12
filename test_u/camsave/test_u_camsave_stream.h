@@ -192,8 +192,10 @@ class Stream_CamSave_MediaFoundation_Stream
   Stream_CamSave_MediaFoundation_AVIEncoder_Module      encoder_;
   Stream_CamSave_MediaFoundation_FileWriter_Module      fileWriter_;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   // media session
   IMFMediaSession*                                      mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ULONG                                                 referenceCount_;
 };
 #else

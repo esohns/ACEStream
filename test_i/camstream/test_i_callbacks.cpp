@@ -6814,8 +6814,10 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       ACE_ASSERT (topology_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       // sanity check(s)
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.session);
+
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_modulehandler_iterator).second.second.session,
                                                                      true))
@@ -6825,6 +6827,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
         topology_p->Release (); topology_p = NULL;
         return;
       } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 
       if ((*mediafoundation_modulehandler_iterator).second.second.inputFormat)
@@ -6914,7 +6917,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                 open_mode));
     return;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (data_p->mediaFramework)
@@ -6944,7 +6947,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #else
   result_2 = load_formats (v4l2_data_p->fileDescriptor,
                            list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7041,7 +7044,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -7080,7 +7083,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   std::istringstream converter;
   converter.str (format_string);
   converter >> format_i;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator_2).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
@@ -7155,7 +7158,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     load_resolutions (v4l2_data_p->fileDescriptor,
                       format_i,
                       list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7243,7 +7246,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
     data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -7284,7 +7287,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   std::istringstream converter;
   converter.str (g_value_get_string (&value));
   converter >> format_i;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
   if (!gtk_combo_box_get_active_iter (comboBox_in,
                                       &iterator_3))
@@ -7455,7 +7458,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                        format_i,
                        width, height,
                        list_store_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7545,7 +7548,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -7682,12 +7685,12 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   (*modulehandler_iterator).second.second.frameRate.numerator = frame_rate;
   (*modulehandler_iterator).second.second.frameRate.denominator =
     frame_rate_denominator;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (data_p);
   update_buffer_size (data_p);
 } // combobox_rate_changed_cb
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
 void
 drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
                                      GdkRectangle* allocation_in,
@@ -7847,11 +7850,11 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (allocation_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
+  struct Test_I_CamStream_GTK_CBData* cb_data_base_p =
     static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
@@ -7862,7 +7865,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -7900,7 +7903,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7921,7 +7924,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
@@ -7967,7 +7970,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH

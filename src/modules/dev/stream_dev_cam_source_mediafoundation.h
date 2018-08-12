@@ -36,8 +36,6 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-//#include "stream_dev_exports.h"
-
 extern const char libacestream_default_dev_cam_source_mediafoundation_module_name_string[];
 
 template <ACE_SYNCH_DECL,
@@ -156,19 +154,19 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
   STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
                                float); // new playback rate
-  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
-                                DWORD,               // flags
-                                LONGLONG,            // timestamp
-                                LONGLONG,            // duration
-                                const BYTE*,         // buffer
-                                DWORD);              // buffer size
-  STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
-                                  DWORD,               // flags
-                                  LONGLONG,            // timestamp
-                                  LONGLONG,            // duration
-                                  const BYTE*,         // buffer
-                                  DWORD,               // buffer size
-                                  IMFAttributes*);     // media sample attributes
+  STDMETHODIMP OnProcessSample (REFGUID,     // major media type
+                                DWORD,       // flags
+                                LONGLONG,    // timestamp
+                                LONGLONG,    // duration
+                                const BYTE*, // buffer
+                                DWORD);      // buffer size
+  STDMETHODIMP OnProcessSampleEx (REFGUID,         // major media type
+                                  DWORD,           // flags
+                                  LONGLONG,        // timestamp
+                                  LONGLONG,        // duration
+                                  const BYTE*,     // buffer
+                                  DWORD,           // buffer size
+                                  IMFAttributes*); // media sample attributes
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
   //// implement IMFAsyncCallback
@@ -192,23 +190,29 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                                   TimerManagerType,
                                                   UserDataType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T (const Stream_Dev_Cam_Source_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T& operator= (const Stream_Dev_Cam_Source_MediaFoundation_T&))
 
-  //virtual int svc (void);
-
   // helper methods
   // *NOTE*: (if any,) fire-and-forget the media source handle (third argument)
-  bool initialize_MediaFoundation (const std::string&,                  // (source) device name (FriendlyName)
-                                   const HWND,                          // (target) window handle [NULL: NullRenderer]
-                                   const IDirect3DDeviceManager9*,      // direct 3d manager handle
-                                   const IMFMediaType*,                 // media type handle
-                                   IMFMediaSource*&,                    // media source handle (in/out)
-                                   WCHAR*&,                             // return value: symbolic link
-                                   UINT32&,                             // return value: symbolic link size
-                                   const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
-                                   IMFTopology*&);                      // return value: topology handle
+  bool initialize_MediaFoundation (const std::string&,             // (source) device name (FriendlyName)
+                                   HWND,                           // (target) window handle [NULL: NullRenderer]
+                                   IDirect3DDeviceManager9*,       // direct 3d manager handle
+                                   IMFMediaType*,                  // media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                   IMFMediaSourceEx*&,             // media source handle (in/out)
+#else
+                                   IMFMediaSource*&,               // media source handle (in/out)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+                                   WCHAR*&,                        // return value: symbolic link
+                                   UINT32&,                        // return value: symbolic link size
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                   IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
+#else
+                                   IMFSampleGrabberSinkCallback*,  // grabber sink callback handle [NULL: do not use tee/grabber]
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                   IMFTopology*&);                 // return value: topology handle
 
   LONGLONG              baseTimeStamp_;
 
@@ -222,7 +226,9 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   long                  referenceCount_;
   TOPOID                sampleGrabberSinkNodeId_;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*      mediaSession_;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 };
 
 // include template definition

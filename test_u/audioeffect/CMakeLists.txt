@@ -343,7 +343,7 @@ add_dependencies (${EXECUTABLE} CommonMath)
 if (GTK_SUPPORT)
  add_dependencies (${EXECUTABLE} CommonUI)
  add_dependencies (${EXECUTABLE} CommonUI_GTK)
-endif ()
+endif (GTK_SUPPORT)
 
 add_dependencies (${EXECUTABLE} ACEStream)
 add_dependencies (${EXECUTABLE} ACEStream_Decoder)
@@ -477,16 +477,17 @@ if (UNIX)
                            ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
  set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
  if (GTK3_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             G:/software/Development/dll
-                            ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
                             ${PROJECT_SOURCE_DIR}/../gtk3/bin)
  else ()
   set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")

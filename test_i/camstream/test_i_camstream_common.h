@@ -159,7 +159,11 @@ continue_:
     return *this;
   }
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*               direct3DDevice;
+#else
+  IDirect3DDevice9*                 direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   struct _AMMediaType*              inputFormat;
   UINT                              resetToken; // direct 3D manager 'id'
   struct Test_I_CamStream_UserData* userData;
@@ -207,7 +211,11 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     return *this;
   }
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*               direct3DDevice;
+#else
+  IDirect3DDevice9*                 direct3DDevice;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   UINT                              direct3DManagerResetToken;
   struct _AMMediaType*              inputFormat;
   TOPOID                            rendererNodeId;

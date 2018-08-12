@@ -2916,6 +2916,7 @@ clean:
       goto error;
     } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                    &topology_node_p);
     if (FAILED (result))
@@ -2926,6 +2927,8 @@ clean:
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
+    ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     result = topology_node_p->SetObject (transform_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -3007,6 +3010,7 @@ continue_:
       (!sampleGrabberSinkCallback_in &&  (audioOutput_in > 0))))
     goto continue_2;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3016,6 +3020,8 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3065,6 +3071,7 @@ continue_2:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (activate_p);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
                                   TRUE);
@@ -3084,6 +3091,7 @@ continue_2:
   //ACE_ASSERT (SUCCEEDED (result));
   //media_type_handler_p->Release ();
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3093,6 +3101,8 @@ continue_2:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -3133,6 +3143,7 @@ continue_3:
   if (!(audioOutput_in > 0))
     goto continue_4;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateAudioRendererActivate (&activate_p);
   if (FAILED (result))
   {
@@ -3141,6 +3152,8 @@ continue_3:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (activate_p);
   //// *NOTE*: select a (custom) video presenter
   //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
   //                              );
@@ -3166,6 +3179,7 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   media_type_handler_p->Release (); media_type_handler_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3175,6 +3189,8 @@ continue_3:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -3467,6 +3483,7 @@ clean:
       goto error;
     } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                    &topology_node_p);
     if (FAILED (result))
@@ -3477,6 +3494,8 @@ clean:
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
+    ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     result = topology_node_p->SetObject (transform_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -3644,6 +3663,7 @@ clean_2:
     goto error;
   } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3654,6 +3674,8 @@ clean_2:
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (transform_p);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -3776,6 +3798,7 @@ continue_:
       (!sampleGrabberSinkCallback_in &&  windowHandle_in)))
     goto continue_2;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3785,6 +3808,8 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3853,6 +3878,7 @@ continue_2:
   //ACE_ASSERT (SUCCEEDED (result));
   //media_type_handler_p->Release ();
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3862,6 +3888,8 @@ continue_2:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -3902,6 +3930,7 @@ continue_3:
   if (!windowHandle_in)
     goto continue_4;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateVideoRendererActivate (windowHandle_in,
                                           &activate_p);
   if (FAILED (result))
@@ -3911,6 +3940,9 @@ continue_3:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (activate_p);
+
   //// *NOTE*: select a (custom) video presenter
   //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
   //                              );
@@ -3934,8 +3966,9 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   media_type_handler_p->SetCurrentMediaType (media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_handler_p->Release ();
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3945,6 +3978,8 @@ continue_3:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -4203,6 +4238,7 @@ clean:
       goto error;
     } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                    &topology_node_p);
     if (FAILED (result))
@@ -4213,6 +4249,8 @@ clean:
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
+    ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     result = topology_node_p->SetObject (transform_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -4372,6 +4410,7 @@ clean_2:
     goto error;
   } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -4382,6 +4421,8 @@ clean_2:
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (transform_p);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
@@ -4496,6 +4537,7 @@ continue_:
   //if (!windowHandle_in)
   //  goto continue_2;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateVideoRendererActivate (windowHandle_in,
                                           &activate_p);
   if (FAILED (result))
@@ -4505,6 +4547,9 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (activate_p);
+
   // MF_ACTIVATE_CUSTOM_VIDEO_MIXER_ACTIVATE
   // MF_ACTIVATE_CUSTOM_VIDEO_MIXER_CLSID 
   // MF_ACTIVATE_CUSTOM_VIDEO_MIXER_FLAGS 
@@ -4527,8 +4572,7 @@ continue_:
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release ();
-  activate_p = NULL;
+  activate_p->Release (); activate_p = NULL;
   result = media_sink_p->GetStreamSinkByIndex (0,
                                                &stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
@@ -4538,8 +4582,9 @@ continue_:
   ACE_ASSERT (SUCCEEDED (result));
   media_type_handler_p->SetCurrentMediaType (media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_handler_p->Release ();
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -4549,6 +4594,8 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -4616,7 +4663,7 @@ error:
 bool
 Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_in,
                                                          const IMFMediaType* mediaType_in,
-                                                         const HWND windowHandle_in,
+                                                         HWND windowHandle_in,
                                                          TOPOID& rendererNodeId_out,
                                                          IMFTopology*& topology_inout)
 {
@@ -4637,6 +4684,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
 
   if (!topology_inout)
   {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     if (!Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (URL_in,
                                                                           media_source_p,
                                                                           topology_inout))
@@ -4647,7 +4695,9 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
     } // end IF
     ACE_ASSERT (media_source_p);
     release_topology = true;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   } // end IF
+  ACE_ASSERT (topology_inout);
 
   // step1: retrieve source node
   IMFTopologyNode* source_node_p = NULL;
@@ -4788,6 +4838,7 @@ clean:
       goto error;
     } // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
                                    &topology_node_p);
     if (FAILED (result))
@@ -4798,6 +4849,8 @@ clean:
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
+    ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     result = topology_node_p->SetObject (transform_p);
     ACE_ASSERT (SUCCEEDED (result));
     result = topology_inout->AddNode (topology_node_p);
@@ -4861,6 +4914,7 @@ continue_:
   if (!windowHandle_in)
     goto continue_2;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateVideoRendererActivate (windowHandle_in,
                                           &activate_p);
   if (FAILED (result))
@@ -4870,6 +4924,9 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  ACE_ASSERT (activate_p);
+
   //// *NOTE*: select a (custom) video presenter
   //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
   //                              );
@@ -4881,6 +4938,7 @@ continue_:
   //  goto error;
   //} // end IF
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -4890,6 +4948,8 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetObject (activate_p);
   ACE_ASSERT (SUCCEEDED (result));
   activate_p->Release (); activate_p = NULL;

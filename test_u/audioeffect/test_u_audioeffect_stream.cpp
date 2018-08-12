@@ -508,7 +508,7 @@ continue_:
   inherited::isInitialized_ = true;
 #if defined (_DEBUG)
   inherited::dump_state ();
-#endif
+#endif // _DEBUG
 
   return true;
 
@@ -531,13 +531,11 @@ error:
 
   if (release_builder)
   {
-    (*iterator).second.second.builder->Release ();
-    (*iterator).second.second.builder = NULL;
+    (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
   } // end IF
   if (graphBuilder_)
   {
-    graphBuilder_->Release ();
-    graphBuilder_ = NULL;
+    graphBuilder_->Release (); graphBuilder_ = NULL;
   } // end IF
 
   if (session_data_r.inputFormat)
@@ -553,7 +551,9 @@ error:
 
 Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream ()
  : inherited ()
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
  , referenceCount_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream"));
@@ -564,6 +564,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_S
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_Stream"));
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -576,6 +577,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_S
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
@@ -598,6 +600,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::start"));
 
   // sanity check(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 
   struct _GUID GUID_s = GUID_NULL;
@@ -612,10 +615,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
                 ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
     PropVariantClear (&property_s);
-
     return;
   } // end IF
   PropVariantClear (&property_s);
@@ -629,6 +629,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::start ();
 }
@@ -638,6 +639,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::stop"));
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     HRESULT result = mediaSession_->Stop ();
@@ -647,6 +649,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::stop (waitForCompletion_in,
                    lockedAccess_in);
@@ -761,7 +764,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
     return false;
   } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool graph_loaded = false;
   bool COM_initialized = false;
   HRESULT result_2 = E_FAIL;
@@ -782,10 +784,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
                 ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
   COM_initialized = true;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
 
   if ((*iterator).second.second.session)
@@ -836,6 +838,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
     goto continue_;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   TOPOID renderer_node_id = 0;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second.deviceIdentifier,
@@ -857,8 +860,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   graph_loaded = true;
 #if defined (_DEBUG)
   Stream_MediaFramework_MediaFoundation_Tools::dump (topology_p);
-#endif
+#endif // _DEBUG
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (!mediaSession_);
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
@@ -874,6 +878,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   reference_count = mediaSession_->AddRef ();
   (*iterator).second.second.session = mediaSession_;
 continue_:
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
   if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
                                                                      (*iterator).second.second.inputFormat))
@@ -883,8 +888,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  topology_p->Release ();
-  topology_p = NULL;
+  topology_p->Release (); topology_p = NULL;
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
@@ -894,8 +898,7 @@ continue_:
 
   if (session_data_r.inputFormat)
   {
-    session_data_r.inputFormat->Release ();
-    session_data_r.inputFormat = NULL;
+    session_data_r.inputFormat->Release (); session_data_r.inputFormat = NULL;
   } // end IF
   ACE_ASSERT (!session_data_r.inputFormat);
   Stream_MediaFramework_MediaFoundation_Tools::copyMediaType ((*iterator).second.second.inputFormat,
@@ -910,14 +913,14 @@ continue_:
   //} // end IF
   //ACE_ASSERT (media_type_p);
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
   {
-    session_data_r.session->Release ();
-    session_data_r.session = NULL;
+    session_data_r.session->Release (); session_data_r.session = NULL;
   } // end IF
   reference_count = mediaSession_->AddRef ();
   session_data_r.session = mediaSession_;
-#endif
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   source_impl_p->setP (&(inherited::state_));
 
@@ -946,31 +949,28 @@ error:
   if (reset_setup_pipeline)
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
     media_type_p->Release ();
   if (topology_p)
     topology_p->Release ();
   if (session_data_r.inputFormat)
   {
-    session_data_r.inputFormat->Release ();
-    session_data_r.inputFormat = NULL;
+    session_data_r.inputFormat->Release (); session_data_r.inputFormat = NULL;
   } // end IF
   //session_data_r.resetToken = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
   {
-    session_data_r.session->Release ();
-    session_data_r.session = NULL;
+    session_data_r.session->Release (); session_data_r.session = NULL;
   } // end IF
   if (mediaSession_)
   {
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (COM_initialized)
     CoUninitialize ();
-#endif
 
   return false;
 }
@@ -1006,12 +1006,15 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 
   // sanity check(s)
   ACE_ASSERT (result_in);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (inherited::sessionData_);
 
   //Stream_CamSave_SessionData& session_data_r =
   //  const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
   {
@@ -1021,6 +1024,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = media_event_p->GetType (&event_type);
   ACE_ASSERT (SUCCEEDED (result));
   result = media_event_p->GetStatus (&status);
@@ -1029,135 +1033,138 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   ACE_ASSERT (SUCCEEDED (result));
   switch (event_type)
   {
-  case MEEndOfPresentation:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MEEndOfPresentation\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MEError:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: received MEError: \"%s\"\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
-    break;
-  }
-  case MESessionClosed:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
-                ACE_TEXT (stream_name_string_)));
-    //IMFMediaSource* media_source_p = NULL;
-    //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
-    //                                                 media_source_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
-    //  goto continue_;
-    //} // end IF
-    //ACE_ASSERT (media_source_p);
-    //result = media_source_p->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    //media_source_p->Release ();
-//continue_:
-    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-    //result = mediaSession_->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    break;
-  }
-  case MESessionEnded:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
-                ACE_TEXT (stream_name_string_)));
-    result = mediaSession_->Close ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    break;
-  }
-  case MESessionCapabilitiesChanged:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionNotifyPresentationTime:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionStarted:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionStarted\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionStopped:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
-                ACE_TEXT (stream_name_string_)));
-
-    if (isRunning ())
-      stop (false,
-            true);
-    break;
-  }
-  case MESessionTopologySet:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
-    break;
-  }
-  case MESessionTopologyStatus:
-  {
-    UINT32 attribute_value = 0;
-    MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
-
-    result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
-                                       &attribute_value);
-    if (FAILED (result))
+    case MEEndOfPresentation:
+    {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: failed to IMFMediaEvent::GetUINT32(MF_EVENT_TOPOLOGY_STATUS): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: received MEEndOfPresentation\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MEError:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received MEError: \"%s\"\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    else
-      topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
-    break;
-  }
-  default:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
-                ACE_TEXT (stream_name_string_),
-                event_type));
-    break;
-  }
+                  ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
+      break;
+    }
+    case MESessionClosed:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
+                  ACE_TEXT (stream_name_string_)));
+      //IMFMediaSource* media_source_p = NULL;
+      //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+      //                                                 media_source_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+      //  goto continue_;
+      //} // end IF
+      //ACE_ASSERT (media_source_p);
+      //result = media_source_p->Shutdown ();
+      //if (FAILED (result))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //media_source_p->Release ();
+  //continue_:
+      // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+      //result = mediaSession_->Shutdown ();
+      //if (FAILED (result))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      break;
+    }
+    case MESessionEnded:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
+                  ACE_TEXT (stream_name_string_)));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      result = mediaSession_->Close ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                    ACE_TEXT (stream_name_string_),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      break;
+    }
+    case MESessionCapabilitiesChanged:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionNotifyPresentationTime:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionStarted:
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStarted\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionStopped:
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
+                  ACE_TEXT (stream_name_string_)));
+
+      if (isRunning ())
+        stop (false,
+              true);
+      break;
+    }
+    case MESessionTopologySet:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
+      break;
+    }
+    case MESessionTopologyStatus:
+    {
+      UINT32 attribute_value = 0;
+      MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
+
+      result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                         &attribute_value);
+      if (FAILED (result))
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: failed to IMFMediaEvent::GetUINT32(MF_EVENT_TOPOLOGY_STATUS): \"%s\", continuing\n"),
+                    ACE_TEXT (stream_name_string_),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      else
+        topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  event_type));
+      break;
+    }
   } // end SWITCH
   PropVariantClear (&value);
-  media_event_p->Release ();
+  media_event_p->Release (); media_event_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->BeginGetEvent (this, NULL);
   if (FAILED (result))
   {
@@ -1167,6 +1174,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   return S_OK;
 

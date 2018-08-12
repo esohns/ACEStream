@@ -36,8 +36,6 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-//#include "stream_dev_exports.h"
-
 extern const char libacestream_default_dev_cam_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,

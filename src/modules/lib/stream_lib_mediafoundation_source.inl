@@ -26,9 +26,6 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dev_defines.h"
-//#include "stream_dev_tools.h"
-
 #include "stream_lib_defines.h"
 
 template <ACE_SYNCH_DECL,
@@ -55,7 +52,9 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
  , sessionData_ (NULL)
  , isFirst_ (false)
  , baseTimeStamp_ (0)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
  , referenceCount_ (1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::Stream_MediaFramework_MediaFoundation_Source_T"));
@@ -87,15 +86,17 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   inherited::queue_.waitForIdleState ();
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     HRESULT result = mediaSession_->Shutdown ();
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    mediaSession_->Release ();
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 }
 
 template <ACE_SYNCH_DECL,
@@ -146,19 +147,16 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     inherited::queue_.waitForIdleState ();
 
     if (sessionData_)
     {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
+      sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
 
     referenceCount_ = 0;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     if (mediaSession_)
     {
       result = mediaSession_->Shutdown ();
@@ -166,14 +164,12 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      mediaSession_->Release ();
-      mediaSession_ = NULL;
+      mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
     inherited::isInitialized_ = false;
   } // end IF
-
-  //mediaType_ = &configuration_->mediaType;
 
   return inherited::initialize (configuration_in);;
 }
@@ -224,8 +220,11 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
 
   static const QITAB query_interface_table[] =
   {
-    //QITABENT (OWN_TYPE_T, IMFSourceReaderCallback),
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback2),
+#else
+    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
     { 0 },
   };
 
@@ -592,20 +591,20 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::OnProcessSample (const struct _GUID& majorMediaType_in,
-                                                                     DWORD flags_in,
-                                                                     LONGLONG timeStamp_in,
-                                                                     LONGLONG duration_in,
-                                                                     const BYTE* buffer_in,
-                                                                     DWORD bufferSize_in)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::OnProcessSample (REFGUID majorMediaType_in,
+                                                                               DWORD flags_in,
+                                                                               LONGLONG timeStamp_in,
+                                                                               LONGLONG duration_in,
+                                                                               const BYTE* buffer_in,
+                                                                               DWORD bufferSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::OnProcessSample"));
 
@@ -630,21 +629,21 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
-                                                                       DWORD flags_in,
-                                                                       LONGLONG timeStamp_in,
-                                                                       LONGLONG duration_in,
-                                                                       const BYTE* buffer_in,
-                                                                       DWORD bufferSize_in,
-                                                                       IMFAttributes* attributes_in)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::OnProcessSampleEx (REFGUID majorMediaType_in,
+                                                                                 DWORD flags_in,
+                                                                                 LONGLONG timeStamp_in,
+                                                                                 LONGLONG duration_in,
+                                                                                 const BYTE* buffer_in,
+                                                                                 DWORD bufferSize_in,
+                                                                                 IMFAttributes* attributes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::OnProcessSampleEx"));
 
@@ -719,23 +718,22 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::OnSetPresentationClock"));
 
   // sanity check(s)
   if (presentationClock_)
   {
-    presentationClock_->Release ();
-    presentationClock_ = NULL;
+    presentationClock_->Release (); presentationClock_ = NULL;
   } // end IF
 
   ULONG reference_count = presentationClock_in->AddRef ();
@@ -755,15 +753,15 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 HRESULT
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::OnShutdown ()
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::OnShutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::OnShutdown"));
 
@@ -784,16 +782,16 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                       bool& passMessageDownstream_out)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::handleDataMessage"));
 
@@ -832,16 +830,16 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                          bool& passMessageDownstream_out)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::handleSessionMessage"));
 
@@ -881,7 +879,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       COM_initialized = true;
@@ -949,7 +947,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                     ACE_TEXT ("failed to initialize_MediaFoundation(), returning\n")));
         goto error;
       } // end IF
-      CoTaskMemFree (symbolic_link_p);
+      CoTaskMemFree (symbolic_link_p); symbolic_link_p = NULL;
       ACE_ASSERT (mediaSession_);
 
 //do_run:
@@ -983,8 +981,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -1015,8 +1012,7 @@ error:
 
       if (sessionData_)
       {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
+        sessionData_->decrease (); sessionData_ = NULL;
       } // end IF
 
       if (mediaSession_)
@@ -1026,8 +1022,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -1054,15 +1049,15 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 DataMessageType*
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::allocateMessage (unsigned int requestedSize_in)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
 
@@ -1126,24 +1121,36 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 bool
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::initialize_MediaFoundation (const HWND windowHandle_in,
-                                                                                const IMFMediaType* IMFMediaType_in,
-                                                                                IMFMediaSource*& IMFMediaSource_inout,
-                                                                                WCHAR*& symbolicLink_out,
-                                                                                UINT32& symbolicLinkSize_out,
-                                                                                const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
-                                                                                const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
-                                                                                TOPOID& sampleGrabberSinkNodeId_out,
-                                                                                TOPOID& rendererNodeId_out,
-                                                                                IMFMediaSession*& IMFMediaSession_inout)
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::initialize_MediaFoundation (HWND windowHandle_in,
+                                                                                          const IMFMediaType* IMFMediaType_in,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                                                                          IMFMediaSourceEx*& IMFMediaSource_inout,
+#else
+                                                                                          IMFMediaSource*& IMFMediaSource_inout,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+                                                                                          WCHAR*& symbolicLink_out,
+                                                                                          UINT32& symbolicLinkSize_out,
+                                                                                          IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+                                                                                          IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
+#else
+                                                                                          IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+                                                                                          TOPOID& sampleGrabberSinkNodeId_out,
+                                                                                          TOPOID& rendererNodeId_out//,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                                                                                          ,IMFMediaSession*& IMFMediaSession_inout)
+#else
+                                                                                          )
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::initialize_MediaFoundation"));
 
@@ -1153,8 +1160,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (symbolicLink_out);
 
-    CoTaskMemFree (symbolicLink_out);
-    symbolicLink_out = NULL;
+    CoTaskMemFree (symbolicLink_out); symbolicLink_out = NULL;
     symbolicLinkSize_out = 0;
   } // end IF
   sampleGrabberSinkNodeId_out = 0;
@@ -1164,8 +1170,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   bool release_media_session = false;
   bool release_media_source = false;
   std::string device_name;
-  IMFMediaSource* media_source_p = IMFMediaSource_inout;
-  if (!media_source_p)
+  if (!IMFMediaSource_inout)
   {
     if (!Stream_Module_Device_Tools::getMediaSource (device_name,
                                                      IMFMediaSource_inout,
@@ -1177,10 +1182,9 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
                   ACE_TEXT (device_name.c_str ())));
       return false;
     } // end IF
-    media_source_p = IMFMediaSource_inout;
     release_media_source = true;
   } // end IF
-  ACE_ASSERT (media_source_p);
+  ACE_ASSERT (IMFMediaSource_inout);
 
   IMFTopology* topology_p = NULL;
   //if (!Stream_Module_Device_Tools::loadTargetRendererTopology (IMFMediaType_in,
@@ -1189,7 +1193,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   //                                                             IMFTopology_out))
   if (!Stream_Module_Device_Tools::loadRendererTopology (device_name,
                                                          IMFMediaType_in,
-                                                         IMFSampleGrabberSinkCallback2_in,
+                                                         IMFSampleGrabberSinkCallback_in,
                                                          windowHandle_in,
                                                          sampleGrabberSinkNodeId_out,
                                                          rendererNodeId_out,
@@ -1201,6 +1205,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (topology_p);
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (!IMFMediaSession_inout)
   {
     IMFAttributes* attributes_p = NULL;
@@ -1209,7 +1214,7 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
@@ -1218,27 +1223,23 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
     ACE_ASSERT (SUCCEEDED (result));
     //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
     //ACE_ASSERT (SUCCEEDED (result));
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
     result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
     ACE_ASSERT (SUCCEEDED (result));
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
     result = MFCreateMediaSession (attributes_p,
                                    &IMFMediaSession_inout);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      attributes_p->Release ();
-
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      attributes_p->Release (); attributes_p = NULL;
       goto error;
     } // end IF
-    attributes_p->Release ();
     release_media_session = true;
+    attributes_p->Release (); attributes_p = NULL;
   } // end IF
-  ACE_ASSERT (IMFMediaSession_inout);
 
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
                           //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
@@ -1249,10 +1250,11 @@ Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  topology_p->Release ();
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+  topology_p->Release (); topology_p = NULL;
 
   return true;
 
@@ -1261,21 +1263,18 @@ error:
     topology_p->Release ();
   if (release_media_session)
   {
-    IMFMediaSession_inout->Release ();
-    IMFMediaSession_inout = NULL;
+    IMFMediaSession_inout->Release (); IMFMediaSession_inout = NULL;
   } // end IF
   if (release_media_source)
   {
-    IMFMediaSource_inout->Release ();
-    IMFMediaSource_inout = NULL;
+    IMFMediaSource_inout->Release (); IMFMediaSource_inout = NULL;
   } // end IF
   if (symbolicLinkSize_out)
   {
     // sanity check(s)
     ACE_ASSERT (symbolicLink_out);
 
-    CoTaskMemFree (symbolicLink_out);
-    symbolicLink_out = NULL;
+    CoTaskMemFree (symbolicLink_out); symbolicLink_out = NULL;
     symbolicLinkSize_out = 0;
   } // end IF
 
@@ -1293,15 +1292,15 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_MediaFramework_MediaFoundation_Source_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataContainerType,
-                                     SessionDataType,
-                                     MediaType,
-                                     UserDataType>::finalize_MediaFoundation ()
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataContainerType,
+                                               SessionDataType,
+                                               MediaType,
+                                               UserDataType>::finalize_MediaFoundation ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Source_T::finalize_MediaFoundation"));
 

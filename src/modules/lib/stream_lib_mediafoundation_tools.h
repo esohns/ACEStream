@@ -69,14 +69,16 @@ class Stream_MediaFramework_MediaFoundation_Tools
                                TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type
 
-  static bool getTopology (const IMFMediaSession*, // media session handle
-                           IMFTopology*&);         // return value: topology handle
-  static bool getMediaSource (const IMFMediaSession*, // media session handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  static bool getTopology (IMFMediaSession*, // media session handle
+                           IMFTopology*&);   // return value: topology handle
+  static bool getMediaSource (IMFMediaSession*,    // media session handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                              IMFMediaSourceEx*&);    // return value: media source handle
+                              IMFMediaSourceEx*&); // return value: media source handle
 #else
-                              IMFMediaSource*&);      // return value: media source handle
+                              IMFMediaSource*&);   // return value: media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   static bool getMediaSource (const IMFTopology*,  // topology handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                               IMFMediaSourceEx*&); // return value: media source handle
@@ -97,6 +99,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool getSampleGrabberNodeId (const IMFTopology*, // topology handle
                                       TOPOID&);           // return value: topology node id
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool loadSourceTopology (const std::string&, // URL
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                   IMFMediaSourceEx*&, // input/return value: media source handle
@@ -110,6 +113,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool loadSourceTopology (IMFMediaSource*,   // media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                   IMFTopology*&);    // return value: topology handle
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   // -------------------------------------
 
@@ -121,14 +125,16 @@ class Stream_MediaFramework_MediaFoundation_Tools
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                           IMFTopology*,                   // topology handle
                           TOPOID&);                       // return value: grabber node id
-  static bool addRenderer (const HWND,   // window handle
+  static bool addRenderer (HWND,         // window handle
                            IMFTopology*, // topology handle
                            TOPOID&);     // return value: renderer node id
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   static bool setTopology (IMFTopology*,      // topology handle
                            IMFMediaSession*&, // input/return value: media session handle
                            bool = false,      // resolve topology ? (uses IMFTopoLoader)
                            bool = true);      // wait for completion ?
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   static bool enableDirectXAcceleration (IMFTopology*); // topology handle
 
   // -------------------------------------

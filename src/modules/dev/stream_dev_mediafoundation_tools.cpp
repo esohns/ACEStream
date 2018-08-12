@@ -218,6 +218,7 @@ error:
   return result;
 }
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 bool
 Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& deviceIdentifier_in,
                                                                 REFGUID deviceCategory_in,
@@ -283,6 +284,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   ACE_ASSERT (SUCCEEDED (result));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -292,7 +294,8 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-
+  ACE_ASSERT (topology_node_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
@@ -401,6 +404,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   ACE_ASSERT (SUCCEEDED (result));
   media_sink_p->Release (); media_sink_p = NULL;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_2);
   if (FAILED (result))
@@ -410,6 +414,8 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+  ACE_ASSERT (topology_node_2);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   result = topology_node_2->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_sink_p->Release (); stream_sink_p = NULL;
@@ -465,13 +471,14 @@ error:
 
   return false;
 }
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
 bool
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSourceEx* mediaSource_in,
 #else
 Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* mediaSource_in,
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                                               IMFMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat"));

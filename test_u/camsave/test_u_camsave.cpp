@@ -629,26 +629,27 @@ do_finalize_directshow (struct Stream_CamSave_DirectShow_GTK_CBData& CBData_in)
 
 bool
 do_initialize_mediafoundation (const std::string& deviceIdentifier_in,
-                               const HWND windowHandle_in,
-                               //IGraphBuilder*& IGraphBuilder_out,
+                               HWND windowHandle_in,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
-                               //IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                               //IAMStreamConfig*& IAMStreamConfig_out)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                bool loadDevice_in,
                                bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   IMFTopology* topology_p = NULL;
 
   // sanity check(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (!IMFMediaSession_out);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   if (!coInitialize_in)
     goto continue_;
@@ -724,6 +725,7 @@ continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
 continue_2:
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
   if (FAILED (result))
@@ -755,9 +757,6 @@ continue_2:
   } // end IF
   attributes_p->Release (); attributes_p = NULL;
 
-  if (!loadDevice_in)
-    goto continue_3;
-
   ACE_ASSERT (topology_p);
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
                           //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
@@ -771,9 +770,10 @@ continue_2:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
-continue_3:
+//continue_3:
   return true;
 
 error:
@@ -781,18 +781,12 @@ error:
     media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
-//  if (IAMStreamConfig_out)
-//  {
-//    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
-//  } // end IF
-//  if (IGraphBuilder_out)
-//  {
-//    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
-//  } // end IF
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (IMFMediaSession_out)
   {
     IMFMediaSession_out->Release (); IMFMediaSession_out = NULL;
   } // end IF
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   result = MFShutdown ();
   if (FAILED (result))
@@ -1122,7 +1116,9 @@ do_work (const std::string& deviceIdentifier_in,
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                           (*mediafoundation_stream_iterator).second.second.session,
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
                                           load_device,     // load device ?
                                           initialize_COM)) // initialize COM ?
       {
@@ -1130,7 +1126,9 @@ do_work (const std::string& deviceIdentifier_in,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       break;
     }
     default:
@@ -1183,7 +1181,7 @@ do_work (const std::string& deviceIdentifier_in,
   CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                         signalSet_in,
                                         ignoredSignalSet_in,
@@ -1263,7 +1261,7 @@ do_work (const std::string& deviceIdentifier_in,
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
     CBData_in.stream = &stream;
     //CBData_in.userData = &CBData_in;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     ACE_ASSERT (gtk_manager_p);
     gtk_manager_p->start ();
     ACE_Time_Value timeout (0,
@@ -1286,10 +1284,7 @@ do_work (const std::string& deviceIdentifier_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-
-      // clean up
       gtk_manager_p->stop (true);
-
       goto clean;
     } // end IF
     BOOL was_visible_b = false;
