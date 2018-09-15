@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "stream_dev_directshow_tools.h"
 
 #include <sstream>
@@ -55,6 +56,8 @@
 #include "common_time_common.h"
 #include "common_tools.h"
 
+#include "common_error_tools.h"
+
 #include "common_ui_defines.h"
 
 #include "stream_macros.h"
@@ -62,6 +65,7 @@
 #include "stream_dec_tools.h"
 
 #include "stream_lib_directshow_tools.h"
+#include "stream_lib_tools.h"
 
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
@@ -81,11 +85,10 @@ Stream_Module_Device_DirectShow_Tools::initialize (bool coInitialize_in)
     if (FAILED (result))
     {
       // *NOTE*: most probable reason: already initialized (happens in the
-      //         debugger)
-      //         --> continue
+      //         debugger) --> continue
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     } // end IF
   } // end IF
 
@@ -129,7 +132,7 @@ Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& de
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -152,7 +155,7 @@ Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& de
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (enum_moniker_p);
@@ -166,7 +169,7 @@ Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& de
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error;
       } // end IF
       ACE_ASSERT (properties_p);
@@ -180,7 +183,7 @@ Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& de
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
                     ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
         properties_p->Release (); properties_p = NULL;
@@ -204,7 +207,138 @@ Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& de
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", aborting\n"),
                     ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      properties_p->Release (); properties_p = NULL;
+      ACE_Wide_To_Ascii converter_2 (variant_s.bstrVal);
+      result_2 = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      result = converter_2.char_rep ();
+      done = true;
+      break;
+    } // end WHILE
+    enum_moniker_p->Release (); enum_moniker_p = NULL;
+    if (done)
+      break;
+  } // end FOR
+
+error:
+  if (properties_p)
+    properties_p->Release ();
+  if (moniker_p)
+    moniker_p->Release ();
+  if (enum_moniker_p)
+    enum_moniker_p->Release ();
+  if (enumerator_p)
+    enumerator_p->Release ();
+
+  return result;
+}
+std::string
+Stream_Module_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::devicePath"));
+
+  // sanity check(s)
+  ACE_ASSERT (!friendlyName_in.empty ());
+
+  std::string result;
+
+  ICreateDevEnum* enumerator_p = NULL;
+  IEnumMoniker* enum_moniker_p = NULL;
+  IMoniker* moniker_p = NULL;
+  IPropertyBag* properties_p = NULL;
+  struct tagVARIANT variant_s;
+  IKsPropertySet* property_set_p = NULL;
+  struct _GUID class_id_s = GUID_NULL;
+  Common_Identifiers_t class_ids_a;
+  bool done = false;
+
+  HRESULT result_2 =
+    CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+    return result;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  VariantInit (&variant_s);
+
+  class_ids_a.push_back (CLSID_AudioInputDeviceCategory);
+  class_ids_a.push_back (CLSID_VideoInputDeviceCategory);
+
+  for (Common_IdentifiersIterator_t iterator = class_ids_a.begin ();
+       iterator != class_ids_a.end ();
+       ++iterator)
+  { ACE_ASSERT (!enum_moniker_p);
+    result_2 =
+      enumerator_p->CreateClassEnumerator (*iterator,
+                                           &enum_moniker_p,
+                                           0);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::GUIDToString (*iterator).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (enum_moniker_p);
+
+    ACE_ASSERT (!moniker_p);
+    while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
+    { ACE_ASSERT (moniker_p);
+      result_2 = moniker_p->BindToStorage (NULL, NULL,
+                                           IID_PPV_ARGS (&properties_p));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (properties_p);
+      moniker_p->Release (); moniker_p = NULL;
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        result_2 = VariantClear (&variant_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        properties_p->Release (); properties_p = NULL;
+        continue;
+      } // end IF
+      ACE_Wide_To_Ascii converter (variant_s.bstrVal);
+      result_2 = VariantClear (&variant_s);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      if (ACE_OS::strcmp (friendlyName_in.c_str (),
+                          converter.char_rep ()))
+      {
+        properties_p->Release (); properties_p = NULL;
+        continue;
+      } // end IF
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+                            &variant_s,
+                            0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error;
       } // end IF
       properties_p->Release (); properties_p = NULL;
@@ -241,6 +375,22 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
   // initialize return value(s)
   std::string result;
 
+  Stream_Module_Device_List_t devices_a =
+    Stream_Module_Device_DirectShow_Tools::getCaptureDevices (deviceCategory_in);
+  if (likely (!devices_a.empty ()))
+    result = devices_a.front ();
+
+  return result;
+}
+
+Stream_Module_Device_List_t
+Stream_Module_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureDevices"));
+
+  // initialize return value(s)
+  Stream_Module_Device_List_t result;
+
   // sanity check(s)
   if (!InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory) &&
       !InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory) &&
@@ -267,7 +417,7 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -281,17 +431,13 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
-
-    // clean up
-    enumerator_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+    enumerator_p->Release (); enumerator_p = NULL;
     //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
     return result;
   } // end IF
   ACE_ASSERT (enum_moniker_p);
-  enumerator_p->Release ();
-  enumerator_p = NULL;
+  enumerator_p->Release (); enumerator_p = NULL;
 
   VariantInit (&variant_s);
   while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
@@ -303,12 +449,9 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
-
-      // clean up
-      moniker_p->Release ();
-      enum_moniker_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      moniker_p->Release (); moniker_p = NULL;
+      enum_moniker_p->Release (); enum_moniker_p = NULL;
       return result;
     } // end IF
     ACE_ASSERT (properties_p);
@@ -322,19 +465,16 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
-
-      // clean up
-      properties_p->Release ();
-      moniker_p->Release ();
-      enum_moniker_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      properties_p->Release (); properties_p = NULL;
+      moniker_p->Release (); moniker_p = NULL;
+      enum_moniker_p->Release (); enum_moniker_p = NULL;
       return result;
     } // end IF
     ACE_Wide_To_Ascii converter (variant_s.bstrVal);
     result_2 = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result_2));
-    result = converter.char_rep ();
+    result.push_back (converter.char_rep ());
 #if defined (_DEBUG)
     std::string friendly_name_string;
     result_2 =
@@ -346,13 +486,10 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
-
-      // clean up
-      properties_p->Release ();
-      moniker_p->Release ();
-      enum_moniker_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      properties_p->Release (); properties_p = NULL;
+      moniker_p->Release (); moniker_p = NULL;
+      enum_moniker_p->Release (); enum_moniker_p = NULL;
       return result;
     } // end IF
     ACE_Wide_To_Ascii converter_2 (variant_s.bstrVal);
@@ -367,7 +504,7 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     ACE_Wide_To_Ascii converter_3 (variant_s.bstrVal);
     result_2 = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -375,21 +512,270 @@ Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_
                 ACE_TEXT ("found capture device \"%s [\"%s\"]\": %s...\n"),
                 ACE_TEXT (friendly_name_string.c_str ()),
                 ACE_TEXT (converter_3.char_rep ()),
-                ACE_TEXT (result.c_str ())));
+                ACE_TEXT (converter.char_rep ())));
 #endif // _DEBUG
-    properties_p->Release ();
-    properties_p = NULL;
-
-    break;
+    properties_p->Release (); properties_p = NULL;
   } // end WHILE
-  moniker_p->Release ();
-  moniker_p = NULL;
-  enum_moniker_p->Release ();
-  enum_moniker_p = NULL;
-  if (result.empty ())
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("no device found (category was: \"%s\"), aborting\n"),
-                ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
+  moniker_p->Release (); moniker_p = NULL;
+  enum_moniker_p->Release (); enum_moniker_p = NULL;
+
+  return result;
+}
+
+bool
+Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp"));
+
+  // initialize return value(s)
+  bool result = false;
+
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    video_info_header_p = (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result = video_info_header_p->bmiHeader.biHeight > 0;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result = video_info_header2_p->bmiHeader.biHeight > 0;
+  } // end ELSE IF
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+
+  return result;
+}
+
+Common_Identifiers_t
+Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStreamConfig_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+
+  // initialize return value(s)
+  Common_Identifiers_t result;
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+
+  HRESULT result_2 = E_FAIL;
+  int count = 0, size = 0;
+  result_2 = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    return result;
+  } // end IF
+  struct _AMMediaType* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities_s;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result_2 = IAMStreamConfig_in->GetStreamCaps (i,
+                                                  &media_type_p,
+                                                  (BYTE*)&capabilities_s);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      return result;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if (!InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) &&
+        !InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+    {
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+
+    // *NOTE*: FORMAT_VideoInfo2 types do not work with the Video Renderer
+    //         directly --> insert the Overlay Mixer
+    result.push_back (media_type_p->subtype);
+
+    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  } // end FOR
+  result.sort (common_less_guid ());
+  result.unique (common_equal_guid ());
+
+  return result;
+}
+Common_UI_Resolutions_t
+Stream_Module_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
+                                                              REFGUID mediaSubType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+
+  // initialize return value(s)
+  Common_UI_Resolutions_t result;
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+
+  HRESULT result_2 = E_FAIL;
+  int count = 0, size = 0;
+  result_2 = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    return result;
+  } // end IF
+  struct _AMMediaType* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities_s;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  Common_UI_Resolution_t resolution_s;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result_2 = IAMStreamConfig_in->GetStreamCaps (i,
+                                                  &media_type_p,
+                                                  (BYTE*)&capabilities_s);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      return result;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if (!InlineIsEqualGUID (mediaSubType_in, GUID_NULL) &&
+        !InlineIsEqualGUID (media_type_p->subtype, mediaSubType_in))
+    {
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+    if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
+    {
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+      resolution_s.cx = video_info_header_p->bmiHeader.biWidth;
+      resolution_s.cy = video_info_header_p->bmiHeader.biHeight;
+      result.push_back (resolution_s);
+    } // end IF
+    else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+    {
+      // *NOTE*: these media subtypes do not work with the Video Renderer
+      //         directly --> insert the Overlay Mixer
+      video_info_header2_p =
+        (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+      resolution_s.cx = video_info_header2_p->bmiHeader.biWidth;
+      resolution_s.cy = video_info_header2_p->bmiHeader.biHeight;
+      result.push_back (resolution_s);
+    } // end ELSE IF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), continuing\n"),
+                  ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_p->formattype).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end ELSE
+    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  } // end FOR
+  result.sort (common_ui_resolution_less ());
+  result.unique (common_ui_resolution_equal ());
+
+  return result;
+}
+Common_UI_Framerates_t
+Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamConfig_in,
+                                                             REFGUID mediaSubType_in,
+                                                             Common_UI_Resolution_t resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+
+  // initialize return value(s)
+  Common_UI_Framerates_t result;
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (!InlineIsEqualGUID (mediaSubType_in, GUID_NULL));
+
+  HRESULT result_2 = E_FAIL;
+  int count = 0, size = 0;
+  result_2 = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+    return result;
+  } // end IF
+  struct _AMMediaType* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities_s;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  unsigned int frame_duration = 0;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result_2 = IAMStreamConfig_in->GetStreamCaps (i,
+                                                  &media_type_p,
+                                                  (BYTE*)&capabilities_s);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+      return result;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if (!InlineIsEqualGUID (media_type_p->subtype, mediaSubType_in))
+    {
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+    if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
+    {
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+      if ((video_info_header_p->bmiHeader.biWidth  != resolution_in.cx) ||
+          (video_info_header_p->bmiHeader.biHeight != resolution_in.cy))
+      {
+        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+        continue;
+      } // end IF
+      frame_duration =
+        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+    } // end IF
+    else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+    {
+      video_info_header2_p =
+        (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+      if ((video_info_header2_p->bmiHeader.biWidth  != resolution_in.cx) ||
+          (video_info_header2_p->bmiHeader.biHeight != resolution_in.cy))
+      {
+        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+        continue;
+      } // end IF
+      frame_duration =
+        static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
+    } // end ELSE IF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), continuing\n"),
+                  ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_p->formattype).c_str ())));
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end ELSE
+    result.push_back (NANOSECONDS / frame_duration);
+    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  } // end FOR
+  std::sort (result.begin (), result.end ());
+  result.erase (std::unique (result.begin (), result.end ()), result.end ());
 
   return result;
 }
@@ -434,7 +820,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -457,7 +843,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_p->Release ();
     return false;
   } // end IF
@@ -468,7 +854,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     stream_config_p->Release ();
     return false;
   } // end IF
@@ -483,6 +869,7 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
                                                               REFGUID mediaSubType_in,
                                                               LONG width_in,
                                                               LONG height_in,
+                                                              unsigned int frameRate_in,
                                                               struct _AMMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat"));
@@ -492,10 +879,7 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
 
   // initialize return value(s)
   if (mediaType_out)
-  {
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
-    mediaType_out = NULL;
-  } // end IF
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
@@ -506,7 +890,7 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -529,7 +913,8 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    pin_p->Release (); pin_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (stream_config_p);
@@ -539,14 +924,16 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-    stream_config_p->Release ();
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    stream_config_p->Release (); stream_config_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (size == sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
 
   struct _VIDEO_STREAM_CONFIG_CAPS video_stream_config_caps_s;
   ACE_OS::memset (&video_stream_config_caps_s, 0, sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
+  Common_UI_Resolution_t resolution_s;
+  unsigned int framerate_i = 0;
   for (int i = 0;
         i < count;
         ++i)
@@ -560,7 +947,7 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       stream_config_p->Release ();
       return false;
     } // end IF
@@ -570,33 +957,22 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
       continue;
     } // end IF
-    if (InlineIsEqualGUID (mediaType_out->formattype, FORMAT_VideoInfo))
-    { ACE_ASSERT (mediaType_out->pbFormat);
-      ACE_ASSERT (mediaType_out->cbFormat >= sizeof (struct tagVIDEOINFOHEADER));
-      struct tagVIDEOINFOHEADER* video_info_header_p =
-        reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_out->pbFormat);
-      if ((!width_in ||
-           video_info_header_p->bmiHeader.biWidth == width_in) &&
-          (!height_in ||
-           video_info_header_p->bmiHeader.biHeight == height_in))
-        break;
+    resolution_s =
+      Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution (*mediaType_out);
+    if ((width_in  && (resolution_s.cx != width_in)) ||
+        (height_in && (resolution_s.cy != height_in)))
+    {
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+      continue;
     } // end IF
-    else if (InlineIsEqualGUID (mediaType_out->formattype, FORMAT_VideoInfo2))
-    { ACE_ASSERT (mediaType_out->pbFormat);
-      ACE_ASSERT (mediaType_out->cbFormat >= sizeof (struct tagVIDEOINFOHEADER2));
-      struct tagVIDEOINFOHEADER2* video_info_header2_p =
-        reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_out->pbFormat);
-      if ((!width_in ||
-           video_info_header2_p->bmiHeader.biWidth == width_in) &&
-          (!height_in ||
-           video_info_header2_p->bmiHeader.biHeight == height_in))
-        break;
-    } // end ELSE IF
-    else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Common_Tools::GUIDToString (mediaType_out->formattype).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+    framerate_i =
+      Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate (*mediaType_out);
+    if (frameRate_in && (framerate_i != frameRate_in))
+    {
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+      continue;
+    } // end IF
+    break; // --> found a match
   } // end FOR
   stream_config_p->Release (); stream_config_p = NULL;
 
@@ -631,7 +1007,7 @@ Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_i
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_p->Release ();
     return;
   } // end IF
@@ -642,7 +1018,7 @@ Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_i
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     stream_config_p->Release ();
     return;
   } // end IF
@@ -677,7 +1053,7 @@ Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_i
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", returning\n"),
                   i,
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       stream_config_p->Release ();
       return;
     } // end IF
@@ -749,7 +1125,7 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -776,7 +1152,7 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_p->Release ();
     return false;
   } // end IF
@@ -788,7 +1164,7 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()), result,
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result,
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (mediaType_in, false).c_str ())));
     stream_config_p->Release ();
     return false;
@@ -854,7 +1230,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       //builder_2->Release ();
       return false;
     } // end IF
@@ -879,7 +1255,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -897,7 +1273,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     enumerator_p->Release (); enumerator_p = NULL;
     //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
     goto error;
@@ -914,7 +1290,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       moniker_p->Release (); moniker_p = NULL;
       enum_moniker_p->Release (); enum_moniker_p = NULL;
       goto error;
@@ -931,7 +1307,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
                     ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
         properties_p->Release (); properties_p = NULL;
         moniker_p->Release (); moniker_p = NULL;
         enum_moniker_p->Release (); enum_moniker_p = NULL;
@@ -943,21 +1319,22 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     else if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     {
       result =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING,
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
                             &variant_s,
                             0);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
         properties_p->Release (); properties_p = NULL;
         moniker_p->Release (); moniker_p = NULL;
         enum_moniker_p->Release (); enum_moniker_p = NULL;
         goto error;
       } // end IF
-      device_id = variant_s.lVal;
+      ACE_Wide_To_Ascii converter (variant_s.bstrVal);
+      device_path_string = converter.char_rep ();
     } // end IF
     result = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result));
@@ -983,7 +1360,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     moniker_p->Release (); moniker_p = NULL;
     goto error;
   } // end IF
@@ -1008,7 +1385,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     filter_p->Release (); filter_p = NULL;
     goto error;
   } // end IF
@@ -1020,7 +1397,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     filter_p->Release (); filter_p = NULL;
     goto error;
   } // end IF
@@ -1034,7 +1411,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       enumerator_2->Release (); enumerator_2 = NULL;
       goto error;
@@ -1052,7 +1429,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMAudioInputMixer): \"%s\", aborting\n"),
-                        ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                        ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
             pin_p->Release (); pin_p = NULL;
             enumerator_2->Release (); enumerator_2 = NULL;
             goto error;
@@ -1063,7 +1440,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to IAMAudioInputMixer::put_Enable(): \"%s\", aborting\n"),
-                        ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                        ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
             audio_input_mixer_p->Release (); audio_input_mixer_p = NULL;
             pin_p->Release (); pin_p = NULL;
             enumerator_2->Release (); enumerator_2 = NULL;
@@ -1100,7 +1477,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       enumerator_2->Release (); enumerator_2 = NULL;
       goto error;
@@ -1115,7 +1492,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       property_set_p->Release (); property_set_p = NULL;
       pin_p->Release (); pin_p = NULL;
       enumerator_2->Release (); enumerator_2 = NULL;
@@ -1145,7 +1522,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_2->Release (); pin_2 = NULL;
     goto error;
   } // end IF
@@ -1156,7 +1533,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_2->Release (); pin_2 = NULL;
     goto error;
   } // end IF

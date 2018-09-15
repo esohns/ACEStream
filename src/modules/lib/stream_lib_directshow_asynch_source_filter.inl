@@ -246,7 +246,7 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   // step1: disconnect from graph
   if (unlikely (!Stream_MediaFramework_DirectShow_Tools::disconnect (this)))
@@ -261,7 +261,7 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IFilterGraph::RemoveFilter(%s): \"%s\", continuing\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 }
 template <typename TimePolicyType,
@@ -537,7 +537,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     if (allocator_p)
       delete allocator_p;
     return (!allocator_p ? E_OUTOFMEMORY : result);
@@ -549,7 +549,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CMemAllocator::QueryInterface(IID_IMemAllocator): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     delete allocator_p;
     return result;
   } // end IF
@@ -959,7 +959,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CSourceStream::SetMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -1165,7 +1165,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
                 ACE_TEXT ("%s/%s: failed to IPin::ConnectedTo(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ibase_filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (ipin_p);
@@ -1180,7 +1180,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ibase_filter_2).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ipin_p).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
     result = allocator_in->SetProperties (properties_in,
                                           &allocator_properties);
@@ -1188,7 +1188,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMemAllocator::SetProperties(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     allocator_in->AddRef ();
@@ -1203,7 +1203,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ibase_filter_2).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ipin_p).c_str ()),
-              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   // create own allocator
   result = InitAllocator (&allocator_p);
@@ -1211,7 +1211,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T::InitAllocator(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (allocator_p);
@@ -1223,7 +1223,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMemAllocator::SetProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   *allocator_out = allocator_p;

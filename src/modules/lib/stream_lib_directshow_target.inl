@@ -180,7 +180,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     COM_initialized = true;
@@ -407,7 +407,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       COM_initialized = true;
@@ -465,7 +465,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
 
@@ -474,7 +474,7 @@ error_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
 
 do_run:
@@ -488,7 +488,7 @@ do_run:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       is_running = true;
@@ -525,7 +525,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       } // end IF
       if (COM_initialized)
         CoUninitialize ();
@@ -546,7 +546,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         break;
       } // end IF
       COM_initialized = true;
@@ -570,7 +570,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         IMediaEventEx_->Release (); IMediaEventEx_ = NULL;
       } // end IF
 
@@ -582,7 +582,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         IMediaControl_->Release (); IMediaControl_ = NULL;
       } // end IF
 
@@ -659,7 +659,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::GUIDToString (filterCLSID_in).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -679,7 +679,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->NonDelegatingRelease ();
@@ -735,7 +735,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     
     // clean up
     buffer_negotiation_p->Release ();
@@ -763,7 +763,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT_WCHAR_TO_TCHAR (render_filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -785,7 +785,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IPin::QueryInterface(IID_IMemInputPin): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  pin_p->Release ();
@@ -800,7 +800,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMemInputPin::GetAllocator(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  IMemInputPin_->Release (); IMemInputPin_ = NULL;

@@ -19,23 +19,35 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Log_Msg.h"
-#include "ace/Synch.h"
-
-#include <dshow.h>
+#include <sdkddkver.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
+#include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#include <WinNT.h>
+//#include <Guiddef.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
                       //         (see: stream_lib_common.h)
-//#include <streams.h>
-#include <WinNT.h>
+#if _MSC_VER>=1100
+#define AM_NOVTABLE __declspec(novtable)
+#else
+#define AM_NOVTABLE
+#endif
+#include <strmif.h>
+#include <Unknwn.h>
+// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+#undef __WXDEBUG__
 #include <wxdebug.h>
 #include <combase.h>
 #include <dllsetup.h>
-#include <strmif.h>
+#include <uuids.h>
+
+#include "ace/Log_Msg.h"
+#include "ace/Synch.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
-
-//#include "class_factory.h"
 
 #include "stream_macros.h"
 
@@ -45,6 +57,8 @@
 #include "stream_lib_directshow_asynch_source_filter.h"
 #include "stream_lib_directshow_source_filter.h"
 #include "stream_lib_tools.h"
+
+//#include "class_factory.h"
 
 #include "test_i_defines.h"
 #include "test_i_target_message.h"
@@ -231,7 +245,7 @@ InitRoutine (BOOL isLoading_in,
   // step1: initialize COM
   // sanity check(s)
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  Stream_Module_Device_DirectShow_Tools::initialize (true);
+  Stream_Module_Device_DirectShow_Tools::initialize (true); // initialize COM ?
 }
 
 //STDAPI
@@ -246,22 +260,27 @@ InitRoutine (BOOL isLoading_in,
 //  return S_OK;
 //}
 //STDAPI
-//DllGetClassObject (__in REFCLSID rClsID_in,
-//                   __in REFIID riid_in,
-//                   __deref_out void** factory_out)
+//DllGetClassObject (REFCLSID rClsID_in,
+//                   REFIID riid_in,
+//                   LPVOID* factory_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("::DllGetClassObject"));
+//
+//  // sanity check(s)
+//  if (!InlineIsEqualGUID (rClsID_in, CLSID_ACEStream_MediaFramework_Source_Filter) &&
+//      !InlineIsEqualGUID (rClsID_in, CLSID_ACEStream_MediaFramework_Asynch_Source_Filter))
+//    return CLASS_E_CLASSNOTAVAILABLE;
+//  if (!InlineIsEqualGUID (riid_in, IID_IUnknown) &&
+//      !InlineIsEqualGUID (riid_in, IID_IClassFactory))
+//    return E_NOINTERFACE;
+//  if (!factory_out)
+//    return E_POINTER;
 //
 //  // initialize return value(s)
 //  *factory_out = NULL;
 //
-//  // sanity check(s)
-//  if (!(riid_in == IID_IUnknown) &&
-//      !(riid_in == IID_IClassFactory))
-//    return E_NOINTERFACE;
-//
 //  const CFactoryTemplate* factory_template_p = NULL;
-//  for (int i = 0; i < g_cTemplates; i++)
+//  for (int i = 0; i < g_cTemplates; ++i)
 //  {
 //    factory_template_p = &g_Templates[i];
 //    if (factory_template_p->IsClassID (rClsID_in))
@@ -275,10 +294,11 @@ InitRoutine (BOOL isLoading_in,
 //  if (!*factory_out)
 //    return E_OUTOFMEMORY;
 //
-//  ((LPUNKNOWN)*factory_out)->AddRef ();
-//
 //  return NOERROR;
 //}
+
+//////////////////////////////////////////
+
 STDAPI
 DllRegisterServer ()
 {
@@ -291,7 +311,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to AMovieDllRegisterServer2(TRUE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -305,7 +325,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (ifilter_mapper_p);
@@ -321,7 +341,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   result =
@@ -335,9 +355,12 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("registered %s synch/asynch DirectShow source filters...\n"),
+              ACE_TEXT (ACESTREAM_PACKAGE_NAME)));
 
 clean:
   if (ifilter_mapper_p)
@@ -345,6 +368,7 @@ clean:
 
   return result;
 } // DllRegisterServer
+
 STDAPI
 DllUnregisterServer ()
 {
@@ -357,7 +381,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to AMovieDllRegisterServer2(false): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -371,7 +395,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (ifilter_mapper_p);
@@ -384,7 +408,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   result =
@@ -395,9 +419,12 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("deregistered %s synch/asynch DirectShow source filters...\n"),
+              ACE_TEXT (ACESTREAM_PACKAGE_NAME)));
 
 clean:
   if (ifilter_mapper_p)
@@ -405,6 +432,8 @@ clean:
 
   return result;
 } // DllUnregisterServer
+
+//////////////////////////////////////////
 
 extern "C"
 BOOL WINAPI

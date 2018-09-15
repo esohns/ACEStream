@@ -209,24 +209,24 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   GdkColor                                                 backgroundColor_;
   GdkColor                                                 foregroundColor_;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-  GtkGLArea*                                               OpenGLWindow_;
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  GglaArea*                                                OpenGLWindow_;
-#else
-  GdkWindow*                                               OpenGLWindow_;
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#else /* GTK_CHECK_VERSION (3,0,0) */
-#if defined (GTKGLAREA_SUPPORT)
-  GtkGLArea*                                               OpenGLWindow_;
-#else
-  GdkGLContext*                                            OpenGLContext_;
-  GdkGLDrawable*                                           OpenGLWindow_;
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+//#if GTK_CHECK_VERSION(3,0,0)
+//#if GTK_CHECK_VERSION(3,16,0)
+//  GtkGLArea*                                               OpenGLWindow_;
+//#else
+//#if defined (GTKGLAREA_SUPPORT)
+//  GglaArea*                                                OpenGLWindow_;
+//#else
+//  GdkWindow*                                               OpenGLWindow_;
+//#endif // GTKGLAREA_SUPPORT
+//#endif /* GTK_CHECK_VERSION (3,16,0) */
+//#else /* GTK_CHECK_VERSION (3,0,0) */
+//#if defined (GTKGLAREA_SUPPORT)
+//  GtkGLArea*                                               OpenGLWindow_;
+//#else
+//  GdkGLContext*                                            OpenGLContext_;
+//  GdkGLDrawable*                                           OpenGLWindow_;
+//#endif // GTKGLAREA_SUPPORT
+//#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
   double                                                   channelFactor_;
   double                                                   scaleFactorX_;

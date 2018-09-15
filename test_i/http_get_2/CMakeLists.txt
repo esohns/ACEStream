@@ -128,7 +128,7 @@ elseif (WIN32)
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
- message (STATUS "Apache OpenOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
+#message (STATUS "Apache OpenOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
  include_directories (${OO_SDK_DIRECTORY}/include)
 
  if (DEFINED ENV{UNO_PATH})

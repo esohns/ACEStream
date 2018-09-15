@@ -7,15 +7,19 @@
 #define MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING              "Direct3D"
 #define MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING            "DirectShow"
 #define MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING       "MediaFoundation"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #define MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING             "GTKCairo"
 #define MODULE_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING            "GTKPixbuf"
 #define MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING "GTKSpectrumAnalyzer"
 
 #define MODULE_VIS_RENDERER_NULL_MODULE_NAME                 "DisplayNull"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define MODULE_VIS_RENDERER_VIDEO_DEFAULT_SAMPLES            60
+#define MODULE_VIS_RENDERER_VIDEO_DEFAULT                    STREAM_MODULE_VIS_VIDEORENDERER_DIRECT3D
 #else
+#define MODULE_VIS_RENDERER_VIDEO_DEFAULT                    STREAM_MODULE_VIS_VIDEORENDERER_GTK_CAIRO
+#endif // ACE_WIN32 || ACE_WIN64
+#define MODULE_VIS_RENDERER_VIDEO_DEFAULT_SAMPLES            60
+
 // *NOTE*: "...each pixel is a 32-bit quantity, with the upper 8 bits unused.
 //         Red, Green, and Blue are stored in the remaining 24 bits in that
 //         order. ..."
@@ -25,7 +29,6 @@
 ////          native-endian. Pre-multiplied alpha is used. (That is, 50%
 ////          transparent red is 0x80800000, not 0x80ff0000.) ..."
 //#define MODULE_VIS_DEFAULT_CAIRO_FORMAT      CAIRO_FORMAT_ARGB32
-#endif
 
 // spectrum analyzer
 // *NOTE*: process this many samples in one 'sweep'

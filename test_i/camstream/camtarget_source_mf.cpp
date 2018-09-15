@@ -19,15 +19,35 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Log_Msg.h"
-#include "ace/Synch.h"
-
-#include <Dshow.h>
-#include <initguid.h>
+#include <sdkddkver.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
+#include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#include <WinNT.h>
+//#include <Guiddef.h>
+#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
+                      //         (see: stream_lib_common.h)
+#if _MSC_VER>=1100
+#define AM_NOVTABLE __declspec(novtable)
+#else
+#define AM_NOVTABLE
+#endif
 #include <strmif.h>
+#include <Unknwn.h>
+// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+#undef __WXDEBUG__
+#include <wxdebug.h>
+#include <combase.h>
+#include <dllsetup.h>
+#include <strsafe.h>
+#include <uuids.h>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 #include <WinReg.h>
 #else
+#include "ace/Synch.h"
+
 #include "common_tools.h"
 
 //WINADVAPI
@@ -76,6 +96,9 @@ RegDeleteKeyValueW (__in      HKEY     hKey,
 #define RegDeleteKeyValue  RegDeleteKeyValueA
 #endif // !UNICODE
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+
+#include "ace/Log_Msg.h"
+#include "ace/Synch.h"
 
 #include "class_factory.h"
 #include "registry.h"       // Helpers to register COM objects.
@@ -172,14 +195,19 @@ DllRegisterServer ()
   result =
     RegisterObject (g_hModule,
                     CLSID_ACEStream_MediaFramework_MF_MediaSource,
-                    ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
-                    ACE_TEXT ("Both"));
+#if defined (UNICODE)
+                    ACE_TEXT_ALWAYS_WCHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT_ALWAYS_WCHAR ("Both"));
+#else
+                    ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT_ALWAYS_CHAR ("Both"));
+#endif // UNICODE
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to RegisterObject(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -194,7 +222,7 @@ DllRegisterServer ()
   //              ACE_TEXT ("failed to RegisterByteStreamHandler(%s,\"%s\"): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::GUIDToString (CLSID_MFSampleMPEG1ByteStreamHandler).c_str ()),
   //              fileExtension_in,
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  return result;
   //} // end IF
 
@@ -212,7 +240,7 @@ DllUnregisterServer ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to UnregisterObject(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_ACEStream_MediaFramework_MF_MediaSource).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -247,7 +275,7 @@ DllGetClassObject (REFCLSID CLSID_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ClassFactory() (CLSID was: %s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_in).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (class_factory_p);
@@ -258,7 +286,7 @@ DllGetClassObject (REFCLSID CLSID_in,
                 ACE_TEXT ("failed to ClassFactory::QueryInterface() (CLSID was: %s, IID was: %s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_in).c_str ()),
                 ACE_TEXT (Common_Tools::GUIDToString (IID_in).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     class_factory_p->Release (); class_factory_p = NULL;
     return result;
   } // end IF
@@ -299,7 +327,7 @@ CreateRegistryKey (HKEY parentKey_in,
     result = HRESULT_FROM_WIN32 (result_2);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to RegDeleteKeyValue(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -341,19 +369,23 @@ RegisterByteStreamHandler (REFCLSID CLSID_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to StringCchLength(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   result =
       CreateRegistryKey (HKEY_LOCAL_MACHINE,
+#if defined (UNICODE)
+                         ACE_TEXT_ALWAYS_WCHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+#else
                          ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+#endif // UNICODE
                          &key_p);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CreateRegistryKey(%s): \"%s\", aborting\n"),
                 ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (key_p);
@@ -365,13 +397,17 @@ RegisterByteStreamHandler (REFCLSID CLSID_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CreateRegistryKey(%s): \"%s\", aborting\n"),
                 fileExtension_in,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   ACE_ASSERT (subkey_p);
   result =
     RegSetValueEx (subkey_p,
-                   ACE_TEXT_CHAR_TO_TCHAR (clsid_string.c_str ()),
+#if defined (UNICODE)
+                   ACE_TEXT_ALWAYS_WCHAR (clsid_string.c_str ()),
+#else
+                   ACE_TEXT_ALWAYS_CHAR (clsid_string.c_str ()),
+#endif // UNICODE
                    0,
                    REG_SZ,
                    reinterpret_cast<const BYTE*> (description_in),
@@ -381,7 +417,7 @@ RegisterByteStreamHandler (REFCLSID CLSID_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to RegSetValueEx(%s): \"%s\", aborting\n"),
                 fileExtension_in,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
 
@@ -408,14 +444,18 @@ UnregisterByteStreamHandler (REFCLSID CLSID_in,
   result =
     StringCchPrintf (buffer_a,
                      sizeof (TCHAR[MAX_PATH]),
-                     ACE_TEXT ("%s\\%s"),
+#if defined (UNICODE)
+                     ACE_TEXT_ALWAYS_WCHAR ("%s\\%s"),
+#else
+                     ACE_TEXT_ALWAYS_CHAR ("%s\\%s"),
+#endif // UNICODE
                      ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
                      fileExtension_in);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to StringCchPrintf(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -425,13 +465,17 @@ UnregisterByteStreamHandler (REFCLSID CLSID_in,
   result_2 =
     RegDeleteKeyValue (HKEY_LOCAL_MACHINE,
                        buffer_a,
-                       ACE_TEXT_CHAR_TO_TCHAR (clsid_string.c_str ()));
+#if defined (UNICODE)
+                       ACE_TEXT_ALWAYS_WCHAR (clsid_string.c_str ()));
+#else
+                       ACE_TEXT_ALWAYS_CHAR (clsid_string.c_str ()));
+#endif // UNICODE
   if (unlikely (result_2 != ERROR_SUCCESS))
   {
     result = HRESULT_FROM_WIN32 (result_2);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to RegDeleteKeyValue(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 

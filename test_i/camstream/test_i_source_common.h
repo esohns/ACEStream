@@ -26,7 +26,8 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <Dshow.h>
+//#include <Dshow.h>
+#include <control.h>
 #include <evr.h>
 #include <mfapi.h>
 #include <strmif.h>
@@ -46,7 +47,9 @@ extern "C"
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -54,8 +57,11 @@ extern "C"
 
 #include "common_statistic_handler.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
@@ -451,7 +457,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     ACE_ASSERT (inputFormat);
   }
 
@@ -806,13 +812,13 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
 
-struct Test_I_Source_DirectShow_GTK_CBData;
+struct Test_I_Source_DirectShow_UI_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      struct Test_I_Source_DirectShow_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_DirectShow_Stream_Message,
                                      Test_I_Source_DirectShow_Stream_SessionMessage,
-                                     struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_EventHandler_t;
+                                     struct Test_I_Source_DirectShow_UI_CBData> Test_I_Source_DirectShow_EventHandler_t;
 
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
@@ -822,13 +828,13 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
 
-struct Test_I_Source_MediaFoundation_GTK_CBData;
+struct Test_I_Source_MediaFoundation_UI_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      struct Test_I_Source_MediaFoundation_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_MediaFoundation_Stream_Message,
                                      Test_I_Source_MediaFoundation_Stream_SessionMessage,
-                                     Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_EventHandler_t;
+                                     struct Test_I_Source_MediaFoundation_UI_CBData> Test_I_Source_MediaFoundation_EventHandler_t;
 
 typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test_I_Source_MediaFoundation_ISubscribe_t;
 #else
@@ -838,13 +844,13 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_V4L2_Stream_Message,
                                           Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_MessageAllocator_t;
 
-struct Test_I_Source_V4L2_GTK_CBData;
+struct Test_I_Source_V4L2_UI_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      struct Test_I_Source_V4L2_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_V4L2_Stream_Message,
                                      Test_I_Source_V4L2_Stream_SessionMessage,
-                                     Test_I_Source_V4L2_GTK_CBData> Test_I_Source_V4L2_EventHandler_t;
+                                     struct Test_I_Source_V4L2_UI_CBData> Test_I_Source_V4L2_EventHandler_t;
 
 typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V4L2_ISubscribe_t;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -852,11 +858,11 @@ typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+struct Test_I_Source_DirectShow_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Source_DirectShow_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Source_DirectShow_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
@@ -864,7 +870,7 @@ struct Test_I_Source_DirectShow_GTK_CBData
    , streamConfiguration (NULL)
    , UDPStream (NULL)
   {
-    progressData.state = this;
+    progressData.state = &this->UIState;
   }
 
   struct Test_I_Source_DirectShow_Configuration* configuration;
@@ -874,17 +880,20 @@ struct Test_I_Source_DirectShow_GTK_CBData
   IAMStreamConfig*                               streamConfiguration;
   Test_I_Source_DirectShow_StreamBase_t*         UDPStream;
 };
-struct Test_I_Source_MediaFoundation_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+
+struct Test_I_Source_MediaFoundation_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Source_MediaFoundation_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Source_MediaFoundation_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {}
+  {
+    progressData.state = &this->UIState;
+  }
 
   struct Test_I_Source_MediaFoundation_Configuration* configuration;
   Test_I_Source_MediaFoundation_StreamBase_t*         stream;
@@ -893,18 +902,20 @@ struct Test_I_Source_MediaFoundation_GTK_CBData
   Test_I_Source_MediaFoundation_StreamBase_t*         UDPStream;
 };
 #else
-struct Test_I_Source_V4L2_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+struct Test_I_Source_V4L2_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Source_V4L2_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Source_V4L2_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
    , fileDescriptor (-1)
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {}
+  {
+    progressData.state = &this->UIState;
+  }
 
   struct Test_I_Source_V4L2_Configuration* configuration;
   int                                      fileDescriptor; // (capture) device file descriptor
@@ -924,8 +935,9 @@ struct Test_I_Source_DirectShow_ThreadData
    , CBData (NULL)
   {}
 
-  struct Test_I_Source_DirectShow_GTK_CBData* CBData;
+  struct Test_I_Source_DirectShow_UI_CBData* CBData;
 };
+
 struct Test_I_Source_MediaFoundation_ThreadData
  : Test_I_CamStream_ThreadData
 {
@@ -934,7 +946,7 @@ struct Test_I_Source_MediaFoundation_ThreadData
    , CBData (NULL)
   {}
 
-  struct Test_I_Source_MediaFoundation_GTK_CBData* CBData;
+  struct Test_I_Source_MediaFoundation_UI_CBData* CBData;
 };
 #else
 struct Test_I_Source_V4L2_ThreadData
@@ -945,31 +957,20 @@ struct Test_I_Source_V4L2_ThreadData
    , CBData (NULL)
   {}
 
-  struct Test_I_Source_V4L2_GTK_CBData* CBData;
+  struct Test_I_Source_V4L2_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Source_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
-
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Source_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Source_DirectShow_UI_CBData> Test_I_Source_DirectShow_GtkBuilderDefinition_t;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Source_MediaFoundation_UI_CBData> Test_I_Source_MediaFoundation_GtkBuilderDefinition_t;
 #else
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_GTK_CBData> Test_I_Source_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT
 
 #endif

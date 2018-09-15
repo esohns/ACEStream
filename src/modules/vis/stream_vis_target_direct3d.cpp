@@ -26,6 +26,8 @@
 #include <guiddef.h>
 #include <mfapi.h>
 
+#include "common_error_tools.h"
+
 #include "stream_vis_defines.h"
 
 // initialize globals
@@ -98,6 +100,7 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
                                                            DWORD       dwWidthInPixels,
                                                            DWORD       dwHeightInPixels)
 {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = MFCopyImage (pDest,
                                 lDestStride,
                                 pSrc,
@@ -107,7 +110,19 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCopyImage(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#else
+  ACE_ASSERT (::abs (lSrcStride) <= ::abs (lDestStride));
+  if (lSrcStride == lDestStride)
+    ACE_OS::memcpy (pDest,
+                    pSrc,
+                    (lSrcStride * dwHeightInPixels));
+  else
+    for (DWORD y = 0; y < dwHeightInPixels; y++)
+      ACE_OS::memcpy (pDest + (y * lDestStride),
+                      pSrc + (y * lSrcStride),
+                      ((lSrcStride < 0) ? -lSrcStride : lSrcStride));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 }
 
 //-------------------------------------------------------------------

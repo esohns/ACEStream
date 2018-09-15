@@ -65,18 +65,19 @@ class Stream_Module_Device_Tools
   static void initialize (bool = true); // initialize media frameworks ?
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool getDirect3DDevice (HWND,                            // target window handle
-                                 const struct _AMMediaType&,      // media format handle
+  static bool getDirect3DDevice (const struct Stream_Module_Device_Direct3DConfiguration&, // configuration
+                                 HWND,                                                     // 'device' window handle
+                                 const struct _AMMediaType&,                               // media format handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                 IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+                                 IDirect3DDevice9Ex*&,                                     // return value: device handle
 #else
-                                 IDirect3DDevice9*&,              // return value: Direct3D device handle
+                                 IDirect3DDevice9*&,                                       // return value: device handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                 struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
-                                 IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
-                                 UINT&);                          // return value: reset token
-                                                                  // EnumDisplayMonitors callback data
-  struct Stream_EnumDisplayMonitors_CBData
+                                 struct _D3DPRESENT_PARAMETERS_&,                          // return value: presentation parameters
+                                 IDirect3DDeviceManager9*&,                                // return value: device manager handle
+                                 UINT&);                                                   // return value: reset token
+
+  struct Stream_EnumDisplayMonitors_CBData // ::EnumDisplayMonitors() callback data
   {
     Stream_EnumDisplayMonitors_CBData ()
      : deviceIdentifier ()

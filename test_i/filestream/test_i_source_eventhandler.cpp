@@ -25,7 +25,9 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
@@ -34,17 +36,11 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-Test_I_Source_EventHandler::Test_I_Source_EventHandler (Test_I_Source_GTK_CBData* CBData_in)
+Test_I_Source_EventHandler::Test_I_Source_EventHandler (struct Test_I_Source_UI_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_EventHandler::Test_I_Source_EventHandler"));
-
-}
-
-Test_I_Source_EventHandler::~Test_I_Source_EventHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_EventHandler::~Test_I_Source_EventHandler"));
 
 }
 
@@ -58,13 +54,11 @@ Test_I_Source_EventHandler::start (Stream_SessionId_t sessionId_in,
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
-  //ACE_ASSERT (!sessionData_);
 
   sessionData_ =
     &const_cast<struct Test_I_Source_SessionData&> (sessionData_in);
 
   int result = -1;
-
   if (sessionData_->lock)
   {
     result = sessionData_->lock->acquire ();
@@ -73,19 +67,19 @@ Test_I_Source_EventHandler::start (Stream_SessionId_t sessionId_in,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
   } // end IF
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->progressData.size = sessionData_->size;
 
-  CBData_->progressData.size = sessionData_->size;
+    if (sessionData_->lock)
+    {
+      result = sessionData_->lock->release ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+    } // end IF
 
-  if (sessionData_->lock)
-  {
-    result = sessionData_->lock->release ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
-  } // end IF
-
-  CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
+  } // end lock scope
 }
 
 void
@@ -113,18 +107,22 @@ Test_I_Source_EventHandler::end (Stream_SessionId_t sessionId_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  guint event_source_id = g_idle_add (idle_end_source_UI_cb,
-                                      CBData_);
-  if (!event_source_id)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_end_source_UI_cb): \"%m\", returning\n")));
-    return;
-  } // end IF
-
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STOPPED);
+#if defined (GTK_SUPPORT)
+  guint event_source_id = 0;
+#endif // GTK_SUPPORT
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GTK_SUPPORT)
+    event_source_id = g_idle_add (idle_end_source_UI_cb,
+                                  CBData_);
+    if (!event_source_id)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(idle_end_source_UI_cb): \"%m\", returning\n")));
+      return;
+    } // end IF
+    CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_SUPPORT
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
 
   if (sessionData_)
@@ -144,9 +142,9 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   unsigned int length = message_in.total_length ();
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     CBData_->progressData.transferred += length;
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
 void
@@ -178,7 +176,7 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionId_in,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
         CBData_->progressData.statistic = sessionData_->statistic;
       } // end lock scope
 
@@ -199,7 +197,7 @@ continue_:
       return;
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (event_e);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->UIState.eventStack.push (event_e);
   } // end lock scope
 }

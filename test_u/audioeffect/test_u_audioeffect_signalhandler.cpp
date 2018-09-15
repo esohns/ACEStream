@@ -24,13 +24,14 @@
 
 #include "ace/Log_Msg.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_macros.h"
 
-Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler (enum Common_SignalDispatchType dispatchMode_in,
-                                                                    ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
- : inherited (dispatchMode_in,
+Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler (ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
+ : inherited (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
               lock_in,
               this) // event handler handle
 {
@@ -42,8 +43,6 @@ void
 Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SignalHandler::handle"));
-
-//  int result = -1;
 
   bool statistic = false;
   bool shutdown = false;
@@ -143,32 +142,13 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     //  configuration_.actionTimerId = -1;
     //} // end IF
 
-    // step2: stop GTK event processing
+    // step2: stop UI event processing ?
     if (inherited::configuration_->hasUI)
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (inherited::configuration_->mediaFramework)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                              true); // N/A
-          break;
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                   true); // N/A
-          break;
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unkown media framework (was: %d), continuing\n"),
-                      inherited::configuration_->mediaFramework));
-          break;
-        }
-      } // end SWITCH
+#if defined (GTK_SUPPORT)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                          false); // N/A
 #else
-      AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                               true); // N/A
-#endif
-    } // end IF
+      ;
+#endif // GTK_SUPPORT
   } // end IF
 }

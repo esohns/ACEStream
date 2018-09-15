@@ -23,12 +23,17 @@
 
 #include <string>
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
-
-//#include <streams.h>
+#include <BaseTyps.h>
 #include <control.h>
 #include <qedit.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
+#include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -161,7 +166,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual int svc (void);
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
+  bool initialize_DirectShow (const std::string&,      // (source) device path
                               int,                     // (target) audio output [0: none]
                               ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
                               IAMDroppedFrames*&,      // return value: capture filter statistic handle

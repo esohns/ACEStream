@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "stream_lib_directshow_tools.h"
 
 #include <sstream>
@@ -61,6 +62,8 @@
 #include "common.h"
 #include "common_time_common.h"
 #include "common_tools.h"
+
+#include "common_error_tools.h"
 
 #include "stream_macros.h"
 
@@ -449,21 +452,24 @@ Stream_MediaFramework_DirectShow_Tools::initialize (bool coInitialize_in)
   Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_DTS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("DTS_AUDIO")));
   Stream_MediaFramework_DirectShow_Tools::Stream_WaveFormatSubTypeToStringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_SDDS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("SDDS_AUDIO")));
 
-  HRESULT result = E_FAIL;
   if (likely (coInitialize_in))
   {
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
+    HRESULT result = CoInitializeEx (NULL,
+                                     (COINIT_MULTITHREADED    |
+                                      COINIT_DISABLE_OLE1DDE  |
+                                      COINIT_SPEED_OVER_MEMORY));
+    if (unlikely (FAILED (result))) // 0x80010106: RPC_E_CHANGED_MODE
     {
-      // *NOTE*: most probable reason: already initialized (happens in the
-      //         debugger)
-      //         --> continue
+      if (result != RPC_E_CHANGED_MODE) // already initialized
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+        return false;
+      } // end IF
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     } // end IF
   } // end IF
 
@@ -494,14 +500,16 @@ Stream_MediaFramework_DirectShow_Tools::addToROT (IFilterGraph* filterGraph_in,
   IUnknown* iunknown_p = filterGraph_in;
   IRunningObjectTable* ROT_p = NULL;
   IMoniker* moniker_p = NULL;
-  WCHAR buffer_a[BUFSIZ];
+  OLECHAR buffer_a[BUFSIZ];
+  LPCOLESTR lpszDelim = OLESTR ("!");
+  LPCOLESTR pszFormat = OLESTR ("FilterGraph %08x pid %08x");
 
   HRESULT result = GetRunningObjectTable (0, &ROT_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (ROT_p);
@@ -509,25 +517,29 @@ Stream_MediaFramework_DirectShow_Tools::addToROT (IFilterGraph* filterGraph_in,
   // *IMPORTANT NOTE*: do not change this syntax, otherwise graphedt.exe
   //                   cannot find the graph
   result =
-//    ::StringCchPrintfW (buffer, NUMELMS (buffer),
-    ::StringCchPrintfW (buffer_a, sizeof (buffer_a) / sizeof ((buffer_a)[0]),
-                        ACE_TEXT_ALWAYS_WCHAR ("FilterGraph %08x pid %08x"),
+#if defined (_WIN32) && !defined (OLE2ANSI) // see <WTypes.h>
+//    ::StringCchPrintf (buffer_a, NUMELMS (buffer_a),
+    ::StringCchPrintfW (buffer_a, sizeof (OLECHAR[BUFSIZ]) / sizeof ((buffer_a)[0]),
+#else
+    ::StringCchPrintfA (buffer_a, sizeof (OLECHAR[BUFSIZ]) / sizeof ((buffer_a)[0]),
+#endif // _WIN32 && !OLE2ANSI
+                        pszFormat,
                         (DWORD_PTR)iunknown_p, ACE_OS::getpid ());
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to StringCchPrintfW(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT ("failed to StringCchPrintf(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
 
-  result = CreateItemMoniker (ACE_TEXT_ALWAYS_WCHAR ("!"), buffer_a,
+  result = CreateItemMoniker (lpszDelim, buffer_a,
                               &moniker_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CreateItemMoniker(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
 
@@ -546,7 +558,7 @@ Stream_MediaFramework_DirectShow_Tools::addToROT (IFilterGraph* filterGraph_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IRunningObjectTable::Register(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
@@ -580,7 +592,7 @@ Stream_MediaFramework_DirectShow_Tools::removeFromROT (DWORD id_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (ROT_p);
@@ -590,7 +602,7 @@ Stream_MediaFramework_DirectShow_Tools::removeFromROT (DWORD id_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IRunningObjectTable::Revoke(%d): \"%s\", continuing\n"),
                 id_in,
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed filter graph from running object table (id was: %d)\n"),
@@ -627,7 +639,7 @@ Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder* builder_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CreateFile(\"%s\"): \"%s\", returning\n"),
                   ACE_TEXT (fileName_in.c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (::GetLastError (), false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
       return;
     } // end IF
   } // end IF
@@ -641,13 +653,13 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::SetLogFile(\"%s\"): \"%s\", returning\n"),
                 ACE_TEXT (fileName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (::GetLastError (), false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
 
     return;
   } // end IF
@@ -658,7 +670,7 @@ continue_:
     if (!CloseHandle (Stream_MediaFramework_DirectShow_Tools::logFileHandle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (::GetLastError (), false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
   } // end IF
 }
 
@@ -736,7 +748,7 @@ Stream_MediaFramework_DirectShow_Tools::dump (IPin* pin_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::EnumMediaTypes(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return;
   } // end IF
   ACE_ASSERT (ienum_media_types_p);
@@ -857,7 +869,7 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     return NULL;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -874,7 +886,7 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
 
       // clean up
       result->Release ();
@@ -894,7 +906,7 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
-    //    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+    //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     //  // clean up
     //  pin_p->Release ();
@@ -910,7 +922,7 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-    //    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+    //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     //  // clean up
     //  property_set_p->Release ();
@@ -964,7 +976,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -976,7 +988,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       result->Release (); result = NULL;
       enumerator_p->Release ();
       return false;
@@ -993,7 +1005,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryInterface(IID_IKsPropertySet): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       result->Release (); result = NULL;
       enumerator_p->Release ();
       return false;
@@ -1006,7 +1018,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       property_set_p->Release ();
       result->Release (); result = NULL;
       enumerator_p->Release ();
@@ -1038,7 +1050,7 @@ Stream_MediaFramework_DirectShow_Tools::pinToFilter (IPin* pin_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryPinInfo(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return NULL;
   } // end IF
   ACE_ASSERT (pin_info.pFilter);
@@ -1060,7 +1072,7 @@ Stream_MediaFramework_DirectShow_Tools::name (IBaseFilter* filter_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     return result;
   } // end iF
   result =
@@ -1113,7 +1125,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (builder_2);
@@ -1125,7 +1137,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       builder_2->Release (); builder_2 = NULL;
       return false;
     } // end IF
@@ -1136,7 +1148,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       builder_2->Release (); builder_2 = NULL;
       goto error;
     } // end IF
@@ -1162,7 +1174,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(0x%@: \"%s\"): \"%s\", aborting\n"),
                 sourceFilter_in,
                 ACE_TEXT (ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   //ACE_DEBUG ((LM_DEBUG,
@@ -1179,7 +1191,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -1196,7 +1208,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::QueryInterface(IID_IKsPropertySet): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       enumerator_p->Release (); enumerator_p = NULL;
       goto error;
@@ -1210,7 +1222,7 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       property_set_p->Release (); property_set_p = NULL;
       pin_p->Release (); pin_p = NULL;
       enumerator_p->Release (); enumerator_p = NULL;
@@ -1241,14 +1253,14 @@ Stream_MediaFramework_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilt
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
   result = pin_2->QueryInterface (IID_PPV_ARGS (&IAMStreamConfig_out));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_2->Release (); pin_2 = NULL;
     goto error;
   } // end IF
@@ -1296,7 +1308,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1319,7 +1331,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     pin_p->Release (); pin_p = NULL;
     return false;
   } // end IF
@@ -1332,13 +1344,13 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())));
     else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(NULL): \"%s\", continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   } // end IF
   stream_config_p->Release (); stream_config_p = NULL;
 
@@ -1356,7 +1368,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       return false;
     } // end IF
@@ -1417,7 +1429,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                     ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())
                                            : ACE_TEXT ("NULL")),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
                     result));
       //} // end ELSE
 
@@ -1431,7 +1443,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
                     result));
 //#if defined (_DEBUG)
 //        Stream_MediaFramework_DirectShow_Tools::countFormats (pin_2,
@@ -1498,7 +1510,7 @@ Stream_MediaFramework_DirectShow_Tools::connectFirst (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1528,7 +1540,7 @@ loop:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::Render(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       filter_p->Release ();
@@ -1588,7 +1600,7 @@ Stream_MediaFramework_DirectShow_Tools::connected (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1667,7 +1679,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1678,7 +1690,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     filter_p->Release ();
@@ -1700,7 +1712,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IPin::QueryDirection(): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       pin_p->Release ();
@@ -1721,7 +1733,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       //  // clean up
       //  pin_p->Release ();
@@ -1736,7 +1748,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       //  // clean up
       //  stream_config_p->Release ();
@@ -1774,7 +1786,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       pin_p->Release ();
@@ -1788,7 +1800,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       filter_p->Release ();
@@ -1807,7 +1819,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IPin::QueryPinInfo(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       //  // clean up
       //  pin_2->Release ();
@@ -1823,7 +1835,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
         // clean up
         pin_2->Release ();
@@ -1884,7 +1896,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
                     ACE_TEXT ("failed to IGraphBuilder::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), aborting\n"),
                     ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
                     result));
       } // end ELSE
 
@@ -1908,7 +1920,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IEnumPins::Reset(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       enumerator_p->Release ();
@@ -1925,7 +1937,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
         // clean up
         pin_p->Release ();
@@ -1963,37 +1975,39 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
+#if defined (_DEBUG)
   struct _FilterInfo filter_info;
+#endif // _DEBUG
   while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
   { ACE_ASSERT (filter_p);
     ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-    result = filter_p->QueryFilterInfo (&filter_info);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-      filter_p->Release ();
-      enumerator_p->Release ();
-      return false;
-    } // end IF
-    if (filter_info.pGraph)
-      filter_info.pGraph->Release ();
     result = builder_in->RemoveFilter (filter_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-      filter_p->Release ();
-      enumerator_p->Release ();
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
 #if defined (_DEBUG)
+    result = filter_p->QueryFilterInfo (&filter_info);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
+      return false;
+    } // end IF
+    if (filter_info.pGraph)
+      filter_info.pGraph->Release ();
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed \"%s\"...\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
@@ -2004,9 +2018,9 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IEnumFilters::Reset(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
-      filter_p->Release ();
-      enumerator_p->Release ();
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
     filter_p->Release (); filter_p = NULL;
@@ -2034,7 +2048,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     enumerator_p->Release ();
@@ -2051,7 +2065,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (enumerator_p);
@@ -2076,7 +2090,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::Disconnect(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       pin_2->Release ();
@@ -2092,7 +2106,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::Disconnect(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       pin_p->Release ();
@@ -2126,7 +2140,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
@@ -2141,7 +2155,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       // clean up
       filter_p->Release ();
@@ -2199,7 +2213,7 @@ Stream_MediaFramework_DirectShow_Tools::get (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", returning\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return;
   } // end IF
   graphConfiguration_out.push_back (filterName_in);
@@ -2253,7 +2267,7 @@ Stream_MediaFramework_DirectShow_Tools::has (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   filter_p->Release (); filter_p = NULL;
@@ -2302,7 +2316,7 @@ Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder* builder_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       return false;
     } // end IF
     IPin* pin_p = NULL;
@@ -2326,7 +2340,7 @@ Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder* builder_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
         // clean up
         filter_p->Release ();
@@ -2370,7 +2384,7 @@ Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2397,7 +2411,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     filter_p->Release ();
@@ -2439,7 +2453,7 @@ Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder* bui
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2464,7 +2478,7 @@ Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (IGraphBuilder* bui
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     pin_p->Release ();
@@ -2501,7 +2515,7 @@ Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder* builder_i
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2512,7 +2526,7 @@ Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder* builder_i
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     filter_p->Release ();
@@ -2527,7 +2541,7 @@ Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder* builder_i
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFGetService::GetService(IID_IMFVideoDisplayControl): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     service_p->Release ();
@@ -2874,7 +2888,7 @@ Stream_MediaFramework_DirectShow_Tools::getFormat (IPin* pin_in,
                 ACE_TEXT ("%s/%s: failed to IPin::ConnectionMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_in).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     filter_p->Release ();
@@ -2921,7 +2935,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2936,7 +2950,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (isample_grabber_p);
@@ -2949,7 +2963,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ISampleGrabber::GetConnectedMediaType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     isample_grabber_p->Release (); isample_grabber_p = NULL;
@@ -3008,7 +3022,7 @@ Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
 
@@ -3058,7 +3072,7 @@ Stream_MediaFramework_DirectShow_Tools::hasUncompressedFormat (REFGUID deviceCat
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
 
@@ -3113,7 +3127,7 @@ Stream_MediaFramework_DirectShow_Tools::countFormats (IPin* pin_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     return result;
   } // end IF
 
@@ -3177,7 +3191,7 @@ Stream_MediaFramework_DirectShow_Tools::copyMediaType (const struct _AMMediaType
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
     // clean up
     if (free_memory)
@@ -3796,6 +3810,131 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (const struct _AMMedia
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+
+  return result;
+}
+
+Common_UI_Resolution_t
+Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution"));
+
+  Common_UI_Resolution_t result;
+  ACE_OS::memset (&result, 0, sizeof (Common_UI_Resolution_t));
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result.cx = video_info_header_p->bmiHeader.biWidth;
+    result.cy = video_info_header_p->bmiHeader.biHeight;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result.cx = video_info_header2_p->bmiHeader.biWidth;
+    result.cy = video_info_header2_p->bmiHeader.biHeight;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+    return result;
+  } // end ELSE
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate"));
+
+  unsigned int result = 0;
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result =
+      (NANOSECONDS / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame));
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result =
+      (NANOSECONDS / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame));
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+    return result;
+  } // end ELSE
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramesize (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramesize"));
+
+  unsigned int result = 0;
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result = DIBSIZE (video_info_header_p->bmiHeader);
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result = DIBSIZE (video_info_header2_p->bmiHeader);
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+    return result;
+  } // end ELSE
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_DirectShow_Tools::mediaTypeToBitrate (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToBitrate"));
+
+  unsigned int result = 0;
+
+  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result = video_info_header_p->dwBitRate;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result = video_info_header2_p->dwBitRate;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
+    return result;
+  } // end ELSE
 
   return result;
 }

@@ -78,16 +78,20 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer>)
-else ()
+elseif (WIN32)
  if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
+  target_include_directories (${PROJECT_NAME} PUBLIC
+                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE)
+  target_include_directories (${PROJECT_NAME} PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer)
-endif ()
-#include_directories (${Common_INCLUDE_DIRS})
 
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer>)
+endif ()
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories (${PROJECT_NAME} PUBLIC

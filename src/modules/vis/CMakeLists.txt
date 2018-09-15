@@ -1,17 +1,36 @@
-﻿include (CMakeDependentOption)
-CMAKE_DEPENDENT_OPTION (GTK3_SUPPORT "enable GTK 3 support" ON
-                        "GTK_SUPPORT" OFF)
-CMAKE_DEPENDENT_OPTION (GTK2_SUPPORT "enable GTK 2 support" ON
-                        "GTK_SUPPORT; NOT GTK3_SUPPORT" OFF)
-#option (GTKGL_SUPPORT "enable GTK OpenGL support" ON)
- # *NOTE*: implies GTK_SUPPORT on
-CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
-                        "GTK_SUPPORT" OFF)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui/scripts/PreUIFramework.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui/scripts/SetUIFramework.cmake)
+
+if (WXWIDGETS_SUPPORT)
+ message (STATUS "wxWidgets_DEFINITIONS: ${wxWidgets_DEFINITIONS}")
+ message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
+ message (STATUS "wxWidgets_CXX_FLAGS: ${wxWidgets_CXX_FLAGS}")
+ message (STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
+ # *NOTE*: re-enable ANSI mode
+# add_definitions (-DwxUSE_UNICODE=0)
+ if (WIN32)
+  add_definitions (-D__WXMSW__)
+  add_definitions (-DWXUSINGDLL)
+  if (MSVC)
+   add_definitions (-DwxMSVC_VERSION_AUTO)
+  endif (MSVC)
+ endif (WIN32)
+ add_definitions (-DwxUSE_GUI=1)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions (-D__WXDEBUG__)
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WXWIDGETS_SUPPORT)
+
+include (CMakeDependentOption)
+if (GTK_USE)
+ include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui/scripts/SetGTKVersion.cmake)
+ CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
+                         "GUI_SUPPORT" OFF)
 # *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
 #                   of the project
-#option (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF)
-CMAKE_DEPENDENT_OPTION (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF
-                        "GTK_SUPPORT; GTKGL_SUPPORT" OFF)
+ CMAKE_DEPENDENT_OPTION (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF
+                         "GUI_SUPPORT; GTKGL_SUPPORT" OFF)
+endif (GTK_USE)
 
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
@@ -46,17 +65,15 @@ elseif (WIN32)
  endif ()
 endif ()
 
-if (GTKGL_SUPPORT)
- add_definitions (-DGTKGL_SUPPORT)
-endif (GTKGL_SUPPORT)
-if (GTKGLAREA_SUPPORT)
- add_definitions (-DGTKGLAREA_SUPPORT)
-endif (GTKGLAREA_SUPPORT)
-
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
+
+ if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ # *NOTE*: DirectShow uses 'DEBUG'
+  add_definitions (-DDEBUG) # activate DirectShow debug logging
+ endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
 set (LLVM_COMPILER_ID_STRING "Clang")
@@ -100,8 +117,8 @@ if (UNIX)
   endif ()
  endif (GTK_SUPPORT)
 
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
@@ -121,43 +138,43 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
 
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
+# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
 # *TODO*: repair pkgconfig support
 # gtk
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/atk-1.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/atk-1.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gdk-pixbuf-2.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gdk-pixbuf-2.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/cairo>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/cairo>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/pango-1.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/pango-1.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/glib-2.0/include>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/glib-2.0/include>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gtk-3.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gtk-3.0>)
   else ()
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/atk-1.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/atk-1.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gdk-pixbuf-2.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gdk-pixbuf-2.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/cairo>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/cairo>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/pango-1.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/pango-1.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/glib-2.0/include>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/glib-2.0/include>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/glib-2.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/glib-2.0>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/gtk-2.0/include>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/gtk-2.0/include>)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gtk-2.0>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gtk-2.0>)
   endif ()
   if (GTKGL_SUPPORT)
    if (GTK3_SUPPORT)
@@ -209,17 +226,21 @@ set (source_files
      stream_vis_common.h
      stream_vis_defines.h
      stream_vis_exports.h
-     stream_vis_gtk_cairo.cpp
-     stream_vis_gtk_cairo.h
-     stream_vis_gtk_cairo.inl
-     stream_vis_gtk_cairo_spectrum_analyzer.cpp
-     stream_vis_gtk_cairo_spectrum_analyzer.h
-     stream_vis_gtk_cairo_spectrum_analyzer.inl
-     stream_vis_gtk_pixbuf.cpp
-     stream_vis_gtk_pixbuf.h
-     stream_vis_gtk_pixbuf.inl
      stream_vis_tools.cpp
      stream_vis_tools.h)
+if (GTK_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_gtk_cairo.cpp
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.cpp
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_pixbuf.cpp
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl)
+endif (GTK_SUPPORT)
 if (WIN32)
  set (source_files
       ${source_files}

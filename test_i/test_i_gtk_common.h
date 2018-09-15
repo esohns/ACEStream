@@ -29,6 +29,9 @@
 #include "common_itaskcontrol.h"
 
 #include "common_ui_gtk_common.h"
+#if defined (GTKGL_SUPPORT)
+#include "common_ui_gtk_gl_common.h"
+#endif // GTKGL_SUPPORT
 
 #include "test_i_common.h"
 
@@ -47,24 +50,34 @@ struct Test_I_GTK_ProgressData
 };
 
 struct Test_I_GTK_CBData
- : Common_UI_GTK_State
+ : Test_I_UI_CBData
 {
   Test_I_GTK_CBData ()
-   : Common_UI_GTK_State ()
-   , configuration (NULL)
+   : Test_I_UI_CBData ()
+   //, configuration (NULL)
    , progressData ()
    , progressEventSourceId (0)
-  {}
+   , UIState ()
+  {
+    progressData.state = &UIState;
+  }
 
-  struct Test_I_Configuration*   configuration;
+  //struct Test_I_Configuration*   configuration;
   struct Test_I_GTK_ProgressData progressData;
   guint                          progressEventSourceId;
+#if defined (GTKGL_SUPPORT)
+  struct Common_UI_GTK_GLState   UIState;
+#else
+  struct Common_UI_GTK_State     UIState;
+#endif // GTKGL_SUPPORT
 };
 
-struct Test_I_ThreadData
+struct Test_I_GTK_ThreadData
+ : Test_I_UI_ThreadData
 {
-  Test_I_ThreadData ()
-   : CBData (NULL)
+  Test_I_GTK_ThreadData ()
+   : Test_I_UI_ThreadData ()
+   , CBData (NULL)
    , eventSourceId (0)
   {}
 

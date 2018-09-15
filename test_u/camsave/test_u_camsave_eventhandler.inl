@@ -21,7 +21,11 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "common_ui_common.h"
 
@@ -29,15 +33,46 @@
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
-#include "test_u_camsave_callbacks.h"
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_u_camsave_gtk_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
-                              SessionMessageType>::Stream_CamSave_EventHandler_T (struct Stream_CamSave_GTK_CBData* CBData_in)
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+                              SessionMessageType>::Stream_CamSave_EventHandler_T (struct Stream_CamSave_UI_CBData* CBData_in
+#if defined (GTK_USE)
+                                                                                 );
+#elif defined (WXWIDGETS_USE)
+                                                                                  ,InterfaceType* interface_in)
+#endif // GTK_USE
+#else
+                              SessionMessageType>::Stream_CamSave_EventHandler_T ()
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+ , interface_ (interface_in)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler_T::Stream_CamSave_EventHandler_T"));
@@ -46,33 +81,74 @@ Stream_CamSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
                               SessionMessageType>::start (Stream_SessionId_t sessionId_in,
                                                           const struct Stream_CamSave_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler_T::start"));
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+  ACE_ASSERT (interface_);
+#endif
+#endif // GUI_SUPPORT
   ACE_ASSERT (!sessionData_);
+
+#if defined (GUI_SUPPORT)
+  UIStateType& state_r =
+#if defined (GTK_USE)
+    CBData_->UIState;
+#elif defined (WXWIDGETS_USE)
+    const_cast<UIStateType&> (interface_->getR ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   sessionData_ =
     &const_cast<struct Stream_CamSave_SessionData&> (sessionData_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+#if defined (GUI_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const enum Stream_SessionMessageType& sessionEvent_in)
 {
@@ -89,10 +165,22 @@ Stream_CamSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
                               SessionMessageType>::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler_T::end"));
@@ -100,22 +188,42 @@ Stream_CamSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+  ACE_ASSERT (interface_);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+  UIStateType& state_r =
+#if defined (GTK_USE)
+    CBData_->UIState;
+#elif defined (WXWIDGETS_USE)
+    const_cast<UIStateType&> (interface_->getR ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   guint event_source_id = 0;
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (event_source_id == 0)
-    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", returning\n")));
-      return;
-    } // end IF
-    CBData_->eventSourceIds.insert (event_source_id);
-
-    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
+                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+    else
+      state_r.eventSourceIds.insert (event_source_id);
+#endif // GTK_USE
+    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
+#endif // GUI_SUPPORT
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -123,10 +231,22 @@ Stream_CamSave_EventHandler_T<NotificationType,
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const DataMessageType& message_in)
 {
@@ -135,13 +255,36 @@ Stream_CamSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+  ACE_ASSERT (interface_);
+#endif
+#endif // GUI_SUPPORT
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#if defined (GUI_SUPPORT)
+  UIStateType& state_r =
+#if defined (GTK_USE)
+    CBData_->UIState;
+#elif defined (WXWIDGETS_USE)
+    const_cast<UIStateType&> (interface_->getR ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+#if defined (GTK_USE)
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
+#elif defined (WXWIDGETS_USE)
+    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
+#endif
   } // end lock scope
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   guint event_source_id = g_idle_add (idle_update_video_display_cb,
                                       CBData_);
   if (event_source_id == 0)
@@ -150,15 +293,29 @@ Stream_CamSave_EventHandler_T<NotificationType,
                 ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", returning\n")));
     return;
   } // end IF
-//  CBData_->eventSourceIds.insert (event_source_id);
+//  CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 template <typename NotificationType,
           typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
           typename SessionMessageType>
 void
 Stream_CamSave_EventHandler_T<NotificationType,
                               DataMessageType,
+#if defined (GUI_SUPPORT)
+                              UIStateType,
+#if defined (WXWIDGETS_USE)
+                              InterfaceType,
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
                               SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
                                                            const SessionMessageType& sessionMessage_in)
 {
@@ -167,7 +324,22 @@ Stream_CamSave_EventHandler_T<NotificationType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+  ACE_ASSERT (interface_);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+  UIStateType& state_r =
+#if defined (GTK_USE)
+    CBData_->UIState;
+#elif defined (WXWIDGETS_USE)
+    const_cast<UIStateType&> (interface_->getR ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
@@ -181,7 +353,8 @@ Stream_CamSave_EventHandler_T<NotificationType,
       if (!sessionData_)
         goto continue_;
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#if defined (GUI_SUPPORT)
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
         if (sessionData_->lock)
         {
           result = sessionData_->lock->acquire ();
@@ -204,6 +377,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
         } // end IF
       } // end lock scope
+#endif // GUI_SUPPORT
 
 continue_:
       event_e = COMMON_UI_EVENT_STATISTIC;
@@ -213,7 +387,9 @@ continue_:
       return;
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (event_e);
+#if defined (GUI_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (event_e);
   } // end lock scope
+#endif // GUI_SUPPORT
 }

@@ -242,7 +242,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  return false;
   //} // end IF
   //COM_initialized = true;
@@ -285,7 +285,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
   //                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (configuration_in.moduleHandlerConfiguration->filterCLSID).c_str ()),
-  //                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //    goto error;
   //  } // end IF
   //} // end IF
@@ -305,7 +305,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //  //{
   //  //  ACE_DEBUG ((LM_ERROR,
   //  //              ACE_TEXT ("failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
-  //  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   //  //  // clean up
   //  //  unknown_p->NonDelegatingRelease ();
@@ -416,7 +416,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -462,7 +462,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //ACE_DEBUG ((LM_DEBUG,
@@ -479,7 +479,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //ACE_ASSERT (media_filter_p);
@@ -488,7 +488,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //media_filter_p->Release ();
@@ -614,7 +614,7 @@ Test_I_Target_DirectShow_Stream::setFormat (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", returning\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -800,7 +800,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
     // clean up
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
@@ -829,7 +829,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   COM_initialized = true;
@@ -868,7 +868,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     //if (FAILED (result))
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
   if (configuration_p->session)

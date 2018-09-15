@@ -27,6 +27,7 @@
 
 #define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE           "resources.css"
 
+#define TEST_U_EVENT_THREAD_NAME                     "event processor"
 #define TEST_U_STREAM_THREAD_NAME                    "stream processor"
 
 #define TEST_U_DEFAULT_BUFFER_SIZE                   16384 // bytes

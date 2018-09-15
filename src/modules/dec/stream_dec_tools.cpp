@@ -74,6 +74,8 @@ extern "C"
 
 #include "common_tools.h"
 
+#include "common_error_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_lib_defines.h"
@@ -115,12 +117,12 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
               buffer));
 }
 
-void
-Stream_Module_Decoder_Tools::initialize ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
-
-}
+//void
+//Stream_Module_Decoder_Tools::initialize ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
+//
+//}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
@@ -953,7 +955,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //  goto error;
   //} // end IF
   //ACE_DEBUG ((LM_DEBUG,
@@ -968,7 +970,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_2);
@@ -979,7 +981,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
@@ -998,7 +1000,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_DMOWrapperFilter).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_3);
@@ -1007,7 +1009,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   result = wrapper_filter_p->Init (effect_in,
@@ -1016,7 +1018,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDMOWrapperFilter::Init(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   // set effect options
@@ -1029,7 +1031,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.AECOptions);
@@ -1037,7 +1039,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1055,7 +1057,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXChorus): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.chorusOptions);
@@ -1063,7 +1065,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXChorus::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1080,7 +1082,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXCompressor): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.compressorOptions);
@@ -1088,7 +1090,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXCompressor::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1105,7 +1107,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXDistortion): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.distortionOptions);
@@ -1113,7 +1115,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXDistortion::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1130,7 +1132,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXEcho): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.echoOptions);
@@ -1138,7 +1140,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXEcho::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1155,7 +1157,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXParamEq): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.equalizerOptions);
@@ -1163,7 +1165,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXParamEq::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1180,7 +1182,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXFlanger): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.flangerOptions);
@@ -1188,7 +1190,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXFlanger::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1205,7 +1207,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXGargle): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.gargleOptions);
@@ -1213,7 +1215,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXGargle::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1230,7 +1232,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXI3DL2Reverb): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.reverbOptions);
@@ -1238,7 +1240,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXI3DL2Reverb::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1255,7 +1257,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXWavesReverb): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     result = effect_p->SetAllParameters (&effectOptions_in.wavesReverbOptions);
@@ -1263,7 +1265,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXWavesReverb::SetAllParameters(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
       effect_p->Release ();
 
@@ -1285,7 +1287,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
@@ -1311,7 +1313,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_4);
@@ -1322,7 +1324,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
@@ -1338,7 +1340,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //  return false;
   //} // end IF
 
@@ -1508,7 +1510,7 @@ decompress:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1519,7 +1521,7 @@ decompress:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
@@ -1630,7 +1632,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1641,7 +1643,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
@@ -1711,7 +1713,7 @@ grab:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_SampleGrabber).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1722,7 +1724,7 @@ grab:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   filter_p->Release (); filter_p = NULL;
@@ -1773,7 +1775,7 @@ render:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1784,7 +1786,7 @@ render:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   filter_p->Release (); filter_p = NULL;
@@ -1861,7 +1863,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (IGraphBuilder_out);
@@ -1872,7 +1874,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (media_filter_p);
@@ -1881,7 +1883,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     media_filter_p->Release ();
@@ -1951,7 +1953,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graph_entry.filterName = sourceFilterName_in;
@@ -2046,7 +2048,7 @@ decompress:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2057,7 +2059,7 @@ decompress:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
 
@@ -2201,7 +2203,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 graph_entry.filterName.c_str (),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_2);
@@ -2212,7 +2214,7 @@ decode:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (i_dmo_wrapper_filter_p);
@@ -2222,7 +2224,7 @@ decode:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::Init(DMOCATEGORY_VIDEO_DECODER): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       i_dmo_wrapper_filter_p->Release ();
       goto error;
     } // end IF
@@ -2244,7 +2246,7 @@ decode:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       i_dmo_wrapper_filter_p->Release ();
       DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
       goto error;
@@ -2257,7 +2259,7 @@ decode:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
       i_media_object_p->Release ();
       i_dmo_wrapper_filter_p->Release ();
@@ -2274,7 +2276,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
 
@@ -2372,7 +2374,7 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 graph_entry.filterName.c_str (),
-                ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_2);
@@ -2381,7 +2383,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (i_dmo_wrapper_filter_p);
@@ -2390,7 +2392,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDMOWrapperFilter::Init(DMOCATEGORY_VIDEO_EFFECT): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     i_dmo_wrapper_filter_p->Release ();
     goto error;
   } // end IF
@@ -2401,7 +2403,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IWMResizerProps): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (i_wmresizer_props_p);
@@ -2414,7 +2416,7 @@ decode:
                 ACE_TEXT ("failed to IWMResizerProps::SetFullCropRegion(0,0,%u,%u,0,0,%u,%u): \"%s\", aborting\n"),
                 source_width, source_height,
                 width, height,
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     i_wmresizer_props_p->Release ();
     goto error;
   } // end IF
@@ -2425,7 +2427,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IWMResizerProps::SetResizerQuality(false): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     i_wmresizer_props_p->Release ();
     goto error;
   } // end IF
@@ -2448,7 +2450,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
     goto error;
   } // end IF
@@ -2460,7 +2462,7 @@ decode:
   {                    // EVENT_E_INTERNALEXCEPTION: 0x80040205
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
@@ -2529,7 +2531,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
@@ -2545,7 +2547,7 @@ decode:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
@@ -2576,7 +2578,7 @@ grab:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
 
@@ -2591,7 +2593,7 @@ grab:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::GUIDToString (CLSID_s).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, false).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (filter_3);
@@ -2602,7 +2604,7 @@ grab:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
@@ -2625,7 +2627,7 @@ grab:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //  return false;
   //} // end IF
 
@@ -2777,7 +2779,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     unknown_p->Release (); unknown_p = NULL;
     goto error;
   } // end IF
@@ -2789,7 +2791,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!item_count)
@@ -2817,7 +2819,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -2829,7 +2831,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFMediaType::IsCompressedFormat(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   if (!Stream_Module_Decoder_Tools::isCompressedAudio (sub_type,
@@ -2911,7 +2913,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -2923,7 +2925,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -2942,7 +2944,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -2957,7 +2959,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -2971,7 +2973,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -2982,7 +2984,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3017,7 +3019,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3027,7 +3029,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3042,7 +3044,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   source_node_p->Release ();
@@ -3068,7 +3070,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (activate_p);
@@ -3098,7 +3100,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3118,7 +3120,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
@@ -3133,7 +3135,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
@@ -3149,7 +3151,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAudioRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -3161,7 +3163,7 @@ continue_3:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -3186,7 +3188,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3206,7 +3208,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -3222,7 +3224,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
@@ -3361,7 +3363,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     unknown_p->Release (); unknown_p = NULL;
     goto error;
   } // end IF
@@ -3373,7 +3375,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!item_count)
@@ -3403,7 +3405,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -3478,7 +3480,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3490,7 +3492,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3512,7 +3514,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3527,7 +3529,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3541,7 +3543,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3553,7 +3555,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -3658,7 +3660,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -3670,7 +3672,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -3689,7 +3691,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3704,7 +3706,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -3748,7 +3750,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -3805,7 +3807,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3815,7 +3817,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3830,7 +3832,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   source_node_p->Release ();
@@ -3856,7 +3858,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
@@ -3885,7 +3887,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3905,7 +3907,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
@@ -3920,7 +3922,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
@@ -3937,7 +3939,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -3950,7 +3952,7 @@ continue_3:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -3975,7 +3977,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -3995,7 +3997,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -4011,7 +4013,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
@@ -4137,7 +4139,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     unknown_p->Release (); unknown_p = NULL;
     goto error;
   } // end IF
@@ -4158,7 +4160,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (mediaType_in,
@@ -4233,7 +4235,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4245,7 +4247,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4267,7 +4269,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -4282,7 +4284,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4296,7 +4298,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4307,7 +4309,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4405,7 +4407,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -4417,7 +4419,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -4436,7 +4438,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -4451,7 +4453,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -4495,7 +4497,7 @@ clean_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     transform_p->Release (); transform_p = NULL;
     goto error;
   } // end IF
@@ -4544,7 +4546,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -4563,7 +4565,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -4591,7 +4593,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -4611,7 +4613,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -4630,7 +4632,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;
@@ -4725,7 +4727,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     unknown_p->Release (); unknown_p = NULL;
     goto error;
   } // end IF
@@ -4770,7 +4772,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -4833,7 +4835,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4845,7 +4847,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4858,7 +4860,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = source_node_p->ConnectOutput (0,
@@ -4868,7 +4870,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4883,7 +4885,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       transform_p->Release (); transform_p = NULL;
       goto error;
     } // end IF
@@ -4900,7 +4902,7 @@ clean:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     if (!Stream_Module_Decoder_Tools::isCompressedVideo (sub_type,
@@ -4921,7 +4923,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -4934,7 +4936,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -4945,7 +4947,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -4962,7 +4964,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = source_node_p->ConnectOutput (0,
@@ -4972,7 +4974,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release (); topology_node_p = NULL;

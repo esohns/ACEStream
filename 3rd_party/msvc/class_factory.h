@@ -22,10 +22,12 @@
 #define CLASS_FACTORY_H
 
 #include <assert.h>
-#include <streams.h>
-//#include <strmif.h>
-//#include <combase.h>
-//#include <dshow.h>
+//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+//#undef __WXDEBUG__
+#include <wxdebug.h>
+#include <combase.h>
+#include <Guiddef.h>
+#include <Unknwn.h>
 
 class CClassFactory
  : public CBaseObject
@@ -55,13 +57,13 @@ class CClassFactory
 //////////////////////////////////////////
 
 // Function pointer for creating COM objects. (Used by the class factory.)
-typedef HRESULT (*CreateInstanceFn)(IUnknown *pUnkOuter, REFIID iid, void **ppv);
+typedef HRESULT (*CreateInstanceFn)(IUnknown*, REFIID, void**);
 
 // Structure to associate CLSID with object creation function.
 struct ClassFactoryData
 {
-  const GUID          *pclsid;
-  CreateInstanceFn    pfnCreate;
+  const GUID*      pclsid;
+  CreateInstanceFn pfnCreate;
 };
 
 // ClassFactory:
@@ -77,19 +79,15 @@ class ClassFactory
 
  public:
   ClassFactory (CreateInstanceFn pfnCreation)
-   : m_refCount (1), m_pfnCreation (pfnCreation)
+   : m_refCount (1)
+   , m_pfnCreation (pfnCreation)
   {}
-  virtual ~ClassFactory () {}
+  inline virtual ~ClassFactory () {}
 
-  static bool IsLocked ()
-  {
-    return (m_serverLocks != 0);
-  }
+  inline static bool IsLocked () { return (m_serverLocks != 0); }
 
-  STDMETHODIMP_ (ULONG) AddRef ()
-  {
-    return InterlockedIncrement (&m_refCount);
-  }
+  // IUnknown methods
+  inline STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&m_refCount); }
   STDMETHODIMP_ (ULONG) Release ()
   {
     assert (m_refCount >= 0);
@@ -101,21 +99,15 @@ class ClassFactory
     // variable, for thread safety.
     return uCount;
   }
-  // IUnknown methods
   STDMETHODIMP QueryInterface (REFIID riid, void **ppv)
   {
     if (NULL == ppv)
-    {
       return E_POINTER;
-    }
-    else if (riid == __uuidof(IUnknown))
-    {
+
+    if (InlineIsEqualGUID (riid, __uuidof (IUnknown)))
       *ppv = static_cast<IUnknown*>(this);
-    }
-    else if (riid == __uuidof(IClassFactory))
-    {
+    else if (InlineIsEqualGUID (riid, __uuidof (IClassFactory)))
       *ppv = static_cast<IClassFactory*>(this);
-    }
     else
     {
       *ppv = NULL;
@@ -129,40 +121,18 @@ class ClassFactory
   {
     // If the caller is aggregating the object, the caller may only request
     // IUknown. (See MSDN documenation for IClassFactory::CreateInstance.)
-    if (pUnkOuter != NULL)
-    {
-      if (riid != __uuidof(IUnknown))
-      {
+    if (pUnkOuter)
+      if (!InlineIsEqualGUID (riid, __uuidof (IUnknown)))
         return E_NOINTERFACE;
-      }
-    }
 
     return m_pfnCreation (pUnkOuter, riid, ppv);
   }
 
-  STDMETHODIMP LockServer (BOOL lock)
-  {
-    if (lock)
-    {
-      LockServer ();
-    }
-    else
-    {
-      UnlockServer ();
-    }
-    return S_OK;
-  }
-
+  inline STDMETHODIMP LockServer (BOOL lock) { if (lock) LockServer (); else UnlockServer (); return S_OK; }
 
   // Static methods to lock and unlock the the server.
-  static void LockServer ()
-  {
-    InterlockedIncrement (&m_serverLocks);
-  }
-  static void UnlockServer ()
-  {
-    InterlockedDecrement (&m_serverLocks);
-  }
+  inline static void LockServer () { InterlockedIncrement (&m_serverLocks); }
+  inline static void UnlockServer () { InterlockedDecrement (&m_serverLocks); }
 };
 
 // BaseObjects
@@ -191,23 +161,15 @@ class RefCountedObject
  public:
   RefCountedObject ()
    : m_refCount (1) {}
-  virtual ~RefCountedObject ()
-  {
-    assert (m_refCount == 0);
-  }
+  inline virtual ~RefCountedObject () { assert (m_refCount == 0); }
 
-  ULONG AddRef ()
-  {
-    return InterlockedIncrement (&m_refCount);
-  }
+  inline ULONG AddRef () { return InterlockedIncrement (&m_refCount); }
   ULONG Release ()
   {
     assert (m_refCount > 0);
     ULONG uCount = InterlockedDecrement (&m_refCount);
     if (uCount == 0)
-    {
       delete this;
-    }
     return uCount;
   }
 };

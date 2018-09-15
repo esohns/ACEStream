@@ -30,9 +30,6 @@
 
 #include "test_i_target_common.h"
 
- // forward declarations
-struct Test_I_GTK_CBData;
-
 template <typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
@@ -53,8 +50,7 @@ class Test_I_Target_EventHandler_T
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id
                       const SessionDataType&); // session data
-  virtual void notify (SessionIdType,            // session id
-                       const SessionEventType&); // event (state/status change, ...)
+  inline virtual void notify (SessionIdType, const SessionEventType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void end (SessionIdType); // session id
   virtual void notify (SessionIdType,       // session id
                        const MessageType&); // (protocol) data
@@ -81,21 +77,21 @@ typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_DirectShow_Stream_Message,
                                      Test_I_Target_DirectShow_Stream_SessionMessage,
-                                     struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_EventHandler_t;
+                                     struct Test_I_Target_DirectShow_UI_CBData> Test_I_Target_DirectShow_EventHandler_t;
 
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      struct Test_I_Target_MediaFoundation_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_MediaFoundation_Stream_Message,
                                      Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                     struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
+                                     struct Test_I_Target_MediaFoundation_UI_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
 #else
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Target_SessionData,
                                      Stream_SessionMessageType,
                                      Test_I_Target_Stream_Message,
                                      Test_I_Target_Stream_SessionMessage,
-                                     Test_I_Target_GTK_CBData> Test_I_Target_EventHandler_t;
+                                     struct Test_I_Target_UI_CBData> Test_I_Target_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

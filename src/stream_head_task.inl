@@ -52,7 +52,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
   {
     MESSAGE_QUEUE_T* message_queue_p =
       dynamic_cast<MESSAGE_QUEUE_T*> (messageQueue_in);
-    if (!message_queue_p)
+    if (unlikely (!message_queue_p))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: dynamic_cast<ACE_Message_Queue>(%@) failed, continuing\n"),
                   inherited::mod_->name (),
@@ -137,7 +137,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
       // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
         dynamic_cast<SessionMessageType*> (messageBlock_in);
-      if (!session_message_p)
+      if (unlikely (!session_message_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
@@ -315,7 +315,7 @@ Stream_TailTask_T<ACE_SYNCH_USE,
       // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
         dynamic_cast<SessionMessageType*> (messageBlock_in);
-      if (!session_message_p)
+      if (unlikely (!session_message_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
@@ -339,8 +339,8 @@ Stream_TailTask_T<ACE_SYNCH_USE,
         { ACE_ASSERT (sessionData_);
           const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
             sessionData_->getR ();
-          if (!putControlMessage (STREAM_CONTROL_END,
-                                  session_data_r))
+          if (unlikely (!putControlMessage (STREAM_CONTROL_END,
+                                            session_data_r)))
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_TailTask_T::putControlMessage(%d), aborting\n"),
@@ -425,7 +425,7 @@ allocate:
   else
     ACE_NEW_NORETURN (message_block_p,
                       ControlMessageType (controlType_in));
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     if (allocator_)
     {
@@ -442,7 +442,7 @@ allocate:
   } // end IF
   int result =
     message_block_p->size (sizeof (typename SessionMessageType::DATA_T::DATA_T));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::size(%d): \"%m\", aborting\n"),
@@ -454,7 +454,7 @@ allocate:
   result =
     message_block_p->copy (reinterpret_cast<const char*> (&sessionData_in),
                            sizeof (typename SessionMessageType::DATA_T::DATA_T));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
@@ -466,7 +466,7 @@ allocate:
 
   // forward message
   result = inherited::reply (message_block_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", aborting\n"),

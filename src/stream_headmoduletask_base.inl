@@ -24,7 +24,10 @@
 
 #include "common_defines.h"
 #include "common_ilock.h"
-#include "common_tools.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "common_error_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
@@ -61,7 +64,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             UserDataType>::Stream_HeadModuleTaskBase_T (ISTREAM_T* stream_in,
 #else
                             UserDataType>::Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T* stream_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
@@ -87,9 +90,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
   inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
-
-  // set group id for worker thread(s)
-  inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 
   if (unlikely (!inherited2::initialize (stateMachineLock_)))
   {
@@ -632,14 +632,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited::mod_->name ()));
-
-            message_block_p->release ();
-
+            message_block_p->release (); message_block_p = NULL;
             break;
           } // end IF
         } // end IF
         else
-          message_block_p->release ();
+        {
+          message_block_p->release (); message_block_p = NULL;
+        } // end ELSE
 
         // has STREAM_SESSION_END been processed ?
         if (!sessionEndProcessed_)
@@ -842,10 +842,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       &interval));
           goto error;
         } // end IF
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (id: %d) for interval %#T\n"),
-//                    timerId_,
-//                    &interval));
+#if defined (_DEBUG)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
+                    inherited::mod_->name (),
+                    timerId_,
+                    &interval));
+#endif // _DEBUG
       } // end IF
 
       break;
@@ -1163,16 +1166,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (likely (session_data_container_p))
       {
         session_data_container_p->increase ();
-
         SessionDataType& session_data_r =
           const_cast<SessionDataType&> (session_data_container_p->getR ());
-
         ACE_ASSERT (session_data_r.lock);
         { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
           session_data_r.aborted = true;
         } // end lock scope
-
-        session_data_container_p->decrease ();
+        session_data_container_p->decrease (); session_data_container_p = NULL;
       } // end IF
 
       if (unlikely (release_lock))
@@ -1207,23 +1207,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
 
       SessionDataContainerType* session_data_container_p =
-          inherited::sessionData_;
+        inherited::sessionData_;
       if (likely (session_data_container_p))
         session_data_container_p->increase ();
-
+      // *NOTE*: "fire-and-forget" the second argument
       if (unlikely (!inherited::putSessionMessage (static_cast<enum Stream_SessionMessageType> (notification_in),
                                                    session_data_container_p,
                                                    (streamState_ ? streamState_->userData : NULL))))
-      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited::name (),
                     notification_in));
-
-        // clean up
-        if (session_data_container_p)
-          session_data_container_p->decrease ();
-      } // end IF
+      ACE_ASSERT (!session_data_container_p);
 
       if (unlikely (release_lock))
       { ACE_ASSERT (streamLock_);
@@ -1517,7 +1512,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #else
   if (unlikely (!ACE_OS::thr_equal (static_cast<ACE_thread_t> (mutex_r.__data.__owner),
                                     ACE_OS::thr_self ())))
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return -1;
 
   do
@@ -1529,7 +1524,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } while (mutex_r.RecursionCount > 0);
 #else
   } while (mutex_r.__data.__count > 0);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
@@ -1539,7 +1534,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   return mutex_r.RecursionCount;
 #else
   return mutex_r.__data.__count;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <ACE_SYNCH_DECL,
@@ -1682,7 +1677,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
       else
         result = 0;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Thread::join(%lu): \"%m\", continuing\n"),
@@ -1768,23 +1763,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } // end IF
 
   // step3: send the statistic data downstream
-  //  // *NOTE*: fire-and-forget session_data_container_p here
+  // *NOTE*: "fire-and-forget" the second argument
   // *TODO*: remove type inference
   result =
       inherited::putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
                                     session_data_container_p,
                                     (streamState_ ? streamState_->userData : NULL));
   if (unlikely (!result))
-  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), aborting\n"),
                 inherited::mod_->name (),
                 STREAM_SESSION_MESSAGE_STATISTIC));
-
-    // clean up
-    if (session_data_container_p)
-      session_data_container_p->decrease ();
-  } // end IF
+  ACE_ASSERT (!session_data_container_p);
 
   if (unlikely (release_lock))
   { ACE_ASSERT (streamLock_);
@@ -1857,7 +1847,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
                         inherited::mod_->name (),
                         handle,
-                        ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+                        ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
         inherited::threads_.clear ();
       } // end IF
@@ -1941,19 +1931,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_NEW_NORETURN (session_data_container_p,
                               SessionDataContainerType (streamState_->sessionData));
         } // end ELSE IF
+        // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,          // session message type
                                                      session_data_container_p,              // session data
                                                      (streamState_ ? streamState_->userData
                                                                    : NULL))))               // user data handle
-        {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
                       inherited::mod_->name ()));
-
-          // clean up
-          if (session_data_container_p)
-            session_data_container_p->decrease ();
-        } // end IF
+        ACE_ASSERT (!session_data_container_p);
 
         if (unlikely (release_lock))
         { ACE_ASSERT (streamLock_);
@@ -1997,10 +1983,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
                         inherited::mod_->name (),
                         (sizeof (ACE_hthread_t) * inherited::threadCount_)));
-
-            // clean up
-            delete [] thread_ids_p;
-
+            delete [] thread_ids_p; thread_ids_p = NULL;
             return;
           } // end IF
           ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
@@ -2013,11 +1996,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
                         inherited::mod_->name (),
                         (sizeof (const char*) * inherited::threadCount_)));
-
-            // clean up
-            delete [] thread_ids_p;
-            delete [] thread_handles_p;
-
+            delete [] thread_ids_p; thread_ids_p = NULL;
+            delete [] thread_handles_p; thread_handles_p = NULL;
             return;
           } // end IF
           ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
@@ -2037,14 +2017,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           ACE_TEXT ("%s: failed to allocate memory (%u), aborting\n"),
                           inherited::mod_->name (),
                           (sizeof (char) * BUFSIZ)));
-
-              // clean up
-              delete [] thread_ids_p;
-              delete [] thread_handles_p;
+              delete [] thread_ids_p; thread_ids_p = NULL;
+              delete [] thread_handles_p; thread_handles_p = NULL;
               for (unsigned int j = 0; j < i; j++)
                 delete [] thread_names_p[j];
-              delete [] thread_names_p;
-
+              delete [] thread_names_p; thread_names_p = NULL;
               return;
             } // end IF
             ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
@@ -2077,14 +2054,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task_Base::activate(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
-
-            // clean up
-            delete[] thread_ids_p;
-            delete[] thread_handles_p;
+            delete[] thread_ids_p; thread_ids_p = NULL;
+            delete[] thread_handles_p; thread_handles_p = NULL;
             for (unsigned int i = 0; i < inherited::threadCount_; i++)
               delete[] thread_names_p[i];
-            delete[] thread_names_p;
-
+            delete[] thread_names_p; thread_names_p = NULL;
             break;
           } // end IF
 
@@ -2099,10 +2073,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             << ACE_TEXT_ALWAYS_CHAR (" ")
                             << thread_ids_p[i]
                             << ACE_TEXT_ALWAYS_CHAR ("\n");
-
-              // clean up
               delete [] thread_names_p[i];
-
               thread_id.handle (thread_handles_p[i]);
               thread_id.id (thread_ids_p[i]);
               inherited::threads_.push_back (thread_id);
@@ -2116,12 +2087,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::threadCount_,
                       inherited::grp_id (),
                       ACE_TEXT (thread_ids_string.c_str ())));
-
-          // clean up
-          delete[] thread_ids_p;
-          delete[] thread_handles_p;
-          delete[] thread_names_p;
-
+          delete [] thread_ids_p; thread_ids_p = NULL;
+          delete [] thread_handles_p; thread_handles_p = NULL;
+          delete [] thread_names_p; thread_names_p = NULL;
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
@@ -2156,8 +2124,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
                           inherited::mod_->name (),
                           handle,
-                          ACE_TEXT (Common_Tools::errorToString (::GetLastError (), false).c_str ())));
-#endif
+                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false).c_str ())));
+#endif // ACE_WIN32 || ACE_WIN64
             thread_id.handle (handle);
             inherited::threads_.push_back (thread_id);
           } // end lock scope
@@ -2263,7 +2231,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
           ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
           result = ACE_Thread::suspend (handle);
           if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
@@ -2309,7 +2277,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
                 ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                 result = ACE_Thread::resume (handle);
                 if (unlikely (result == -1))
                   ACE_DEBUG ((LM_ERROR,
@@ -2350,10 +2318,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
+          ACE_ASSERT (!inherited::threads_.empty ());
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
                                   inherited::threads_[0].id ()))
             inherited::stop (false, // wait ?
                              true); // N/A
+          //// signal the controller
+          //inherited2::finished ();
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
@@ -2422,23 +2393,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
           }
         } // end IF
+
         // *NOTE*: 'downstream' has been unlinked; notify 'upstream' (i.e.
         //         'this') about this fact as well
         session_data_container_p = inherited::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
+        // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                    // session message type
                                                      session_data_container_p,                         // session data
                                                      (streamState_ ? streamState_->userData : NULL)))) // user data handle
-        {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
                       inherited::mod_->name ()));
+        ACE_ASSERT (!session_data_container_p);
 
-          // clean up
-          if (session_data_container_p)
-            session_data_container_p->decrease ();
-        } // end IF
         if (unlikely (release_lock))
         { ACE_ASSERT (streamLock_);
           try {
@@ -2504,18 +2473,14 @@ continue_:
           }
         } // end IF
 
+        // *NOTE*: "fire-and-forget" the second argument
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,                       // session message type
                                                      session_data_container_p,                         // session data
                                                      (streamState_ ? streamState_->userData : NULL)))) // user data handle
-        {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_END), continuing\n"),
                       inherited::mod_->name ()));
-
-          // clean up
-          if (session_data_container_p)
-            session_data_container_p->decrease ();
-        } // end IF
+        ACE_ASSERT (!session_data_container_p);
 
         if (unlikely (release_lock))
         { ACE_ASSERT (streamLock_);

@@ -21,7 +21,7 @@
 #include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
+//#include <DShow.h>
 #else
 #include <libv4l2.h>
 #include <linux/videodev2.h>
@@ -79,10 +79,9 @@ Stream_CamSave_Message_T<DataType>::~Stream_CamSave_Message_T ()
   // release media sample ?
   if (inherited::data_.sample)
   {
-    inherited::data_.sample->Release ();
-    inherited::data_.sample = NULL;
+    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 template <typename DataType>
@@ -129,10 +128,7 @@ Stream_CamSave_Message_T<DataType>::duplicate (void) const
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_CamSave_Message_T::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
-      message_p->release ();
-
+      message_p->release (); message_p = NULL;
       return NULL;
     } // end IF
   } // end IF
@@ -153,8 +149,7 @@ Stream_CamSave_Message_T<DataType>::release (void)
   // release any continuations first
   if (inherited::cont_)
   {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
+    inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
   int reference_count = inherited::reference_count ();

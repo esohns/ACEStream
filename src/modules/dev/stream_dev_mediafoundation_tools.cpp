@@ -50,6 +50,8 @@
 #include "common_time_common.h"
 #include "common_tools.h"
 
+#include "common_error_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -111,7 +113,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return false;
   } // end IF
 
@@ -123,7 +125,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -136,7 +138,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 #else
@@ -171,7 +173,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFActivate::GetString(%s): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       if (!ACE_OS::strcmp (buffer_a,
@@ -196,7 +198,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -258,7 +260,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
@@ -291,7 +293,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -319,7 +321,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -334,7 +336,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -349,7 +351,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -385,7 +387,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     media_type_p->Release (); media_type_p = NULL;
     goto error;
   } // end IF
@@ -411,7 +413,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_2);
@@ -431,7 +433,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_2->GetTopoNodeID (&node_id);
@@ -446,7 +448,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_2->Release (); topology_node_2 = NULL;
@@ -501,7 +503,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -512,7 +514,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -522,7 +524,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   stream_descriptor_p->Release (); stream_descriptor_p = NULL;
@@ -531,7 +533,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_type_handler_p->Release (); media_type_handler_p = NULL;
@@ -572,7 +574,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  ACE_ASSERT (mediaType_out);
@@ -602,7 +604,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  result = MFGetAttributeSize (const_cast<IMFMediaType*> (mediaType_in),
@@ -612,7 +614,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  result = MFGetAttributeRatio (const_cast<IMFMediaType*> (mediaType_in),
@@ -622,7 +624,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //
@@ -646,7 +648,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      media_type_p->Release (); media_type_p = NULL;
 //      return false;
 //    } // end IF
@@ -660,7 +662,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      media_type_p->Release (); media_type_p = NULL;
 //      return false;
 //    } // end IF
@@ -674,7 +676,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      media_type_p->Release (); media_type_p = NULL;
 //      return false;
 //    } // end IF
@@ -691,7 +693,7 @@ error:
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFSourceReader::SetNativeMediaType(\"%s\"): \"%s\", aborting\n"),
 //                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ()),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      media_type_p->Release (); media_type_p = NULL;
 //      return false;
 //    } // end IF
@@ -764,7 +766,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTo
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     unknown_p->Release (); unknown_p = NULL;
     return false;
   } // end IF
@@ -817,7 +819,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -828,7 +830,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -838,7 +840,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   stream_descriptor_p->Release (); stream_descriptor_p = NULL;
@@ -848,7 +850,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* me
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_type_handler_p->Release (); media_type_handler_p = NULL;

@@ -23,11 +23,15 @@
 #include "common_timer_manager_common.h"
 #include "common_tools.h"
 
+#if defined (GTK_SUPPORT)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
+
 #include "stream_macros.h"
 
 #include "test_i_connection_manager_common.h"
 
-#include "test_i_target_common.h"
+//#include "test_i_target_common.h"
 
 template <typename ConfigurationType,
           typename ConnectionManagerType>
@@ -149,35 +153,12 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
     if (inherited::configuration_->hasUI)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    {
-      switch (inherited::configuration_->mediaFramework)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                             true); // N/A
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                  true); // N/A
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      inherited::configuration_->mediaFramework));
-          return;
-        }
-      } // end SWITCH
-    } // end IF
+#if defined (GTK_SUPPORT)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                          false); // N/A
 #else
-      TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                              true); // N/A
-#endif
+      ;
+#endif // GTK_SUPPORT
 
     // step2: invoke controller (if any)
     if (inherited::configuration_->listener)

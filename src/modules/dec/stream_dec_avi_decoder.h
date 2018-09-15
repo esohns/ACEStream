@@ -29,9 +29,7 @@
 
 #include "stream_dec_avi_parser_driver.h"
 #include "stream_dec_common.h"
-//#include "stream_dec_exports.h"
 
-//extern Stream_Dec_Export const char libacestream_default_dec_avi_decoder_module_name_string[];
 extern const char libacestream_default_dec_avi_decoder_module_name_string[];
 
 // forward declaration(s)

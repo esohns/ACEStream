@@ -26,7 +26,9 @@
 
 #include "common_tools.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_macros.h"
 
@@ -143,10 +145,14 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
     connection_manager_p->stop ();
     connection_manager_p->abort ();
 
-    // step3: stop GTK event processing
-    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
-    //         compared to doing it here
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    // step3: stop UI event processing ?
+    if (inherited::configuration_->hasUI)
+#if defined (GTK_SUPPORT)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                          false); // N/A
+#else
+      ;
+#endif // GTK_SUPPORT
 
     // step4: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?

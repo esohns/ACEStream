@@ -30,10 +30,15 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "common_isubscribe.h"
 
@@ -46,7 +51,9 @@
 #include "net_ilistener.h"
 
 #include "test_i_configuration.h"
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
+#endif // GTK_SUPPORT
 
 #include "test_i_connection_manager_common.h"
 //#include "test_i_filestream_common.h"
@@ -176,14 +183,14 @@ struct Test_I_Target_ModuleHandlerConfiguration
 {
   Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-   //, contextID (0)
+   //, contextId (0)
    , connectionConfigurations (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {}
 
-  //guint                                     contextID;
+  //guint                                     contextId;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_StreamConfiguration_t*      streamConfiguration;
   Test_I_Target_ISessionNotify_t*           subscriber;
@@ -248,11 +255,19 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 //  size_t transferred; // bytes
 //};
 
-struct Test_I_Target_GTK_CBData
+struct Test_I_Target_UI_CBData
+#if defined (GTK_SUPPORT)
  : Test_I_GTK_CBData
+#else
+ : Test_I_UI_CBData
+#endif // GTK_SUPPORT
 {
-  Test_I_Target_GTK_CBData ()
+  Test_I_Target_UI_CBData ()
+#if defined (GTK_SUPPORT)
    : Test_I_GTK_CBData ()
+#else
+   : Test_I_UI_CBData ()
+#endif // GTK_SUPPORT
    , configuration (NULL)
    , subscribers ()
   {}
@@ -261,11 +276,9 @@ struct Test_I_Target_GTK_CBData
   Test_I_Target_Subscribers_t         subscribers;
 };
 
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
+#if defined (GTK_SUPPORT)
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Target_UI_CBData> Test_I_Target_GtkBuilderDefinition_t;
+#endif // GTK_SUPPORT
 
 #endif

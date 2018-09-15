@@ -1,19 +1,10 @@
-﻿ # *NOTE*: implies GTK_SUPPORT on
-CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
-                        "GTK_SUPPORT" OFF)
-# *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
-#                   of the project
-#option (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF)
-CMAKE_DEPENDENT_OPTION (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF
-                        "GTK_SUPPORT; GTKGL_SUPPORT" OFF)
-
-# Threads
+﻿# Threads
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
  find_package (Threads)
-endif ()
+endif (UNIX)
 
 # ACE
 set (ACE_LIB_FILE libACE.so)
@@ -48,26 +39,26 @@ endif ()
 add_definitions (-DACE_HAS_DLL)
 
 # OpenGL
-if (GTK_SUPPORT)
- if (GTKGL_SUPPORT)
-  include (FindOpenGL)
-  if (NOT OPENGL_FOUND)
-   set (OPENGL_LIB_FILE libGL.so)
-   if (UNIX)
+#if (GTK_SUPPORT)
+# if (GTKGL_SUPPORT)
+#  include (FindOpenGL)
+#  if (NOT OPENGL_FOUND)
+#   set (OPENGL_LIB_FILE libGL.so)
+#   if (UNIX)
 # find_package (OPENGL REQUIRED)
-    find_library (OPENGL_LIBRARY
-                  NAMES ${OPENGL_LIB_FILE}
-                  PATHS /usr/lib/x86_64-linux-gnu
-                  DOC "searching for ${OPENGL_LIB_FILE}")
-   endif () # UNIX
-   if (NOT OPENGL_FOUND AND NOT OPENGL_LIBRARY)
-    message (FATAL_ERROR "could not find ${OPENGL_LIB_FILE} (was: \"${OPENGL_LIBRARY}\"), aborting")
-   else ()
-    message (STATUS "Found OpenGL library \"${OPENGL_LIBRARY}\"")
-   endif () # NOT OPENGL_FOUND AND NOT OPENGL_LIBRARY
-  endif () # OPENGL_FOUND
- endif () # GTKGL_SUPPORT
-endif () # GTK_SUPPORT
+#    find_library (OPENGL_LIBRARY
+#                  NAMES ${OPENGL_LIB_FILE}
+#                  PATHS /usr/lib/x86_64-linux-gnu
+#                  DOC "searching for ${OPENGL_LIB_FILE}")
+#   endif () # UNIX
+#   if (NOT OPENGL_FOUND AND NOT OPENGL_LIBRARY)
+#    message (FATAL_ERROR "could not find ${OPENGL_LIB_FILE} (was: \"${OPENGL_LIBRARY}\"), aborting")
+#   else ()
+#    message (STATUS "Found OpenGL library \"${OPENGL_LIBRARY}\"")
+#   endif () # NOT OPENGL_FOUND AND NOT OPENGL_LIBRARY
+#  endif () # OPENGL_FOUND
+# endif () # GTKGL_SUPPORT
+#endif () # GTK_SUPPORT
 
 # pkg-config
 include (FindPkgConfig)
@@ -78,69 +69,73 @@ if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
-  else ()
-   pkg_check_modules (PKG_GTK2 REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
-  endif ()
-  if (GTKGL_SUPPORT)
-   pkg_check_modules (PKG_OPENGL REQUIRED gl glu)
-   pkg_check_modules (PKG_LIBPNG REQUIRED libpng)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
    if (GTK3_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-#     pkg_check_modules (PKG_GTKGLAREA REQUIRED gtkglarea)
-    else ()
-#     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-3.0)
-    endif ()
-   else ()
-    if (GTKGLAREA_SUPPORT)
-#    pkg_check_modules (PKG_GTKGLAREA REQUIRED gtkglarea)
-    else ()
-     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-2.0)
-#     pkg_check_modules (PKG_GTKGL REQUIRED gdkglext-1.0 gtkglext-1.0)
-    endif ()
+    pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
+   elseif (GTK2_SUPPORT)
+    pkg_check_modules (PKG_GTK2 REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
    endif ()
-  endif ()
- endif ()
+   if (GTKGL_SUPPORT)
+    pkg_check_modules (PKG_OPENGL REQUIRED gl glu)
+    pkg_check_modules (PKG_LIBPNG REQUIRED libpng)
+    if (GTK3_SUPPORT)
+     if (GTKGLAREA_SUPPORT)
+#     pkg_check_modules (PKG_GTKGLAREA REQUIRED gtkglarea)
+     else ()
+#     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-3.0)
+     endif ()
+    elseif (GTK2_SUPPORT)
+     if (GTKGLAREA_SUPPORT)
+#     pkg_check_modules (PKG_GTKGLAREA REQUIRED gtkglarea)
+     else ()
+      pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-2.0)
+#     pkg_check_modules (PKG_GTKGL REQUIRED gdkglext-1.0 gtkglext-1.0)
+     endif (GTKGLAREA_SUPPORT)
+    endif ()
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 endif ()
 
-if (GTK_SUPPORT)
- if (GTKGL_SUPPORT)
+if (GUI_SUPPORT)
+ if (GTK_SUPPORT)
+  if (GTKGL_SUPPORT)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS GTKGL_SUPPORT)
-  add_definitions (-DGTKGL_SUPPORT)
-  if (GTKGLAREA_SUPPORT)
-   add_definitions (-DGTKGLAREA_SUPPORT)
-  endif (GTKGLAREA_SUPPORT) # GTKGLAREA_SUPPORT
+   add_definitions (-DGTKGL_SUPPORT)
+   if (GTKGLAREA_SUPPORT)
+    add_definitions (-DGTKGLAREA_SUPPORT)
+   endif (GTKGLAREA_SUPPORT) # GTKGLAREA_SUPPORT
 
-  set (GLUT_LIB_FILE libglut.so.3)
-  if (UNIX)
-   find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
-                 HINTS /usr/lib
-                 PATH_SUFFIXES x86_64-linux-gnu
-                 DOC "searching for ${GLUT_LIB_FILE} (system paths)")
-  elseif (WIN32)
-   unset (LIB_FILE_SUFFIX)
-   set (GLUT_LIB_FILE freeglut)
-   if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    set (LIB_FILE_SUFFIX d)
-   endif ()
-   set (GLUT_LIB_FILE ${GLUT_LIB_FILE}${LIB_FILE_SUFFIX}.lib)
+   set (GLUT_LIB_FILE libglut.so.3)
+   if (UNIX)
+    find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                  HINTS /usr/lib
+                  PATH_SUFFIXES x86_64-linux-gnu
+                  DOC "searching for ${GLUT_LIB_FILE} (system paths)")
+   elseif (WIN32)
+    unset (LIB_FILE_SUFFIX)
+    set (GLUT_LIB_FILE freeglut)
+    if (CMAKE_BUILD_TYPE STREQUAL Debug)
+     set (LIB_FILE_SUFFIX d)
+    endif ()
+    set (GLUT_LIB_FILE ${GLUT_LIB_FILE}${LIB_FILE_SUFFIX}.lib)
 #  message (STATUS "${GLUT_LIB_FILE} search path: \"${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}\"")
-   find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
-                 PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}
-                 DOC "searching for ${GLUT_LIB_FILE}")
-  endif () # UNIX
+    find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                  PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}
+                  DOC "searching for ${GLUT_LIB_FILE}")
+   endif () # UNIX
 #if (NOT EXISTS GLUT_LIBRARY)
-  if (GLUT_LIBRARY)
-   message (STATUS "Found Glut library \"${GLUT_LIBRARY}\"")
-  else ()
-   message (FATAL_ERROR "could not find ${GLUT_LIB_FILE} (was: \"${GLUT_LIBRARY}\"), aborting")
-  endif (GLUT_LIBRARY) # GLUT_LIBRARY
- endif (GTKGL_SUPPORT) # GTKGL_SUPPORT
-endif (GTK_SUPPORT) # GTK_SUPPORT
+   if (GLUT_LIBRARY)
+    message (STATUS "Found Glut library \"${GLUT_LIBRARY}\"")
+   else ()
+    message (FATAL_ERROR "could not find ${GLUT_LIB_FILE} (was: \"${GLUT_LIBRARY}\"), aborting")
+   endif (GLUT_LIBRARY)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
 
 #add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
@@ -157,13 +152,15 @@ if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
-if (GTK_SUPPORT)
+if (GUI_SUPPORT)
  add_definitions (-DCOMMON_UI_HAS_DLL)
- add_definitions (-DCOMMON_UI_GTK_HAS_DLL)
- if (GTKGL_SUPPORT)
-  add_definitions (-DCOMMON_GL_HAS_DLL)
- endif ()
-endif ()
+ if (GTK_SUPPORT)
+  add_definitions (-DCOMMON_UI_GTK_HAS_DLL)
+  if (GTKGL_SUPPORT)
+   add_definitions (-DCOMMON_GL_HAS_DLL)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
 
 find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -185,42 +182,46 @@ if (UNIX)
 
 # include_directories (${PKG_LIBPNG_INCLUDE_DIRS})
 
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   include_directories (${PKG_GTK3_INCLUDE_DIRS})
-  else ()
-   include_directories (${PKG_GTK2_INCLUDE_DIRS})
-  endif (GTK3_SUPPORT)
-  if (GTKGL_SUPPORT)
-   include_directories (${PKG_OPENGL_INCLUDE_DIRS})
-   include_directories (${PKG_GTKGL_INCLUDE_DIRS})
-   if (GTKGLAREA_SUPPORT)
-    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTK3_SUPPORT)
+    include_directories (${PKG_GTK3_INCLUDE_DIRS})
+   else ()
+    include_directories (${PKG_GTK2_INCLUDE_DIRS})
    endif (GTK3_SUPPORT)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
+   if (GTKGL_SUPPORT)
+    include_directories (${PKG_OPENGL_INCLUDE_DIRS})
+    include_directories (${PKG_GTKGL_INCLUDE_DIRS})
+    if (GTKGLAREA_SUPPORT)
+     include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
+    endif (GTK3_SUPPORT)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- if (GTK_SUPPORT)
-  if (GTKGL_SUPPORT)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/gl)
-  endif ()
- endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
- if (GTK_SUPPORT)
+ if (GUI_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
- endif ()
+  if (GTK_SUPPORT)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
+   if (GTKGL_SUPPORT)
+    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/gl)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
 # glm
- if (GTK_SUPPORT)
-  if (GTKGL_SUPPORT)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../glm)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTKGL_SUPPORT)
+    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../glm)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 
  # *NOTE*: workaround
 # set (_PF86 "ProgramFiles(x86)")
@@ -241,13 +242,15 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
 # gtk
- if (GTK_SUPPORT)
-  if (GTKGL_SUPPORT)
-   if (GTKGLAREA_SUPPORT)
-    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
-   endif (GTKGLAREA_SUPPORT)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
+    endif (GTKGLAREA_SUPPORT)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})
@@ -260,18 +263,18 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/3rd_party)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- if (GTK_SUPPORT)
-  if (GTKGL_SUPPORT)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/gl)
-  endif ()
- endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
- if (GTK_SUPPORT)
+ if (GUI_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
- endif ()
-endif () # UNIX
+  if (GTK_SUPPORT)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
+   if (GTKGL_SUPPORT)
+    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/gl)
+   endif (GTKGL_SUPPORT)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -373,18 +376,21 @@ if (UNIX)
      target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea/gtkgl/.libs/libgtkgl-3.0.so)
     else ()
      target_link_libraries (${EXECUTABLE} ${PKG_GTKGL_LIBRARIES})
-    endif ()
+    endif (GTKGLAREA_SUPPORT)
    else ()
     if (GTKGLAREA_SUPPORT)
      target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea/gtkgl/.libs/libgtkgl-2.0.so)
     else ()
      target_link_libraries (${EXECUTABLE} ${PKG_GTKGL_LIBRARIES})
-    endif ()
+    endif (GTKGLAREA_SUPPORT)
    endif ()
   endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
 elseif (WIN32)
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ if (MSVC)
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+ endif (MSVC)
  set (DIRECTX_SDK_DIRECTORY
       "C:/Program Files/Microsoft DirectX SDK (June 2010)")
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
@@ -411,22 +417,23 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
-if (GTK_SUPPORT)
- if (GTKGL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} CommonOpenGL)
- endif (GTKGL_SUPPORT)
-endif (GTK_SUPPORT)
 target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonMath)
 target_link_libraries (${EXECUTABLE} CommonTimer)
+if (GUI_SUPPORT)
+# target_link_libraries (${EXECUTABLE} CommonUI)
+ if (GTK_SUPPORT)
+  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
+  if (GTKGL_SUPPORT)
+   target_link_libraries (${EXECUTABLE} CommonOpenGL)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
+
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
-if (GTK_SUPPORT)
-# target_link_libraries (${EXECUTABLE} CommonUI)
- target_link_libraries (${EXECUTABLE} CommonUI_GTK)
-endif (GTK_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
@@ -465,38 +472,42 @@ endif ()
 #cmake_policy (SET CMP0053 OLD)
 set (ENVIRONMENT "")
 if (UNIX)
- if (GTK3_SUPPORT)
-  set (ARGS "-g./etc/audioeffect.gtk3 -l -t")
- else ()
-  set (ARGS "-g./etc/audioeffect.gtk2 -l -t")
- endif (GTK3_SUPPORT)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTK3_SUPPORT)
+    set (ARGS "-g./etc/audioeffect.gtk3 -l -t")
+   elseif (GTK2_SUPPORT)
+    set (ARGS "-g./etc/audioeffect.gtk2 -l -t")
+   endif ()
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
  set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTK3_SUPPORT)
+    set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
+    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                              G:/software/Development/dll
+                              ${PROJECT_SOURCE_DIR}/../gtk3/bin)
+   elseif (GTK2_SUPPORT)
+    set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")
+    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                              G:/software/Development/dll
+                              ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+   endif ()
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                            ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
- if (GTK3_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
-  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                            G:/software/Development/dll
-                            ${PROJECT_SOURCE_DIR}/../gtk3/bin)
- else ()
-  set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")
-  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                            G:/software/Development/dll
-                            ${PROJECT_SOURCE_DIR}/../gtk2/bin)
- endif (GTK3_SUPPORT)
 endif ()
-message (STATUS "generating default launcher")
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS

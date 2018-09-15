@@ -102,6 +102,10 @@ class Test_I_Target_MediaFoundation_Stream_Message
                                               enum Stream_MessageType,
                                               struct Test_I_Target_MediaFoundation_MessageData>
 {
+  typedef Stream_MediaFoundationMessageBase_T<struct Test_I_AllocatorConfiguration,
+                                              enum Stream_MessageType,
+                                              struct Test_I_Target_MediaFoundation_MessageData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Test_I_AllocatorConfiguration,
@@ -129,10 +133,6 @@ class Test_I_Target_MediaFoundation_Stream_Message
   Test_I_Target_MediaFoundation_Stream_Message (const Test_I_Target_MediaFoundation_Stream_Message&);
 
  private:
-  typedef Stream_MediaFoundationMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                              enum Stream_MessageType,
-                                              struct Test_I_Target_MediaFoundation_MessageData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_Message ())
   // *NOTE*: to be used by message allocators
   Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id

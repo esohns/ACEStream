@@ -30,13 +30,16 @@
 #include "test_i_common.h"
 
 #include "test_i_session_message.h"
-#include "test_i_target_common.h"
+//#include "test_i_target_common.h"
+
+// forward declarations
+struct Test_I_Target_UI_CBData;
 
 class Test_I_Target_EventHandler
  : public Test_I_Target_ISessionNotify_t
 {
  public:
-  Test_I_Target_EventHandler (struct Test_I_Target_GTK_CBData*); // GTK state
+  Test_I_Target_EventHandler (struct Test_I_Target_UI_CBData*); // UI state
   inline virtual ~Test_I_Target_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -55,7 +58,7 @@ class Test_I_Target_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler (const Test_I_Target_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler& operator= (const Test_I_Target_EventHandler&))
 
-  struct Test_I_Target_GTK_CBData*  CBData_;
+  struct Test_I_Target_UI_CBData*   CBData_;
   struct Test_I_Target_SessionData* sessionData_;
 };
 

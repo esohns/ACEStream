@@ -43,6 +43,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTKGL_SUPPORT
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
@@ -60,6 +61,7 @@
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION(3,0,0)
 #endif // GTKGL_SUPPORT
+#endif // GTK_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -68,9 +70,12 @@
 #include "common_statistic_handler.h"
 #include "common_tools.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_gl_common.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -98,7 +103,9 @@
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
+#if defined (GTK_SUPPORT)
 #include "test_u_gtk_common.h"
+#endif // GTK_SUPPORT
 
 #include "test_u_audioeffect_defines.h"
 
@@ -190,8 +197,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
+#if defined (GTK_SUPPORT)
    , area2D ()
+#if defined (GTKGL_SUPPORT)
    , area3D ()
+#endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
@@ -210,31 +221,23 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
    , GdkWindow2D (NULL)
+#endif // GTK_SUPPORT
    , mute (false)
+#if defined (GTK_SUPPORT)
    , surfaceLock (NULL)
 #if GTK_CHECK_VERSION(3,11,0)
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
-#endif /* GTK_CHECK_VERSION (3,11,0) */
+#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
    , OpenGLTextureId (0)
-   , OpenGLWindow (NULL)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-   , OpenGLContext (NULL)
-#else
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-#else
-#if defined (GTKGLAREA_SUPPORT)
-#else
-   , OpenGLContext (NULL)
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
    , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -258,8 +261,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   }
 
+#if defined (GTK_SUPPORT)
   GdkRectangle                                            area2D;
+#if defined (GTKGL_SUPPORT)
   GdkRectangle                                            area3D;
+#endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
@@ -282,37 +289,23 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   bool                                                    manageSoX;
   struct _snd_pcm*                                        playbackDeviceHandle;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
   GdkWindow*                                              GdkWindow2D;
+#endif // GTK_SUPPORT
   bool                                                    mute;
+#if defined (GTK_SUPPORT)
   ACE_SYNCH_MUTEX*                                        surfaceLock;
-#if GTK_CHECK_VERSION (3,11,0)
+#if GTK_CHECK_VERSION(3,11,0)
   cairo_surface_t*                                        cairoSurface2D;
 #else
   GdkPixbuf*                                              pixelBuffer2D;
-#endif /* GTK_CHECK_VERSION (3,11,0) */
+#endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*       OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                        OpenGLInstructionsLock;
   GLuint                                                  OpenGLTextureId;
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-  GtkGLArea*                                              OpenGLWindow;
-#else
-#if defined (GTKGLAREA_SUPPORT)
-//  GglaContext*                                      OpenGLContext;
-  GglaArea*                                               OpenGLWindow;
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  GtkGLArea*                                              OpenGLWindow;
-#else
-  GdkGLContext*                                           OpenGLContext;
-  GdkWindow*                                              OpenGLWindow;
-//  GdkGLDrawable*                                    OpenGLWindow;
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
+#endif // GTK_SUPPORT
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
   unsigned int                                            spectrumAnalyzerResolution;
@@ -387,7 +380,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   }
 
   CLSID                                                     effect;
@@ -431,7 +424,7 @@ struct Test_U_AudioEffect_SessionData
   Test_U_AudioEffect_SessionData ()
    : Test_U_SessionData ()
    , statistic ()
- #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , height (0)
    , inputFormat ()
@@ -515,8 +508,6 @@ struct Test_U_AudioEffect_MediaFoundation_StreamState
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-
-
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
  : Stream_Configuration
 {
@@ -527,6 +518,7 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
 };
+
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
  : Stream_Configuration
 {
@@ -651,72 +643,92 @@ typedef Common_ISubscribe_T<Test_U_AudioEffect_ISessionNotify_t> Test_U_AudioEff
 
 //////////////////////////////////////////
 
-struct Test_U_AudioEffect_GTK_ProgressData
+struct Test_U_AudioEffect_ProgressData
+#if defined (GTK_SUPPORT)
  : Test_U_GTK_ProgressData
+#else
+ : Test_U_UI_ProgressData
+#endif // GTK_SUPPORT
 {
-  Test_U_AudioEffect_GTK_ProgressData ()
+  Test_U_AudioEffect_ProgressData ()
+#if defined (GTK_SUPPORT)
    : Test_U_GTK_ProgressData ()
+#else
+   : Test_U_UI_ProgressData ()
+#endif // GTK_SUPPORT
    , statistic ()
   {}
 
   struct Test_U_AudioEffect_Statistic statistic;
 };
 
-#if GTK_CHECK_VERSION (3,10,0)
+#if defined (GTK_SUPPORT)
+#if GTK_CHECK_VERSION(3,10,0)
 typedef Common_ISetP_T<cairo_surface_t> Test_U_Common_ISet_t;
 #else
 typedef Common_ISetP_T<GdkPixbuf> Test_U_Common_ISet_t;
-#endif
-struct Test_U_AudioEffect_GTK_CBDataBase
+#endif // GTK_CHECK_VERSION(3,10,0)
+#endif // GTK_SUPPORT
+struct Test_U_AudioEffect_UI_CBDataBase
+#if defined (GTK_SUPPORT)
  : Test_U_GTK_CBData
+#else
+ : Test_U_UI_CBData
+#endif // GTK_SUPPORT
 {
-  Test_U_AudioEffect_GTK_CBDataBase ()
+  Test_U_AudioEffect_UI_CBDataBase ()
+#if defined (GTK_SUPPORT)
    : Test_U_GTK_CBData ()
+#else
+   : Test_U_UI_CBData ()
+#endif // GTK_SUPPORT
+#if defined (GTK_SUPPORT)
    , area2D ()
 #if defined (GTKGL_SUPPORT)
    , area3D ()
-#endif
+#endif // GTKGL_SUPPORT
    , surfaceLock ()
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions ()
-#endif
+#endif // GTKGL_SUPPORT
+#endif // GTK_SUPPORT
    , isFirst (true)
    , progressData ()
-   , progressEventSourceId (0)
    , resizeNotification (NULL)
    , stream (NULL)
   {}
 
+#if defined (GTK_SUPPORT)
   GdkRectangle                                     area2D;
 #if defined (GTKGL_SUPPORT)
   GdkRectangle                                     area3D;
-#endif
+#endif // GTKGL_SUPPORT
   ACE_SYNCH_MUTEX                                  surfaceLock;
-#if GTK_CHECK_VERSION (3,10,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_t*                                 cairoSurface2D;
 #else
   GdkPixbuf*                                       pixelBuffer2D;
-#endif
+#endif // GTK_CHECK_VERSION(3,10,0)
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t OpenGLInstructions;
-#endif
+#endif // GTKGL_SUPPORT
+#endif // GTK_SUPPORT
   bool                                             isFirst; // first activation ?
-  struct Test_U_AudioEffect_GTK_ProgressData       progressData;
-  guint                                            progressEventSourceId;
+  struct Test_U_AudioEffect_ProgressData           progressData;
   Test_U_Common_ISet_t*                            resizeNotification;
   Stream_IStreamControlBase*                       stream;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_U_AudioEffect_DirectShow_GTK_CBData
- : Test_U_AudioEffect_GTK_CBDataBase
+struct Test_U_AudioEffect_DirectShow_UI_CBData
+ : Test_U_AudioEffect_UI_CBDataBase
 {
-  Test_U_AudioEffect_DirectShow_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBDataBase ()
+  Test_U_AudioEffect_DirectShow_UI_CBData ()
+   : Test_U_AudioEffect_UI_CBDataBase ()
    , configuration (NULL)
    , streamConfiguration (NULL)
    , subscribers ()
@@ -726,11 +738,12 @@ struct Test_U_AudioEffect_DirectShow_GTK_CBData
   IAMStreamConfig*                                    streamConfiguration;
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
 };
-struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
- : Test_U_AudioEffect_GTK_CBDataBase
+
+struct Test_U_AudioEffect_MediaFoundation_UI_CBData
+ : Test_U_AudioEffect_UI_CBDataBase
 {
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBDataBase ()
+  Test_U_AudioEffect_MediaFoundation_UI_CBData ()
+   : Test_U_AudioEffect_UI_CBDataBase ()
    , configuration (NULL)
    , subscribers ()
   {}
@@ -739,11 +752,11 @@ struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
   Test_U_AudioEffect_MediaFoundation_Subscribers_t         subscribers;
 };
 #else
-struct Test_U_AudioEffect_GTK_CBData
- : Test_U_AudioEffect_GTK_CBDataBase
+struct Test_U_AudioEffect_UI_CBData
+ : Test_U_AudioEffect_UI_CBDataBase
 {
-  Test_U_AudioEffect_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBDataBase ()
+  Test_U_AudioEffect_UI_CBData ()
+   : Test_U_AudioEffect_UI_CBDataBase ()
    , configuration (NULL)
    , handle (NULL)
    , subscribers ()
@@ -757,62 +770,77 @@ struct Test_U_AudioEffect_GTK_CBData
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ThreadData
+#if defined (GTK_SUPPORT)
  : Test_U_GTK_ThreadData
+#else
+ : Test_U_UI_ThreadData
+#endif // GTK_SUPPORT
 {
   Test_U_AudioEffect_DirectShow_ThreadData ()
+#if defined (GTK_SUPPORT)
    : Test_U_GTK_ThreadData ()
+#else
+   : Test_U_UI_ThreadData ()
+#endif // GTK_SUPPORT
    , CBData (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
   }
 
-  struct Test_U_AudioEffect_DirectShow_GTK_CBData* CBData;
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* CBData;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_ThreadData
+#if defined (GTK_SUPPORT)
  : Test_U_GTK_ThreadData
+#else
+ : Test_U_UI_ThreadData
+#endif // GTK_SUPPORT
 {
   Test_U_AudioEffect_MediaFoundation_ThreadData ()
+#if defined (GTK_SUPPORT)
    : Test_U_GTK_ThreadData ()
+#else
+   : Test_U_UI_ThreadData ()
+#endif // GTK_SUPPORT
    , CBData (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
   }
 
-  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* CBData;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* CBData;
 };
 #else
 struct Test_U_AudioEffect_ThreadData
+#if defined (GTK_SUPPORT)
  : Test_U_GTK_ThreadData
+#else
+ : Test_U_UI_ThreadData
+#endif // GTK_SUPPORT
 {
   Test_U_AudioEffect_ThreadData ()
+#if defined (GTK_SUPPORT)
    : Test_U_GTK_ThreadData ()
+#else
+   : Test_U_UI_ThreadData ()
+#endif // GTK_SUPPORT
    , CBData (NULL)
   {}
 
-  struct Test_U_AudioEffect_GTK_CBData* CBData;
+  struct Test_U_AudioEffect_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_DirectShow_GTK_CBData> Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t;
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData> Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_U_AudioEffect_DirectShow_GTK_CBData> Test_U_AudioEffect_DirectShow_GTK_Manager_t;
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_U_AudioEffect_MediaFoundation_GTK_CBData> Test_U_AudioEffect_MediaFoundation_GTK_Manager_t;
-typedef ACE_Singleton<Test_U_AudioEffect_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON;
-typedef ACE_Singleton<Test_U_AudioEffect_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_U_AudioEffect_DirectShow_UI_CBData> Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_U_AudioEffect_MediaFoundation_UI_CBData> Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t;
 #else
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH, 
-                                struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GTK_Manager_t;
-typedef ACE_Singleton<Test_U_AudioEffect_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_U_AudioEffect_UI_CBData> Test_U_AudioEffect_GtkBuilderDefinition_t;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT
 
 #endif

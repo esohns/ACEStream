@@ -1,7 +1,4 @@
-﻿option (GTK_SUPPORT "compile Gtk support" ON)
-option (GTK3_SUPPORT "compile Gtk3 support" ON)
-
-if (UNIX)
+﻿if (UNIX)
  include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -304,6 +301,8 @@ elseif (WIN32)
 endif ()
 
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+#cmake_policy (SET CMP0053 OLD)
+set (ENVIRONMENT "")
 if (UNIX)
  if (GTK_SUPPORT)
   set (ARGS "-g./etc/source.glade -l -t")
@@ -311,6 +310,7 @@ if (UNIX)
   set (ARGS "-g -l -t")
  endif (GTK_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+ file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
  if (GTK_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\source.glade -l -t")
@@ -333,13 +333,15 @@ elseif (WIN32)
                              ${PROJECT_SOURCE_DIR}/../gtk2/bin)
   endif (GTK3_SUPPORT)
  endif (GTK_SUPPORT)
+ string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream) 
+#message (STATUS "WORKING_DIRECTORY: ${WORKING_DIRECTORY}")
 endif ()
 create_target_launcher (${EXECUTABLE_SOURCE}
                         ARGS ${ARGS}
 #                         FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                        ENVIRONMENT foo=bar)
+                        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                        ENVIRONMENT ${ENVIRONMENT})
 
 add_test (NAME ${EXECUTABLE_SOURCE}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE_SOURCE} -l -t
@@ -372,6 +374,7 @@ if (WIN32)
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
@@ -409,26 +412,12 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
- create_target_launcher (${LIBRARY_DS}
-                         ARGS "${PROJECT_BINARY_DIR}/test_i/camstream/Debug/${LIBRARY_DS}.dll"
+ create_target_launcher (regsvr32.exe
+                         ARGS "${PROJECT_BINARY_DIR}/test_i/camstream/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-#                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-#                                              G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                         ENVIRONMENT foo=bar)
+                         WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                         ENVIRONMENT ${ENVIRONMENT})
 
 #-----------------------------------------
 
@@ -477,38 +466,34 @@ endif (WIN32)
 
 ############## next target ################
 
-#if (UNIX)
- set (camtarget_EXE_SRCS
-      stdafx.cpp
-      stdafx.h
-      test_i_callbacks.cpp
-      test_i_callbacks.h
-      test_i_camstream_common.h
-      test_i_camstream_defines.h
-      test_i_camstream_network.h
-      test_i_common_modules.h
-      test_i_connection_manager_common.h
-      test_i_module_eventhandler.cpp
-      test_i_module_eventhandler.h
-      test_i_module_eventhandler.inl
-      test_i_source_stream.cpp
-      test_i_source_stream.h
-      test_i_source_stream.inl
-      test_i_target.cpp
-      test_i_target_common.h
-      test_i_target_eventhandler.cpp
-      test_i_target_eventhandler.h
-      test_i_target_eventhandler.inl
-      test_i_target_listener_common.h
-      test_i_target_message.cpp
-      test_i_target_message.h
-      test_i_target_session_message.cpp
-      test_i_target_session_message.h
-      test_i_target_signalhandler.cpp
-      test_i_target_signalhandler.h
-      test_i_target_signalhandler.inl
-      test_i_target_stream.cpp
-      test_i_target_stream.h)
+set (camtarget_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
+     test_i_callbacks.cpp
+     test_i_callbacks.h
+     test_i_camstream_common.h
+     test_i_camstream_defines.h
+     test_i_camstream_network.h
+     test_i_common_modules.h
+     test_i_connection_manager_common.h
+     test_i_module_eventhandler.cpp
+     test_i_module_eventhandler.h
+     test_i_module_eventhandler.inl
+     test_i_target.cpp
+     test_i_target_common.h
+     test_i_target_eventhandler.cpp
+     test_i_target_eventhandler.h
+     test_i_target_eventhandler.inl
+     test_i_target_listener_common.h
+     test_i_target_message.cpp
+     test_i_target_message.h
+     test_i_target_session_message.cpp
+     test_i_target_session_message.h
+     test_i_target_signalhandler.cpp
+     test_i_target_signalhandler.h
+     test_i_target_signalhandler.inl
+     test_i_target_stream.cpp
+     test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_TARGET camtarget)
@@ -607,44 +592,56 @@ elseif (WIN32)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
+#cmake_policy (SET CMP0053 OLD)
+set (ENVIRONMENT "")
 if (UNIX)
- create_target_launcher (${EXECUTABLE_TARGET}
-                         ARGS "-g./etc/target.glade -l -o -t"
-#                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                         ENVIRONMENT foo=bar)
+ set (ARGS "-g./etc/target.glade -l -o -t")
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                           ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                           ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/${CMAKE_BUILD_TYPE})
+ file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE_TARGET}
-                         ARGS "-g.\\\\etc\\\\target.glade -l -o -t"
-#                        FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-#                                              D:/projects/libxml2-2.9.1/.libs
-                                              G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
-                         ENVIRONMENT foo=bar)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/${CMAKE_BUILD_TYPE})
+ if (GTK3_SUPPORT)
+  set (ARGS "-g.\\\\etc\\\\target.glade -l -o -t")
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                            G:/software/Development/dll
+                            ${PROJECT_SOURCE_DIR}/../gtk3/bin)
+ else ()
+  set (ARGS "-g.\\\\etc\\\\target.glade -l -o -t")
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                            G:/software/Development/dll
+                            ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+ endif (GTK3_SUPPORT)
+ string (REPLACE "/" "\\\\" WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream) 
+#message (STATUS "WORKING_DIRECTORY: ${WORKING_DIRECTORY}")
 endif ()
+create_target_launcher (${EXECUTABLE_TARGET}
+                        ARGS ${ARGS}
+#                        FORWARD_ARGS
+                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                        WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                        ENVIRONMENT ${ENVIRONMENT})
 
 add_test (NAME ${EXECUTABLE_TARGET}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t

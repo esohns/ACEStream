@@ -20,9 +20,13 @@
 
 #include "ace/Log_Msg.h"
 
+#if defined (GTK_SUPPORT)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
+
 #include "stream_macros.h"
 
-#include "test_i_source_common.h"
+//#include "test_i_source_common.h"
 
 template <typename ConfigurationType>
 Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
@@ -128,46 +132,23 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
     if (inherited::configuration_->hasUI)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    {
-      switch (inherited::configuration_->mediaFramework)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        {
-          TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                             true); // N/A
-          break;
-        }
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        {
-          TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                                                  true); // N/A
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      inherited::configuration_->mediaFramework));
-          return;
-        }
-      } // end SWITCH
-    } // end IF
+#if defined (GTK_SUPPORT)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                          false); // N/A
 #else
-      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
-                                                              true); // N/A
-#endif
+      ;
+#endif // GTK_SUPPORT
 
-                                                                     // step1: stop processing stream
+    // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // don't block
                                              true); // locked access
 
-                                                    // step2: stop/abort(/wait) for connections
-                                                    //ConnectionManagerType* connection_manager_p =
-                                                    //    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
-                                                    //ACE_ASSERT (connection_manager_p);
-                                                    //connection_manager_p->stop ();
+    // step2: stop/abort(/wait) for connections
+    //ConnectionManagerType* connection_manager_p =
+    //    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+    //ACE_ASSERT (connection_manager_p);
+    //connection_manager_p->stop ();
     ACE_ASSERT (inherited::configuration_->connectionManager);
     inherited::configuration_->connectionManager->stop ();
     //    connection_manager_p->abort ();

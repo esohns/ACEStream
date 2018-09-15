@@ -21,29 +21,30 @@
 #ifndef STREAM_LIB_DIRECTSHOW_SOURCE_FILTER_H
 #define STREAM_LIB_DIRECTSHOW_SOURCE_FILTER_H
 
-// *IMPORTANT NOTE*: the MSVC compiler does not like streams.h to be included
-//                   several times (complains about media GUIDs being defined
-//                   multiple times)
-//                   --> to work around this, the following are included instead
-//                   DO NOT TOUCH (unless you know what you are doing)
-//#include <streams.h>
-#include <Dshow.h>
-#include <wxdebug.h>
-#include <combase.h>
-#include <strmif.h>
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
-//#include <wtypes.h>
-//#include <mmiscapi2.h>
-#include <mmreg.h>
-#include <mtype.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#include <WinNT.h>
+#include <Guiddef.h>
+#if _MSC_VER>=1100
+#define AM_NOVTABLE __declspec(novtable)
+#else
+#define AM_NOVTABLE
+#endif
+//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+//#undef __WXDEBUG__
+#include <wxdebug.h>
+#include <combase.h>
+#include <Unknwn.h>
+#include <strmif.h>
 #include <reftime.h>
-#include <wxlist.h>
+#include <MMSystem.h>
 #include <wxutil.h>
+#include <mtype.h>
+#include <wxlist.h>
 #include <amfilter.h>
 #include <source.h>
 
@@ -141,10 +142,6 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   Stream_MediaFramework_DirectShow_Source_Filter_T ();
 
   ConfigurationType*          filterConfiguration_;
-
-  CCritSec                    lock_;
-  int                         numberOfPins_;
-  CBasePin**                  pins_;
 
  private:
   // convenient types

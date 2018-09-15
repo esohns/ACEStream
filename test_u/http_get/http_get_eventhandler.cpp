@@ -33,7 +33,7 @@
 #include "http_get_common.h"
 #include "http_get_callbacks.h"
 
-HTTPGet_EventHandler::HTTPGet_EventHandler (struct HTTPGet_GtkCBData* CBData_in,
+HTTPGet_EventHandler::HTTPGet_EventHandler (struct HTTPGet_UI_CBData* CBData_in,
                                             bool consoleMode_in)
  : consoleMode_ (consoleMode_in)
  , CBData_ (CBData_in)
@@ -56,16 +56,20 @@ HTTPGet_EventHandler::start (Stream_SessionId_t sessionId_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+#if defined (GTK_SUPPORT)
   guint event_source_id = 0;
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_SUPPORT
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GTK_SUPPORT)
     event_source_id = g_idle_add (idle_session_start_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_start_cb): \"%m\", continuing\n")));
     else
-      CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+      CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_SUPPORT
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
 }
 
@@ -91,8 +95,8 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
 
@@ -106,7 +110,6 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
-  ACE_ASSERT (CBData_->progressData);
 
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
@@ -127,7 +130,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
       struct HTTPGet_SessionData& session_data_r =
         const_cast<struct HTTPGet_SessionData&> (session_data_container_r.getR ());
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
         if (session_data_r.lock)
         {
           result = session_data_r.lock->acquire ();
@@ -136,7 +139,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
         } // end IF
 
-        CBData_->progressData->statistic = session_data_r.statistic;
+        CBData_->progressData.statistic = session_data_r.statistic;
 
         if (session_data_r.lock)
         {
@@ -159,8 +162,8 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
     }
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (event_e);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->UIState.eventStack.push (event_e);
   } // end lock scope
 }
 
@@ -171,15 +174,19 @@ HTTPGet_EventHandler::end (Stream_SessionId_t sessionId_in)
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GTK_SUPPORT)
   guint event_source_id = 0;
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_SUPPORT
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GTK_SUPPORT)
     event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
     else
-      CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STOPPED);
+      CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_SUPPORT
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
 }

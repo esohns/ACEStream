@@ -26,10 +26,14 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include <strmif.h>
+#include <BaseTyps.h>
 #include <control.h>
 #include <qedit.h>
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#include <minwindef.h>
+#else
 #include <windef.h>
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #include "common_time_common.h"
 
@@ -39,24 +43,20 @@
 extern const char libacestream_default_dev_cam_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ////////////////////////////////
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
+          typename UserDataType,
           ////////////////////////////////
-          typename UserDataType>
+          bool MediaSampleIsDataMessage = false>
 class Stream_Dev_Cam_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -75,14 +75,27 @@ class Stream_Dev_Cam_Source_DirectShow_T
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      TimerManagerType,
+                                      UserDataType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* = NULL,                                                         // stream handle
-                                      bool = false,                                                              // auto-start ? (active mode only)
-                                      enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
+  Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Dev_Cam_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -106,58 +119,41 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
+  // implement (part of) Stream_ITaskBase
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
 
-//  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
-
   inline STDMETHODIMP_ (ULONG) AddRef () { InterlockedIncrement (&referenceCount_); return referenceCount_; }
   STDMETHODIMP_ (ULONG) Release ();
   STDMETHODIMP QueryInterface (REFIID,
-                               void**);
+                               LPVOID*);
   // implement IMemAllocatorNotifyCallbackTemp
-  STDMETHODIMP NotifyRelease (void);
+  inline STDMETHODIMP NotifyRelease (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
   // implement ISampleGrabberCB
-  STDMETHODIMP BufferCB (double, // SampleTime
-                         BYTE*,  // Buffer
-                         long);  // BufferLen
+  inline STDMETHODIMP BufferCB (double, BYTE*, long) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (E_FAIL); ACE_NOTREACHED (return E_FAIL;) }
   STDMETHODIMP SampleCB (double,         // SampleTime
                          IMediaSample*); // Sample
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      TimerManagerType,
-                                      UserDataType> inherited;
-
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
-                              const HWND,              // (target) window handle [NULL: NullRenderer]
+  bool initialize_DirectShow (const std::string&,      // (source) device path
+                              HWND,                    // (target) window handle [NULL: NullRenderer]
                               ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
+                              IAMVideoControl*&,       // return value; capture filter video control
                               IAMDroppedFrames*&,      // return value: capture filter statistic handle
                               ISampleGrabber*&);       // return value: sample grabber handle
 
   bool                   isFirst_;
   IAMDroppedFrames*      IAMDroppedFrames_;
+  IAMVideoControl*       IAMVideoControl_;
   ICaptureGraphBuilder2* ICaptureGraphBuilder2_;
   IMediaControl*         IMediaControl_;
   IMediaEventEx*         IMediaEventEx_;

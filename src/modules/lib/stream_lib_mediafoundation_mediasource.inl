@@ -62,7 +62,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to instantiate Stream_MediaFramework_MediaFoundation_MediaSource_T: \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
     // clean up
     instance_p->Release ();
@@ -74,7 +74,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
     // clean up
     instance_p->Release ();
@@ -114,7 +114,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::errorToString (*result_out).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (*result_out).c_str ())));
       return;
     } // end IF
   //} // end lock scope
@@ -141,7 +141,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_MediaSource_T::Shutdown(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     } // end IF
     if (eventQueue_)
       eventQueue_->Release ();

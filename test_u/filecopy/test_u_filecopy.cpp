@@ -373,7 +373,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFile_in,
          unsigned int statisticReportingInterval_in,
          const std::string& targetFileName_in,
-         struct Stream_Filecopy_GTK_CBData& CBData_in,
+         struct Stream_Filecopy_UI_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -464,16 +464,17 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    CBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.eventHooks.initHook = idle_initialize_UI_cb;
-    //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+#if defined (GTK_SUPPORT)
+    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
+    //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
     CBData_in.stream = &stream;
-    CBData_in.userData = &CBData_in;
+    //CBData_in.userData = &CBData_in;
 
-    FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     int result = ACE_OS::sleep (timeout);
@@ -481,12 +482,13 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
-    if (!FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       return;
     } // end IF
+#endif // GTK_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -494,15 +496,16 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-
-      // clean up
-      FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
       return;
     } // end IF
     BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif
+
+#if defined (GTK_SUPPORT)
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+#endif // GTK_SUPPORT
   } // end IF
   else
   {
@@ -519,18 +522,13 @@ do_work (unsigned int bufferSize_in,
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to start stream, aborting\n")));
-
-//      // clean up
 //      //timer_manager_p->stop ();
-
 //      return;
 //    } // end IF
     stream.wait (true, false, false);
   } // end ELSE
 
   // step3: clean up
-  if (!UIDefinitionFile_in.empty ())
-    FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -676,7 +674,6 @@ ACE_TMAIN (int argc_in,
                             //run_stress_test))
   {
     do_printUsage (ACE::basename (argv_in[0]));
-
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -684,7 +681,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -705,7 +701,6 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
     do_printUsage (ACE::basename (argv_in[0]));
-
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -713,19 +708,18 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
   struct Stream_Filecopy_Configuration configuration;
-  struct Stream_Filecopy_GTK_CBData gtk_cb_data;
-  gtk_cb_data.configuration = &configuration;
-  gtk_cb_data.progressData.state = &gtk_cb_data;
+  struct Stream_Filecopy_UI_CBData ui_cb_data;
+  ui_cb_data.configuration = &configuration;
+  ui_cb_data.progressData.state = &ui_cb_data.UIState;
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&gtk_cb_data.logStack,
-                          &gtk_cb_data.lock);
+  Common_Logger_t logger (&ui_cb_data.UIState.logStack,
+                          &ui_cb_data.UIState.lock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -749,7 +743,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -775,7 +768,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -794,12 +786,11 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   Stream_Filecopy_SignalHandler signal_handler (((configuration.dispatchConfiguration.numberOfReactorThreads) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                &gtk_cb_data.subscribersLock);
+                                                &ui_cb_data.UIState.subscribersLock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -819,7 +810,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_SUCCESS;
   } // end IF
 
@@ -845,20 +835,22 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
+#if defined (GTK_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
   Stream_Filecopy_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                        argv_in);
+                                                        argv_in,
+                                                        &ui_cb_data);
   if (!UI_definition_file.empty ())
-    FILECOPY_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                argv_in,
-                                                                &gtk_cb_data,
-                                                                &ui_definition);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                              argv_in,
+                                                              &ui_cb_data.UIState,
+                                                              &ui_definition);
+#endif // GTK_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -868,7 +860,7 @@ ACE_TMAIN (int argc_in,
            UI_definition_file,
            statistic_reporting_interval,
            target_file_name,
-           gtk_cb_data,
+           ui_cb_data,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,
@@ -911,7 +903,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;

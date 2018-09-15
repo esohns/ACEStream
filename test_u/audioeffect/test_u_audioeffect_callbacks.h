@@ -22,18 +22,17 @@
 #define TEST_U_AUDIOEFFECT_CALLBACKS_H
 
 #include "ace/config-lite.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfidl.h>
 #include <mfreadwrite.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "gtk/gtk.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IAMStreamConfig;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // helper functions
 bool load_capture_devices (GtkListStore*);
@@ -87,27 +86,34 @@ gboolean idle_update_display_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
-  // callbacks
+  G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
   G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
   G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
+  G_MODULE_EXPORT void action_reset_activate_cb (GtkAction*, gpointer);
+  G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_sinus_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_effect_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_mute_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_visualization_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_3d_toggled_cb (GtkToggleAction*, gpointer);
   G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
-  G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
-  G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void combobox_effect_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_frequency_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_2d_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#if GTK_CHECK_VERSION(3,0,0)
+  G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
+  G_MODULE_EXPORT void drawingarea_realize_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_2d_draw_cb (GtkWidget*, cairo_t*, gpointer);
+#if GTK_CHECK_VERSION(3,0,0)
+  G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 #else
-  G_MODULE_EXPORT gboolean drawingarea_2d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif // GTK_CHECK_VERSION(3,0,0)
-  G_MODULE_EXPORT gboolean drawingarea_2d_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #if defined (GTKGL_SUPPORT)
@@ -120,8 +126,7 @@ extern "C"
 #else
 #if defined (GTKGLAREA_SUPPORT)
   G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #else
   G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
@@ -130,22 +135,15 @@ extern "C"
 #else
 #if defined (GTKGLAREA_SUPPORT)
   G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #else
-  G_MODULE_EXPORT gboolean drawingarea_3d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
-  G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void checkbutton_effect_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void checkbutton_save_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void checkbutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void checkbutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

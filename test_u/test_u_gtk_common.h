@@ -21,6 +21,8 @@
 #ifndef TEST_U_GTK_COMMON_H
 #define TEST_U_GTK_COMMON_H
 
+#include "gtk/gtk.h"
+
 #include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 
@@ -37,7 +39,6 @@
 // forward declarations
 struct Test_U_Configuration;
 
-struct Test_U_GTK_CBData;
 struct Test_U_GTK_ProgressData
  : Common_UI_GTK_ProgressData
 {
@@ -52,50 +53,33 @@ struct Test_U_GTK_ProgressData
 };
 
 struct Test_U_GTK_CBData
-#if defined (GTKGL_SUPPORT)
-  : Common_UI_GTK_GLState
-#else
-  : Common_UI_GTK_State
-#endif // GTKGL_SUPPORT
+ : Test_U_UI_CBData
 {
   Test_U_GTK_CBData ()
-#if defined (GTKGL_SUPPORT)
-   : Common_UI_GTK_GLState ()
-#else
-   : Common_UI_GTK_State ()
-#endif // GTKGL_SUPPORT
-   , allowUserRuntimeStatistic (true)
-   , configuration (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif // ACE_WIN32 || ACE_WIN64
+   : Test_U_UI_CBData ()
    , progressData ()
    , progressEventSourceId (0)
-  {}
+   , UIState ()
+  {
+    progressData.state = &UIState;
+  }
 
-  bool                            allowUserRuntimeStatistic;
-  struct Test_U_Configuration*    configuration;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework;
-#endif // ACE_WIN32 || ACE_WIN64
-  struct Test_U_GTK_ProgressData  progressData;
-  guint                           progressEventSourceId;
+  struct Test_U_GTK_ProgressData progressData;
+  guint                          progressEventSourceId;
+  Common_UI_GTK_State_t          UIState;
 };
 
 struct Test_U_GTK_ThreadData
+ : Test_U_UI_ThreadData
 {
   Test_U_GTK_ThreadData ()
-   : CBData (NULL)
+   : Test_U_UI_ThreadData ()
+   , CBData (NULL)
    , eventSourceId (0)
-   , sessionId (0)
   {}
 
-  struct Test_U_GTK_CBData*       CBData;
-  guint                           eventSourceId;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework;
-#endif // ACE_WIN32 || ACE_WIN64
-  size_t                          sessionId;
+  struct Test_U_GTK_CBData* CBData;
+  guint                     eventSourceId;
 };
 
 typedef Common_ITaskControl_T<ACE_MT_SYNCH,

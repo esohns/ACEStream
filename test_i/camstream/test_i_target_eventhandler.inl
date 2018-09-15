@@ -21,13 +21,15 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
+#endif // GTK_USE
 
 #include "stream_macros.h"
 
-//#include "test_i_camstream_common.h"
-
+#if defined (GTK_USE)
 #include "test_i_callbacks.h"
+#endif // GTK_USE
 
 template <typename SessionIdType,
           typename SessionDataType,
@@ -60,8 +62,8 @@ Test_I_Target_EventHandler_T<SessionIdType,
                              SessionEventType,
                              MessageType,
                              SessionMessageType,
-  CallbackDataType>::start (SessionIdType sessionId_in,
-                            const SessionDataType& sessionData_in)
+                             CallbackDataType>::start (SessionIdType sessionId_in,
+                                                       const SessionDataType& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::start"));
 
@@ -73,45 +75,22 @@ Test_I_Target_EventHandler_T<SessionIdType,
 
   sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
+#if defined (GTK_USE)
   guint event_source_id = 0;
-
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_USE
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     CBData_->progressData.transferred = 0;
+#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_start_target_UI_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_start_target_UI_cb): \"%m\", continuing\n")));
     else
-      CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+      CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_USE
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
-}
-
-template <typename SessionIdType,
-          typename SessionDataType,
-          typename SessionEventType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename CallbackDataType>
-void
-Test_I_Target_EventHandler_T<SessionIdType,
-                             SessionDataType,
-                             SessionEventType,
-                             MessageType,
-                             SessionMessageType,
-                             CallbackDataType>::notify (SessionIdType sessionId_in,
-                                                        const SessionEventType& sessionEvent_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::notify"));
-
-  ACE_UNUSED_ARG (sessionId_in);
-  ACE_UNUSED_ARG (sessionEvent_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 template <typename SessionIdType,
@@ -135,17 +114,20 @@ Test_I_Target_EventHandler_T<SessionIdType,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+#if defined (GTK_USE)
   guint event_source_id = 0;
-
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_USE
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_end_target_UI_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", continuing\n")));
     else
-      CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_STOPPED);
+      CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_USE
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
 
   if (sessionData_)
@@ -174,18 +156,21 @@ Test_I_Target_EventHandler_T<SessionIdType,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+#if defined (GTK_USE)
   guint event_source_id = 0;
-
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+#endif // GTK_USE
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     CBData_->progressData.transferred += message_in.total_length ();
+#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_update_video_display_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", continuing\n")));
     //else
-    //  CBData_->eventSourceIds.insert (event_source_id);
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+    //  CBData_->UIState.eventSourceIds.insert (event_source_id);
+#endif // GTK_USE
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
 
@@ -232,7 +217,7 @@ Test_I_Target_EventHandler_T<SessionIdType,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
         CBData_->progressData.statistic = sessionData_->statistic;
       } // end lock scope
 
@@ -257,7 +242,7 @@ continue_:
     }
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (event_e);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->UIState.eventStack.push (event_e);
   } // end lock scope
 }

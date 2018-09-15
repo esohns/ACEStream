@@ -28,12 +28,17 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
 #include "common_isubscribe.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -44,7 +49,9 @@
 #include "net_configuration.h"
 
 #include "test_i_configuration.h"
+#if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
+#endif // GTK_SUPPORT
 
 #include "test_i_connection_manager_common.h"
 //#include "test_i_filestream_common.h"
@@ -244,11 +251,19 @@ typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubsc
 
 //////////////////////////////////////////
 
-struct Test_I_Source_GTK_ProgressData
+struct Test_I_Source_ProgressData
+#if defined (GTK_SUPPORT)
  : Test_I_GTK_ProgressData
+#else
+ : Test_I_UI_ProgressData
+#endif // GTK_SUPPORT
 {
-  Test_I_Source_GTK_ProgressData ()
+  Test_I_Source_ProgressData ()
+#if defined (GTK_SUPPORT)
    : Test_I_GTK_ProgressData ()
+#else
+   : Test_I_UI_ProgressData ()
+#endif // GTK_SUPPORT
    , size (0)
    , transferred (0)
   {}
@@ -257,11 +272,19 @@ struct Test_I_Source_GTK_ProgressData
   size_t transferred;
 };
 
-struct Test_I_Source_GTK_CBData
+struct Test_I_Source_UI_CBData
+#if defined (GTK_SUPPORT)
  : Test_I_GTK_CBData
+#else
+ : Test_I_UI_CBData
+#endif // GTK_SUPPORT
 {
-  Test_I_Source_GTK_CBData ()
+  Test_I_Source_UI_CBData ()
+#if defined (GTK_SUPPORT)
    : Test_I_GTK_CBData ()
+#else
+   : Test_I_UI_CBData ()
+#endif // GTK_SUPPORT
    , configuration (NULL)
    , loop(0)
    , progressData ()
@@ -270,30 +293,36 @@ struct Test_I_Source_GTK_CBData
    , UDPStream(NULL)
   {}
 
-  struct Test_I_Source_Configuration*   configuration;
-  size_t                                loop;
-  struct Test_I_Source_GTK_ProgressData progressData;
-  Test_I_StreamBase_t*                  stream;
-  Test_I_Source_Subscribers_t           subscribers;
-  Test_I_StreamBase_t*                  UDPStream;
+  struct Test_I_Source_Configuration* configuration;
+  size_t                              loop;
+  struct Test_I_Source_ProgressData   progressData;
+  Test_I_StreamBase_t*                stream;
+  Test_I_Source_Subscribers_t         subscribers;
+  Test_I_StreamBase_t*                UDPStream;
 };
 
-struct Test_I_Source_ThreadData
- : Test_I_ThreadData
+struct Test_I_Source_UI_ThreadData
+#if defined (GTK_SUPPORT)
+ : Test_I_GTK_ThreadData
+#else
+ : Test_I_UI_ThreadData
+#endif // GTK_SUPPORT
 {
-  Test_I_Source_ThreadData ()
-   : Test_I_ThreadData ()
+  Test_I_Source_UI_ThreadData ()
+#if defined (GTK_SUPPORT)
+   : Test_I_GTK_ThreadData ()
+#else
+   : Test_I_UI_ThreadData ()
+#endif // GTK_SUPPORT
    , CBData (NULL)
   {}
 
-  struct Test_I_Source_GTK_CBData* CBData;
+  struct Test_I_Source_UI_CBData* CBData;
 };
 
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Source_GTK_CBData> Test_I_Source_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
+#if defined (GTK_SUPPORT)
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Source_UI_CBData> Test_I_Source_GtkBuilderDefinition_t;
+#endif // GTK_SUPPORT
 
 #endif

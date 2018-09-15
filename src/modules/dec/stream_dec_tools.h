@@ -64,7 +64,7 @@ void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
 class Stream_Module_Decoder_Tools
 {
  public:
-  static void initialize ();
+  //static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool isCompressed (REFGUID,                                                              // media subtype

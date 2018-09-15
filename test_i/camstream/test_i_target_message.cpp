@@ -24,13 +24,6 @@
 
 #include "ace/Malloc_Base.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
-#else
-#include <libv4l2.h>
-#include <linux/videodev2.h>
-#endif
-
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -133,8 +126,7 @@ Test_I_Target_DirectShow_Stream_Message::release (void)
   // release any continuations
   if (inherited::cont_)
   {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
+    inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
   return inherited::release ();
@@ -249,8 +241,7 @@ Test_I_Target_MediaFoundation_Stream_Message::release (void)
   // release any continuations
   if (inherited::cont_)
   {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
+    inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
   return inherited::release ();
@@ -345,10 +336,7 @@ Test_I_Target_Stream_Message::duplicate (void) const
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Test_I_Target_Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
-      message_p->release ();
-
+      message_p->release (); message_p = NULL;
       return NULL;
     } // end IF
   } // end IF
@@ -365,8 +353,7 @@ Test_I_Target_Stream_Message::release (void)
   // release any continuations
   if (inherited::cont_)
   {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
+    inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
   return inherited::release ();

@@ -5,20 +5,22 @@
 
 #if defined (GTKGL_SUPPORT)
 #include "gtk/gtk.h"
-#endif
+#endif // GTKGL_SUPPORT
 
 #include "ace/config-lite.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum Stream_Module_Visualization_MediaFrameWork : int
 {
+  STREAM_MODULE_VIS_FRAMEWORK_DIRECT3D,
   STREAM_MODULE_VIS_FRAMEWORK_DIRECTSHOW,
+  STREAM_MODULE_VIS_FRAMEWORK_GDI,
   STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION,
   ////////////////////////////////////////
   STREAM_MODULE_VIS_FRAMEWORK_MAX,
   STREAM_MODULE_VIS_FRAMEWORK_INVALID
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 enum Stream_Module_Visualization_AudioRenderer
 {
@@ -37,7 +39,7 @@ enum Stream_Module_Visualization_VideoRenderer
   STREAM_MODULE_VIS_VIDEORENDERER_MEDIAFOUNDATION,
 #else
   STREAM_MODULE_VIS_VIDEORENDERER_GTK_CAIRO = 0,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   STREAM_MODULE_VIS_VIDEORENDERER_NULL,
   STREAM_MODULE_VIS_VIDEORENDERER_GTK_PIXBUF,
   ////////////////////////////////////////
@@ -62,11 +64,11 @@ struct Stream_Module_Visualization_OpenGLInstruction
 
   enum Stream_Module_Visualization_OpenGLInstructionType type;
   union {
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION(3,0,0)
     struct _GdkRGBA                                      color;
 #else
     GdkColor                                             color;
-#endif
+#endif // GTK_CHECK_VERSION(3,0,0)
   };
 };
 typedef std::deque<struct Stream_Module_Visualization_OpenGLInstruction> Stream_Module_Visualization_OpenGLInstructions_t;

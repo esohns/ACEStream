@@ -74,70 +74,69 @@ stream_processing_function (void* arg_in)
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator;
-  struct HTTPGet_ThreadData* data_p =
-    static_cast<struct HTTPGet_ThreadData*> (arg_in);
+  struct HTTPGet_UI_ThreadData* thread_data_p =
+    static_cast<struct HTTPGet_UI_ThreadData*> (arg_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->CBData);
-  ACE_ASSERT (data_p->CBData->configuration);
+  ACE_ASSERT (thread_data_p->CBData);
+  ACE_ASSERT (thread_data_p->CBData->configuration);
 
   iterator =
-    data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    thread_data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->CBData->builders.end ());
+  ACE_ASSERT (iterator != thread_data_p->CBData->UIState.builders.end ());
 
   // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc) fails to 'dynamic cast'
   //                   Stream_IStream_T to Stream_IStreamControlBase
   //                   --> upcast to ACE_Stream first
   Stream_Base_t* stream_base_p =
-    dynamic_cast<Stream_Base_t*> (data_p->CBData->stream);
+    dynamic_cast<Stream_Base_t*> (thread_data_p->CBData->stream);
   ACE_ASSERT (stream_base_p);
   Stream_IStreamControlBase* istream_control_p =
     dynamic_cast<Stream_IStreamControlBase*> (stream_base_p);
   ACE_ASSERT (istream_control_p);
   Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p =
-    dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> (data_p->CBData->stream);
+    dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iinitialize_p);
   Common_IGetR_T<HTTPGet_SessionData_t>* iget_p =
-    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> (data_p->CBData->stream);
+    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   //  GtkStatusbar* statusbar_p = NULL;
   const HTTPGet_SessionData_t* session_data_container_p = NULL;
-  const struct HTTPGet_SessionData* session_data_p = NULL;
+  const struct HTTPGet_SessionData* session_ui_cb_data_p = NULL;
   std::ostringstream converter;
   bool result_2 = false;
 //  guint context_id = 0;
 
 //  {
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->CBData->UIState.lock, -1);
 //#else
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->CBData->UIState.lock, std::numeric_limits<void*>::max ());
 //#endif
 
     // configure streams and retrieve stream handles
     ACE_Time_Value session_start_timeout =
         COMMON_TIME_NOW + ACE_Time_Value (5, 0);
     result_2 =
-      iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration);
+      iinitialize_p->initialize (thread_data_p->CBData->configuration->streamConfiguration);
     if (!result_2)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->CBData->stream->name ().c_str ())));
+                  ACE_TEXT (thread_data_p->CBData->stream->name ().c_str ())));
       goto done;
     } // end IF
     istream_control_p->start ();
 
     session_data_container_p = &iget_p->getR ();
     ACE_ASSERT (session_data_container_p);
-    session_data_p =
+    session_ui_cb_data_p =
       &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->getR ());
-    ACE_ASSERT (session_data_p);
+    ACE_ASSERT (session_ui_cb_data_p);
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << session_data_p->sessionId;
+    converter << session_ui_cb_data_p->sessionId;
 
 //    // set context ID
 //    gdk_threads_enter ();
@@ -145,7 +144,7 @@ stream_processing_function (void* arg_in)
 //      GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
 //                                             ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_STATUSBAR)));
 //    ACE_ASSERT (statusbar_p);
-//    data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+//    ui_cb_data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
 //        gtk_statusbar_get_context_id (statusbar_p,
 //                                      converter.str ().c_str ());
 //    gdk_threads_leave ();
@@ -168,21 +167,16 @@ stream_processing_function (void* arg_in)
 #endif
 
 done:
-  { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState.lock, -1);
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX,
-                      aGuard,
-                      data_p->CBData->lock,
-                      std::numeric_limits<void*>::max ());
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState.lock, std::numeric_limits<void*>::max ());
 #endif
-
-    data_p->CBData->progressData->completedActions.insert (data_p->eventSourceId);
+    thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
 
   // clean up
-  delete data_p;
+  delete thread_data_p; thread_data_p = NULL;
 
   return result;
 }
@@ -194,17 +188,18 @@ idle_initialize_ui_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_ui_cb"));
 
-  struct HTTPGet_GtkCBData* cb_data_p =
-    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (cb_data_p);
-  ACE_ASSERT (cb_data_p->configuration);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkDialog* dialog_p =
     GTK_DIALOG (gtk_builder_get_object ((*iterator).second.second,
@@ -252,15 +247,15 @@ idle_initialize_ui_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize);
+                             ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize);
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
   HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   gtk_entry_set_text (entry_p,
                       (*iterator_2).second.second.URL.c_str ());
 
@@ -307,19 +302,19 @@ idle_initialize_ui_cb (gpointer userData_in)
         return G_SOURCE_REMOVE;
       } // end IF
     //file_p =
-    //  g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
+    //  g_file_new_for_path (ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
     //ACE_ASSERT (file_p);
     //ACE_ASSERT (g_file_query_exists (file_p, NULL));
 
     //std::string file_uri =
     //  ACE_TEXT_ALWAYS_CHAR ("file://") +
-    //  data_p->configuration->moduleHandlerConfiguration.targetFileName;
+    //  ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName;
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     string_p =
       g_string_new ((*iterator_2).second.second.targetFileName.c_str ());
     filename_p = string_p->str;
-      //Common_UI_Tools::Locale2UTF8 (cb_data_p->configuration->moduleHandlerConfiguration.targetFileName);
+      //Common_UI_Tools::Locale2UTF8 (ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
@@ -342,7 +337,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
-    //              ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
+    //              ACE_TEXT (ui_cb_data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
     //              ACE_TEXT (error_p->message)));
 
     //  // clean up
@@ -396,7 +391,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_ASYNCH)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (cb_data_p->configuration->signalHandlerConfiguration.dispatchState->proactorGroupId != -1));
+                                (ui_cb_data_p->configuration->signalHandlerConfiguration.dispatchState->proactorGroupId != -1));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_SAVE)));
@@ -474,23 +469,23 @@ idle_initialize_ui_cb (gpointer userData_in)
   guint context_id =
       gtk_statusbar_get_context_id (statusbar_p,
                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_STATUSBAR_CONTEXT_DATA));
-  cb_data_p->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_DATA,
-                                                context_id));
+  ui_cb_data_p->UIState.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_DATA,
+                                                           context_id));
   context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_STATUSBAR_CONTEXT_INFORMATION));
-  cb_data_p->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
-                                                context_id));
+  ui_cb_data_p->UIState.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
+                                                           context_id));
 
   // step2: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
-                               cb_data_p);
+                               ui_cb_data_p);
 
   gulong result =
     g_signal_connect (G_OBJECT (dialog_p),
                       ACE_TEXT_ALWAYS_CHAR ("destroy"),
                       G_CALLBACK (button_quit_clicked_cb),
-                      cb_data_p);
+                      ui_cb_data_p);
 //                   G_CALLBACK(gtk_widget_destroyed),
 //                   &main_dialog_p,
 //  g_signal_connect (G_OBJECT (dialog_p),
@@ -511,11 +506,11 @@ idle_initialize_ui_cb (gpointer userData_in)
   //g_signal_connect (drawing_area_p,
   //                  ACE_TEXT_ALWAYS_CHAR ("key-press-event"),
   //                  G_CALLBACK (key_cb),
-  //                  cb_data_p);
+  //                  ui_cb_data_p);
   //g_signal_connect (drawing_area_p,
   //                  ACE_TEXT_ALWAYS_CHAR ("motion-notify-event"),
   //                  G_CALLBACK (motion_cb),
-  //                  cb_data_p);
+  //                  ui_cb_data_p);
 
 //  // step5: use correct screen
 //  if (parentWidget_in)
@@ -527,13 +522,13 @@ idle_initialize_ui_cb (gpointer userData_in)
 
   // step7: initialize updates
   guint event_source_id = 0;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     //event_source_id = g_timeout_add_seconds (1,
     //                                         idle_update_log_display_cb,
-    //                                         cb_data_p);
+    //                                         ui_cb_data_p);
     //if (event_source_id > 0)
-    //  cb_data_p->eventSourceIds.insert (event_source_id);
+    //  ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     //else
     //{
     //  ACE_DEBUG ((LM_ERROR,
@@ -544,9 +539,9 @@ idle_initialize_ui_cb (gpointer userData_in)
     event_source_id =
         g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
                        idle_update_info_display_cb,
-                       cb_data_p);
+                       ui_cb_data_p);
     if (event_source_id > 0)
-      cb_data_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -556,30 +551,30 @@ idle_initialize_ui_cb (gpointer userData_in)
   } // end lock scope
 
   // step7: initialize fps, schedule refresh
-  //cb_data_p->timeStamp = COMMON_TIME_POLICY ();
+  //ui_cb_data_p->timeStamp = COMMON_TIME_POLICY ();
   //guint opengl_refresh_rate =
   //    static_cast<guint> (HTTPGET_UI_WIDGET_GL_REFRESH_INTERVAL);
-  //cb_data_p->openGLRefreshId = g_timeout_add (opengl_refresh_rate,
+  //ui_cb_data_p->openGLRefreshId = g_timeout_add (opengl_refresh_rate,
   //                                            process_cb,
-  //                                            cb_data_p);
-  //if (!cb_data_p->openGLRefreshId)
+  //                                            ui_cb_data_p);
+  //if (!ui_cb_data_p->openGLRefreshId)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
   //  return G_SOURCE_REMOVE;
   //} // end IF
-  //cb_data_p->openGLRefreshId = g_idle_add_full (10000,
+  //ui_cb_data_p->openGLRefreshId = g_idle_add_full (10000,
   //                                              process_cb,
-  //                                              cb_data_p,
+  //                                              ui_cb_data_p,
   //                                              NULL);
-  //if (cb_data_p->openGLRefreshId == 0)
+  //if (ui_cb_data_p->openGLRefreshId == 0)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to g_idle_add_full(): \"%m\", aborting\n")));
   //  return G_SOURCE_REMOVE;
   //} // end IF
   //else
-  //  cb_data_p->eventSourceIds.insert (cb_data_p->openGLRefreshId);
+  //  ui_cb_data_p->UIState.eventSourceIds.insert (ui_cb_data_p->openGLRefreshId);
 
   // step9: activate some widgets
   if ((*iterator_2).second.second.targetFileName.empty ())
@@ -609,13 +604,13 @@ idle_finalize_ui_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_ui_cb"));
 
-  struct HTTPGet_GtkCBData* cb_data_p =
-      static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (userData_in);
 
-  cb_data_p->eventSourceIds.clear ();
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+
+  ui_cb_data_p->UIState.eventSourceIds.clear ();
 
   gtk_main_quit ();
 
@@ -628,17 +623,16 @@ idle_session_end_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
-  struct HTTPGet_GtkCBData* data_p =
-    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->progressData);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // *IMPORTANT NOTE*: there are two major reasons for being here that are not
   //                   mutually exclusive, so there could be a race:
@@ -672,15 +666,14 @@ idle_session_end_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   // stop progress reporting ?
-  ACE_ASSERT (data_p->progressData->eventSourceId);
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
-    if (!g_source_remove (data_p->progressData->eventSourceId))
+  ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    if (!g_source_remove (ui_cb_data_p->progressData.eventSourceId))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                  data_p->progressData->eventSourceId));
-    data_p->eventSourceIds.erase (data_p->progressData->eventSourceId);
-    data_p->progressData->eventSourceId = 0;
+                  ui_cb_data_p->progressData.eventSourceId));
+    ui_cb_data_p->UIState.eventSourceIds.erase (ui_cb_data_p->progressData.eventSourceId);
+    ui_cb_data_p->progressData.eventSourceId = 0;
   } // end lock scope
 
   GtkProgressBar* progress_bar_p =
@@ -699,16 +692,16 @@ idle_session_start_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_session_start_cb"));
 
-  struct HTTPGet_GtkCBData* data_p =
-    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // update widgets
   GtkButton* button_p =
@@ -743,11 +736,11 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  struct HTTPGet_GtkCBData* data_p =
-    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -756,12 +749,12 @@ idle_update_info_display_cb (gpointer userData_in)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (ui_cb_data_p->UIState.eventStack);
          !iterator_2.done ();
          iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
@@ -810,7 +803,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_p->progressData->statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -845,9 +838,9 @@ idle_update_info_display_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!data_p->eventStack.is_empty ())
+    while (!ui_cb_data_p->UIState.eventStack.is_empty ())
     {
-      result = data_p->eventStack.pop (event_e);
+      result = ui_cb_data_p->UIState.eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
@@ -862,18 +855,18 @@ idle_update_info_display_cb (gpointer userData_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 //
-//  struct HTTPGet_GtkCBData* data_p =
-//    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 //
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->logStackLock, G_SOURCE_REMOVE);
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->logStackLock, G_SOURCE_REMOVE);
 //
 //  Common_UI_GTK_BuildersIterator_t iterator =
-//      data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//      ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
-//  ACE_ASSERT (iterator != data_p->builders.end ());
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 //
 //  GtkTextView* view_p =
 //    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
@@ -888,12 +881,12 @@ idle_update_info_display_cb (gpointer userData_in)
 //
 //  gchar* string_p = NULL;
 //  // sanity check
-//  if (data_p->logStack.empty ())
+//  if (ui_cb_data_p->logStack.empty ())
 //    return G_SOURCE_CONTINUE;
 //
 //  // step1: convert text
-//  for (Common_MessageStackConstIterator_t iterator_2 = data_p->logStack.begin ();
-//       iterator_2 != data_p->logStack.end ();
+//  for (Common_MessageStackConstIterator_t iterator_2 = ui_cb_data_p->logStack.begin ();
+//       iterator_2 != ui_cb_data_p->logStack.end ();
 //       ++iterator_2)
 //  {
 //    string_p = Common_UI_Tools::Locale2UTF8 (*iterator_2);
@@ -915,7 +908,7 @@ idle_update_info_display_cb (gpointer userData_in)
 //    g_free (string_p);
 //  } // end FOR
 //
-//  data_p->logStack.clear ();
+//  ui_cb_data_p->logStack.clear ();
 //
 //  // step3: scroll the view accordingly
 ////  // move the iterator to the beginning of line, so it doesn't scroll
@@ -949,17 +942,18 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  struct HTTPGet_GtkProgressData* data_p =
-    static_cast<struct HTTPGet_GtkProgressData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->state);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_ProgressData* progress_data_p =
+    static_cast<struct HTTPGet_ProgressData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (progress_data_p->state);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    progress_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_ASSERT (iterator != progress_data_p->state->builders.end ());
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -970,9 +964,9 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   int result = -1;
   float fps, speed = 0.0F;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-    fps   = data_p->statistic.messagesPerSecond;
-    speed = data_p->statistic.bytesPerSecond;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, progress_data_p->state->lock, G_SOURCE_REMOVE);
+    fps   = progress_data_p->statistic.messagesPerSecond;
+    speed = progress_data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
   if (speed)
@@ -1013,18 +1007,18 @@ button_execute_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_execute_clicked_cb"));
 
-  struct HTTPGet_GtkCBData* cb_data_p =
-    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (cb_data_p);
-  ACE_ASSERT (cb_data_p->configuration);
-  ACE_ASSERT (cb_data_p->progressData);
+  ACE_ASSERT (userData_in);
+
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkFileChooserButton* file_chooser_button_p = NULL;
   gchar* URI_p = NULL;
@@ -1038,7 +1032,7 @@ button_execute_clicked_cb (GtkButton* button_in,
 
   bool stop_progress_reporting = false;
 
-  struct HTTPGet_ThreadData* thread_data_p = NULL;
+  struct HTTPGet_UI_ThreadData* thread_data_p = NULL;
   ACE_thread_t thread_id = -1;
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
@@ -1047,11 +1041,11 @@ button_execute_clicked_cb (GtkButton* button_in,
   int result = -1;
 //  Stream_IStreamControlBase* stream_p = NULL;
   HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   HTTPGet_ConnectionConfigurationIterator_t iterator_3 =
-    cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != cb_data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
 
   // update configuration
 
@@ -1177,14 +1171,14 @@ continue_:
 
   // start processing thread
   ACE_NEW_NORETURN (thread_data_p,
-                    struct HTTPGet_ThreadData ());
+                    struct HTTPGet_UI_ThreadData ());
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     goto error;
   } // end IF
-  thread_data_p->CBData = cb_data_p;
+  thread_data_p->CBData = ui_cb_data_p;
 
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
   //  char* thread_name_p = NULL;
@@ -1232,24 +1226,24 @@ continue_:
   // start progress reporting
   // *TODO*: there is a race condition here if the processing thread returns
   //         early
-  ACE_ASSERT (!cb_data_p->progressData->eventSourceId);
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock);
-    cb_data_p->progressData->eventSourceId =
+  ACE_ASSERT (!ui_cb_data_p->progressData.eventSourceId);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
+    ui_cb_data_p->progressData.eventSourceId =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
-        //                 &data_p->progressData,
+        //                 &ui_cb_data_p->progressData,
         //                 NULL);
         g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
                             COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                             idle_update_progress_cb,
-                            cb_data_p->progressData,
+                            &ui_cb_data_p->progressData,
                             NULL);
-    if (cb_data_p->progressData->eventSourceId > 0)
+    if (ui_cb_data_p->progressData.eventSourceId > 0)
     {
-      thread_data_p->eventSourceId = cb_data_p->progressData->eventSourceId;
-      cb_data_p->progressData->pendingActions[cb_data_p->progressData->eventSourceId] =
+      thread_data_p->eventSourceId = ui_cb_data_p->progressData.eventSourceId;
+      ui_cb_data_p->progressData.pendingActions[ui_cb_data_p->progressData.eventSourceId] =
           ACE_Thread_ID (thread_id, thread_handle);
-      cb_data_p->eventSourceIds.insert (cb_data_p->progressData->eventSourceId);
+      ui_cb_data_p->UIState.eventSourceIds.insert (ui_cb_data_p->progressData.eventSourceId);
     } // end IF
     else
       ACE_DEBUG ((LM_ERROR,
@@ -1287,9 +1281,9 @@ error:
   gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), false);
 
   if (stop_progress_reporting)
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
 
-    cb_data_p->progressData->completedActions.insert (cb_data_p->progressData->eventSourceId);
+    ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
   } // end IF
 
   if (thread_data_p)
@@ -1302,11 +1296,11 @@ button_cancel_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_cancel_clicked_cb"));
 
-  struct HTTPGet_GtkCBData* cb_data_p =
-      static_cast<struct HTTPGet_GtkCBData*> (userData_in);
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (ui_cb_data_p);
 }
 
 //G_MODULE_EXPORT void
@@ -1528,17 +1522,17 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::checkbutton_save_toggled_cb"));
 
-  struct HTTPGet_GtkCBData* cb_data_p =
-      static_cast<struct HTTPGet_GtkCBData*> (userData_in);
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (toggleButton_in);
-  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -1557,17 +1551,17 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 //
 //  ACE_UNUSED_ARG (widget_in);
 //
-//  struct HTTPGet_GtkCBData* cb_data_p =
-//      reinterpret_cast<struct HTTPGet_GtkCBData*> (userData_in);
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//      reinterpret_cast<struct HTTPGet_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
 //  ACE_ASSERT (event_in);
-//  ACE_ASSERT (cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 //
 //  Common_UI_GTK_BuildersIterator_t iterator =
-//    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
-//  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 //
 //  switch (event_in->keyval)
 //  {
@@ -1594,17 +1588,17 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 //
 //continue_:
 //      // sanity check(s)
-//      ACE_ASSERT (cb_data_p->liveVideoStream);
-//      if (!cb_data_p->liveVideoStream->isRunning ())
+//      ACE_ASSERT (ui_cb_data_p->liveVideoStream);
+//      if (!ui_cb_data_p->liveVideoStream->isRunning ())
 //        break;
 //
 //      const Stream_Module_t* module_p =
-//        cb_data_p->liveVideoStream->find (ACE_TEXT_ALWAYS_CHAR ("Display"));
+//        ui_cb_data_p->liveVideoStream->find (ACE_TEXT_ALWAYS_CHAR ("Display"));
 //      if (!module_p)
 //      {
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), aborting\n"),
-//                    ACE_TEXT (cb_data_p->liveVideoStream->name ().c_str ())));
+//                    ACE_TEXT (ui_cb_data_p->liveVideoStream->name ().c_str ())));
 //        return FALSE;
 //      } // end IF
 //      Stream_Module_Visualization_IFullscreen* ifullscreen_p =
@@ -1649,16 +1643,16 @@ checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 //  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 //
 //  ACE_UNUSED_ARG (widget_in);
-//  struct HTTPGet_GtkCBData* cb_data_p =
-//    static_cast<struct HTTPGet_GtkCBData*> (userData_in);
+//  struct HTTPGet_UI_CBData* ui_cb_data_p =
+//    static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
-//  ACE_ASSERT (cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 //
 //  Common_UI_GTK_BuildersIterator_t iterator =
-//    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
-//  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 //
 ////  GtkTextView* view_p =
 ////    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
@@ -1681,16 +1675,16 @@ button_about_clicked_cb (GtkButton* button_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
-  struct HTTPGet_GtkCBData* cb_data_p =
-      static_cast<struct HTTPGet_GtkCBData*> (userData_in);
+  struct HTTPGet_UI_CBData* ui_cb_data_p =
+      static_cast<struct HTTPGet_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    cb_data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != cb_data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // retrieve about dialog handle
   GtkWidget* about_dialog =

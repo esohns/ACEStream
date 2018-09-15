@@ -62,6 +62,14 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 
+ if (DEFINED ENV{ACE_ROOT})
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
+ else ()
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
+ endif (DEFINED ENV{ACE_ROOT})
+
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC

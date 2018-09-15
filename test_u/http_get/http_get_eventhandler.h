@@ -29,17 +29,17 @@
 
 #include "http_get_message.h"
 #include "http_get_session_message.h"
-#include "http_get_stream_common.h"
+//#include "http_get_stream_common.h"
 
 // forward declarations
-struct HTTPGet_GtkCBData;
+struct HTTPGet_UI_CBData;
 struct HTTPGet_SessionData;
 
 class HTTPGet_EventHandler
  : public HTTPGet_Notification_t
 {
  public:
-  HTTPGet_EventHandler (struct HTTPGet_GtkCBData*, // Gtk state
+  HTTPGet_EventHandler (struct HTTPGet_UI_CBData*, // UI state
                         bool = false);             // console mode ?
   inline virtual ~HTTPGet_EventHandler () {}
 
@@ -60,7 +60,7 @@ class HTTPGet_EventHandler
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_EventHandler& operator= (const HTTPGet_EventHandler&))
 
   bool                      consoleMode_;
-  struct HTTPGet_GtkCBData* CBData_;
+  struct HTTPGet_UI_CBData* CBData_;
 };
 
 #endif

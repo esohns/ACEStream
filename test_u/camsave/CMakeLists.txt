@@ -1,5 +1,3 @@
-option (GTK3_SUPPORT "compile Gtk3 support" ON)
-
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
@@ -38,19 +36,22 @@ endif ()
 add_definitions (-DACE_HAS_DLL)
 
 include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
- if (GTK3_SUPPORT)
-  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTK3_SUPPORT)
+    pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
+   elseif (GTK2_SUPPORT)
 # pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
-endif ()
+    pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+   endif ()
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+endif (UNIX)
 # *TODO*: repair WIN32 pkgconfig support
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
@@ -80,29 +81,34 @@ add_definitions (-DSTREAM_DEC_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-#if (WIN32)
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#  add_definitions (-DDEBUG_DEBUGGER)
-# endif ()
-#endif ()
 
 if (UNIX)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
- if (GTK3_SUPPORT)
-  include_directories (${PKG_GTK3_INCLUDE_DIRS})
- else ()
-  include_directories (${PKG_GTK2_INCLUDE_DIRS})
- endif ()
+ if (GUI_SUPPORT)
+  if (GTK_USE)
+   if (GTK3_SUPPORT)
+    include_directories (${PKG_GTK3_INCLUDE_DIRS})
+   elseif (GTK2_SUPPORT)
+    include_directories (${PKG_GTK2_INCLUDE_DIRS})
+   endif ()
+  endif (GTK_USE)
+ endif (GUI_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/image)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
+ if (GUI_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
+  if (GTK_USE)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
+  elseif (WXWIDGETS_USE)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/wxwidgets)
+  endif ()
+ endif (GUI_SUPPORT)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "D:/projects/DShowBaseClasses")
@@ -125,8 +131,14 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
+ if (GUI_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+  if (GTK_USE)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
+  elseif (WXWIDGETS_USE)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/wxwidgets)
+  endif ()
+ endif (GUI_SUPPORT)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
@@ -147,8 +159,6 @@ set (${EXECUTABLE}_EXE_SRCS
      ../test_u_common.h
      ../test_u_defines.h
      test_u_camsave.cpp
-     test_u_camsave_callbacks.cpp
-     test_u_camsave_callbacks.h
      test_u_camsave_common.h
      test_u_camsave_common_modules.h
      test_u_camsave_defines.h
@@ -165,10 +175,32 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camsave_signalhandler.h
      test_u_camsave_stream.cpp
      test_u_camsave_stream.h)
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_u_camsave_gtk_callbacks.cpp
+       test_u_camsave_gtk_callbacks.h)
+ elseif (WXWIDGETS_USE)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_u_camsave_ui.cpp
+       test_u_camsave_ui.h
+       test_u_camsave_ui.inl
+       test_u_camsave_ui_base.cpp
+       test_u_camsave_ui_base.h)
+ endif ()
+endif (GUI_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif (UNIX)
+elseif (WIN32)
+ if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+  add_definitions (-DD3D_DEBUG_INFO)
+  # *NOTE*: DirectShow uses 'DEBUG'
+  add_definitions (-DDEBUG) # activate DirectShow debug logging
+ endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+endif ()
 
 set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
@@ -180,15 +212,31 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
+
+set (ui_definition_file "")
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  if (GTK3_USE)
+   set (ui_definition_file ${EXECUTABLE}.gtk3)
+  elseif (GTK2_USE)
+   set (ui_definition_file ${EXECUTABLE}.gtk2)
+  endif ()
+ elseif (WXWIDGETS_USE)
+  if (WIN32)
+   add_definitions(-DUNICODE -D_UNICODE)
+  endif (WIN32)
+  set (ui_definition_file ${EXECUTABLE}.xrc)
+ endif ()
+endif (GUI_SUPPORT)
 add_executable (${EXECUTABLE}
-               EXCLUDE_FROM_ALL
+                EXCLUDE_FROM_ALL
                 ${camsave_EXE_SRCS}
-                etc/${EXECUTABLE}.glade)
+                etc/${ui_definition_file})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-endif ()
+endif (WIN32 AND NOT BUILD_TEST_U)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
@@ -205,13 +253,20 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} X11)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
- if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
- else ()
-  target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
- endif ()
+ if (GUI_SUPPORT)
+  if (GTK_USE)
+   if (GTK3_SUPPORT)
+    target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
+   elseif (GTK2_SUPPORT)
+    target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
+   endif ()
+  endif (GTK_USE)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+ if (MSVC)
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+ endif (MSVC)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
 
@@ -231,12 +286,18 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonTimer)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
-#target_link_libraries (${EXECUTABLE} CommonUI)
-target_link_libraries (${EXECUTABLE} CommonUI_GTK)
+if (GUI_SUPPORT)
+ if (WIN32)
+  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
+  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ endif (WIN32)
+ target_link_libraries (${EXECUTABLE} CommonUI)
+ if (GTK_USE)
+  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
+ elseif (WXWIDGETS_USE)
+  target_link_libraries (${EXECUTABLE} CommonUI_wxWidgets)
+ endif ()
+endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
@@ -263,7 +324,7 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
- install (FILES etc/${EXECUTABLE}.glade
+ install (FILES etc/${ui_definition_file}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
@@ -301,78 +362,55 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
- install (FILES etc/${EXECUTABLE}.glade
+ install (FILES etc/${EXECUTABLE}.gtk3 ${EXECUTABLE}.gtk2 ${EXECUTABLE}.fbp
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 
 if (UNIX)
- if (GTK_SUPPORT)
-  set (ARGS "-g./etc/camsave.glade -l -t")
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   set (ARGS "-g./etc/${ui_definition_file} -l -t")
+  endif (GTK_SUPPORT)
  else ()
   set (ARGS "-g -l -t")
- endif (GTK_SUPPORT)
-
- create_target_launcher (${EXECUTABLE}
-                         ARGS "-g./etc/camsave.glade -l -t"
-#                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
-                         ENVIRONMENT foo=bar)
+ endif (GUI_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- if (GTK3_SUPPORT)
-  create_target_launcher (${EXECUTABLE}
-                          ARGS "-g.\\\\etc\\\\camsave.glade -l -t"
-#                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                                               G:/software/Development/dll
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
-                          ENVIRONMENT foo=bar)
+ if (GUI_SUPPORT)
+  if (GTK3_SUPPORT)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             G:/software/Development/dll
+                             ${PROJECT_SOURCE_DIR}/../gtk3/bin)
+  elseif (GTK2_SUPPORT)
+   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                             G:/software/Development/dll
+                             ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+  endif ()
+  if (WXWIDGETS_SUPPORT)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${wxWidgets_LIB_DIR})
+  endif (WXWIDGETS_SUPPORT)
+  set (ARGS "-g.\\\\etc\\\\${ui_definition_file} -l -t")
  else ()
-  create_target_launcher (${EXECUTABLE}
-                          ARGS "-g.\\\\etc\\\\camsave.glade -l -t"
-#                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                               ${PROJECT_SOURCE_DIR}/../gtk2/bin
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                                               G:/software/Development/dll
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/misc/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/stat/Debug
-                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
-                          ENVIRONMENT foo=bar)
- endif ()
+  set (ARGS "-g -l -t")
+ endif (GUI_SUPPORT)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()
+create_target_launcher (${EXECUTABLE}
+                        ARGS ${ARGS}
+#                        FORWARD_ARGS
+                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
+                        ENVIRONMENT ${ENVIRONMENT})
 
 add_test (NAME ${EXECUTABLE}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t

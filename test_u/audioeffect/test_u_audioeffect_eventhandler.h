@@ -25,23 +25,25 @@
 
 #include "stream_common.h"
 
-#include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_message.h"
 #include "test_u_audioeffect_session_message.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+// forward declarations
+struct Test_U_AudioEffect_DirectShow_UI_CBData;
+struct Test_U_AudioEffect_DirectShow_SessionData;
+
 class Test_U_AudioEffect_DirectShow_EventHandler
  : public Test_U_AudioEffect_DirectShow_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_DirectShow_EventHandler (struct Test_U_AudioEffect_DirectShow_GTK_CBData*); // GTK state
-  inline virtual ~Test_U_AudioEffect_DirectShow_EventHandler () {};
+  Test_U_AudioEffect_DirectShow_EventHandler (struct Test_U_AudioEffect_DirectShow_UI_CBData*);
+  inline virtual ~Test_U_AudioEffect_DirectShow_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
                       const struct Test_U_AudioEffect_DirectShow_SessionData&);
-  inline virtual void notify (Stream_SessionId_t,
-                              const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual void notify (Stream_SessionId_t, const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_U_AudioEffect_DirectShow_Message&);
@@ -53,23 +55,27 @@ class Test_U_AudioEffect_DirectShow_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_EventHandler (const Test_U_AudioEffect_DirectShow_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_EventHandler& operator= (const Test_U_AudioEffect_DirectShow_EventHandler&))
 
-  struct Test_U_AudioEffect_DirectShow_GTK_CBData*  CBData_;
+  struct Test_U_AudioEffect_DirectShow_UI_CBData*   CBData_;
   struct Test_U_AudioEffect_DirectShow_SessionData* sessionData_;
 };
 
 //////////////////////////////////////////
 
+// forward declarations
+struct Test_U_AudioEffect_MediaFoundation_UI_CBData;
+struct Test_U_AudioEffect_MediaFoundation_SessionData;
+
 class Test_U_AudioEffect_MediaFoundation_EventHandler
  : public Test_U_AudioEffect_MediaFoundation_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_MediaFoundation_EventHandler (struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*); // GTK state
-  inline virtual ~Test_U_AudioEffect_MediaFoundation_EventHandler () {};
+  Test_U_AudioEffect_MediaFoundation_EventHandler (struct Test_U_AudioEffect_MediaFoundation_UI_CBData*);
+  inline virtual ~Test_U_AudioEffect_MediaFoundation_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
                       const struct Test_U_AudioEffect_MediaFoundation_SessionData&);
-  inline virtual void notify (Stream_SessionId_t, const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual void notify (Stream_SessionId_t, const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_U_AudioEffect_MediaFoundation_Message&);
@@ -81,16 +87,20 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_EventHandler (const Test_U_AudioEffect_MediaFoundation_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_EventHandler& operator= (const Test_U_AudioEffect_MediaFoundation_EventHandler&))
 
-  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*  CBData_;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData*   CBData_;
   struct Test_U_AudioEffect_MediaFoundation_SessionData* sessionData_;
 };
 #else
+// forward declarations
+struct Test_U_AudioEffect_UI_CBData;
+struct Test_U_AudioEffect_SessionData;
+
 class Test_U_AudioEffect_EventHandler
  : public Test_U_AudioEffect_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_EventHandler (struct Test_U_AudioEffect_GTK_CBData*); // GTK state
-  inline virtual ~Test_U_AudioEffect_EventHandler () {};
+  Test_U_AudioEffect_EventHandler (struct Test_U_AudioEffect_UI_CBData*);
+  inline virtual ~Test_U_AudioEffect_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
@@ -108,7 +118,7 @@ class Test_U_AudioEffect_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_EventHandler (const Test_U_AudioEffect_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_EventHandler& operator= (const Test_U_AudioEffect_EventHandler&))
 
-  struct Test_U_AudioEffect_GTK_CBData*  CBData_;
+  struct Test_U_AudioEffect_UI_CBData*   CBData_;
   struct Test_U_AudioEffect_SessionData* sessionData_;
 };
 #endif

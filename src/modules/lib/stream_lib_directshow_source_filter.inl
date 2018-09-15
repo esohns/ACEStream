@@ -180,9 +180,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
               CLSID_ACEStream_MediaFramework_Source_Filter,    // CLSID
               NULL)                                            // result
  , filterConfiguration_ (NULL)
- , lock_ ()
- , numberOfPins_ (0)
- , pins_ (NULL)
  , allocator_ (NULL)
  , allocatorProperties_ ()
 //, hasCOMReference_ (false)
@@ -242,9 +239,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
               CLSID_in,
               result_out)
  , filterConfiguration_ (NULL)
- , lock_ ()
- , numberOfPins_ (0)
- , pins_ (NULL)
  , allocator_ (NULL)
  , allocatorProperties_ ()
 //, hasCOMReference_ (false)
@@ -307,7 +301,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryFilterInfo(): \"%s\", continuing\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
 
   // step1: disconnect from graph
   if (!Stream_MediaFramework_DirectShow_Tools::disconnect (this))
@@ -315,7 +309,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::disconnect(), continuing\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 
-  // step2: remove from graph
+  // step2: remove from graph ?
   if (filter_info.pGraph)
   {
     result = filter_info.pGraph->RemoveFilter (this);
@@ -324,7 +318,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
                   ACE_TEXT ("%s: failed to IFilterGraph::RemoveFilter(%s): \"%s\", continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                   ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    filter_info.pGraph->Release ();
   } // end IF
 }
 
@@ -767,7 +762,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                            MediaType>::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT* result_out,
                                                                                                                                    CSource* parentFilter_in,
                                                                                                                                    LPCWSTR pinName_in)
- : inherited (NAME (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in))),
+#if defined (UNICODE)
+ : inherited (pinName_in,
+#else
+ : inherited (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in)),
+#endif // UNICODE
               result_out,
               parentFilter_in,
               pinName_in)
@@ -789,19 +788,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::m_pFilter);
   ACE_ASSERT (result_out);
-  //if (!parentFilter_)
-  //{ ACE_ASSERT (parentFilter_in);
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s/%s: failed to dynamic_cast<FilterType*>(%@), aborting\n"),
-  //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (parentFilter_in).c_str ()),
-  //              ACE_TEXT_WCHAR_TO_TCHAR (pinName_in),
-  //              parentFilter_in));
-  //  *result_out = E_FAIL;
-  //  return;
-  //} // end IF
-
-  *result_out = parentFilter_in->AddPin (this);
 } // (Constructor)
 
 template <typename ConfigurationType,
@@ -813,9 +801,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::~Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T"));
 
-  if (inherited::m_pFilter)
-    inherited::m_pFilter->RemovePin (this);
-
   //HRESULT result = E_FAIL;
   //if (allocator_)
   //{
@@ -823,7 +808,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   //  if (FAILED (result))
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IMemAllocator::Decommit(): \"%s\", continuing\n"),
-  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  allocator_->Release ();
   //} // end IF
 
@@ -872,19 +857,14 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
     return false;
   } // end IF
-
-  IBaseFilter* ibase_filter_p =
-    Stream_MediaFramework_DirectShow_Tools::pinToFilter (this);
-  ACE_ASSERT (ibase_filter_p);
-
+#if defined (_DEBUG)
+  ACE_ASSERT (inherited::m_pFilter);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s/%s: set default output format: %s\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (ibase_filter_p).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
-
-  // clean up
-  ibase_filter_p->Release ();
+#endif // _DEBUG
 
   return true;
 }
@@ -950,7 +930,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   {
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s/%s: incompatible media types (\"%s\"\n\"%s\")\n"),
-    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (parentFilter_).c_str ()),
+    //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
     //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
     //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*configuration_->format).c_str ()),
     //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*mediaType_in).c_str ())));
@@ -996,8 +976,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to CMediaType::Set(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return result;
   } // end IF
 
@@ -1039,7 +1021,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   else
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s/%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_out->formattype).c_str ())));
     return E_FAIL;
   } // end ELSE
@@ -1073,8 +1057,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CSourceStream::SetMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to CSourceStream::SetMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return result;
   } // end IF
 
@@ -1099,7 +1085,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     else
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                  ACE_TEXT ("%s/%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                   ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
       return E_FAIL;
     } // end ELSE
@@ -1114,7 +1102,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   else
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media type major type (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s/%s: invalid/unknown media type major type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::GUIDToString (inherited::m_mt.majortype).c_str ())));
     return E_FAIL;
   } // end ELSE
@@ -1131,11 +1121,13 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   //         FORMAT_VideoInfo2, leading to compatibility issues
   // *NOTE*: how this 'feature creep' effectively also breaks support for
   //         vendor-specific filter implementations
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s/%s: set media type: %s\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*mediaType_in, true).c_str ())));
+#endif // _DEBUG
 
   return S_OK;
 } // SetMediaType
@@ -1162,7 +1154,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT ("%s/%s: failed to ConnectionMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return E_FAIL;
   } // end IF
   if (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*mediaType_in,
@@ -1210,8 +1202,11 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMemInputPin::QueryInterface(IID_IPin): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMemInputPin::QueryInterface(IID_IPin) (handle was: 0x%@): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                inputPin_in,
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (pin_p);
@@ -1228,27 +1223,35 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     if (result != E_NOTIMPL) // E_NOTIMPL: 0x80004001
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s/%s: failed to IMemInputPin::GetAllocatorRequirements(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s/%s: failed to IMemInputPin::GetAllocatorRequirements() (was: %s/%s): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: failed to IMemInputPin::GetAllocatorRequirements(): \"%s\", continuing\n"),
+                ACE_TEXT ("%s/%s: failed to IMemInputPin::GetAllocatorRequirements() (was: %s/%s): \"%s\", continuing\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   } // end IF
+#if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: allocator requirements (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                ACE_TEXT ("%s/%s: allocator requirements (buffers/size/alignment/prefix) of %s/%s: %d/%d/%d/%d\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                 allocator_requirements.cBuffers,
                 allocator_requirements.cbBuffer,
                 allocator_requirements.cbAlign,
                 allocator_requirements.cbPrefix));
+#endif // _DEBUG
 
   // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
 
@@ -1258,8 +1261,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ////         --> use our own
   //result = filter_p->GetClassID (&class_id);
   //ACE_ASSERT (SUCCEEDED (result));
-  //if (InlineIsEqualGUID (class_id,
-  //                       CLSID_Colour))
+  //if (InlineIsEqualGUID (class_id, CLSID_Colour))
   //{
   //  ACE_DEBUG ((LM_DEBUG,
   //              ACE_TEXT ("%s/%s: using own allocator...\n"),
@@ -1275,14 +1277,14 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     //if (inherited::m_pAllocator)
     //  inherited::m_pAllocator->Release ();
     //inherited::m_pAllocator = *allocator_out;
-
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s/%s: configuring allocator from %s/%s\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ())));
-
+#endif // _DEBUG
     goto decide;
   } // end IF
 
@@ -1303,7 +1305,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                   ACE_TEXT ("%s/%s: failed to CBaseOutputPin::InitAllocator(): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       goto error;
     } // end IF
   } // end ELSE
@@ -1318,7 +1320,7 @@ decide:
                 ACE_TEXT ("%s/%s: failed to CBaseOutputPin::DecideBufferSize(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
 
@@ -1334,9 +1336,10 @@ decide:
                 ACE_TEXT ("%s/%s: failed to IMemInputPin::NotifyAllocator(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s/%s: set allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
@@ -1345,11 +1348,10 @@ decide:
               allocator_requirements.cbBuffer,
               allocator_requirements.cbAlign,
               allocator_requirements.cbPrefix));
+#endif // _DEBUG
 
-  if (pin_p)
-    pin_p->Release ();
-  if (filter_p)
-    filter_p->Release ();
+  pin_p->Release (); pin_p = NULL;
+  filter_p->Release (); filter_p = NULL;
 
   return S_OK;
 
@@ -1407,7 +1409,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT ("%s/%s: failed to ConnectionMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (InlineIsEqualGUID (media_type.formattype, FORMAT_VideoInfo) &&
@@ -1449,8 +1451,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                        
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMemAllocator::SetProperties(): \"%s\" (0x%x), aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ()),
+                ACE_TEXT ("%s/%s: failed to IMemAllocator::SetProperties(): \"%s\" (0x%x), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
                 result));
     return result;
   } // end IF
@@ -1460,7 +1464,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (allocator_properties_s.cbBuffer < properties_inout->cbBuffer)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("IMemAllocator::SetProperties() returned %d (expected: %d), aborting\n"),
+                ACE_TEXT ("%s/%s: IMemAllocator::SetProperties() returned %d (expected: %d), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 allocator_properties_s.cbBuffer, properties_inout->cbBuffer));
     return E_FAIL;
   } // end IF
@@ -1472,7 +1478,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMemAllocator::Commit(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //  return result;
   //} // end IF
 
@@ -1512,8 +1518,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
   ACE_ASSERT (data_p);
@@ -1572,8 +1580,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaSample::SetActualDataLength(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMediaSample::SetActualDataLength(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
 
@@ -1586,8 +1596,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaSample::SetTime(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMediaSample::SetTime(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
   result = mediaSample_in->SetMediaTime ((REFERENCE_TIME*)&ref_time,
@@ -1595,8 +1607,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaSample::SetMediaTime(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMediaSample::SetMediaTime(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
 
@@ -1605,8 +1619,10 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaSample::SetSyncPoint(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                ACE_TEXT ("%s/%s: failed to IMediaSample::SetSyncPoint(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return S_FALSE; // --> stop
   } // end IF
 
@@ -1636,8 +1652,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %t: spawned DirectShow processing thread\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
+              ACE_TEXT ("%s/%s: %t: spawned DirectShow processing thread\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 #endif // _DEBUG
 
   // { CAutoLock cAutoLockShared (&lock_);
@@ -1662,8 +1679,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %t: stopped DirectShow processing thread\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
+              ACE_TEXT ("%s/%s: %t: stopped DirectShow processing thread\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 #endif // _DEBUG
 
   return NOERROR;
@@ -1683,8 +1701,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %t: started DirectShow processing thread\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
+              ACE_TEXT ("%s/%s: %t: started DirectShow processing thread\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
 #endif // _DEBUG
 
   return NOERROR;
@@ -1725,7 +1744,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("%s: failed to OnThreadCreate(): \"%s\", aborting\n"),
 //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    HRESULT result_2 = OnThreadDestroy ();
 //    ACE_UNUSED_ARG (result_2);
 //    Reply (result); // send failed return code from OnThreadCreate
@@ -1771,7 +1790,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("%s: failed to OnThreadDestroy(): \"%s\", aborting\n"),
 //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return -1;
 //  } // end IF
 //
@@ -1779,7 +1798,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("%s: finalized DirectShow processing thread (id: %t)\n"),
 //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //#endif // _DEBUG
 //  return 0;
 //}
@@ -1800,7 +1819,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("%s: failed to OnThreadStartPlay(): \"%s\", aborting\n"),
 //                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    return result;
 //  } // end IF
 //
@@ -1834,7 +1853,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("%s: failed to Deliver(): \"%s\", aborting\n"),
 //                      ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//                      ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //          media_sample_p->Release(); media_sample_p = NULL;
 //          return result;
 //        } // end IF
@@ -1852,7 +1871,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("%s: failed to FillBuffer(): \"%s\", aborting\n"),
 //                    ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-//                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //        media_sample_p->Release(); media_sample_p = NULL;
 //        HRESULT result_2 = DeliverEndOfStream ();
 //        ACE_UNUSED_ARG (result_2);
@@ -2150,9 +2169,8 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::SetFormat"));
 
   // sanity check(s)
+  CheckPointer (pmt_in, E_POINTER);
   ACE_ASSERT (mediaType_);
-  if (!pmt_in)
-    pmt_in = mediaType_;
 
   // check compatibility
   CMediaType media_type, media_type_2;
@@ -2163,7 +2181,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (!media_type.MatchesPartial (&media_type_2))
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
+                ACE_TEXT ("%s/%s: incompatible media types (\"%s\"\n\"%s\")\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*pmt_in).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*mediaType_).c_str ())));
     return VFW_E_INVALIDMEDIATYPE;
@@ -2177,7 +2197,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                               mediaType_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
     return E_OUTOFMEMORY;
   } // end IF
 
@@ -2188,21 +2210,19 @@ continue_:
   // VFW_E_NOT_STOPPED
   // VFW_E_WRONG_STATE
 
-  IBaseFilter* filter_p =
-    Stream_MediaFramework_DirectShow_Tools::pinToFilter (this);
-  ACE_ASSERT (filter_p);
+#if defined (_DEBUG)
   if (pmt_in == mediaType_)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s/%s: reset preferred format\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s/%s: set preferred format: %s\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
-  filter_p->Release ();
+#endif // _DEBUG
 
   return S_OK;
 }
@@ -2229,7 +2249,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                               *ppmt_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
     return E_OUTOFMEMORY;
   } // end IF
   ACE_ASSERT (*ppmt_inout);
@@ -2280,7 +2302,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                               *ppmt_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ())));
     return E_OUTOFMEMORY;
   } // end IF
   ACE_ASSERT (*ppmt_inout);
@@ -2335,7 +2359,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   else
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknnown media type format (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s/%s: invalid/unknnown media type format (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::GUIDToString (mediaType_->formattype).c_str ())));
     return E_OUTOFMEMORY;
   } // end ELSE

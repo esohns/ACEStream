@@ -1937,6 +1937,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     // skip stream tail (i.e. last module)
     if (!ACE_OS::strcmp (module_p->name (),
+                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+        !ACE_OS::strcmp (module_p->name (),
                          ACE_TEXT ("ACE_Stream_Tail")))
       break;
 
@@ -3670,10 +3672,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (trailing_module_p);
 
-  MODULE_T* module_p = NULL;
+  MODULE_T* module_p = trailing_module_p->next ();
   do
   {
-    module_p = trailing_module_p->next ();
     if (unlikely (!module_p))
     {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
@@ -3687,13 +3688,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (!ACE_OS::strcmp (module_p->next ()->name (),
                          heading_module_p->name ()) ||
         // *IMPORTANT NOTE*: aggregated modules return tail as next()
-        !ACE_OS::strcmp (module_p->next ()->name (),
-                         ACE_TEXT ("ACE_Stream_Tail")))
+        (!ACE_OS::strcmp (module_p->next ()->name (),
+                          ACE_TEXT ("ACE_Stream_Tail")) ||
+         !ACE_OS::strcmp (module_p->next ()->name (),
+                          ACE_TEXT (STREAM_MODULE_TAIL_NAME))))
     {
       trailing_module_p = module_p;
       break;
     } // end IF
-    module_p = NULL;
+    module_p = module_p->next ();
   } while (true);
   ACE_ASSERT (trailing_module_p);
 

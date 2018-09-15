@@ -118,8 +118,7 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  add_definitions (-D_DEBUG)
  if (WIN32)
   add_definitions (-D_ITERATOR_DEBUG_LEVEL=2)
-  add_definitions (-DDEBUG) # activate DirectShow debug logging
- endif ()
+ endif (WIN32)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _DEBUG)
  if (DEBUG_DEBUGGER AND
      NOT DEFINED IN_CPACK)

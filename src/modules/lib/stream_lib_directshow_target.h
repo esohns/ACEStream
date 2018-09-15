@@ -21,16 +21,16 @@
 #ifndef STREAM_LIB_DIRECTSHOW_TARGET_H
 #define STREAM_LIB_DIRECTSHOW_TARGET_H
 
-//#include <combaseapi.h>
+#include <BaseTyps.h>
 #include <control.h>
 #include <guiddef.h>
 #include <strmif.h>
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

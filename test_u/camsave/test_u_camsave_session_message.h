@@ -27,10 +27,6 @@
 #include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_directshow_allocator_base.h"
-#endif
-//#include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 #include "stream_session_message_base.h"
 
@@ -39,8 +35,8 @@
 #include "test_u_camsave_common.h"
 
 // forward declaratation(s)
-//struct Stream_CamSave_SessionData;
-//typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
+struct Stream_CamSave_SessionData;
+typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 //struct Stream_CamSave_UserData;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,

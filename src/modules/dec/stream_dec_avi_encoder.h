@@ -94,8 +94,6 @@ stream_decoder_aviencoder_libav_write_cb (void*,    // act
                                           int);     // buffer size
 #endif // ACE_WIN32 || ACE_WIN64
 
-
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

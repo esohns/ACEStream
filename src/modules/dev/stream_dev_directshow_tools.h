@@ -25,13 +25,16 @@
 
 #include <winnt.h>
 #include <guiddef.h>
-//#include <coguid.h>
 #include <CGuid.h>
 #include <strmif.h>
 
 #include "ace/Global_Macros.h"
 
+#include "common_ui_common.h"
+
 #include "stream_lib_common.h"
+
+#include "stream_dev_common.h"
 
 class Stream_Module_Device_DirectShow_Tools
 {
@@ -42,19 +45,30 @@ class Stream_Module_Device_DirectShow_Tools
   // device
   // *NOTE*: returns the devices' "FriendlyName"
   static std::string devicePathToString (const std::string&); // device path
+  static std::string devicePath (const std::string&); // device 'friendly' name
   // *NOTE*: returns the devices' 'path'
   static std::string getDefaultDevice (REFGUID); // (capture) device category
+  static Stream_Module_Device_List_t getCaptureDevices (REFGUID); // (capture) device category
 
   // -------------------------------------
 
+  // format
+  static bool isMediaTypeBottomUp (const struct _AMMediaType&);
+  static Common_Identifiers_t getCaptureSubFormats (IAMStreamConfig*);
+  static Common_UI_Resolutions_t getCaptureResolutions (IAMStreamConfig*,
+                                                        REFGUID = GUID_NULL); // media subtype {GUID_NULL: all}
+  static Common_UI_Framerates_t getCaptureFramerates (IAMStreamConfig*,
+                                                      REFGUID,                 // media subtype
+                                                      Common_UI_Resolution_t); // resolution
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static bool getCaptureFormat (IGraphBuilder*,         // graph builder handle
                                 REFGUID,                // device category
                                 struct _AMMediaType*&); // return value: media type
   static bool getVideoCaptureFormat (IGraphBuilder*,         // graph builder handle
-                                     REFGUID,                // media subtype
+                                     REFGUID,                // media subtype {GUID_NULL: default}
                                      LONG,                   // width {0: any}
                                      LONG,                   // height {0: any}
+                                     unsigned int,           // framerate {0: any}
                                      struct _AMMediaType*&); // return value: media type
   static void listCaptureFormats (IBaseFilter*,         // filter handle
                                   REFGUID = GUID_NULL); // format type {GUID_NULL: all}
@@ -64,6 +78,7 @@ class Stream_Module_Device_DirectShow_Tools
 
   // -------------------------------------
 
+  // filter graph
   // *NOTE*: loads the (capture device) filter and puts it into an empty graph
   static bool loadDeviceGraph (const std::string&,                         // device path
                                REFGUID,                                    // device category

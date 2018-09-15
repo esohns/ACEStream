@@ -134,7 +134,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(NULL,0,0): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     IMediaEventEx_->Release ();
   } // end IF
   if (unlikely (IMediaControl_))
@@ -143,7 +143,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     IMediaControl_->Release ();
   } // end IF
   if (unlikely (IAMDroppedFrames_))
@@ -203,7 +203,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   //    if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-  //                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //    manageCOM_ = true;
   //  } // end IF
   //} // end IF
@@ -227,7 +227,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(NULL,0,0): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       IMediaEventEx_->Release ();
       IMediaEventEx_ = NULL;
     } // end IF
@@ -237,7 +237,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       IMediaControl_->Release ();
       IMediaControl_ = NULL;
     } // end IF
@@ -357,7 +357,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       //  if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
       //    ACE_DEBUG ((LM_ERROR,
       //                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-      //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+      //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       //  COM_initialized = true;
       //} // end IF
 
@@ -386,7 +386,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IAMDroppedFrames): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         filter_p->Release ();
         filter_p = NULL;
 
@@ -401,7 +401,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         filter_p->Release ();
 
         goto continue_;
@@ -409,7 +409,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 error_3:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
 
@@ -435,7 +435,7 @@ error_3:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
 
@@ -448,7 +448,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       result_2 = sample_grabber_p->SetCallback (this, 0);
@@ -456,7 +456,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       sample_grabber_p->Release ();
@@ -476,7 +476,7 @@ continue_:
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMediaEventEx::GetEventHandle(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       //  goto error_2;
       //} // end IF
 
@@ -485,7 +485,7 @@ continue_:
 error_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
 
 continue_2:
@@ -524,7 +524,7 @@ continue_2:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       is_running = true;
@@ -557,7 +557,7 @@ error:
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       } // end IF
 
       if (IAMDroppedFrames_)
@@ -624,7 +624,7 @@ error:
       //  if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
       //    ACE_DEBUG ((LM_ERROR,
       //                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-      //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+      //                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       //  COM_initialized = true;
       //} // end IF
 
@@ -644,7 +644,7 @@ error:
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       } // end IF
 
       if (likely (IMediaControl_))
@@ -658,12 +658,12 @@ error:
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::Pause(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         result_2 = IMediaControl_->StopWhenReady ();
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::StopWhenReady(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: stopped DirectShow graph...\n"),
                     inherited::mod_->name ()));
@@ -683,7 +683,7 @@ error:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaEventSink): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto continue_4;
       } // end IF
 
@@ -693,13 +693,13 @@ error:
       if (unlikely (FAILED (result_2)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaEventSink::Notify(EC_USERABORT): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       event_sink_p->Release ();
       //if (!::SetEvent (eventHandle_))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to ::SetEvent(%@): \"%s\", continuing\n"),
       //              eventHandle_,
-      //              ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
 
       inherited::TASK_BASE_T::wait (false); // do not wait for the message queue
 
@@ -787,7 +787,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetAverageFrameSize(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   ACE_UNUSED_ARG (average_frame_size);
 
   long captured_frames = 0;
@@ -796,13 +796,13 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumNotDropped(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   result =
     IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedFrames)));
   if (unlikely (FAILED (result)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumDropped(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
   //// step2: send the information downstream
   //if (!inherited::putStatisticMessage (data_out)) // data container
@@ -986,7 +986,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       return result_2;
     } // end IF
     ACE_ASSERT (buffer_p);
@@ -1104,7 +1104,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaEventEx::CancelDefaultHandling(EC_COMPLETE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return -1;
   } // end IF
 
@@ -1118,7 +1118,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaEventEx::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       break;
     } // end IF
 
@@ -1129,7 +1129,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_COMPLETE (final status: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
         result = 0;
         done = true;
         break;
@@ -1148,7 +1148,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_ERRORABORT (status was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
         done = true;
         break;
       }
@@ -1161,7 +1161,7 @@ continue_:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: received EC_PAUSED (status was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (static_cast<HRESULT> (parameter_1)).c_str ())));
         break;
       case EC_TIME:
       case EC_REPAINT:
@@ -1234,7 +1234,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaEventEx::FreeEventParams(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       break;
     } // end IF
 
@@ -1292,7 +1292,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -1325,7 +1325,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -1352,7 +1352,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 error_2:
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
-              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   goto error;
 
 continue_:
@@ -1367,7 +1367,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -1380,7 +1380,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1389,7 +1389,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IAMDroppedFrames): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (IAMDroppedFrames_out);
@@ -1432,7 +1432,7 @@ continue_:
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
   //                ACE_TEXT_WCHAR_TO_TCHAR (converter_name),
-  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //    goto error;
   //  } // end IF
 
@@ -1444,7 +1444,7 @@ continue_:
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("%s: failed to CoCreateInstance() converter: \"%s\", aborting\n"),
   //                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ()),
-  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //    goto error;
   //  } // end IF
   //  ACE_ASSERT (filter_2);
@@ -1455,7 +1455,7 @@ continue_:
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //    goto error;
   //  } // end IF
   //  ACE_DEBUG ((LM_DEBUG,
@@ -1476,7 +1476,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -1487,7 +1487,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (filter_3);
@@ -1497,7 +1497,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
@@ -1511,7 +1511,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (ISampleGrabber_out);
@@ -1531,7 +1531,7 @@ continue_:
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                                                            : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -1545,7 +1545,7 @@ continue_:
                   ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   (audioOutput_in ? ACE_TEXT ("CLSID_AudioRender")
                                   : ACE_TEXT ("CLSID_NullRenderer")),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (filter_4);
@@ -1557,7 +1557,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
@@ -1582,7 +1582,7 @@ continue_:
 //                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
 //                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
 //                                                            : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      goto error;
 //    } // end IF
 //
@@ -1596,7 +1596,7 @@ continue_:
 //                  ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
 //                  (windowHandle_in ? ACE_TEXT ("CLSID_VideoRenderer")
 //                                   : ACE_TEXT ("CLSID_NullRenderer")),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      goto error;
 //    } // end IF
 //    ACE_ASSERT (filter_4);
@@ -1608,7 +1608,7 @@ continue_:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      goto error;
 //    } // end IF
 //    ACE_DEBUG ((LM_DEBUG,
@@ -1632,7 +1632,7 @@ continue_:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //    goto error;
 //  } // end IF
 
@@ -1647,7 +1647,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error_2;
   //} // end IF
   graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
@@ -1675,7 +1675,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,

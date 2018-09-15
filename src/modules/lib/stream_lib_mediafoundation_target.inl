@@ -87,7 +87,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
     mediaSession_ = NULL;
   } // end IF
@@ -130,7 +130,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     COM_initialized = true;
@@ -162,7 +162,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       mediaSession_->Release ();
       mediaSession_ = NULL;
     } // end IF
@@ -382,7 +382,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFSample::GetTotalLength(): \"%m\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 //  //  return result_2;
 //  //} // end IF
 //  DWORD buffer_count = 0;
@@ -394,7 +394,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSample::GetBufferByIndex(0): \"%m\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 //
 //    // clean up
 //    message_p->release ();
@@ -413,7 +413,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSample::Lock(): \"%m\", aborting\n"),
-//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+//                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 //
 //    // clean up
 //    data_r.sample->Release ();
@@ -839,7 +839,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       COM_initialized = true;
@@ -887,7 +887,7 @@ error:
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -910,7 +910,7 @@ error:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         break;
       } // end IF
       COM_initialized = true;
@@ -930,7 +930,7 @@ error:
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -997,7 +997,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1007,7 +1007,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = MFInitMediaTypeFromAMMediaType (media_type_p,
@@ -1016,7 +1016,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (media_type_p,
@@ -1040,7 +1040,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   // debug info

@@ -18,20 +18,19 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_STREAM_CAMSAVE_COMMON_H
-#define TEST_U_STREAM_CAMSAVE_COMMON_H
+#ifndef TEST_U_CAMSAVE_COMMON_H
+#define TEST_U_CAMSAVE_COMMON_H
 
 #include <list>
 #include <map>
 #include <string>
 
-#include "ace/Singleton.h"
-#include "ace/Synch_Traits.h"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <BaseTyps.h>
+#include <OAIdl.h>
+#include <control.h>
 #include <CGuid.h>
 #include <Guiddef.h>
-#include <Dshow.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
@@ -46,16 +45,33 @@ extern "C"
 #include "libavcodec/avcodec.h"
 #include "libavutil/pixfmt.h"
 }
-#endif
+#endif // __cplusplus
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#elif defined (WXWIDGETS_USE)
+#include "common_ui_wxwidgets_application.h"
+#include "common_ui_wxwidgets_common.h"
+#include "common_ui_wxwidgets_xrc_definition.h"
+#endif
+#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -76,16 +92,47 @@ extern "C"
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 
-#include "test_u_common.h"
-#include "test_u_gtk_common.h"
+#include "stream_vis_common.h"
+#include "stream_vis_defines.h"
 
-#include "test_u_camsave_eventhandler.h"
+#include "test_u_common.h"
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_u_gtk_common.h"
+#elif defined (WXWIDGETS_USE)
+#include "test_u_wxwidgets_common.h"
+#endif
+#endif // GUI_SUPPORT
+
+//#include "test_u_camsave_eventhandler.h"
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_USE)
+//#include "test_u_camsave_ui.h"
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct ISampleGrabber;
 #endif // ACE_WIN32 || ACE_WIN64
 class Stream_IAllocator;
+template <typename NotificationType,
+          typename DataMessageType,
+#if defined (GUI_SUPPORT)
+          typename UIStateType,
+#if defined (WXWIDGETS_USE)
+          typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+          typename SessionMessageType>
+class Stream_CamSave_EventHandler_T;
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_USE)
+template <typename InterfaceType,
+          typename StreamType>
+class Stream_CamSave_WxWidgetsDialog_T;
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
 
 struct Stream_CamSave_UserData
  : Stream_UserData
@@ -101,7 +148,7 @@ struct Stream_CamSave_DirectShow_MessageData
   Stream_CamSave_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMediaSample* sample;
   double        sampleTime;
@@ -113,7 +160,7 @@ struct Stream_CamSave_MediaFoundation_MessageData
   Stream_CamSave_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
-  {};
+  {}
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -301,14 +348,26 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , fullScreen (false)
+#if defined (GTK_USE)
+   , area ()
+   , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
+   , window (NULL)
+#endif // GTK_USE
    , targetFileName ()
   {
     hasHeader = true;
   }
 
-  std::string deviceIdentifier;
-  bool        fullScreen;
-  std::string targetFileName;
+  std::string      deviceIdentifier;
+  bool             fullScreen;
+#if defined (GTK_USE)
+  GdkRectangle     area;
+  GdkPixbuf*       pixelBuffer;
+  ACE_SYNCH_MUTEX* pixelBufferLock;
+  GdkWindow*       window;
+#endif // GTK_USE
+  std::string      targetFileName;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -325,6 +384,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
    : Stream_CamSave_ModuleHandlerConfiguration ()
    , area ()
    , builder (NULL)
+   , direct3DConfiguration (NULL)
    , direct3DDevice (NULL)
    , filterCLSID (GUID_NULL)
    , filterConfiguration (NULL)
@@ -411,6 +471,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
 
   struct tagRECT                                        area;
   IGraphBuilder*                                        builder;
+  struct Stream_Module_Device_Direct3DConfiguration*    direct3DConfiguration;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                                   direct3DDevice;
 #else
@@ -454,21 +515,22 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
   }
 
-  struct tagRECT                                   area;
+  struct tagRECT                                     area;
+  struct Stream_Module_Device_Direct3DConfiguration* direct3DConfiguration;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex*                              direct3DDevice;
+  IDirect3DDevice9Ex*                                direct3DDevice;
 #else
-  IDirect3DDevice9*                                direct3DDevice;
+  IDirect3DDevice9*                                  direct3DDevice;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  IMFMediaType*                                    inputFormat;
-  TOPOID                                           rendererNodeId;
-  TOPOID                                           sampleGrabberNodeId;
-  IMFMediaSession*                                 session;
-  IMFMediaType*                                    sourceFormat;
-  Stream_CamSave_MediaFoundation_ISessionNotify_t* subscriber;
-  Stream_CamSave_MediaFoundation_Subscribers_t*    subscribers;
-  HWND                                             window;
-  IMFVideoDisplayControl*                          windowController;
+  IMFMediaType*                                      inputFormat;
+  TOPOID                                             rendererNodeId;
+  TOPOID                                             sampleGrabberNodeId;
+  IMFMediaSession*                                   session;
+  IMFMediaType*                                      sourceFormat;
+  Stream_CamSave_MediaFoundation_ISessionNotify_t*   subscriber;
+  Stream_CamSave_MediaFoundation_Subscribers_t*      subscribers;
+  HWND                                               window;
+  IMFVideoDisplayControl*                            windowController;
 };
 #else
 struct Stream_CamSave_V4L_ModuleHandlerConfiguration;
@@ -482,7 +544,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
 {
   Stream_CamSave_V4L_ModuleHandlerConfiguration ()
    : Stream_CamSave_ModuleHandlerConfiguration ()
-   , area ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
@@ -491,14 +552,11 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , frameRate ()
    , inputFormat ()
    , outputFormat (AV_PIX_FMT_RGB24)
-   , pixelBuffer (NULL)
-   , pixelBufferLock (NULL)
    , sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
    , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
-   , window (NULL)
   {
     // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
     deviceIdentifier = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
@@ -510,7 +568,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
     ACE_OS::memset (&sourceFormat, 0, sizeof (GdkRectangle));
   }
 
-  GdkRectangle                     area;
   __u32                            buffers; // v4l device buffers
   enum AVPixelFormat               codecFormat; // preferred output-
   enum AVCodecID                   codecId;
@@ -518,14 +575,11 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   struct v4l2_fract                frameRate; // time-per-frame (s)
   struct v4l2_format               inputFormat;
   enum AVPixelFormat               outputFormat;
-  GdkPixbuf*                       pixelBuffer;
-  ACE_SYNCH_MUTEX*                 pixelBufferLock;
   GdkRectangle                     sourceFormat; // gtk cairo/pixbuf module
   Stream_CamSave_ISessionNotify_t* subscriber;
   Stream_CamSave_Subscribers_t*    subscribers;
   enum v4l2_memory                 v4l2Method; // v4l camera source
   struct v4l2_window*              v4l2Window;
-  GdkWindow*                       window;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -548,12 +602,14 @@ struct Stream_CamSave_StreamConfiguration
 {
   Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
+   , renderer (MODULE_VIS_RENDERER_VIDEO_DEFAULT)
    , userData (NULL)
   {
     printFinalReport = true;
   }
 
-  struct Stream_CamSave_UserData* userData;
+  enum Stream_Module_Visualization_VideoRenderer renderer;
+  struct Stream_CamSave_UserData*                userData;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -568,6 +624,7 @@ struct Stream_CamSave_DirectShow_Configuration
   Stream_CamSave_DirectShow_Configuration ()
    : Test_U_Configuration ()
    , signalHandlerConfiguration ()
+   , direct3DConfiguration ()
    , streamConfiguration ()
    , userData ()
   {}
@@ -575,9 +632,10 @@ struct Stream_CamSave_DirectShow_Configuration
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  Stream_CamSave_DirectShow_StreamConfiguration_t  streamConfiguration;
+  struct Stream_Module_Device_Direct3DConfiguration direct3DConfiguration;
+  Stream_CamSave_DirectShow_StreamConfiguration_t   streamConfiguration;
 
-  struct Stream_CamSave_UserData                   userData;
+  struct Stream_CamSave_UserData                    userData;
 };
 
 struct Stream_CamSave_MediaFoundation_Configuration
@@ -586,6 +644,7 @@ struct Stream_CamSave_MediaFoundation_Configuration
   Stream_CamSave_MediaFoundation_Configuration ()
    : Test_U_Configuration ()
    , signalHandlerConfiguration ()
+   , direct3DConfiguration ()
    , streamConfiguration ()
    , userData ()
   {}
@@ -593,6 +652,7 @@ struct Stream_CamSave_MediaFoundation_Configuration
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
+  struct Stream_Module_Device_Direct3DConfiguration    direct3DConfiguration;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t streamConfiguration;
 
   struct Stream_CamSave_UserData                       userData;
@@ -617,18 +677,6 @@ struct Stream_CamSave_Configuration
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-//template <typename AllocatorConfigurationType,
-//          typename CommandType,
-//          typename ControlMessageType,
-//          typename SessionMessageType>
-//class Stream_MessageBase_T;
-//typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-//                             int,
-//                             Test_U_ControlMessage_t,
-//                             Test_U_SessionMessage_t> Test_U_Message_t;
-
-//typedef Stream_SessionData_T<struct Stream_SessionData> Test_U_SessionData_t;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_DirectShowAllocatorBase_T<struct Stream_AllocatorConfiguration,
 //                                         Test_U_ControlMessage_t,
@@ -652,56 +700,119 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_CamSave_SessionMessage_t> Stream_CamSave_MessageAllocator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_USE)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Stream_CamSave_DirectShow_UI_CBData;
+typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
+                                           struct Stream_CamSave_DirectShow_UI_CBData> Stream_CamSave_DirectShow_WxWidgetsIApplication_t;
+struct Stream_CamSave_MediaFoundation_UI_CBData;
+typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
+                                           struct Stream_CamSave_MediaFoundation_UI_CBData> Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t;
+#else
+struct Stream_CamSave_V4L_UI_CBData;
+typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
+                                           struct Stream_CamSave_V4L_UI_CBData> Stream_CamSave_V4L_WxWidgetsIApplication_t;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_ISubscribe_T<Stream_CamSave_DirectShow_ISessionNotify_t> Stream_CamSave_DirectShow_ISubscribe_t;
 typedef Common_ISubscribe_T<Stream_CamSave_MediaFoundation_ISessionNotify_t> Stream_CamSave_MediaFoundation_ISubscribe_t;
 
 typedef Stream_CamSave_EventHandler_T<Stream_CamSave_DirectShow_ISessionNotify_t,
                                       Stream_CamSave_DirectShow_Message_t,
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                                      Common_UI_GTK_State_t,
+#elif defined (WXWIDGETS_USE)
+                                      struct Common_UI_wxWidgets_State,
+                                      Common_UI_wxWidgets_IApplicationBase_t,
+#endif
+#endif // GUI_SUPPORT
                                       Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_EventHandler_t;
 typedef Stream_CamSave_EventHandler_T<Stream_CamSave_MediaFoundation_ISessionNotify_t,
                                       Stream_CamSave_MediaFoundation_Message_t,
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                                      Common_UI_GTK_State_t,
+#elif defined (WXWIDGETS_USE)
+                                      struct Common_UI_wxWidgets_State,
+                                      Common_UI_wxWidgets_IApplicationBase_t,
+#endif
+#endif // GUI_SUPPORT
                                       Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_EventHandler_t;
 #else
 typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISubscribe_t;
 
 typedef Stream_CamSave_EventHandler_T<Stream_CamSave_ISessionNotify_t,
                                       Stream_CamSave_Message_t,
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                                      Common_UI_GTK_State_t,
+#elif defined (WXWIDGETS_USE)
+                                      struct Common_UI_wxWidgets_State,
+                                      Common_UI_wxWidgets_IApplicationBase_t,
+#endif
+#endif // GUI_SUPPORT
                                       Stream_CamSave_SessionMessage_t> Stream_CamSave_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
-struct Stream_CamSave_GTK_ProgressData
+struct Stream_CamSave_ProgressData
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_ProgressData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_ProgressData
+#endif
+#endif // GUI_SUPPORT
 {
-  Stream_CamSave_GTK_ProgressData ()
+  Stream_CamSave_ProgressData ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_ProgressData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_ProgressData ()
+#endif
+#endif // GUI_SUPPORT
    , statistic ()
   {}
 
   struct Stream_CamSave_StatisticData statistic;
 };
 
-struct Stream_CamSave_GTK_CBData
+#if defined (GUI_SUPPORT)
+struct Stream_CamSave_UI_CBData
+#if defined (GTK_USE)
  : Test_U_GTK_CBData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_CBData
+#endif
 {
-  Stream_CamSave_GTK_CBData ()
+  Stream_CamSave_UI_CBData ()
+#if defined (GTK_USE)
    : Test_U_GTK_CBData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_CBData ()
+#endif
    , isFirst (true)
    , progressData ()
-  {}
+  {
+    progressData.state = this->UIState;
+  }
 
-  bool                                   isFirst; // first activation ?
-  struct Stream_CamSave_GTK_ProgressData progressData;
+  bool                               isFirst; // first activation ?
+  struct Stream_CamSave_ProgressData progressData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Stream_CamSave_DirectShow_Stream;
-struct Stream_CamSave_DirectShow_GTK_CBData
- : Stream_CamSave_GTK_CBData
+struct Stream_CamSave_DirectShow_UI_CBData
+ : Stream_CamSave_UI_CBData
 {
-  Stream_CamSave_DirectShow_GTK_CBData ()
-   : Stream_CamSave_GTK_CBData ()
+  Stream_CamSave_DirectShow_UI_CBData ()
+   : Stream_CamSave_UI_CBData ()
    , configuration (NULL)
    , stream (NULL)
    , streamConfiguration (NULL)
@@ -715,11 +826,11 @@ struct Stream_CamSave_DirectShow_GTK_CBData
 };
 
 class Stream_CamSave_MediaFoundation_Stream;
-struct Stream_CamSave_MediaFoundation_GTK_CBData
- : Stream_CamSave_GTK_CBData
+struct Stream_CamSave_MediaFoundation_UI_CBData
+ : Stream_CamSave_UI_CBData
 {
-  Stream_CamSave_MediaFoundation_GTK_CBData ()
-   : Stream_CamSave_GTK_CBData ()
+  Stream_CamSave_MediaFoundation_UI_CBData ()
+   : Stream_CamSave_UI_CBData ()
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
@@ -731,11 +842,11 @@ struct Stream_CamSave_MediaFoundation_GTK_CBData
 };
 #else
 class Stream_CamSave_Stream;
-struct Stream_CamSave_V4L_GTK_CBData
- : Stream_CamSave_GTK_CBData
+struct Stream_CamSave_V4L_UI_CBData
+ : Stream_CamSave_UI_CBData
 {
-  Stream_CamSave_V4L_GTK_CBData ()
-   : Stream_CamSave_GTK_CBData ()
+  Stream_CamSave_V4L_UI_CBData ()
+   : Stream_CamSave_UI_CBData ()
    , configuration (NULL)
    , fileDescriptor (-1)
    , pixelBuffer (NULL)
@@ -755,26 +866,61 @@ struct Stream_CamSave_V4L_GTK_CBData
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+struct Stream_CamSave_UI_ThreadData
+#if defined (GTK_USE)
+ : Test_U_GTK_ThreadData
+#elif defined (WXWIDGETS_USE)
+ : Test_U_wxWidgets_ThreadData
+#endif
+{
+  Stream_CamSave_UI_ThreadData ()
+#if defined (GTK_USE)
+   : Test_U_GTK_ThreadData ()
+#elif defined (WXWIDGETS_USE)
+   : Test_U_wxWidgets_ThreadData ()
+#endif
+   , CBData (NULL)
+  {}
+
+  struct Stream_CamSave_UI_CBData* CBData;
+};
+
+#if defined (GTK_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_DirectShow_GTK_CBData> Stream_CamSave_DirectShow_GtkBuilderDefinition_t;
-typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_MediaFoundation_GTK_CBData> Stream_CamSave_MediaFoundation_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Stream_CamSave_DirectShow_GTK_CBData> Stream_CamSave_DirectShow_GTK_Manager_t;
-typedef ACE_Singleton<Stream_CamSave_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Stream_CamSave_MediaFoundation_GTK_CBData> Stream_CamSave_MediaFoundation_GTK_Manager_t;
-typedef ACE_Singleton<Stream_CamSave_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Stream_CamSave_DirectShow_UI_CBData> Stream_CamSave_DirectShow_GtkBuilderDefinition_t;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Stream_CamSave_MediaFoundation_UI_CBData> Stream_CamSave_MediaFoundation_GtkBuilderDefinition_t;
 #else
-typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_V4L_GTK_CBData> Stream_CamSave_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Stream_CamSave_V4L_GTK_CBData> Stream_CamSave_GTK_Manager_t;
-typedef ACE_Singleton<Stream_CamSave_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> CAMSAVE_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Stream_CamSave_V4L_UI_CBData> Stream_CamSave_GtkBuilderDefinition_t;
 #endif // ACE_WIN32 || ACE_WIN64
+#elif defined (WXWIDGETS_USE)
+extern const char toplevel_widget_classname_string_[];
+typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
+                                           toplevel_widget_classname_string_> Stream_CamSave_WxWidgetsXRCDefinition_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
+                                         Stream_CamSave_DirectShow_Stream> Stream_CamSave_DirectShow_WxWidgetsDialog_t;
+typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
+                                         struct Common_UI_wxWidgets_State,
+                                         struct Stream_CamSave_DirectShow_UI_CBData,
+                                         Stream_CamSave_DirectShow_WxWidgetsDialog_t> Stream_CamSave_DirectShow_WxWidgetsApplication_t;
+typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
+                                         Stream_CamSave_MediaFoundation_Stream> Stream_CamSave_MediaFoundation_WxWidgetsDialog_t;
+typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
+                                         struct Common_UI_wxWidgets_State,
+                                         struct Stream_CamSave_MediaFoundation_UI_CBData,
+                                         Stream_CamSave_MediaFoundation_WxWidgetsDialog_t> Stream_CamSave_MediaFoundation_WxWidgetsApplication_t;
+#else
+typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+                                         Stream_CamSave_Stream> Stream_CamSave_V4L_WxWidgetsDialog_t;
+typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
+                                         struct Common_UI_wxWidgets_State,
+                                         struct Stream_CamSave_V4L_UI_CBData,
+                                         Stream_CamSave_V4L_WxWidgetsDialog_t> Stream_CamSave_V4L_WxWidgetsApplication_t;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif
+#endif // GUI_SUPPORT
 
 #endif

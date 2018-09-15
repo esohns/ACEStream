@@ -39,6 +39,8 @@
 
 #include "common_tools.h"
 
+#include "common_error_tools.h"
+
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -842,7 +844,7 @@ video:
                 ACE_TEXT ("failed to MFCalculateImageSize(\"%s\",%u,%u): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (GUID_s, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
                 width, height,
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return result;
   } // end IF
   result = image_size_i;

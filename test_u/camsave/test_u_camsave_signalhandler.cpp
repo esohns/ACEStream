@@ -22,9 +22,19 @@
 #include "ace/Synch.h"
 #include "test_u_camsave_signalhandler.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (WXWIDGETS_USE)
+#include "wx/wx.h"
+#endif // WXWIDGETS_USE
+#endif // GUI_SUPPORT
+
 #include "ace/Log_Msg.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -142,32 +152,21 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
     //  configuration_.actionTimerId = -1;
     //} // end IF
 
-    // step2: stop GTK event processing
+    // step2: stop UI event processing ?
     if (inherited::configuration_->hasUI)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                          false); // N/A
+#elif defined (WXWIDGETS_USE)
     {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (inherited::configuration_->mediaFramework)
-      {
-        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          CAMSAVE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                                       false); // N/A
-          break;
-        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          CAMSAVE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                                            false); // N/A
-          break;
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      inherited::configuration_->mediaFramework));
-          return;
-        }
-      } // end SWITCH
-#else
-      CAMSAVE_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                        false); // N/A
-#endif
+      wxAppConsole* app_p = wxAppConsole::GetInstance ();
+      ACE_ASSERT (app_p);
+      app_p->ExitMainLoop ();
     } // end IF
+#else
+      ;
+#endif
+#endif // GUI_SUPPORT
   } // end IF
 }

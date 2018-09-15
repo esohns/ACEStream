@@ -65,12 +65,12 @@ stream_processing_function (void* arg_in)
 //  GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   {
-//    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
+//    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->UIState.lock);
 
     Common_UI_GTK_BuildersIterator_t iterator =
-        data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+        data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
-    ACE_ASSERT (iterator != data_p->CBData->builders.end ());
+    ACE_ASSERT (iterator != data_p->CBData->UIState.builders.end ());
 
     // retrieve progress bar handle
     gdk_threads_enter ();
@@ -87,9 +87,9 @@ stream_processing_function (void* arg_in)
 
     std::ostringstream converter;
     converter << data_p->sessionId;
-    data_p->CBData->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
-                                                       gtk_statusbar_get_context_id (statusbar_p,
-                                                                                     converter.str ().c_str ())));
+    data_p->CBData->UIState.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_INFORMATION,
+                                                               gtk_statusbar_get_context_id (statusbar_p,
+                                                                                             converter.str ().c_str ())));
     gdk_threads_leave ();
   } // end lock scope
 
@@ -115,17 +115,16 @@ stream_processing_function (void* arg_in)
 #endif
 
 //done:
-  { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState.lock, -1);
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState.lock, std::numeric_limits<void*>::max ());
 #endif
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
   } // end lock scope
 
   // clean up
-  delete data_p;
+  delete data_p; data_p = NULL;
 
   return result;
 }
@@ -137,8 +136,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -148,9 +147,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -321,15 +320,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  g_object_unref (buffer_p);
 
   // step5: initialize updates
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
                                                    idle_update_log_display_cb,
                                                    userData_in);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -342,7 +339,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                      idle_update_info_display_cb,
                      userData_in);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -544,8 +541,8 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -553,10 +550,10 @@ idle_update_log_display_cb (gpointer userData_in)
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
       //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -572,14 +569,14 @@ idle_update_log_display_cb (gpointer userData_in)
                                 &text_iterator);
 
   gchar* converted_text = NULL;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->UIState.lock, G_SOURCE_REMOVE);
     // sanity check
-    if (data_p->logStack.empty ())
+    if (data_p->UIState.logStack.empty ())
       return G_SOURCE_CONTINUE;
 
     // step1: convert text
-    for (Common_MessageStackConstIterator_t iterator_2 = data_p->logStack.begin ();
-         iterator_2 != data_p->logStack.end ();
+    for (Common_MessageStackConstIterator_t iterator_2 = data_p->UIState.logStack.begin ();
+         iterator_2 != data_p->UIState.logStack.end ();
          iterator_2++)
     {
       converted_text = Common_UI_GTK_Tools::localeToUTF8 (*iterator_2);
@@ -601,7 +598,7 @@ idle_update_log_display_cb (gpointer userData_in)
       g_free (converted_text);
     } // end FOR
 
-    data_p->logStack.clear ();
+    data_p->UIState.logStack.clear ();
   } // end lock scope
 
   // step3: scroll the view accordingly
@@ -636,8 +633,8 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-      static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+      static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -649,15 +646,15 @@ idle_update_info_display_cb (gpointer userData_in)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->UIState.lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->UIState.eventStack);
          !iterator_2.done ();
          iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
@@ -724,9 +721,9 @@ idle_update_info_display_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!data_p->eventStack.is_empty ())
+    while (!data_p->UIState.eventStack.is_empty ())
     {
-      result = data_p->eventStack.pop (event_e);
+      result = data_p->UIState.eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
@@ -741,8 +738,8 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  struct Stream_Filecopy_GTK_ProgressData* data_p =
-      static_cast<struct Stream_Filecopy_GTK_ProgressData*> (userData_in);
+  struct Stream_Filecopy_ProgressData* data_p =
+      static_cast<struct Stream_Filecopy_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -750,7 +747,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->state->builders.end ());
 
@@ -842,20 +839,20 @@ action_start_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_start_activate_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-      static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+      static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (data_p->configuration);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   // toggle play/pause ?
   const Stream_StateMachine_ControlState& status_r =
@@ -993,7 +990,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->UIState.lock);
   int result =
     thread_manager_p->spawn (::stream_processing_function,    // function
                              thread_data_p,                   // argument
@@ -1053,7 +1050,7 @@ action_start_activate_cb (GtkAction* action_in,
   //    ACE_DEBUG ((LM_DEBUG,
   //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
   //                event_source_id));
-  data_p->eventSourceIds.insert (event_source_id);
+  data_p->UIState.eventSourceIds.insert (event_source_id);
 } // action_start_activate_cb
 
 void
@@ -1062,19 +1059,19 @@ action_stop_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_stop_activate_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->stream);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   gtk_action_set_sensitive (action_in, FALSE);
   GtkAction* action_p =
@@ -1097,21 +1094,21 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -1136,19 +1133,19 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   // retrieve about dialog handle
   GtkDialog* about_dialog =
@@ -1186,22 +1183,22 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
-  //struct Stream_Filecopy_GTK_CBData* data_p =
-  // static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  //struct Stream_Filecopy_UI_CBData* data_p =
+  // static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
   //// sanity check(s)
   //ACE_ASSERT (data_p);
 
   //// step1: remove event sources
   //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
+  //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->UIState.lock);
+  //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->UIState.eventSourceIds.begin ();
+  //       iterator != data_p->UIState.eventSourceIds.end ();
   //       iterator++)
   //    if (!g_source_remove (*iterator))
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
   //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
+  //  data_p->UIState.eventSourceIds.clear ();
   //} // end lock scope
 
   // step2: initiate shutdown sequence
@@ -1225,22 +1222,22 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
 
-  struct Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_UI_CBData* data_p =
+    static_cast<struct Stream_Filecopy_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_p->UIState.builders.end ());
 
   Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

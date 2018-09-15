@@ -31,7 +31,7 @@
 #include "stream_dec_tools.h"
 
 #include "stream_dev_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_stat_defines.h"
 
@@ -40,7 +40,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
@@ -49,10 +49,14 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- //, display_ (this,
- //            ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , direct3DDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , directShowDisplay_ (this,
+                       ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+#if defined (GTK_USE)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_USE
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -79,12 +83,45 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   // initialize return value(s)
   delete_out = false;
 
+  ACE_ASSERT (inherited::configuration_);
+  //inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
+  //iterator =
+  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  //iterator_2 =
+  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
+  //// sanity check(s)
+  //ACE_ASSERT (iterator != configuration_in.end ());
+  //ACE_ASSERT (iterator_2 != configuration_in.end ());
+
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&encoder_);
-  modules_out.push_back (&display_);
+  switch (inherited::configuration_->configuration_.renderer)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_MODULE_VIS_VIDEORENDERER_DIRECT3D:
+      modules_out.push_back (&direct3DDisplay_);
+      break;
+    case STREAM_MODULE_VIS_VIDEORENDERER_DIRECTSHOW:
+      modules_out.push_back (&directShowDisplay_);
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_USE)
+    case STREAM_MODULE_VIS_VIDEORENDERER_GTK_CAIRO:
+      modules_out.push_back (&GTKCairoDisplay_);
+      break;
+#endif // GTK_USE
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_.renderer));
+      return false;
+    }
+  } // end SWITCH
   modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
 
@@ -141,7 +178,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return false;
   } // end IF
   COM_initialized = true;
@@ -203,9 +240,11 @@ continue_:
   } // end IF
 
   // sanity check(s)
+  ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
   ACE_ASSERT (!(*iterator).second.second.direct3DDevice);
 
-  if (!Stream_Module_Device_Tools::getDirect3DDevice ((*iterator).second.second.window,
+  if (!Stream_Module_Device_Tools::getDirect3DDevice (*(*iterator).second.second.direct3DConfiguration,
+                                                      (*iterator).second.second.window,
                                                       *(*iterator).second.second.sourceFormat,
                                                       (*iterator).second.second.direct3DDevice,
                                                       d3d_presentation_parameters,
@@ -225,7 +264,7 @@ continue_:
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             *(*iterator).second.second.sourceFormat,
                                                             *(*iterator).second.second.inputFormat,
-                                                            (*iterator).second.second.window,
+                                                            ((configuration_in.configuration_.renderer == STREAM_MODULE_VIS_VIDEORENDERER_DIRECTSHOW) ? (*iterator).second.second.window : NULL),
                                                             (*iterator).second.second.builder,
                                                             graph_configuration))
   {
@@ -244,7 +283,7 @@ continue_:
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -255,7 +294,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (isample_grabber_p);
@@ -267,7 +306,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
@@ -276,7 +315,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   isample_grabber_p->Release (); isample_grabber_p = NULL;
@@ -298,7 +337,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     goto error;
   } // end IF
 
@@ -345,7 +384,7 @@ continue_:
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
-                ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     //goto error;
   } // end IF
   else
@@ -365,7 +404,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
@@ -375,7 +414,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   media_filter_p->Release (); media_filter_p = NULL;
@@ -481,13 +520,16 @@ error:
   {
     (*iterator).second.second.builder->Release (); (*iterator).second.second.builder = NULL;
   } // end IF
-  if (session_data_p->direct3DDevice)
+  if (session_data_p)
   {
-    session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
+    if (session_data_p->direct3DDevice)
+    {
+      session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
+    } // end IF
+    if (session_data_p->inputFormat)
+      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_p->inputFormat);
+    session_data_p->resetToken = 0;
   } // end IF
-  if (session_data_p->inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_p->inputFormat);
-  session_data_p->resetToken = 0;
 
   if (COM_initialized)
     CoUninitialize ();
@@ -503,12 +545,16 @@ Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream ()
             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- //, display_ (this,
- //            ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
- , displayNull_ (this,
-                 ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME))
+ , direct3DDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING))
+ , mediaFoundationDisplay_ (this,
+                            ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
+ , mediaFoundationDisplayNull_ (this,
+                                ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME))
+#if defined (GTK_USE)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_USE
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -536,7 +582,7 @@ Stream_CamSave_MediaFoundation_Stream::~Stream_CamSave_MediaFoundation_Stream ()
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -577,7 +623,7 @@ Stream_CamSave_MediaFoundation_Stream::start ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     PropVariantClear (&property_s);
     return;
   } // end IF
@@ -589,7 +635,7 @@ Stream_CamSave_MediaFoundation_Stream::start ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -599,6 +645,7 @@ Stream_CamSave_MediaFoundation_Stream::start ()
 
 void
 Stream_CamSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
+                                             bool recurseUpstream_in,
                                              bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::stop"));
@@ -611,11 +658,12 @@ Stream_CamSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   inherited::stop (waitForCompletion_in,
+                   recurseUpstream_in,
                    lockedAccess_in);
 }
 
@@ -698,7 +746,7 @@ Stream_CamSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -711,126 +759,126 @@ Stream_CamSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   ACE_ASSERT (SUCCEEDED (result));
   switch (event_type)
   {
-  case MEEndOfPresentation:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MEEndOfPresentation\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MEError:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: received MEError: \"%s\"\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
-    break;
-  }
-  case MESessionClosed:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
-                ACE_TEXT (stream_name_string_)));
-    //IMFMediaSource* media_source_p = NULL;
-    //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
-    //                                                 media_source_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
-    //  goto continue_;
-    //} // end IF
-    //ACE_ASSERT (media_source_p);
-    //result = media_source_p->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    //media_source_p->Release (); media_source_p = NULL;
-//continue_:
-    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-    //result = mediaSession_->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    break;
-  }
-  case MESessionEnded:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
-                ACE_TEXT (stream_name_string_)));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-    result = mediaSession_->Close ();
-    if (FAILED (result))
+    case MEEndOfPresentation:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MEEndOfPresentation\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MEError:
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: received MEError: \"%s\"\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      break;
+    }
+    case MESessionClosed:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
+                  ACE_TEXT (stream_name_string_)));
+      //IMFMediaSource* media_source_p = NULL;
+      //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+      //                                                 media_source_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+      //  goto continue_;
+      //} // end IF
+      //ACE_ASSERT (media_source_p);
+      //result = media_source_p->Shutdown ();
+      //if (FAILED (result))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      //media_source_p->Release (); media_source_p = NULL;
+  //continue_:
+      // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+      //result = mediaSession_->Shutdown ();
+      //if (FAILED (result))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      break;
+    }
+    case MESessionEnded:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
+                  ACE_TEXT (stream_name_string_)));
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+      result = mediaSession_->Close ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                    ACE_TEXT (stream_name_string_),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-    break;
-  }
-  case MESessionCapabilitiesChanged:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionNotifyPresentationTime:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionStarted:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionStarted\n"),
-                ACE_TEXT (stream_name_string_)));
-    break;
-  }
-  case MESessionStopped:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
-                ACE_TEXT (stream_name_string_)));
-    if (isRunning ())
-      stop (false,
-            true);
-    break;
-  }
-  case MESessionTopologySet:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
-    break;
-  }
-  case MESessionTopologyStatus:
-  {
-    UINT32 attribute_value = 0;
-    result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
-                                       &attribute_value);
-    ACE_ASSERT (SUCCEEDED (result));
-    MF_TOPOSTATUS topology_status =
-      static_cast<MF_TOPOSTATUS> (attribute_value);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
-    break;
-  }
-  default:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
-                ACE_TEXT (stream_name_string_),
-                event_type));
-    break;
-  }
+      break;
+    }
+    case MESessionCapabilitiesChanged:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionNotifyPresentationTime:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionStarted:
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStarted\n"),
+                  ACE_TEXT (stream_name_string_)));
+      break;
+    }
+    case MESessionStopped:
+    { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
+                  ACE_TEXT (stream_name_string_)));
+      if (isRunning ())
+        stop (false,
+              true);
+      break;
+    }
+    case MESessionTopologySet:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Common_Error_Tools::errorToString (status).c_str ())));
+      break;
+    }
+    case MESessionTopologyStatus:
+    {
+      UINT32 attribute_value = 0;
+      result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                         &attribute_value);
+      ACE_ASSERT (SUCCEEDED (result));
+      MF_TOPOSTATUS topology_status =
+        static_cast<MF_TOPOSTATUS> (attribute_value);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
+                  ACE_TEXT (stream_name_string_),
+                  event_type));
+      break;
+    }
   } // end SWITCH
   PropVariantClear (&value);
   media_event_p->Release (); media_event_p = NULL;
@@ -842,14 +890,16 @@ Stream_CamSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
   return S_OK;
 
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 error:
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   if (media_event_p)
     media_event_p->Release ();
   PropVariantClear (&value);
@@ -871,8 +921,31 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   //         close()d
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&encoder_);
-  //modules_out.push_back (&displayNull_);
-  modules_out.push_back (&display_);
+  switch (inherited::configuration_->configuration_.renderer)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_MODULE_VIS_VIDEORENDERER_DIRECT3D:
+      modules_out.push_back (&direct3DDisplay_);
+      break;
+    case STREAM_MODULE_VIS_VIDEORENDERER_MEDIAFOUNDATION:
+      modules_out.push_back (&mediaFoundationDisplay_);
+      //modules_out.push_back (&mediaFoundationDisplayNull_);
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_USE)
+    case STREAM_MODULE_VIS_VIDEORENDERER_GTK_CAIRO:
+      modules_out.push_back (&GTKCairoDisplay_);
+      break;
+#endif // GTK_USE
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  inherited::configuration_->configuration_.renderer));
+      return false;
+    }
+  } // end SWITCH
   modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
 
@@ -961,7 +1034,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   COM_initialized = true;
@@ -996,7 +1069,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
                   ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -1088,7 +1161,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     return false;
   } // end IF
   media_type_p->Release (); media_type_p = NULL;
@@ -1103,7 +1176,7 @@ continue_:
     //if (FAILED (result))
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release (); mediaSession_ = NULL;
   } // end IF
   ACE_ASSERT (!mediaSession_);
@@ -1192,8 +1265,10 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
                ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#if defined (GTK_USE)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_USE
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -1225,7 +1300,9 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
   //         close()d
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&encoder_);
-  modules_out.push_back (&display_);
+#if defined (GTK_USE)
+  modules_out.push_back (&GTKCairoDisplay_);
+#endif // GTK_USE
   modules_out.push_back (&converter_);
   modules_out.push_back (&decoder_);
   modules_out.push_back (&statisticReport_);

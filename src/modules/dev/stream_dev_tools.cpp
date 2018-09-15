@@ -51,6 +51,8 @@ extern "C"
 #include "common_time_common.h"
 #include "common_tools.h"
 
+#include "common_error_tools.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -89,7 +91,7 @@ stream_monitor_enum_cb (HMONITOR monitor_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to GetMonitorInfo(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     return FALSE;
   } // end IF
 
@@ -115,7 +117,7 @@ Stream_Module_Device_Tools::initialize (bool initializeFrameworks_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (initializeFrameworks_in)
   {
-    Stream_Module_Device_DirectShow_Tools::initialize (true);
+    Stream_Module_Device_DirectShow_Tools::initialize (true); // initialize COM ?
     Stream_Module_Device_MediaFoundation_Tools::initialize ();
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
@@ -123,7 +125,8 @@ Stream_Module_Device_Tools::initialize (bool initializeFrameworks_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
+Stream_Module_Device_Tools::getDirect3DDevice (const struct Stream_Module_Device_Direct3DConfiguration& configuration_in,
+                                               HWND windowHandle_in, // 'device'-
                                                const struct _AMMediaType& mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                                IDirect3DDevice9Ex*& deviceHandle_out,
@@ -150,41 +153,12 @@ Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
   {
     deviceManager_out->Release (); deviceManager_out = NULL;
   } // end IF
-  ACE_ASSERT (resetToken_out == 0);
-
-  struct tagVIDEOINFOHEADER* video_info_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_2 = NULL;
-  if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
-  {
-    ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-    video_info_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
-    presentationParameters_out.BackBufferWidth =
-      video_info_p->bmiHeader.biWidth;
-    presentationParameters_out.BackBufferHeight =
-      video_info_p->bmiHeader.biHeight;
-  } // end IF
-  else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
-  {
-    ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-    video_info_2 =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
-    presentationParameters_out.BackBufferWidth =
-      video_info_2->bmiHeader.biWidth;
-    presentationParameters_out.BackBufferHeight =
-      video_info_2->bmiHeader.biHeight;
-  } // end ELSE IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
-    return false;
-  } // end ELSE
+  resetToken_out = 0;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3D9Ex* idirect3D_p = NULL;
-  result = Direct3DCreate9Ex (D3D_SDK_VERSION, &idirect3D_p);
+  result = Direct3DCreate9Ex (D3D_SDK_VERSION,
+                              &idirect3D_p);
   if (FAILED (result))
 #else
   IDirect3D9* idirect3D_p = Direct3DCreate9 (D3D_SDK_VERSION);
@@ -194,49 +168,120 @@ Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Direct3DCreate9Ex(%d): \"%s\", aborting\n"),
                 D3D_SDK_VERSION,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
-  DWORD behavior_flags = (//D3DCREATE_ADAPTERGROUP_DEVICE          |
-                          //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
-                          //D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX |
-                          //D3DCREATE_DISABLE_PRINTSCREEN          |
-                          //D3DCREATE_DISABLE_PSGP_THREADING       |
-                          //D3DCREATE_ENABLE_PRESENTSTATS          |
-                          D3DCREATE_FPU_PRESERVE                 |
-                          D3DCREATE_HARDWARE_VERTEXPROCESSING    |
-                          //D3DCREATE_MIXED_VERTEXPROCESSING       |
-                          D3DCREATE_MULTITHREADED);//                |
-                          //D3DCREATE_NOWINDOWCHANGES              |
-                          //D3DCREATE_PUREDEVICE                   |
-                          //D3DCREATE_SCREENSAVER                  |
-                          //D3DCREATE_SOFTWARE_VERTEXPROCESSING);
+  struct _D3DCAPS9 d3d_capabilities_s;
+  ACE_OS::memset (&d3d_capabilities_s,
+                  0,
+                  sizeof (struct _D3DCAPS9));
+  result = idirect3D_p->GetDeviceCaps (configuration_in.adapter,
+                                       configuration_in.deviceType,
+                                       &d3d_capabilities_s);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3D9Ex::GetDeviceCaps(%d): \"%s\", aborting\n"),
+                configuration_in.adapter,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
+  if (d3d_capabilities_s.VertexProcessingCaps)
+    const_cast<struct Stream_Module_Device_Direct3DConfiguration&> (configuration_in).behaviorFlags |= D3DCREATE_HARDWARE_VERTEXPROCESSING;
+  else
+    const_cast<struct Stream_Module_Device_Direct3DConfiguration&> (configuration_in).behaviorFlags |= D3DCREATE_SOFTWARE_VERTEXPROCESSING;
 
-  struct _D3DDISPLAYMODE d3d_display_mode;
-  ACE_OS::memset (&d3d_display_mode,
+  struct _D3DDISPLAYMODE d3d_display_mode_s;//, d3d_display_mode_2;
+  ACE_OS::memset (&d3d_display_mode_s,
                   0,
                   sizeof (struct _D3DDISPLAYMODE));
-  result = idirect3D_p->GetAdapterDisplayMode (D3DADAPTER_DEFAULT,
-                                               &d3d_display_mode);
+  result = idirect3D_p->GetAdapterDisplayMode (configuration_in.adapter,
+                                               &d3d_display_mode_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::GetAdapterDisplayMode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  result = idirect3D_p->CheckDeviceType (D3DADAPTER_DEFAULT,
-                                         D3DDEVTYPE_HAL,
-                                         d3d_display_mode.Format,
-                                         D3DFMT_X8R8G8B8,
-                                         TRUE);
+
+  //int modes_i =
+  //  idirect3D_p->GetAdapterModeCount (configuration_in.adapter,
+  //                                    configuration_in.presentationParameters.BackBufferFormat);
+  //for (int i = 0; i < modes_i; ++i)
+  //{
+  //  ACE_OS::memset (&d3d_display_mode_2,
+  //                  0,
+  //                  sizeof (struct _D3DDISPLAYMODE));
+  //  result =
+  //    idirect3D_p->EnumAdapterModes (configuration_in.adapter,
+  //                                   configuration_in.presentationParameters.BackBufferFormat,
+  //                                   i,
+  //                                   &d3d_display_mode_2);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IDirect3D9Ex::EnumAdapterModes(%d,%d): \"%s\", aborting\n"),
+  //                configuration_in.presentationParameters.BackBufferFormat,
+  //                i,
+  //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //    goto error;
+  //  } // end IF
+ 
+  //  //if (d3d_display_mode_2.Width != mnWidth || d3ddm.Height != mnHeight ) continue;
+  //  //if( d3ddm.Format != D3DFMT_X8R8G8B8 ) continue;
+  //  //if( d3ddm.RefreshRate != 75 ) continue;
+ 
+  //  //bDesired = true;
+  //  break;
+  //} // end FOR
+
+  // sanity check(s)
+  result =
+    idirect3D_p->CheckDeviceType (configuration_in.adapter,
+                                  configuration_in.deviceType,
+                                  d3d_display_mode_s.Format,
+                                  configuration_in.presentationParameters.BackBufferFormat,
+                                  configuration_in.presentationParameters.Windowed);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IDirect3D9Ex::CheckDeviceType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT ("failed to IDirect3D9Ex::CheckDeviceType(%d): \"%s\", aborting\n"),
+                configuration_in.deviceType,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
+  } // end IF
+  if (configuration_in.presentationParameters.EnableAutoDepthStencil)
+  {
+    result =
+      idirect3D_p->CheckDeviceFormat (configuration_in.adapter,
+                                      configuration_in.deviceType,
+                                      d3d_display_mode_s.Format,
+                                      D3DUSAGE_DEPTHSTENCIL,
+                                      D3DRTYPE_SURFACE,
+                                      configuration_in.presentationParameters.AutoDepthStencilFormat);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirect3D9Ex::CheckDeviceFormat(D3DUSAGE_DEPTHSTENCIL): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result =
+      idirect3D_p->CheckDepthStencilMatch (configuration_in.adapter,
+                                           configuration_in.deviceType,
+                                           d3d_display_mode_s.Format,
+                                           configuration_in.presentationParameters.BackBufferFormat,
+                                           configuration_in.presentationParameters.AutoDepthStencilFormat);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirect3D9Ex::CheckDepthStencilMatch(%d): \"%s\", aborting\n"),
+                  configuration_in.presentationParameters.AutoDepthStencilFormat,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
 
   //if (Mode == "fullscreen")
@@ -250,53 +295,39 @@ Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
   //presentationParameters_out.BackBufferHeight =
   //  video_info_p->bmiHeader.biHeight;
   //} // end IF
+  presentationParameters_out = configuration_in.presentationParameters;
   presentationParameters_out.BackBufferFormat = D3DFMT_X8R8G8B8;
   presentationParameters_out.BackBufferCount =
     MODULE_DEV_CAM_DIRECT3D_DEFAULT_BACK_BUFFERS;
-  //presentationParameters_out.MultiSampleType = ;
-  //presentationParameters_out.MultiSampleQuality = ;
-  presentationParameters_out.SwapEffect = D3DSWAPEFFECT_FLIP;
   presentationParameters_out.hDeviceWindow = windowHandle_in;
-  presentationParameters_out.Windowed = true;
-  //presentationParameters_out.EnableAutoDepthStencil = ;
-  //presentationParameters_out.AutoDepthStencilFormat = ;
-  presentationParameters_out.Flags =
-    (D3DPRESENTFLAG_LOCKABLE_BACKBUFFER            |
-     //D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL           |
-     D3DPRESENTFLAG_DEVICECLIP                     |
-     D3DPRESENTFLAG_VIDEO);//                          |
-     //D3DPRESENTFLAG_NOAUTOROTATE                   |
-     //D3DPRESENTFLAG_UNPRUNEDMODE                   |
-     //D3DPRESENTFLAG_OVERLAY_LIMITEDRGB             |
-     //D3DPRESENTFLAG_OVERLAY_YCbCr_BT709            |
-     //D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC            |
-     //D3DPRESENTFLAG_RESTRICTED_CONTENT             |
-     //D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER);
-  //d3d_present_parameters.FullScreen_RefreshRateInHz = ;
-  presentationParameters_out.PresentationInterval =
-    D3DPRESENT_INTERVAL_IMMEDIATE;
   result =
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-    idirect3D_p->CreateDeviceEx (D3DADAPTER_DEFAULT,          // adapter
-                                 D3DDEVTYPE_HAL,              // device type
-                                 windowHandle_in,             // focus window handle
-                                 behavior_flags,              // behavior flags
-                                 &presentationParameters_out, // presentation parameters
-                                 NULL,                        // (fullscreen) display mode
-                                 &deviceHandle_out);    // return value: device handle
+    idirect3D_p->CreateDeviceEx (configuration_in.adapter,               // adapter
+                                 configuration_in.deviceType,            // device type
+                                 configuration_in.focusWindow,           // focus window handle
+                                 configuration_in.behaviorFlags,         // behavior flags
+                                 &presentationParameters_out,            // presentation parameters
+                                 configuration_in.fullScreenDisplayMode, // (fullscreen) display mode
+                                 &deviceHandle_out);                     // return value: device handle
 #else
-    idirect3D_p->CreateDevice (D3DADAPTER_DEFAULT,          // adapter
-                               D3DDEVTYPE_HAL,              // device type
-                               windowHandle_in,             // focus window handle
-                               behavior_flags,              // behavior flags
-                               &presentationParameters_out, // presentation parameters
-                               &deviceHandle_out);    // return value: device handle
+    idirect3D_p->CreateDevice (configuration_in.adapter,       // adapter
+                               configuration_in.deviceType,    // device type
+                               configuration_in.focusWindow,   // focus window handle
+                               configuration_in.behaviorFlags, // behavior flags
+                               &presentationParameters_out,    // presentation parameters
+                               &deviceHandle_out);             // return value: device handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   if (FAILED (result))
   {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::CreateDeviceEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3D9::CreateDevice(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     goto error;
   } // end IF
   ACE_ASSERT (deviceHandle_out);
@@ -308,7 +339,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -319,7 +350,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -365,7 +396,7 @@ Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceIdentifie
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MonitorFromPoint(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
       return false;
     } // end IF
 
@@ -421,7 +452,7 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9* d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -436,7 +467,7 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9* d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 

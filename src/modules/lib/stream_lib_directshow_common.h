@@ -21,6 +21,8 @@
 #ifndef STREAM_LIB_DIRECTSHOW_COMMON_H
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
+#include <list>
+
 //#include <ks.h>
 //// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 ////            incompatible versions of the IKsPropertySet interface.
@@ -33,10 +35,11 @@
 ////            definition of IKsPropertySet is used by the compiler. ..."
 //#include <ksproxy.h>
 #include <dsound.h>
+#include <strmif.h>
 
-#include "ace/config-lite.h"
+typedef std::list<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
+typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 union Stream_MediaFramework_DirectShow_AudioEffectOptions
 {
   struct _DSCFXAec        AECOptions;
@@ -50,6 +53,5 @@ union Stream_MediaFramework_DirectShow_AudioEffectOptions
   struct _DSFXI3DL2Reverb reverbOptions;
   struct _DSFXWavesReverb wavesReverbOptions;
 };
-#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

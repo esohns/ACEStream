@@ -40,6 +40,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_ui_common.h"
+
 #include "stream_lib_common.h"
 
 class Stream_MediaFramework_DirectShow_Tools
@@ -166,6 +168,10 @@ class Stream_MediaFramework_DirectShow_Tools
   static std::string mediaTypeToString (const struct _AMMediaType&, // media type
                                         bool = false);              // condensed version ?
   inline static bool AMMediaTypeToDMOMediaType (const struct _AMMediaType& mediaType_in, DMO_MEDIA_TYPE*& mediaType_out) { return Stream_MediaFramework_DirectShow_Tools::copyMediaType (mediaType_in, reinterpret_cast<struct _AMMediaType*&> (mediaType_out)); }
+  static Common_UI_Resolution_t mediaTypeToResolution (const struct _AMMediaType&); // media type
+  static unsigned int mediaTypeToFramerate (const struct _AMMediaType&); // media type
+  static unsigned int mediaTypeToFramesize (const struct _AMMediaType&); // media type
+  static unsigned int mediaTypeToBitrate (const struct _AMMediaType&); // media type
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())

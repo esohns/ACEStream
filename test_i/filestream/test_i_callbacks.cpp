@@ -58,6 +58,9 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
+  // sanity check(s)
+  ACE_ASSERT (arg_in);
+
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
@@ -65,14 +68,12 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif
 
-  struct Test_I_Source_ThreadData* data_p =
-    static_cast<struct Test_I_Source_ThreadData*> (arg_in);
-
+  struct Test_I_Source_UI_ThreadData* thread_data_p =
+    static_cast<struct Test_I_Source_UI_ThreadData*> (arg_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->CBData);
-  ACE_ASSERT (data_p->CBData->configuration);
-  ACE_ASSERT (data_p->CBData->stream);
+  ACE_ASSERT (thread_data_p->CBData);
+  ACE_ASSERT (thread_data_p->CBData->configuration);
+  ACE_ASSERT (thread_data_p->CBData->stream);
 
   GtkSpinButton* spin_button_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
@@ -83,51 +84,51 @@ stream_processing_function (void* arg_in)
   Common_IGetR_T<Test_I_Source_SessionData_t>* iget_p = NULL;
   std::ostringstream converter;
   const Test_I_Source_SessionData_t* session_data_container_p = NULL;
-  const struct Test_I_Source_SessionData* session_data_p = NULL;
+  const struct Test_I_Source_SessionData* session_thread_data_p = NULL;
   unsigned int counter = 0;
-  bool loop = data_p->CBData->loop;
+  bool loop = thread_data_p->CBData->loop;
   Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2;
   guint context_id = 0;
 
   gdk_threads_enter ();
   bool leave_gdk = true;
 
-  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState.lock, -1);
     Common_UI_GTK_BuildersIterator_t iterator =
-        data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+        thread_data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
-    ACE_ASSERT (iterator != data_p->CBData->builders.end ());
+    ACE_ASSERT (iterator != thread_data_p->CBData->UIState.builders.end ());
 
     iterator_2 =
-      data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (iterator_2 != data_p->CBData->configuration->streamConfiguration.end ());
+      thread_data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != thread_data_p->CBData->configuration->streamConfiguration.end ());
 
     // retrieve stream handle
-    switch (data_p->CBData->configuration->protocol)
+    switch (thread_data_p->CBData->configuration->protocol)
     {
       case NET_TRANSPORTLAYER_TCP:
       {
-        istream_p = data_p->CBData->stream;
-        istream_control_p = data_p->CBData->stream;
+        istream_p = thread_data_p->CBData->stream;
+        istream_control_p = thread_data_p->CBData->stream;
         //(*iterator_2).second.second.stream = istream_p;
-        iinitialize_p = data_p->CBData->stream;
-        iget_p = data_p->CBData->stream;
+        iinitialize_p = thread_data_p->CBData->stream;
+        iget_p = thread_data_p->CBData->stream;
         break;
       }
       case NET_TRANSPORTLAYER_UDP:
       {
-        istream_p = data_p->CBData->UDPStream;
-        istream_control_p = data_p->CBData->UDPStream;
+        istream_p = thread_data_p->CBData->UDPStream;
+        istream_control_p = thread_data_p->CBData->UDPStream;
         //(*iterator_2).second.second.stream = istream_p;
-        iinitialize_p = data_p->CBData->UDPStream;
-        iget_p = data_p->CBData->UDPStream;
+        iinitialize_p = thread_data_p->CBData->UDPStream;
+        iget_p = thread_data_p->CBData->UDPStream;
         break;
       }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                    data_p->CBData->configuration->protocol));
+                    thread_data_p->CBData->configuration->protocol));
         goto done;
       }
     } // end SWITCH
@@ -153,7 +154,7 @@ stream_processing_function (void* arg_in)
   leave_gdk = false;
 
 loop:
-  if (!iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration))
+  if (!iinitialize_p->initialize (thread_data_p->CBData->configuration->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream (name was: \"%s\"), aborting\n"),
@@ -162,19 +163,19 @@ loop:
   } // end IF
   session_data_container_p = &iget_p->getR ();
   ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->getR ();
-  ACE_ASSERT (session_data_p);
+  session_thread_data_p = &session_data_container_p->getR ();
+  ACE_ASSERT (session_thread_data_p);
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << session_data_p->sessionId;
+  converter << session_thread_data_p->sessionId;
 
   // generate context ID
   gdk_threads_enter ();
   context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   converter.str ().c_str ());
-  data_p->CBData->contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_DATA,
-                                                     context_id));
+  thread_data_p->CBData->UIState.contextIds.insert (std::make_pair (COMMON_UI_GTK_STATUSCONTEXT_DATA,
+                                                                    context_id));
   gdk_threads_leave ();
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
@@ -192,7 +193,7 @@ loop:
   ++counter;
   if (loop)
   {
-    if (static_cast<int> (data_p->CBData->loop) != -1)
+    if (static_cast<int> (thread_data_p->CBData->loop) != -1)
     {
       gdk_threads_enter ();
       gtk_spin_button_spin (spin_button_p,
@@ -204,7 +205,7 @@ loop:
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("iteration #%u complete\n"),
                 counter));
-    if (data_p->CBData->loop)
+    if (thread_data_p->CBData->loop)
       goto loop;
   } // end IF
 
@@ -218,17 +219,16 @@ done:
   if (leave_gdk)
     gdk_threads_leave ();
 
-  { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState.lock, -1);
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState.lock, std::numeric_limits<void*>::max ());
 #endif
-    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
+    thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
 
   // clean up
-  delete data_p;
+  delete thread_data_p; thread_data_p = NULL;
 
   return result;
 }
@@ -240,21 +240,22 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_source_UI_cb"));
 
-  struct Test_I_Source_GTK_CBData* data_p =
-    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  thread_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  //ACE_ASSERT (iterator != thread_data_p->gladeXML.end ());
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -311,8 +312,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   std::string path =
       ((*iterator_2).second.second.fileName.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
                                                      : (*iterator_2).second.second.fileName);
@@ -340,8 +341,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
   ACE_ASSERT (entry_p);
   Test_I_Source_ConnectionConfigurationIterator_t iterator_3 =
-    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   gtk_entry_set_text (entry_p,
                       (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ());
 
@@ -353,7 +354,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                               static_cast<double> ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
-  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  if (ui_cb_data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
   {
     radio_button_p =
       GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -366,7 +367,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0));
+                                (ui_cb_data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
@@ -384,7 +385,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              -1.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->loop));
+                             static_cast<double> (ui_cb_data_p->loop));
 
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -396,7 +397,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
+                             static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -454,14 +455,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //  g_object_unref (buffer_p);
 
   // step5: initialize updates
-  struct Test_I_GTK_CBData* cb_data_p = data_p;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  struct Test_I_GTK_CBData* cb_ui_cb_data_p = ui_cb_data_p;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
                                                    idle_update_log_display_cb,
-                                                   cb_data_p);
+                                                   cb_ui_cb_data_p);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -469,11 +470,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       return G_SOURCE_REMOVE;
     } // end ELSE
     // schedule asynchronous updates of the info view
-    event_source_id = g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
-                                     idle_update_info_display_source_cb,
-                                     data_p);
+    event_source_id =
+      g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
+                     idle_update_info_display_source_cb,
+                     ui_cb_data_p);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -538,7 +540,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("value-changed"),
   //                             G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
   //ACE_ASSERT (result_2);
   //
   //object_p =
@@ -548,7 +550,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
   //object_p =
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
@@ -556,7 +558,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
 
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOP_NAME));
@@ -607,7 +609,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("clicked"),
                       G_CALLBACK (button_clear_clicked_cb),
-                      cb_data_p);
+                      cb_ui_cb_data_p);
   ACE_ASSERT (result_2);
   object_p =
       gtk_builder_get_object ((*iterator).second.second,
@@ -617,7 +619,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       g_signal_connect (object_p,
                         ACE_TEXT_ALWAYS_CHAR ("clicked"),
                         G_CALLBACK (button_about_clicked_cb),
-                        cb_data_p);
+                        cb_ui_cb_data_p);
   ACE_ASSERT (result_2);
   object_p =
       gtk_builder_get_object ((*iterator).second.second,
@@ -627,7 +629,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       g_signal_connect (object_p,
                         ACE_TEXT_ALWAYS_CHAR ("clicked"),
                         G_CALLBACK (button_quit_clicked_cb),
-                        cb_data_p);
+                        cb_ui_cb_data_p);
   ACE_ASSERT (result_2);
   ACE_UNUSED_ARG (result_2);
 
@@ -665,26 +667,26 @@ idle_end_source_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_end_source_UI_cb"));
 
-  struct Test_I_Source_GTK_CBData* data_p =
-    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
 
-  if (data_p->loop > 0)
-    --data_p->loop;
+  if (ui_cb_data_p->loop > 0)
+    --ui_cb_data_p->loop;
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTable* table_p =
     GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
@@ -693,7 +695,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
 
   GtkAction* action_p = NULL;
-  if (data_p->loop == 0)
+  if (ui_cb_data_p->loop == 0)
   {
     action_p =
       GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -716,21 +718,22 @@ idle_update_progress_source_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_source_cb"));
 
-  struct Test_I_Source_GTK_ProgressData* data_p =
-      static_cast<struct Test_I_Source_GTK_ProgressData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->state);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_Source_ProgressData* progress_data_p =
+      static_cast<struct Test_I_Source_ProgressData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (progress_data_p->state);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, progress_data_p->state->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    progress_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_ASSERT (iterator != progress_data_p->state->builders.end ());
 
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -741,12 +744,12 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
   Common_UI_GTK_PendingActionsIterator_t iterator_2;
-  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
-       iterator_3 != data_p->completedActions.end ();
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = progress_data_p->completedActions.begin ();
+       iterator_3 != progress_data_p->completedActions.end ();
        ++iterator_3)
   {
-    iterator_2 = data_p->pendingActions.find (*iterator_3);
-    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
+    iterator_2 = progress_data_p->pendingActions.find (*iterator_3);
+    ACE_ASSERT (iterator_2 != progress_data_p->pendingActions.end ());
     ACE_thread_t thread_id = (*iterator_2).second.id ();
     result = thread_manager_p->join (thread_id, &exit_status);
     if (result == -1)
@@ -768,22 +771,22 @@ idle_update_progress_source_cb (gpointer userData_in)
 #endif
     } // end IF
 
-    data_p->state->eventSourceIds.erase (*iterator_3);
-    data_p->pendingActions.erase (iterator_2);
+    progress_data_p->state->eventSourceIds.erase (*iterator_3);
+    progress_data_p->pendingActions.erase (iterator_2);
   } // end FOR
-  data_p->completedActions.clear ();
+  progress_data_p->completedActions.clear ();
 
   bool done = false;
-  if (data_p->pendingActions.empty ())
+  if (progress_data_p->pendingActions.empty ())
   {
-    //if (data_p->cursorType != GDK_LAST_CURSOR)
+    //if (progress_data_p->cursorType != GDK_LAST_CURSOR)
     //{
-    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
+    //  GdkCursor* cursor_p = gdk_cursor_new (progress_data_p->cursorType);
     //  if (!cursor_p)
     //  {
     //    ACE_DEBUG ((LM_ERROR,
     //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
-    //                data_p->cursorType));
+    //                progress_data_p->cursorType));
     //    return FALSE; // G_SOURCE_REMOVE
     //  } // end IF
     //  GtkWindow* window_p =
@@ -793,7 +796,7 @@ idle_update_progress_source_cb (gpointer userData_in)
     //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
     //  ACE_ASSERT (window_2);
     //  gdk_window_set_cursor (window_2, cursor_p);
-    //  data_p->cursorType = GDK_LAST_CURSOR;
+    //  progress_data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
 
     done = true;
@@ -802,7 +805,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_TCHAR buffer[BUFSIZ];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
-  float speed = data_p->statistic.bytesPerSecond;
+  float speed = progress_data_p->statistic.bytesPerSecond;
   if (speed)
   {
     if (speed >= 1024.0F)
@@ -826,11 +829,11 @@ idle_update_progress_source_cb (gpointer userData_in)
   } // end IF
 
   gdouble fraction_d = 0.0;
-  if (data_p->size)
+  if (progress_data_p->size)
   {
-    ACE_ASSERT (data_p->transferred <= data_p->size);
+    ACE_ASSERT (progress_data_p->transferred <= progress_data_p->size);
     fraction_d =
-      static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size);
+      static_cast<double> (progress_data_p->transferred) / static_cast<double> (progress_data_p->size);
   } // end IF
   gtk_progress_bar_set_fraction (progressbar_p, fraction_d);
 
@@ -845,21 +848,22 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -927,8 +931,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   GFile* file_p = NULL;
   std::string directory, file_name;
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   directory = (*iterator_2).second.second.targetFileName;
   file_name = (*iterator_2).second.second.targetFileName;
   // sanity check(s)
@@ -1027,13 +1031,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
-    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
-  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  if (ui_cb_data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
   {
     radio_button_p =
       GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1046,7 +1050,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0));
+                                (ui_cb_data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0));
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
@@ -1064,7 +1068,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
+                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -1132,15 +1136,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   guint event_source_id = 0;
-  struct Test_I_GTK_CBData* cb_data_p = data_p;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
+  struct Test_I_GTK_CBData* ui_cb_data_2 = ui_cb_data_p;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     event_source_id = g_timeout_add_seconds (1,
                                              idle_update_log_display_cb,
-                                             cb_data_p);
+                                             ui_cb_data_2);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1149,11 +1152,12 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     } // end ELSE
 
     // schedule asynchronous updates of the info view
-    event_source_id = g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
-                                     idle_update_info_display_target_cb,
-                                     data_p);
+    event_source_id =
+      g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
+                     idle_update_info_display_target_cb,
+                     ui_cb_data_p);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1195,7 +1199,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     g_signal_connect (file_chooser_dialog_p,
                       ACE_TEXT_ALWAYS_CHAR ("file-activated"),
                       G_CALLBACK (filechooserdialog_cb),
-                      NULL);
+                      userData_in);
   ACE_ASSERT (result_2);
 
   // step6b: connect custom signals
@@ -1209,7 +1213,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             userData_in);
   //object_p =
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
@@ -1217,7 +1221,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             userData_in);
 
   //object_p =
   //    gtk_builder_get_object ((*iterator).second.second,
@@ -1226,7 +1230,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                           ACE_TEXT_ALWAYS_CHAR ("value-changed"),
   //                           G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                           cb_data_p);
+  //                           userData_in);
   //ACE_ASSERT (result_2);
   //object_p =
   //    gtk_builder_get_object ((*iterator).second.second,
@@ -1276,7 +1280,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                       G_CALLBACK (textview_size_allocate_cb),
-                      cb_data_p);
+                      userData_in);
   ACE_ASSERT (result_2);
 
   //-------------------------------------
@@ -1289,7 +1293,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("clicked"),
                       G_CALLBACK (button_clear_clicked_cb),
-                      cb_data_p);
+                      userData_in);
   ACE_ASSERT (result_2);
   object_p =
       gtk_builder_get_object ((*iterator).second.second,
@@ -1299,7 +1303,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       g_signal_connect (object_p,
                         ACE_TEXT_ALWAYS_CHAR ("clicked"),
                         G_CALLBACK (button_about_clicked_cb),
-                        cb_data_p);
+                        userData_in);
   ACE_ASSERT (result_2);
   object_p =
       gtk_builder_get_object ((*iterator).second.second,
@@ -1309,7 +1313,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       g_signal_connect (object_p,
                         ACE_TEXT_ALWAYS_CHAR ("clicked"),
                         G_CALLBACK (button_quit_clicked_cb),
-                        cb_data_p);
+                        userData_in);
   ACE_ASSERT (result_2);
   ACE_UNUSED_ARG (result_2);
 
@@ -1355,20 +1359,20 @@ idle_start_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_start_target_UI_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkAction* action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1386,20 +1390,20 @@ idle_end_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_end_target_UI_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkAction* action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1421,20 +1425,20 @@ idle_reset_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_reset_target_UI_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
   //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1466,17 +1470,17 @@ idle_update_progress_target_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_target_cb"));
 
-  struct Test_I_GTK_ProgressData* data_p =
+  struct Test_I_GTK_ProgressData* progress_data_p =
     static_cast<struct Test_I_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->state);
+  ACE_ASSERT (progress_data_p);
+  ACE_ASSERT (progress_data_p->state);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    progress_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_ASSERT (iterator != progress_data_p->state->builders.end ());
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -1488,8 +1492,8 @@ idle_update_progress_target_cb (gpointer userData_in)
   int result = -1;
   float speed = 0.0F;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-    speed = data_p->statistic.bytesPerSecond;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, progress_data_p->state->lock, G_SOURCE_REMOVE);
+    speed = progress_data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
   if (speed)
@@ -1538,11 +1542,11 @@ idle_update_info_display_source_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_source_cb"));
 
-  struct Test_I_Source_GTK_CBData* data_p =
-      static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+      static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -1551,15 +1555,15 @@ idle_update_info_display_source_cb (gpointer userData_in)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (ui_cb_data_p->UIState.eventStack);
          !iterator_2.done ();
          iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
@@ -1639,7 +1643,7 @@ idle_update_info_display_source_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_p->progressData.statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1666,9 +1670,9 @@ idle_update_info_display_source_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!data_p->eventStack.is_empty ())
+    while (!ui_cb_data_p->UIState.eventStack.is_empty ())
     {
-      result = data_p->eventStack.pop (event_e);
+      result = ui_cb_data_p->UIState.eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
@@ -1682,11 +1686,11 @@ idle_update_info_display_target_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_target_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-      static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+      static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -1695,15 +1699,15 @@ idle_update_info_display_target_cb (gpointer userData_in)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (data_p->eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (ui_cb_data_p->UIState.eventStack);
          !iterator_2.done ();
          iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
@@ -1783,7 +1787,7 @@ idle_update_info_display_target_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_p->progressData.statistic.bytes));
+                                     static_cast<gdouble> (ui_cb_data_p->progressData.statistic.bytes));
 
           spin_button_p =
               GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1810,9 +1814,9 @@ idle_update_info_display_target_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!data_p->eventStack.is_empty ())
+    while (!ui_cb_data_p->UIState.eventStack.is_empty ())
     {
-      result = data_p->eventStack.pop (event_e);
+      result = ui_cb_data_p->UIState.eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
@@ -1827,21 +1831,21 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
       static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-      data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+      ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -1858,12 +1862,12 @@ idle_update_log_display_cb (gpointer userData_in)
 
   gchar* string_p = NULL;
   // sanity check
-  if (data_p->logStack.empty ())
+  if (ui_cb_data_p->UIState.logStack.empty ())
     return G_SOURCE_CONTINUE;
 
   // step1: convert text
-  for (Common_MessageStackConstIterator_t iterator_2 = data_p->logStack.begin ();
-       iterator_2 != data_p->logStack.end ();
+  for (Common_MessageStackConstIterator_t iterator_2 = ui_cb_data_p->UIState.logStack.begin ();
+       iterator_2 != ui_cb_data_p->UIState.logStack.end ();
        iterator_2++)
   {
     string_p = Common_UI_GTK_Tools::localeToUTF8 (*iterator_2);
@@ -1885,7 +1889,7 @@ idle_update_log_display_cb (gpointer userData_in)
     g_free (string_p);
   } // end FOR
 
-  data_p->logStack.clear ();
+  ui_cb_data_p->UIState.logStack.clear ();
 
   // step3: scroll the view accordingly
 //  // move the iterator to the beginning of line, so it doesn't scroll
@@ -1933,23 +1937,23 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     return; // done
   } // end IF
 
-  struct Test_I_Source_GTK_CBData* data_p =
-    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->stream);
-  ACE_ASSERT (data_p->UDPStream);
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  ACE_ASSERT (ui_cb_data_p->UDPStream);
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
-  struct Test_I_Source_ThreadData* thread_data_p = NULL;
+  struct Test_I_Source_UI_ThreadData* thread_data_p = NULL;
   ACE_thread_t thread_id;
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
@@ -1959,19 +1963,19 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   guint event_source_id = 0;
 
   Test_I_StreamBase_t* stream_p = NULL;
-  switch (data_p->configuration->protocol)
+  switch (ui_cb_data_p->configuration->protocol)
   {
     case NET_TRANSPORTLAYER_TCP:
-      stream_p = data_p->stream;
+      stream_p = ui_cb_data_p->stream;
       break;
     case NET_TRANSPORTLAYER_UDP:
-      stream_p = data_p->UDPStream;
+      stream_p = ui_cb_data_p->UDPStream;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                  data_p->configuration->protocol));
+                  ui_cb_data_p->configuration->protocol));
       return;
     }
   } // end SWITCH
@@ -1983,11 +1987,11 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       (status == STREAM_STATE_PAUSED))
   {
     stream_p->pause (); // pause/unpause
-    //if (!data_p->configuration->moduleHandlerConfiguration.active)
+    //if (!ui_cb_data_p->configuration->moduleHandlerConfiguration.active)
     //{
-    //  ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
+    //  ACE_ASSERT (!ui_cb_data_p->progressData.pendingActions.empty ());
     //  Stream_PendingActionsIterator_t iterator =
-    //    data_p->progressData.pendingActions.begin ();
+    //    ui_cb_data_p->progressData.pendingActions.begin ();
     //  if (status_r == STREAM_STATE_RUNNING)
     //    result = ACE_Thread::suspend ((*iterator).second.handle);
     //  else
@@ -2024,7 +2028,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   gtk_action_set_sensitive (action_p, true);
 
   // step1: set up progress reporting
-  data_p->progressData.transferred = 0;
+  ui_cb_data_p->progressData.transferred = 0;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -2042,8 +2046,8 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   unsigned short port_number =
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
   Test_I_Source_ConnectionConfigurationIterator_t iterator_2 =
-    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                  1);
 
@@ -2055,9 +2059,9 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME)));
   ACE_ASSERT (radio_button_p);
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio_button_p)))
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
   else
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
 
   // retrieve buffer
   spin_button_p =
@@ -2066,7 +2070,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
-  data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+  ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // retrieve loop
@@ -2076,19 +2080,19 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_LOOP_NAME)));
   ACE_ASSERT (spin_button_p);
-  data_p->loop =
+  ui_cb_data_p->loop =
     static_cast<size_t> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
-                    struct Test_I_Source_ThreadData ());
+                    struct Test_I_Source_UI_ThreadData ());
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     goto clean;
   } // end IF
-  thread_data_p->CBData = data_p;
+  thread_data_p->CBData = ui_cb_data_p;
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
   //  char* thread_name_p = NULL;
   //  ACE_NEW_NORETURN (thread_name_p,
@@ -2097,10 +2101,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   //  {
   //    ACE_DEBUG ((LM_CRITICAL,
   //                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-
-  //    // clean up
-  //    delete thread_data_p;
-
+  //    delete thread_data_p; thread_data_p = NULL;
   //    return;
   //  } // end IF
   //  ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
@@ -2114,7 +2115,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
       thread_manager_p->spawn (function_p,                       // function
@@ -2133,10 +2134,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", returning\n")));
-
-      // clean up
-      delete thread_data_p;
-
+      delete thread_data_p; thread_data_p = NULL;
       goto clean;
     } // end IF
 
@@ -2144,12 +2142,12 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     event_source_id =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
-      //                 &data_p->progressData,
+      //                 &ui_cb_data_p->progressData,
       //                 NULL);
       g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
                           COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                           idle_update_progress_source_cb,
-                          &data_p->progressData,
+                          &ui_cb_data_p->progressData,
                           NULL);
     if (!event_source_id)
     {
@@ -2167,12 +2165,12 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       goto clean;
     } // end IF
     thread_data_p->eventSourceId = event_source_id;
-    data_p->progressData.pendingActions[event_source_id] =
+    ui_cb_data_p->progressData.pendingActions[event_source_id] =
       ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
-    data_p->eventSourceIds.insert (event_source_id);
+    ui_cb_data_p->UIState.eventSourceIds.insert (event_source_id);
   } // end lock scope
 
   return;
@@ -2189,37 +2187,37 @@ action_stop_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_stop_activate_cb"));
 
-  struct Test_I_Source_GTK_CBData* data_p =
-    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->stream);
-  ACE_ASSERT (data_p->UDPStream);
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->stream);
+  ACE_ASSERT (ui_cb_data_p->UDPStream);
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
-  data_p->loop = 1;
+  ui_cb_data_p->loop = 1;
 
   Test_I_StreamBase_t* stream_p = NULL;
-  switch (data_p->configuration->protocol)
+  switch (ui_cb_data_p->configuration->protocol)
   {
     case NET_TRANSPORTLAYER_TCP:
-      stream_p = data_p->stream;
+      stream_p = ui_cb_data_p->stream;
       break;
     case NET_TRANSPORTLAYER_UDP:
-      stream_p = data_p->UDPStream;
+      stream_p = ui_cb_data_p->UDPStream;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                  data_p->configuration->protocol));
+                  ui_cb_data_p->configuration->protocol));
       return;
     }
   } // end SWITCH
@@ -2247,18 +2245,18 @@ checkbutton_loop_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::checkbutton_loop_toggled_cb"));
 
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkSpinButton* spin_button_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2278,22 +2276,22 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_source_cb"));
 
-  struct Test_I_Source_GTK_CBData* data_p =
-    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   //// step1: display chooser dialog
   //GtkFileChooserDialog* file_chooser_dialog_p =
@@ -2342,8 +2340,8 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
 
   // find out which button toggled
   Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   (*iterator_2).second.second.fileName =
       Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
   if ((*iterator_2).second.second.fileName.empty ())
@@ -2367,8 +2365,8 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   Test_I_Source_ConnectionConfigurationIterator_t iterator_3 =
-    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   bool activate =
       (!(*iterator_2).second.second.fileName.empty () &&
        !(*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.is_any ());
@@ -2384,21 +2382,21 @@ action_close_all_activate_cb (GtkAction* action_in,
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
   gtk_action_set_sensitive (action_in, FALSE);
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   int result = -1;
 
@@ -2417,7 +2415,7 @@ action_close_all_activate_cb (GtkAction* action_in,
                 signal));
 
   // closed the UDP "listener" ? --> toggle listen button
-  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  if (ui_cb_data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
   {
     GtkToggleAction* toggle_action_p =
       //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2438,21 +2436,21 @@ action_listen_activate_cb (GtkAction* action_in,
   STREAM_TRACE (ACE_TEXT ("::action_listen_activate_cb"));
 
   ACE_UNUSED_ARG (action_in);
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkToggleButton* toggle_button_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2481,50 +2479,50 @@ action_listen_activate_cb (GtkAction* action_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME)));
   ACE_ASSERT (radio_button_p);
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio_button_p)))
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
   else
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
 
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   if (start_listening)
   {
-    switch (data_p->configuration->protocol)
+    switch (ui_cb_data_p->configuration->protocol)
     {
       case NET_TRANSPORTLAYER_TCP:
       {
         // listening on UDP ? --> stop
-        if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
               NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           connection_p =
-            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #else
           connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #endif
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          data_p->configuration->handle = ACE_INVALID_HANDLE;
+          ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
         Test_I_Target_ConnectionConfigurationIterator_t iterator_2 =
-          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
-        //data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+          ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->connectionConfigurations.end ());
+        //ui_cb_data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
         //  (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
-        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-        if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
+        ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+        if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (ui_cb_data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
         try {
-          data_p->configuration->signalHandlerConfiguration.listener->start ();
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->start ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
@@ -2535,34 +2533,34 @@ action_listen_activate_cb (GtkAction* action_in,
       case NET_TRANSPORTLAYER_UDP:
       {
         // listening on TCP ? --> stop
-        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-        if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+        ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+        if (ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
         {
           try {
-            data_p->configuration->signalHandlerConfiguration.listener->stop ();
+            ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
           } // end catch
         } // end IF
 
-        if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
               NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           connection_p =
-            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #else
           connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #endif
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          data_p->configuration->handle = ACE_INVALID_HANDLE;
+          ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
@@ -2570,9 +2568,9 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IInetConnector_t* connector_p = NULL;
         Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
-          data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-        if (data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0)
+          ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
+        if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (iconnection_manager_p,
                                                           (*iterator_2).second.second.statisticReportingInterval));
@@ -2588,8 +2586,8 @@ action_listen_activate_cb (GtkAction* action_in,
         } // end IF
         //  Stream_IInetConnector_t* iconnector_p = &connector;
         Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
-          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+          ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
         if (!connector_p->initialize ((*iterator_3).second))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -2602,11 +2600,11 @@ action_listen_activate_cb (GtkAction* action_in,
         } // end IF
 
         // connect
-        data_p->configuration->handle =
+        ui_cb_data_p->configuration->handle =
           connector_p->connect ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
-        if (data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0)
+        if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfProactorThreads > 0)
         {
           // *TODO*: avoid tight loop here
           ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
@@ -2625,7 +2623,7 @@ action_listen_activate_cb (GtkAction* action_in,
                                          false);
             if (connection_p)
             {
-              data_p->configuration->handle =
+              ui_cb_data_p->configuration->handle =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                   reinterpret_cast<ACE_HANDLE> (connection_p->id ());
 #else
@@ -2636,7 +2634,7 @@ action_listen_activate_cb (GtkAction* action_in,
             } // end IF
           } while (COMMON_TIME_NOW < deadline);
         } // end IF
-        if (data_p->configuration->handle == ACE_INVALID_HANDLE)
+        if (ui_cb_data_p->configuration->handle == ACE_INVALID_HANDLE)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
@@ -2650,12 +2648,12 @@ action_listen_activate_cb (GtkAction* action_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
-                    data_p->configuration->handle,
+                    ui_cb_data_p->configuration->handle,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
-                    data_p->configuration->handle,
+                    ui_cb_data_p->configuration->handle,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2668,7 +2666,7 @@ action_listen_activate_cb (GtkAction* action_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown transport layer type (was: %d), returning\n"),
-                    data_p->configuration->protocol));
+                    ui_cb_data_p->configuration->protocol));
         return;
       } // end catch
     } // end SWITCH
@@ -2680,20 +2678,20 @@ action_listen_activate_cb (GtkAction* action_in,
     ACE_ASSERT (progressbar_p);
     gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), TRUE);
 
-    ACE_ASSERT (!data_p->progressEventSourceId);
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-      data_p->progressEventSourceId =
+    ACE_ASSERT (!ui_cb_data_p->progressEventSourceId);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
+      ui_cb_data_p->progressEventSourceId =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
-        //                 &data_p->progressData,
+        //                 &ui_cb_data_p->progressData,
         //                 NULL);
         g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
                             COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                             idle_update_progress_target_cb,
-                            &data_p->progressData,
+                            &ui_cb_data_p->progressData,
                             NULL);
-      if (data_p->progressEventSourceId > 0)
-        data_p->eventSourceIds.insert (data_p->progressEventSourceId);
+      if (ui_cb_data_p->progressEventSourceId > 0)
+        ui_cb_data_p->UIState.eventSourceIds.insert (ui_cb_data_p->progressEventSourceId);
       else
       {
         ACE_DEBUG ((LM_ERROR,
@@ -2704,42 +2702,42 @@ action_listen_activate_cb (GtkAction* action_in,
   } // end IF
   else
   {
-    ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
+    ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
     try {
-      data_p->configuration->signalHandlerConfiguration.listener->stop ();
+      ui_cb_data_p->configuration->signalHandlerConfiguration.listener->stop ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
     } // end catch
 
-    if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+    if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
       Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
           NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       connection_p =
-        connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+        connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #else
       connection_p =
-        connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
 #endif
       if (connection_p)
       {
         connection_p->close ();
         connection_p->decrease ();
       } // end ELSE
-      data_p->configuration->handle = ACE_INVALID_HANDLE;
+      ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF
 
     // stop progress reporting
-    ACE_ASSERT (data_p->progressEventSourceId);
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-      if (!g_source_remove (data_p->progressEventSourceId))
+    ACE_ASSERT (ui_cb_data_p->progressEventSourceId);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
+      if (!g_source_remove (ui_cb_data_p->progressEventSourceId))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    data_p->progressEventSourceId));
-      data_p->eventSourceIds.erase (data_p->progressEventSourceId);
-      data_p->progressEventSourceId = 0;
+                    ui_cb_data_p->progressEventSourceId));
+      ui_cb_data_p->UIState.eventSourceIds.erase (ui_cb_data_p->progressEventSourceId);
+      ui_cb_data_p->progressEventSourceId = 0;
     } // end lock scope
     GtkProgressBar* progressbar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2757,18 +2755,18 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
   ACE_ASSERT (file_p);
@@ -2807,18 +2805,18 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
   ACE_ASSERT (file_p);
@@ -2887,19 +2885,19 @@ action_report_activate_cb (GtkAction* action_in,
 //  if (!gtk_toggle_button_get_active (toggleButton_in))
 //    return; // nothing to do
 //
-//  Stream_GTK_CBData* data_p =
+//  Stream_GTK_CBData* ui_cb_data_p =
 //    static_cast<Stream_GTK_CBData*> (userData_in);
 //
 //  //Common_UI_GladeXMLsIterator_t iterator =
-//  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  Common_UI_GTK_BuildersIterator_t iterator =
-//    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
-//  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-//  ACE_ASSERT (iterator != data_p->builders.end ());
+//  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p->configuration);
+//  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 //
 //  GtkRadioButton* radio_button_p =
 //    //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -2912,9 +2910,9 @@ action_report_activate_cb (GtkAction* action_in,
 //  ACE_ASSERT (string_p);
 //  if (ACE_OS::strcmp (string_p,
 //                      gtk_buildable_get_name (GTK_BUILDABLE (toggleButton_in))) == 0)
-//    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+//    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
 //  else
-//    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+//    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
 //}
 
 //void
@@ -2923,16 +2921,16 @@ action_report_activate_cb (GtkAction* action_in,
 //{
 //  STREAM_TRACE (ACE_TEXT ("::spinbutton_port_value_changed_cb"));
 //
-//  Stream_GTK_CBData* data_p =
+//  Stream_GTK_CBData* ui_cb_data_p =
 //    static_cast<Stream_GTK_CBData*> (userData_in);
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
+//  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p->configuration);
 //
 //  unsigned short port_number =
 //    static_cast<unsigned short> (gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in)));
-//  data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
+//  ui_cb_data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
 //                                                                          1);
 //} // spinbutton_port_value_changed_cb
 
@@ -2945,21 +2943,21 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Test_I_GTK_CBData* data_p =
+  Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -2984,19 +2982,19 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // retrieve about dialog handle
   GtkDialog* about_dialog =
@@ -3036,22 +3034,22 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
-  //Stream_GTK_CBData* data_p = static_cast<Stream_GTK_CBData*> (userData_in);
+  //Stream_GTK_CBData* ui_cb_data_p = static_cast<Stream_GTK_CBData*> (userData_in);
   //// sanity check(s)
-  //ACE_ASSERT (data_p);
+  //ACE_ASSERT (ui_cb_data_p);
 
   //// step1: remove event sources
   //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
+  //  ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState.lock);
 
-  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
+  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = ui_cb_data_p->UIState.eventSourceIds.begin ();
+  //       iterator != ui_cb_data_p->UIState.eventSourceIds.end ();
   //       iterator++)
   //    if (!g_source_remove (*iterator))
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
   //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
+  //  ui_cb_data_p->UIState.eventSourceIds.clear ();
   //} // end lock scope
 
   // step2: initiate shutdown sequence
@@ -3069,7 +3067,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // step3: stop GTK event processing
   // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
   //         it from the signal handler
-  TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
 
   return FALSE;
 } // button_quit_clicked_cb
@@ -3083,20 +3081,20 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (rectangle_in);
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
-  ACE_ASSERT(iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
+  ACE_ASSERT(iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkScrolledWindow* scrolled_window_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -3121,11 +3119,11 @@ filechooserdialog_cb (GtkFileChooser* chooser_in,
 
   ACE_UNUSED_ARG (userData_in);
 
-//  Stream_GTK_CBData* data_p =
+//  Stream_GTK_CBData* ui_cb_data_p =
 //    static_cast<Stream_GTK_CBData*> (userData_in);
 
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 
   gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
                        GTK_RESPONSE_ACCEPT);

@@ -599,7 +599,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
   ACE_ASSERT (result_p);

@@ -545,7 +545,7 @@ do_work (unsigned int bufferSize_in,
          bool useSSL_in,
          unsigned int numberOfDispatchThreads_in,
          const std::string& interfaceDefinitionFile_in,
-         struct HTTPGet_GtkCBData& CBData_in,
+         struct HTTPGet_UI_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -672,7 +672,9 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   int group_id = -1;
-  HTTPGet_GTK_Manager_t* gtk_manager_p = NULL;
+#if defined (GTK_SUPPORT)
+  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
+#endif // GTK_SUPPORT
   // step0b: initialize event dispatch
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       (useReactor_in ? numberOfDispatchThreads_in : 0);
@@ -750,10 +752,9 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!interfaceDefinitionFile_in.empty ())
   {
-    gtk_manager_p =
-      HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ();
+#if defined (GTK_SUPPORT)
+    gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
-
     gtk_manager_p->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
@@ -768,6 +769,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
+#endif // GTK_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -808,7 +810,6 @@ do_work (unsigned int bufferSize_in,
     //					 iterator++)
     //				g_source_remove(*iterator);
     //		} // end lock scope
-
     goto clean;
   } // end IF
 
@@ -839,7 +840,11 @@ do_work (unsigned int bufferSize_in,
                           false); // wait for downstream (if any) ?
   } // end IF
   else
+#if defined (GTK_SUPPORT)
     gtk_manager_p->wait ();
+#else
+    ;
+#endif // GTK_SUPPORT
 
   // step3: clean up
   connection_manager_p->stop ();
@@ -889,7 +894,11 @@ clean:
                                        group_id);
   timer_manager_p->stop ();
   if (!interfaceDefinitionFile_in.empty ())
-    HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#if defined (GTK_SUPPORT)
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#else
+    ;
+#endif // GTK_SUPPORT
 }
 
 void
@@ -973,15 +982,17 @@ ACE_TMAIN (int argc_in,
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
   std::string log_file_name;
-  struct HTTPGet_GtkCBData gtk_cb_data;
-  //Common_Logger_t logger (&gtk_cb_data.logStack,
-  //                        &gtk_cb_data.lock);
+  struct HTTPGet_UI_CBData ui_cb_data;
+  //Common_Logger_t logger (&ui_cb_data.UIState.logStack,
+  //                        &ui_cb_data.UIState.lock);
+#if defined (GTK_SUPPORT)
   HTTPGet_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                argv_in);
-  struct HTTPGet_GtkProgressData gtk_progress_data;
+                                                argv_in,
+                                                &ui_cb_data);
+#endif // GTK_SUPPORT
   struct HTTPGet_Configuration configuration;
   HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        &gtk_cb_data.subscribersLock);
+                                        &ui_cb_data.UIState.subscribersLock);
   ACE_Profile_Timer process_profile;
   ACE_High_Res_Timer timer;
   std::string working_time_string;
@@ -1024,7 +1035,7 @@ ACE_TMAIN (int argc_in,
 
   Common_Tools::initialize ();
 
-  gtk_cb_data.configuration = &configuration;
+  ui_cb_data.configuration = &configuration;
   working_directory = Common_File_Tools::getWorkingDirectory ();
   temp_directory = Common_File_Tools::getTempDirectory ();
   configuration_directory = working_directory;
@@ -1079,7 +1090,6 @@ ACE_TMAIN (int argc_in,
   {
     // help the user: print usage instructions
     do_printUsage (ACE::basename (argv_in[0]));
-
     goto error;
   } // end IF
 
@@ -1110,7 +1120,6 @@ ACE_TMAIN (int argc_in,
 
     // help the user: print usage instructions
     do_printUsage (ACE::basename (argv_in[0]));
-
     goto error;
   } // end IF
   if (number_of_dispatch_threads == 0)
@@ -1155,9 +1164,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    // clean up
     Common_Tools::finalizeLogging ();
-
     goto error;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -1168,9 +1175,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    // clean up
     Common_Tools::finalizeLogging ();
-
     goto error;
   } // end IF
 
@@ -1183,14 +1188,12 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    // clean up
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Tools::finalizeLogging ();
-
     goto error;
   } // end IF
 
@@ -1201,22 +1204,19 @@ ACE_TMAIN (int argc_in,
   if (UI_file_path.empty ())
     goto continue_;
 
-  gtk_cb_data.argc = argc_in;
-  gtk_cb_data.argv = argv_in;
-  //ACE_OS::memset (&gtk_cb_data.clientSensorBias,
-  //                0,
-  //                sizeof (gtk_cb_data.clientSensorBias));
-  gtk_cb_data.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+#if defined (GTK_SUPPORT)
+  ui_cb_data.UIState.argc = argc_in;
+  ui_cb_data.UIState.argv = argv_in;
+  ui_cb_data.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
-  gtk_cb_data.eventHooks.finiHook = idle_finalize_ui_cb;
-  gtk_cb_data.eventHooks.initHook = idle_initialize_ui_cb;
-  gtk_cb_data.progressData = &gtk_progress_data;
-  gtk_cb_data.userData = &gtk_cb_data;
-  gtk_progress_data.state = &gtk_cb_data;
-  HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                             argv_in,
-                                                             &gtk_cb_data,
-                                                             &ui_definition);
+  ui_cb_data.UIState.eventHooks.finiHook = idle_finalize_ui_cb;
+  ui_cb_data.UIState.eventHooks.initHook = idle_initialize_ui_cb;
+  //ui_cb_data.userData = &ui_cb_data;
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                            argv_in,
+                                                            &ui_cb_data.UIState,
+                                                            &ui_definition);
+#endif // GTK_SUPPORT
 
 continue_:
   timer.start ();
@@ -1232,7 +1232,7 @@ continue_:
            use_SSL,
            number_of_dispatch_threads,
            UI_file_path,
-           gtk_cb_data,
+           ui_cb_data,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,
@@ -1263,14 +1263,12 @@ done:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    // clean up
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Tools::finalizeLogging ();
-
     goto error;
   } // end IF
   process_profile.elapsed_rusage (elapsed_rusage);
@@ -1338,6 +1336,5 @@ error:
     return EXIT_FAILURE;
   } // end IF
 #endif
-
   return EXIT_FAILURE;
 } // end main

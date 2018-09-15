@@ -27,11 +27,15 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "linux/videodev2.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "ace/OS.h"
 
 #include "common_configuration.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
+
+#include "common_ui_common.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -42,7 +46,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_dev_defines.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
@@ -52,7 +56,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMediaSample;
 struct IMFSample;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 class ACE_Message_Queue_Base;
 struct Test_U_Configuration;
 
@@ -99,7 +103,7 @@ struct Test_U_V4L2_MessageData
   bool        release;
 };
 typedef Stream_DataBase_T<struct Test_U_V4L2_MessageData> Test_U_V4L2_MessageData_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_UserData
  : Stream_UserData
@@ -117,7 +121,7 @@ struct Test_U_SessionData
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , userData (NULL)
   {}
 
@@ -137,7 +141,7 @@ struct Test_U_SessionData
   std::string                     targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_UserData*         userData;
 };
 typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
@@ -155,7 +159,7 @@ struct Test_U_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
    , printProgressDot (false)
    , pushStatisticMessages (true)
   {}
@@ -165,7 +169,7 @@ struct Test_U_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                            manageCOM;
   enum Stream_MediaFramework_Type mediaFramework;        // display module
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   bool                            printProgressDot;      // file writer module
   bool                            pushStatisticMessages; // statistic module
 };
@@ -180,13 +184,13 @@ struct Test_U_SignalHandlerConfiguration
   Test_U_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
-#endif
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
   {}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 struct Test_U_Configuration
@@ -202,5 +206,62 @@ struct Test_U_Configuration
 
   struct Test_U_UserData                   userData;
 };
+
+//////////////////////////////////////////
+
+#if defined (GUI_SUPPORT)
+struct Test_U_UI_ProgressData
+{
+  Test_U_UI_ProgressData ()
+   : state (NULL)
+   , statistic ()
+  {
+    ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
+  }
+
+  struct Common_UI_State* state;
+  Test_U_Statistic_t      statistic;
+};
+
+struct Test_U_UI_CBData
+{
+  Test_U_UI_CBData ()
+   : allowUserRuntimeStatistic (true)
+   //, configuration (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+   , progressData ()
+   , UIState ()
+  {
+    progressData.state = &UIState;
+  }
+
+  bool                            allowUserRuntimeStatistic;
+  //struct Test_U_Configuration*    configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  struct Test_U_UI_ProgressData   progressData;
+  struct Common_UI_State          UIState;
+};
+
+struct Test_U_UI_ThreadData
+{
+  Test_U_UI_ThreadData ()
+   : CBData (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+   , sessionId (0)
+  {}
+
+  struct Test_U_UI_CBData*        CBData;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  size_t                          sessionId;
+};
+#endif // GUI_SUPPORT
 
 #endif

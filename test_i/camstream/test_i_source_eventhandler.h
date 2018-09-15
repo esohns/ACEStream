@@ -39,7 +39,7 @@ class Test_I_Source_EventHandler_T
                                       SessionMessageType>
 {
  public:
-  Test_I_Source_EventHandler_T (CallbackDataType*); // GTK state
+  Test_I_Source_EventHandler_T (CallbackDataType*); // UI state
   inline virtual ~Test_I_Source_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T

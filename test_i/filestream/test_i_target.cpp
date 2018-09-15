@@ -441,7 +441,7 @@ do_work (unsigned int bufferSize_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
-         struct Test_I_Target_GTK_CBData& CBData_in,
+         struct Test_I_Target_UI_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -555,7 +555,8 @@ do_work (unsigned int bufferSize_in,
       &configuration.streamConfiguration;
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
-  modulehandler_configuration.subscribersLock = &CBData_in.subscribersLock;
+  modulehandler_configuration.subscribersLock =
+    &CBData_in.UIState.subscribersLock;
   modulehandler_configuration.targetFileName = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
@@ -626,10 +627,7 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
-
-      // clean up
       timer_manager_p->stop ();
-
       return;
     } // end IF
   } // end IF
@@ -655,10 +653,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize signal handler, returning\n")));
-
-    // clean up
     timer_manager_p->stop ();
-
     return;
   } // end IF
   if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
@@ -670,10 +665,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
-
-    // clean up
     timer_manager_p->stop ();
-
     return;
   } // end IF
 
@@ -686,18 +678,19 @@ do_work (unsigned int bufferSize_in,
   // [GTK events:]
   // - dispatch UI events (if any)
 
-  // step1a: start GTK event loop ?
+  // step1a: start UI event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    CBData_in.eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.eventHooks.initHook = idle_initialize_target_UI_cb;
-    //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+#if defined (GTK_SUPPORT)
+    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.UIState.eventHooks.initHook = idle_initialize_target_UI_cb;
+    //CBData_in.UIState.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
-    CBData_in.userData = &CBData_in;
+    //CBData_in.userData = &CBData_in;
 
-    TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->start ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -705,16 +698,14 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
-    if (!TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
-
-      // clean up
       timer_manager_p->stop ();
-
       return;
     } // end IF
+#endif // GTK_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = ::GetConsoleWindow ();
@@ -722,11 +713,8 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-
-      // clean up
       timer_manager_p->stop ();
-      TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
       return;
     } // end IF
     BOOL was_visible_b = ::ShowWindow (window_p, SW_HIDE);
@@ -741,7 +729,6 @@ do_work (unsigned int bufferSize_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
 
-    // clean up
     //		{ // synch access
     //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -750,10 +737,11 @@ do_work (unsigned int bufferSize_in,
     //					 iterator++)
     //				g_source_remove(*iterator);
     //		} // end lock scope
+#if defined (GTK_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
-      TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
     timer_manager_p->stop ();
-
     return;
   } // end IF
 
@@ -779,7 +767,6 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, returning\n")));
 
-        // clean up
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);
@@ -791,10 +778,11 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
+#if defined (GTK_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
-          TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
         timer_manager_p->stop ();
-
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
@@ -803,7 +791,6 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
 
-        // clean up
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);
@@ -815,11 +802,12 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
+#if defined (GTK_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
-          TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
         timer_manager_p->stop ();
-        delete connector_p;
-
+        delete connector_p; connector_p = NULL;
         return;
       } // end IF
 
@@ -845,14 +833,14 @@ do_work (unsigned int bufferSize_in,
             connection_manager_p->get ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
           if (connection_p)
           {
-  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
             configuration.handle =
               reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-  #else
+#else
             configuration.handle =
               static_cast<ACE_HANDLE> (connection_p->id ());
-  #endif
-            connection_p->decrease ();
+#endif
+            connection_p->decrease (); connection_p = NULL;
             break;
           } // end IF
         } while (COMMON_TIME_NOW < deadline);
@@ -863,7 +851,6 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
-        // clean up
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);
@@ -875,19 +862,19 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
+#if defined (GTK_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
-          TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
         timer_manager_p->stop ();
-        delete connector_p;
-
+        delete connector_p; connector_p = NULL;
         return;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP %s\n"),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
-      // clean up
-      delete connector_p;
+      delete connector_p; connector_p = NULL;
     } // end IF
     else
     {
@@ -896,7 +883,6 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
 
-        // clean up
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);
@@ -908,10 +894,11 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
+#if defined (GTK_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
-          TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
         timer_manager_p->stop ();
-
         return;
       } // end IF
       CBData_in.configuration->signalHandlerConfiguration.listener->start ();
@@ -921,7 +908,6 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to start listener (port: %u), returning\n"),
                     listeningPortNumber_in));
 
-        // clean up
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);
@@ -933,10 +919,11 @@ do_work (unsigned int bufferSize_in,
         //					 iterator++)
         //				g_source_remove(*iterator);
         //		} // end lock scope
+#if defined (GTK_SUPPORT)
         if (!UIDefinitionFile_in.empty ())
-          TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#endif // GTK_SUPPORT
         timer_manager_p->stop ();
-
         return;
       } // end IF
     } // end ELSE
@@ -958,8 +945,10 @@ do_work (unsigned int bufferSize_in,
   //					 iterator++)
   //				g_source_remove(*iterator);
   //		} // end lock scope
+#if defined (GTK_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
-    TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+#endif // GTK_SUPPORT
   timer_manager_p->stop ();
 
   // wait for connection processing to complete
@@ -1114,7 +1103,6 @@ ACE_TMAIN (int argc_in,
                             number_of_dispatch_threads))
   {
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
-
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1122,7 +1110,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -1166,7 +1153,6 @@ ACE_TMAIN (int argc_in,
                 gtk_rc_file.c_str ()));
 
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
-
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1174,16 +1160,15 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  struct Test_I_Target_GTK_CBData gtk_cb_data;
-  gtk_cb_data.progressData.state = &gtk_cb_data;
+  struct Test_I_Target_UI_CBData ui_cb_data;
+  //ui_cb_data.progressData.state = &ui_cb_data;
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&gtk_cb_data.logStack,
-                          &gtk_cb_data.lock);
+  Common_Logger_t logger (&ui_cb_data.UIState.logStack,
+                          &ui_cb_data.UIState.lock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -1207,7 +1192,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -1233,7 +1217,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -1252,18 +1235,16 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler (((gtk_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
+  Stream_Target_SignalHandler signal_handler (((ui_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              &gtk_cb_data.subscribersLock);
+                                              &ui_cb_data.UIState.subscribersLock);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
-
     Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                    signal_set,
@@ -1277,7 +1258,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_SUCCESS;
   } // end IF
 
@@ -1303,21 +1283,22 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
+#if defined (GTK_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  gtk_cb_data.RCFiles.push_back (gtk_rc_file);
+  ui_cb_data.UIState.RCFiles.push_back (gtk_rc_file);
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
   Test_I_Target_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                      argv_in);
+                                                      argv_in,
+                                                      &ui_cb_data);
   if (!gtk_glade_file.empty ())
-    if (!TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                       argv_in,
-                                                                       &gtk_cb_data,
-                                                                       &ui_definition))
+    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                   argv_in,
+                                                                   &ui_cb_data.UIState,
+                                                                   &ui_definition))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
@@ -1335,9 +1316,9 @@ ACE_TMAIN (int argc_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
       return EXIT_FAILURE;
     } // end IF
+#endif // GTK_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1354,7 +1335,7 @@ ACE_TMAIN (int argc_in,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
-           gtk_cb_data,
+           ui_cb_data,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,
@@ -1397,7 +1378,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
@@ -1411,7 +1391,15 @@ ACE_TMAIN (int argc_in,
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              elapsed_time.real_time,
+              elapsed_time.user_time,
+              elapsed_time.system_time,
+              ACE_TEXT (user_time_string.c_str ()),
+              ACE_TEXT (system_time_string.c_str ())));
+#else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
@@ -1433,14 +1421,6 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#else
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
-              elapsed_time.real_time,
-              elapsed_time.user_time,
-              elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
 #endif
 
   Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR

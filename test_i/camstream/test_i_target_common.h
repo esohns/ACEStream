@@ -33,7 +33,9 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <Dshow.h>
+#include <BaseTyps.h>
+#include <OAIdl.h>
+#include <control.h>
 #include <d3d9.h>
 #include <evr.h>
 #include <mfapi.h>
@@ -44,10 +46,15 @@
 //#include <linux/videodev2.h>
 #endif
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_control_message.h"
 #include "stream_isessionnotify.h"
@@ -383,7 +390,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   }
 
   struct tagRECT                                            area;                      // display module
@@ -781,72 +788,56 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Target_DirectShow_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+struct Test_I_Target_DirectShow_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Target_DirectShow_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Target_DirectShow_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
-   , progressEventSourceId (0)
    , subscribers ()
   {}
 
   struct Test_I_Target_DirectShow_Configuration* configuration;
-  guint                                          progressEventSourceId;
   Test_I_Target_DirectShow_Subscribers_t         subscribers;
 };
-struct Test_I_Target_MediaFoundation_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+
+struct Test_I_Target_MediaFoundation_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Target_MediaFoundation_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Target_MediaFoundation_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
-   , progressEventSourceId (0)
    , subscribers ()
   {}
 
   struct Test_I_Target_MediaFoundation_Configuration* configuration;
-  guint                                               progressEventSourceId;
   Test_I_Target_MediaFoundation_Subscribers_t         subscribers;
 };
 #else
-struct Test_I_Target_GTK_CBData
- : Test_I_CamStream_GTK_CBData
+struct Test_I_Target_UI_CBData
+ : Test_I_CamStream_UI_CBData
 {
-  Test_I_Target_GTK_CBData ()
-   : Test_I_CamStream_GTK_CBData ()
+  Test_I_Target_UI_CBData ()
+   : Test_I_CamStream_UI_CBData ()
    , configuration (NULL)
-   , progressEventSourceId (0)
    , subscribers ()
   {}
 
   struct Test_I_Target_Configuration* configuration;
-  guint                               progressEventSourceId;
   Test_I_Target_Subscribers_t         subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTK_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Target_DirectShow_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON;
-
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Target_MediaFoundation_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Target_DirectShow_UI_CBData> Test_I_Target_DirectShow_GtkBuilderDefinition_t;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Target_MediaFoundation_UI_CBData> Test_I_Target_MediaFoundation_GtkBuilderDefinition_t;
 #else
-typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
-typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct Test_I_Target_UI_CBData> Test_I_Target_GtkBuilderDefinition_t;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_SUPPORT
 
 #endif

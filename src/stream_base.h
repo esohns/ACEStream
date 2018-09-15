@@ -62,7 +62,7 @@ class Stream_Base
   inline virtual ~Stream_Base () {}
 
  protected:
-  Stream_Base ();
+  inline Stream_Base () {}
 
   // atomic id generator
   typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,

@@ -24,13 +24,18 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
+#endif // GTK_SUPPORT
 
 #include "common.h"
 #include "common_istatistic.h"
 
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -40,6 +45,11 @@
 
 #include "http_get_network.h"
 #include "http_get_stream_common.h"
+
+#include "test_u_common.h"
+#if defined (GTK_SUPPORT)
+#include "test_u_gtk_common.h"
+#endif // GTK_SUPPORT
 
 // forward declarations
 class HTTPGet_Message;
@@ -94,11 +104,19 @@ struct HTTPGet_Configuration
 
 //////////////////////////////////////////
 
-struct HTTPGet_GtkProgressData
- : Common_UI_GTK_ProgressData
+struct HTTPGet_ProgressData
+#if defined (GTK_SUPPORT)
+ : Test_U_GTK_ProgressData
+#else
+ : Test_U_UI_ProgressData
+#endif // GTK_SUPPORT
 {
-  HTTPGet_GtkProgressData ()
-   : Common_UI_GTK_ProgressData ()
+  HTTPGet_ProgressData ()
+#if defined (GTK_SUPPORT)
+   : Test_U_GTK_ProgressData ()
+#else
+   : Test_U_UI_ProgressData ()
+#endif // GTK_SUPPORT
    , statistic ()
   {}
 
@@ -124,17 +142,27 @@ struct HTTPGet_GtkProgressData
 //                      HTTPGet_ControlMessage_t,
 //                      HTTPGet_Message,
 //                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
-struct HTTPGet_GtkCBData
- : Common_UI_GTK_State
+struct HTTPGet_UI_CBData
+#if defined (GTK_SUPPORT)
+ : Test_U_GTK_CBData
+#else
+ : Test_U_UI_CBData
+#endif // GTK_SUPPORT
 {
-  HTTPGet_GtkCBData ()
-   : Common_UI_GTK_State ()
+  HTTPGet_UI_CBData ()
+#if defined (GTK_SUPPORT)
+   : Test_U_GTK_CBData ()
+#else
+   : Test_U_UI_CBData ()
+#endif // GTK_SUPPORT
    , configuration (NULL)
    , dispatchState ()
    , messageAllocator (NULL)
-   , progressData (NULL)
+   , progressData ()
    , stream (NULL)
-  {}
+  {
+    progressData.state = &this->UIState;
+  }
 
   struct HTTPGet_Configuration*    configuration;
   struct Common_EventDispatchState dispatchState;
@@ -142,26 +170,32 @@ struct HTTPGet_GtkCBData
   // *TODO*: implement a client->server protocol to do this
   //struct ARDrone_SensorBias clientSensorBias; // client side ONLY (!)
   HTTPGet_MessageAllocator_t*      messageAllocator;
-  struct HTTPGet_GtkProgressData*  progressData;
+  struct HTTPGet_ProgressData      progressData;
   Stream_IStream_t*                stream;
 };
 
-struct HTTPGet_ThreadData
+struct HTTPGet_UI_ThreadData
+#if defined (GTK_SUPPORT)
+ : Test_U_GTK_ThreadData
+#else
+ : Test_U_UI_ThreadData
+#endif // GTK_SUPPORT
 {
-  HTTPGet_ThreadData ()
-   : CBData (NULL)
-   , eventSourceId (0)
+  HTTPGet_UI_ThreadData ()
+#if defined (GTK_SUPPORT)
+   : Test_U_GTK_ThreadData ()
+#else
+   : Test_U_UI_ThreadData ()
+#endif // GTK_SUPPORT
+   , CBData (NULL)
   {}
 
-  struct HTTPGet_GtkCBData* CBData;
-  guint                     eventSourceId;
+  struct HTTPGet_UI_CBData* CBData;
 };
 
-typedef Common_UI_GtkBuilderDefinition_T<struct HTTPGet_GtkCBData> HTTPGet_GtkBuilderDefinition_t;
-
-typedef Common_UI_GTK_Manager_T<ACE_MT_SYNCH,
-                                struct HTTPGet_GtkCBData> HTTPGet_GTK_Manager_t;
-typedef ACE_Singleton<HTTPGet_GTK_Manager_t,
-                      typename ACE_MT_SYNCH::MUTEX> HTTPGET_UI_GTK_MANAGER_SINGLETON;
+#if defined (GTK_SUPPORT)
+typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
+                                         struct HTTPGet_UI_CBData> HTTPGet_GtkBuilderDefinition_t;
+#endif // GTK_SUPPORT
 
 #endif

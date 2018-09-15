@@ -26,24 +26,24 @@
 #include <set>
 #include <sstream>
 
-#include "ace/Guard_T.h"
-#include "ace/Synch.h"
-
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
+#include <strmif.h>
+#include <reftime.h>
 #include <dvdmedia.h>
 #include <mferror.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
-//#include <mtype.h>
-//#include <streams.h>
 
 #include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
 
 //#include "gdk/gdkpixbuf.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "ace/Guard_T.h"
+#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -60,13 +60,13 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_file_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_tools.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_camstream_defines.h"
 #include "test_i_common_modules.h"
@@ -143,7 +143,7 @@ load_capture_devices (GtkListStore* listStore_in)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, false).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
         return false;
       } // end IF
       ACE_ASSERT (enumerator_p);
@@ -156,7 +156,7 @@ load_capture_devices (GtkListStore* listStore_in)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, false).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
         //result_2 = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
         goto error;
       } // end IF
@@ -172,7 +172,7 @@ load_capture_devices (GtkListStore* listStore_in)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
         ACE_ASSERT (properties_p);
@@ -186,7 +186,7 @@ load_capture_devices (GtkListStore* listStore_in)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
                       ACE_TEXT (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
         ACE_Wide_To_Ascii converter (variant_s.bstrVal);
@@ -203,7 +203,7 @@ load_capture_devices (GtkListStore* listStore_in)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
                       ACE_TEXT (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error;
         } // end IF
         properties_p->Release (); properties_p = NULL;
@@ -243,7 +243,7 @@ error:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
 
@@ -255,7 +255,7 @@ error:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
 
@@ -271,7 +271,7 @@ error:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
       attributes_p->Release (); attributes_p = NULL;
@@ -290,7 +290,7 @@ error:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           goto error_2;
         } // end IF
         friendly_name_string =
@@ -306,7 +306,7 @@ error:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           goto error_2;
         } // end IF
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
@@ -466,7 +466,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -484,7 +484,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -540,7 +540,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -553,11 +553,8 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    presentation_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -569,19 +566,15 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    stream_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    stream_descriptor_p->Release (); stream_descriptor_p = NULL;
     return false;
   } // end IF
-  stream_descriptor_p->Release ();
-  stream_descriptor_p = NULL;
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
 
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
-  struct _GUID GUID_s = { 0 };
+  struct _GUID GUID_s = GUID_NULL;
   while (result == S_OK)
   {
     media_type_p = NULL;
@@ -591,35 +584,33 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
       //                                        &media_type_p);
       media_type_handler_p->GetMediaTypeByIndex (count,
                                                  &media_type_p);
-    if (result != S_OK) break;
+    if (result != S_OK)
+      break;
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      media_type_handler_p->Release ();
-      media_type_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+      media_type_p->Release (); media_type_p = NULL;
       return false;
     } // end IF
 
     GUIDs.insert (GUID_s);
-    media_type_p->Release ();
+    media_type_p->Release (); media_type_p = NULL;
 
     ++count;
   } // end WHILE
-  media_type_handler_p->Release ();
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
   if (result != MF_E_NO_MORE_TYPES)
   {
     ACE_DEBUG ((LM_ERROR,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -659,7 +650,7 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -678,7 +669,7 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -705,10 +696,7 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown video format type, aborting\n")));
-
-      // clean up
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
-
       return false;
     } // end ELSE
     Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
@@ -760,7 +748,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -773,31 +761,23 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    presentation_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (is_selected);
-  presentation_descriptor_p->Release ();
-  presentation_descriptor_p = NULL;
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    stream_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    stream_descriptor_p->Release (); stream_descriptor_p = NULL;
     return false;
   } // end IF
-  stream_descriptor_p->Release ();
-  stream_descriptor_p = NULL;
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
 
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
@@ -812,19 +792,17 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
       //                                        &media_type_p);
       media_type_handler_p->GetMediaTypeByIndex (count,
                                                  &media_type_p);
-    if (result != S_OK) break;
+    if (result != S_OK)
+      break;
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      media_type_handler_p->Release ();
-      media_type_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+      media_type_p->Release (); media_type_p = NULL;
       return false;
     } // end IF
 
@@ -837,18 +815,14 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-        // clean up
-        media_type_handler_p->Release ();
-        media_type_p->Release ();
-
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        media_type_handler_p->Release (); media_type_handler_p = NULL;
+        media_type_p->Release (); media_type_p = NULL;
         return false;
       } // end IF
       resolutions.insert (std::make_pair (width, height));
     } // end IF
-    media_type_p->Release ();
-
+    media_type_p->Release (); media_type_p = NULL;
     ++count;
   } // end WHILE
   media_type_handler_p->Release ();
@@ -858,7 +832,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -906,7 +880,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -926,16 +900,16 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
-    if (media_type_p->subtype != mediaSubType_in)
+    if (InlineIsEqualGUID (media_type_p->subtype, mediaSubType_in))
     {
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
-    if (media_type_p->formattype == FORMAT_VideoInfo)
+    if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
     {
       video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
       if (video_info_header_p->bmiHeader.biWidth != width_in)
@@ -947,7 +921,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
         frame_duration =
           static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
     } // end IF
-    else if (media_type_p->formattype == FORMAT_VideoInfo2)
+    else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
     {
       video_info_header2_p =
         (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
@@ -964,10 +938,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
-
-      // clean up
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
-
       return false;
     } // end IF
     frame_rates.insert (std::make_pair ((10000000 / frame_duration), 1));
@@ -1014,7 +985,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -1027,31 +998,23 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    presentation_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (is_selected);
-  presentation_descriptor_p->Release ();
-  presentation_descriptor_p = NULL;
+  presentation_descriptor_p->Release (); presentation_descriptor_p = NULL;
   IMFMediaTypeHandler* media_type_handler_p = NULL;
   result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // clean up
-    stream_descriptor_p->Release ();
-
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    stream_descriptor_p->Release (); stream_descriptor_p = NULL;
     return false;
   } // end IF
-  stream_descriptor_p->Release ();
-  stream_descriptor_p = NULL;
+  stream_descriptor_p->Release (); stream_descriptor_p = NULL;
 
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
@@ -1074,12 +1037,9 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      media_type_handler_p->Release ();
-      media_type_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+      media_type_p->Release (); media_type_p = NULL;
       return false;
     } // end IF
     result = MFGetAttributeSize (media_type_p,
@@ -1089,12 +1049,9 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      // clean up
-      media_type_handler_p->Release ();
-      media_type_p->Release ();
-
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      media_type_handler_p->Release (); media_type_handler_p = NULL;
+      media_type_p->Release (); media_type_p = NULL;
       return false;
     } // end IF
 
@@ -1108,28 +1065,24 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-        // clean up
-        media_type_handler_p->Release ();
-        media_type_p->Release ();
-
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        media_type_handler_p->Release (); media_type_handler_p = NULL;
+        media_type_p->Release (); media_type_p = NULL;
         return false;
       } // end IF
       frame_rates.insert (std::make_pair (numerator, denominator));
     } // end IF
-    media_type_p->Release ();
-
+    media_type_p->Release (); media_type_p = NULL;
     ++count;
   } // end WHILE
-  media_type_handler_p->Release ();
+  media_type_handler_p->Release (); media_type_handler_p = NULL;
   if (result != MF_E_NO_MORE_TYPES)
   {
     ACE_DEBUG ((LM_ERROR,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -1381,7 +1334,7 @@ continue_:
 //////////////////////////////////////////
 
 void
-set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
+set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::set_capture_format"));
 
@@ -1389,13 +1342,13 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
   ACE_ASSERT (CBData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    CBData_in->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    CBData_in->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != CBData_in->builders.end ());
+  ACE_ASSERT (iterator != CBData_in->UIState.builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
@@ -1406,30 +1359,28 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (CBData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (CBData_in);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (CBData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (CBData_in);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
@@ -1441,12 +1392,12 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (CBData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (CBData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
@@ -1464,10 +1415,11 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -1491,10 +1443,11 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
   g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -1509,6 +1462,7 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
   g_value_unset (&value);
   unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
+  unsigned int framerate_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
   {
@@ -1523,12 +1477,14 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
       if (!Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_modulehandler_iterator).second.second.builder,
                                                                          media_subtype,
                                                                          width, height,
+                                                                         framerate_i,
                                                                          (*directshow_modulehandler_iterator).second.second.sourceFormat))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat(%s,%u,%u), returning\n"),
+                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat(%s,%ux%u@%ufps), returning\n"),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                    width, height));
+                    width, height,
+                    framerate_i));
         return;
       } // end IF
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.sourceFormat);
@@ -1604,7 +1560,7 @@ set_capture_format (struct Test_I_CamStream_GTK_CBData* CBData_in)
 }
 
 void
-update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
+update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
 
@@ -1612,13 +1568,13 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
   ACE_ASSERT (CBData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    CBData_in->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    CBData_in->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != CBData_in->builders.end ());
+  ACE_ASSERT (iterator != CBData_in->UIState.builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
@@ -1629,30 +1585,28 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (CBData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (CBData_in);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (CBData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (CBData_in);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
@@ -1664,12 +1618,12 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (CBData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (CBData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
@@ -1710,7 +1664,7 @@ update_buffer_size (struct Test_I_CamStream_GTK_CBData* CBData_in)
                     ACE_TEXT ("failed to MFCalculateImageSize(\"%s\",%u,%u): \"%s\", aborting\n"),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_subtype, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
                     width, height,
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       break;
@@ -1738,6 +1692,9 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
+  // sanity check(s)
+  ACE_ASSERT (arg_in);
+
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
@@ -1745,102 +1702,104 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  struct Test_I_CamStream_ThreadData* thread_data_p =
+    static_cast<struct Test_I_CamStream_ThreadData*> (arg_in);
+
   Common_UI_GTK_BuildersIterator_t iterator;
   ACE_SYNCH_MUTEX* lock_p = NULL;
   enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
   Stream_IStreamControlBase* stream_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
-  const Stream_SessionData* session_data_p = NULL;
+  const Stream_SessionData* session_ui_cb_data_p = NULL;
   bool result_2 = false;
   guint context_id = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_CamStream_ThreadData* data_p =
-    static_cast<struct Test_I_CamStream_ThreadData*> (arg_in);
-  struct Test_I_Source_DirectShow_ThreadData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_ThreadData* mediafoundation_data_p =
-    NULL;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_Source_DirectShow_ThreadData* directshow_thread_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_ThreadData* mediafoundation_thread_data_p =
+    NULL;
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-
-  switch (data_p->mediaFramework)
+  switch (thread_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
+      directshow_thread_data_p =
         static_cast<struct Test_I_Source_DirectShow_ThreadData*> (arg_in);
+      ACE_ASSERT (directshow_thread_data_p->CBData);
+      ACE_ASSERT (directshow_thread_data_p->CBData->configuration);
+
       iterator =
-        directshow_data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-      lock_p = &directshow_data_p->CBData->lock;
-      protocol = directshow_data_p->CBData->configuration->protocol;
+        directshow_thread_data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+      lock_p = &directshow_thread_data_p->CBData->UIState.lock;
+      protocol = directshow_thread_data_p->CBData->configuration->protocol;
 
       directshow_stream_iterator =
-        directshow_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->CBData->configuration->streamConfigurations.end ());
+        directshow_thread_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_thread_data_p->CBData->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
+      mediafoundation_thread_data_p =
         static_cast<struct Test_I_Source_MediaFoundation_ThreadData*> (arg_in);
+      ACE_ASSERT (mediafoundation_thread_data_p->CBData);
+      ACE_ASSERT (mediafoundation_thread_data_p->CBData->configuration);
+
       iterator =
-        mediafoundation_data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-      lock_p = &mediafoundation_data_p->CBData->lock;
-      protocol = mediafoundation_data_p->CBData->configuration->protocol;
+        mediafoundation_thread_data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+      lock_p = &mediafoundation_thread_data_p->CBData->UIState.lock;
+      protocol = mediafoundation_thread_data_p->CBData->configuration->protocol;
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->CBData->configuration->streamConfigurations.end ());
+        mediafoundation_thread_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_thread_data_p->CBData->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  thread_data_p->mediaFramework));
       goto done;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_ThreadData* data_p =
+  struct Test_I_Source_V4L2_ThreadData* v4l2_thread_data_p =
     static_cast<struct Test_I_Source_V4L2_ThreadData*> (arg_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->CBData);
-  ACE_ASSERT (data_p->CBData->configuration);
+  ACE_ASSERT (v4l2_thread_data_p->CBData);
+  ACE_ASSERT (v4l2_thread_data_p->CBData->configuration);
 
   iterator =
-    data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  lock_p = &data_p->CBData->lock;
-  protocol = data_p->CBData->configuration->protocol;
+    v4l2_thread_data_p->CBData->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  lock_p = &v4l2_thread_data_p->CBData->UIState.lock;
+  protocol = v4l2_thread_data_p->CBData->configuration->protocol;
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->CBData->builders.end ());
+  ACE_ASSERT (iterator != v4l2_thread_data_p->CBData->UIState.builders.end ());
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != data_p->CBData->configuration->streamConfigurations.end ());
+    v4l2_thread_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_thread_data_p->CBData->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (lock_p);
 
-  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, -1);
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
 #endif // ACE_WIN32 || ACE_WIN64
     // retrieve stream handle
     switch (protocol)
@@ -1848,31 +1807,31 @@ stream_processing_function (void* arg_in)
       case NET_TRANSPORTLAYER_TCP:
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_p->mediaFramework)
+        switch (thread_data_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            stream_p = directshow_data_p->CBData->stream;
+            stream_p = directshow_thread_data_p->CBData->stream;
             //(*directshow_modulehandler_iterator).second.second.stream =
-            //  directshow_data_p->CBData->stream;
+            //  directshow_ui_cb_data_p->CBData->stream;
             result_2 =
-              directshow_data_p->CBData->stream->initialize ((*directshow_stream_iterator).second);
+              directshow_thread_data_p->CBData->stream->initialize ((*directshow_stream_iterator).second);
             const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-              &directshow_data_p->CBData->stream->getR ();
-            session_data_p =
+              &directshow_thread_data_p->CBData->stream->getR ();
+            session_ui_cb_data_p =
               &const_cast<struct Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
-            stream_p = mediafoundation_data_p->CBData->stream;
+            stream_p = mediafoundation_thread_data_p->CBData->stream;
             //(*mediafoundation_modulehandler_iterator).second.second.stream =
-            //  mediafoundation_data_p->CBData->stream;
+            //  mediafoundation_ui_cb_data_p->CBData->stream;
             result_2 =
-              mediafoundation_data_p->CBData->stream->initialize ((*mediafoundation_stream_iterator).second);
+              mediafoundation_thread_data_p->CBData->stream->initialize ((*mediafoundation_stream_iterator).second);
             const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-              &mediafoundation_data_p->CBData->stream->getR ();
-            session_data_p =
+              &mediafoundation_thread_data_p->CBData->stream->getR ();
+            session_ui_cb_data_p =
               &const_cast<struct Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
             break;
           }
@@ -1880,18 +1839,18 @@ stream_processing_function (void* arg_in)
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_p->mediaFramework));
+                        thread_data_p->mediaFramework));
             goto done;
           }
         } // end SWITCH
 #else
-        stream_p = data_p->CBData->stream;
-        //(*iterator_2).second.second.stream = data_p->CBData->stream;
+        stream_p = v4l2_thread_data_p->CBData->stream;
+        //(*iterator_2).second.second.stream = ui_cb_data_p->CBData->stream;
         result_2 =
-          data_p->CBData->stream->initialize ((*stream_iterator).second);
+          v4l2_thread_data_p->CBData->stream->initialize ((*stream_iterator).second);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &data_p->CBData->stream->getR ();
-        session_data_p =
+          &v4l2_thread_data_p->CBData->stream->getR ();
+        session_ui_cb_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
         break;
@@ -1899,31 +1858,31 @@ stream_processing_function (void* arg_in)
       case NET_TRANSPORTLAYER_UDP:
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_p->mediaFramework)
+        switch (thread_data_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            stream_p = directshow_data_p->CBData->UDPStream;
+            stream_p = directshow_thread_data_p->CBData->UDPStream;
             //(*directshow_modulehandler_iterator).second.stream =
-            //  directshow_data_p->CBData->UDPStream;
+            //  directshow_ui_cb_data_p->CBData->UDPStream;
             result_2 =
-              directshow_data_p->CBData->UDPStream->initialize ((*directshow_stream_iterator).second);
+              directshow_thread_data_p->CBData->UDPStream->initialize ((*directshow_stream_iterator).second);
             const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-              &directshow_data_p->CBData->UDPStream->getR ();
-            session_data_p =
+              &directshow_thread_data_p->CBData->UDPStream->getR ();
+            session_ui_cb_data_p =
               &const_cast<struct Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
-            stream_p = mediafoundation_data_p->CBData->UDPStream;
+            stream_p = mediafoundation_thread_data_p->CBData->UDPStream;
             //(*mediafoundation_modulehandler_iterator).second.stream =
-            //  mediafoundation_data_p->CBData->UDPStream;
+            //  mediafoundation_ui_cb_data_p->CBData->UDPStream;
             result_2 =
-              mediafoundation_data_p->CBData->UDPStream->initialize ((*mediafoundation_stream_iterator).second);
+              mediafoundation_thread_data_p->CBData->UDPStream->initialize ((*mediafoundation_stream_iterator).second);
             const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-              &mediafoundation_data_p->CBData->UDPStream->getR ();
-            session_data_p =
+              &mediafoundation_thread_data_p->CBData->UDPStream->getR ();
+            session_ui_cb_data_p =
               &const_cast<struct Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
             break;
           }
@@ -1931,18 +1890,18 @@ stream_processing_function (void* arg_in)
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_p->mediaFramework));
+                        thread_data_p->mediaFramework));
             goto done;
           }
         } // end SWITCH
 #else
-        stream_p = data_p->CBData->UDPStream;
-        //(*iterator_2).second.stream = data_p->CBData->UDPStream;
+        stream_p = v4l2_thread_data_p->CBData->UDPStream;
+        //(*iterator_2).second.stream = ui_cb_data_p->CBData->UDPStream;
         result_2 =
-          data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
+          v4l2_thread_data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &data_p->CBData->UDPStream->getR ();
-        session_data_p =
+          &v4l2_thread_data_p->CBData->UDPStream->getR ();
+        session_ui_cb_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
         break;
@@ -1951,14 +1910,14 @@ stream_processing_function (void* arg_in)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                    data_p->CBData->configuration->protocol));
+                    thread_data_p->CBData->configuration->protocol));
         goto done;
       }
     } // end SWITCH
-    ACE_ASSERT (session_data_p);
+    ACE_ASSERT (session_ui_cb_data_p);
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << session_data_p->sessionId;
+    converter << session_ui_cb_data_p->sessionId;
 
     // retrieve status bar handle
     gdk_threads_enter ();
@@ -1972,7 +1931,7 @@ stream_processing_function (void* arg_in)
 
     // set context ID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (data_p->mediaFramework)
+    switch (thread_data_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         (*directshow_modulehandler_iterator).second.second.contextId =
@@ -1986,7 +1945,7 @@ stream_processing_function (void* arg_in)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    data_p->mediaFramework));
+                    thread_data_p->mediaFramework));
         goto done;
       }
     } // end SWITCH
@@ -2016,39 +1975,39 @@ stream_processing_function (void* arg_in)
   result = 0;
 #else
   result = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 done:
-  { // synch access
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, -1);
 #else
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
-#endif
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, std::numeric_limits<void*>::max ());
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (data_p->mediaFramework)
+    switch (thread_data_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        directshow_data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
+        directshow_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
         break;
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        mediafoundation_data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
+        mediafoundation_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
         break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    data_p->mediaFramework));
+                    thread_data_p->mediaFramework));
         goto done;
       }
     } // end SWITCH
-#else
-    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
-#endif
   } // end lock scope
+#else
+    v4l2_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
+  } // end lock scope
+#endif // ACE_WIN32 || ACE_WIN64
 
   // clean up
-  delete data_p;
+  delete thread_data_p; thread_data_p = NULL;
 
   return result;
 }
@@ -2060,80 +2019,79 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_source_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_data_p->configuration);
+  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT hresult = CoInitializeEx (NULL,
@@ -2142,7 +2100,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (hresult).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
 #endif
@@ -2194,7 +2152,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_capture_devices (data_base_p->mediaFramework,
+  if (!load_capture_devices (ui_cb_data_base_p->mediaFramework,
                              list_store_p))
 #else
   if (!load_capture_devices (list_store_p))
@@ -2329,20 +2287,20 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   bool use_loopback = false;
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_2 =
-        directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_2 != directshow_data_p->configuration->connectionConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_2 != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       string_p =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
       port_number =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
-      protocol = directshow_data_p->configuration->protocol;
+      protocol = directshow_ui_cb_data_p->configuration->protocol;
       use_reactor =
-        (directshow_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+        (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
       buffer_size =
@@ -2352,15 +2310,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_2 =
-      mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_2 != mediafoundation_data_p->configuration->connectionConfigurations.end ());
+      mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_2 != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       string_p =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
       port_number =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
-      protocol = mediafoundation_data_p->configuration->protocol;
+      protocol = mediafoundation_ui_cb_data_p->configuration->protocol;
       use_reactor =
-        (mediafoundation_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+        (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback =
         (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
       buffer_size =
@@ -2371,21 +2329,21 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_2 =
-    v4l2_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != v4l2_data_p->configuration->connectionConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != v4l2_ui_cb_data_p->configuration->connectionConfigurations.end ());
   string_p =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
   port_number =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
-  protocol = v4l2_data_p->configuration->protocol;
+  protocol = v4l2_ui_cb_data_p->configuration->protocol;
   use_reactor =
-          (v4l2_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+          (v4l2_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
   use_loopback =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
   buffer_size =
@@ -2502,14 +2460,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (drawing_area_p);
 
   // step5: initialize updates
-  //Test_I_GTK_CBData* cb_data_p = data_p;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
+  //Test_I_GTK_CBData* cb_ui_cb_data_p = ui_cb_data_p;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
                                                    idle_update_log_display_cb,
-                                                   data_base_p);
+                                                   ui_cb_data_base_p);
     if (event_source_id > 0)
-      data_base_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_base_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2518,11 +2476,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     } // end ELSE
 
     // schedule asynchronous updates of the info view
-    event_source_id = g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
-                                     idle_update_info_display_cb,
-                                     data_base_p);
+    event_source_id =
+      g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
+                     idle_update_info_display_cb,
+                     ui_cb_data_base_p);
     if (event_source_id > 0)
-      data_base_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_base_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2596,7 +2555,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("value-changed"),
   //                             G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
   //ACE_ASSERT (result_2);
 
   object_p =
@@ -2637,7 +2596,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
   //object_p =
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
@@ -2645,7 +2604,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
 
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
@@ -2736,7 +2695,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -2746,7 +2705,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       ACE_ASSERT (IsWindow ((*directshow_modulehandler_iterator).second.second.window));
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("drawing area window handle: %@\n"),
+                  ACE_TEXT ("drawing area window handle: 0x%@\n"),
                   (*directshow_modulehandler_iterator).second.second.window));
       break;
     }
@@ -2762,14 +2721,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_3 != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
@@ -2781,7 +2740,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -2811,15 +2770,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   (*iterator_4).second.second.area = allocation;
 
-  ACE_ASSERT (!v4l2_data_p->pixelBuffer);
-  v4l2_data_p->pixelBuffer =
+  ACE_ASSERT (!v4l2_ui_cb_data_p->pixelBuffer);
+  v4l2_ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
       gdk_pixbuf_get_from_window ((*iterator_4).second.second.window,
                                   0, 0,
@@ -2831,13 +2790,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
 #endif
-  if (!v4l2_data_p->pixelBuffer)
+  if (!v4l2_ui_cb_data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  (*iterator_4).second.second.pixelBuffer = v4l2_data_p->pixelBuffer;
+  (*iterator_4).second.second.pixelBuffer = v4l2_ui_cb_data_p->pixelBuffer;
 #endif
 
   // step11: select default capture source (if any)
@@ -2874,19 +2833,19 @@ idle_end_source_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_end_source_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // *IMPORTANT NOTE*: there are two major reasons for being here that are not
   //                   mutually exclusive, so there could be a race:
@@ -2922,20 +2881,19 @@ idle_end_source_UI_cb (gpointer userData_in)
 
   // stop progress reporting
   GtkProgressBar* progress_bar_p = NULL;
-  if (!data_p->progressEventSourceId) goto continue_;
+  if (!ui_cb_data_p->progressEventSourceId) goto continue_;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->lock, G_SOURCE_REMOVE);
-
-    if (!g_source_remove (data_p->progressEventSourceId))
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    if (!g_source_remove (ui_cb_data_p->progressEventSourceId))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                  data_p->progressEventSourceId));
-    data_p->eventSourceIds.erase (data_p->progressEventSourceId);
-    data_p->progressEventSourceId = 0;
+                  ui_cb_data_p->progressEventSourceId));
+    ui_cb_data_p->UIState.eventSourceIds.erase (ui_cb_data_p->progressEventSourceId);
+    ui_cb_data_p->progressEventSourceId = 0;
 
-    ACE_OS::memset (&(data_p->progressData.statistic),
+    ACE_OS::memset (&(ui_cb_data_p->progressData.statistic),
                     0,
-                    sizeof (data_p->progressData.statistic));
+                    sizeof (ui_cb_data_p->progressData.statistic));
   } // end lock scope
   progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2955,33 +2913,34 @@ idle_update_progress_source_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_source_cb"));
 
-  struct Test_I_CamStream_GTK_ProgressData* data_p =
-      static_cast<struct Test_I_CamStream_GTK_ProgressData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->state);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_ProgressData* progress_data_p =
+      static_cast<struct Test_I_CamStream_UI_ProgressData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (progress_data_p->state);
 
   // synch access
-//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, progress_data_p->state->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    progress_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_ASSERT (iterator != progress_data_p->state->builders.end ());
 
   // step1: join completed thread(s)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
   Common_UI_GTK_PendingActionsIterator_t iterator_2;
-  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
-       iterator_3 != data_p->completedActions.end ();
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = progress_data_p->completedActions.begin ();
+       iterator_3 != progress_data_p->completedActions.end ();
        ++iterator_3)
   {
-    iterator_2 = data_p->pendingActions.find (*iterator_3);
-    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
+    iterator_2 = progress_data_p->pendingActions.find (*iterator_3);
+    ACE_ASSERT (iterator_2 != progress_data_p->pendingActions.end ());
     ACE_thread_t thread_id = (*iterator_2).second.id ();
     result = thread_manager_p->join (thread_id, &exit_status);
     if (result == -1)
@@ -3003,22 +2962,22 @@ idle_update_progress_source_cb (gpointer userData_in)
 #endif
     } // end IF
 
-    data_p->state->eventSourceIds.erase (*iterator_3);
-    data_p->pendingActions.erase (iterator_2);
+    progress_data_p->state->eventSourceIds.erase (*iterator_3);
+    progress_data_p->pendingActions.erase (iterator_2);
   } // end FOR
-  data_p->completedActions.clear ();
+  progress_data_p->completedActions.clear ();
 
   bool done = false;
-  if (data_p->pendingActions.empty ())
+  if (progress_data_p->pendingActions.empty ())
   {
-    //if (data_p->cursorType != GDK_LAST_CURSOR)
+    //if (ui_cb_data_p->cursorType != GDK_LAST_CURSOR)
     //{
-    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
+    //  GdkCursor* cursor_p = gdk_cursor_new (ui_cb_data_p->cursorType);
     //  if (!cursor_p)
     //  {
     //    ACE_DEBUG ((LM_ERROR,
     //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
-    //                data_p->cursorType));
+    //                ui_cb_data_p->cursorType));
     //    return FALSE; // G_SOURCE_REMOVE
     //  } // end IF
     //  GtkWindow* window_p =
@@ -3028,7 +2987,7 @@ idle_update_progress_source_cb (gpointer userData_in)
     //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
     //  ACE_ASSERT (window_2);
     //  gdk_window_set_cursor (window_2, cursor_p);
-    //  data_p->cursorType = GDK_LAST_CURSOR;
+    //  ui_cb_data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
 
     done = true;
@@ -3036,10 +2995,8 @@ idle_update_progress_source_cb (gpointer userData_in)
 
   // step2: update progress bar text
   std::ostringstream converter;
-  //{
-    //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->state->lock, G_SOURCE_REMOVE);
-
-    converter << data_p->statistic.messagesPerSecond;
+  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, progress_data_p->state->lock, G_SOURCE_REMOVE);
+    converter << progress_data_p->statistic.messagesPerSecond;
   //} // end lock scope
   std::string progressbar_text = converter.str ();
   progressbar_text += ACE_TEXT_ALWAYS_CHAR (" fps");
@@ -3069,73 +3026,71 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_modulehandler_iterator =
-        directshow_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_data_p->configuration->streamConfiguration.end ());
-
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_modulehandler_iterator =
-        mediafoundation_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
-
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-#endif
+  ACE_ASSERT (ui_cb_data_p->configuration);
+
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
 
   //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
-  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->gladeXML.end ());
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT hresult = CoInitializeEx (NULL,
@@ -3145,7 +3100,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   if (FAILED (hresult)) // RPC_E_CHANGED_MODE : 0x80010106L
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::errorToString (hresult).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
 #endif
 
   // step1: initialize dialog window(s)
@@ -3202,7 +3157,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   GFile* file_p = NULL;
   std::string directory, file_name;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -3224,14 +3179,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   directory = (*iterator_2).second.second.targetFileName;
   file_name = (*iterator_2).second.second.targetFileName;
@@ -3335,13 +3290,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
   Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_connection_configuration_iterator =
-        directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_data_p->configuration->connectionConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       port_number =
         (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
       break;
@@ -3349,8 +3304,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_connection_configuration_iterator =
-      mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_data_p->configuration->connectionConfigurations.end ());
+      mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       port_number =
         (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
       break;
@@ -3359,14 +3314,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
-    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
   port_number =
     (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
 #endif
@@ -3378,34 +3333,34 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   bool use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      protocol = directshow_data_p->configuration->protocol;
+      protocol = directshow_ui_cb_data_p->configuration->protocol;
       use_reactor =
-        (directshow_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+        (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      protocol = mediafoundation_data_p->configuration->protocol;
+      protocol = mediafoundation_ui_cb_data_p->configuration->protocol;
       use_reactor =
-        (mediafoundation_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+        (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  protocol = data_p->configuration->protocol;
+  protocol = ui_cb_data_p->configuration->protocol;
   use_reactor =
-    (data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+    (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
 #endif
   if (protocol == NET_TRANSPORTLAYER_UDP)
   {
@@ -3427,7 +3382,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (check_button_p);
   bool use_loopback = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       use_loopback =
@@ -3441,7 +3396,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -3461,27 +3416,27 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              std::numeric_limits<double>::max ());
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       buffer_size =
-        directshow_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       buffer_size =
-        mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   buffer_size =
-    data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+    ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
 #endif
   gtk_spin_button_set_value (spin_button_p,
                               static_cast<double> (buffer_size));
@@ -3555,14 +3510,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   guint event_source_id = 0;
-  //Test_I_GTK_CBData* cb_data_p = data_base_p;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
+  //Test_I_GTK_CBData* cb_ui_cb_data_p = ui_cb_data_base_p;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock, G_SOURCE_REMOVE);
     // schedule asynchronous updates of the log view
     event_source_id = g_timeout_add_seconds (1,
                                              idle_update_log_display_cb,
-                                             data_base_p);
+                                             ui_cb_data_base_p);
     if (event_source_id > 0)
-      data_base_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_base_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3573,9 +3528,9 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     // schedule asynchronous updates of the info view
     event_source_id = g_timeout_add (COMMON_UI_GTK_INTERVAL_DEFAULT_WIDGET_REFRESH,
                                      idle_update_info_display_cb,
-                                     data_base_p);
+                                     ui_cb_data_base_p);
     if (event_source_id > 0)
-      data_base_p->eventSourceIds.insert (event_source_id);
+      ui_cb_data_base_p->UIState.eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3661,7 +3616,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                           ACE_TEXT_ALWAYS_CHAR ("value-changed"),
   //                           G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                           cb_data_p);
+  //                           cb_ui_cb_data_p);
   //ACE_ASSERT (result_2);
 
   //  gtk_builder_get_object ((*iterator).second.second,
@@ -3670,7 +3625,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
   //object_p =
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
@@ -3678,7 +3633,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //result_2 = g_signal_connect (object_p,
   //                             ACE_TEXT_ALWAYS_CHAR ("toggled"),
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
-  //                             cb_data_p);
+  //                             cb_ui_cb_data_p);
 
   //  object_p =
   //    gtk_builder_get_object ((*iterator).second.second,
@@ -3780,7 +3735,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       default_folder_uri +=
@@ -3794,7 +3749,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -3825,7 +3780,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (window_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second.window);
@@ -3847,7 +3802,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -3884,17 +3839,17 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!directshow_data_p->pixelBuffer);
-      directshow_data_p->pixelBuffer = pixbuf_p;
+    { ACE_ASSERT (!directshow_ui_cb_data_p->pixelBuffer);
+      directshow_ui_cb_data_p->pixelBuffer = pixbuf_p;
       (*directshow_modulehandler_iterator).second.second.pixelBuffer = pixbuf_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!mediafoundation_data_p->pixelBuffer);
-      mediafoundation_data_p->pixelBuffer = pixbuf_p;
+    { ACE_ASSERT (!mediafoundation_ui_cb_data_p->pixelBuffer);
+      mediafoundation_ui_cb_data_p->pixelBuffer = pixbuf_p;
       (*mediafoundation_modulehandler_iterator).second.second.pixelBuffer =
         pixbuf_p;
       break;
@@ -3903,14 +3858,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
   ACE_ASSERT (!(*iterator_2).second.second.pixelBuffer);
   (*iterator_2).second.second.pixelBuffer = pixbuf_p;
-  data_p->pixelBuffer = pixbuf_p;
+  ui_cb_data_p->pixelBuffer = pixbuf_p;
 #endif
 
   return G_SOURCE_REMOVE;
@@ -3921,16 +3876,16 @@ idle_start_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_start_target_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkAction* action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -3946,40 +3901,40 @@ idle_end_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_end_target_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-//  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-//  if (data_base_p->useMediaFoundation)
+//  Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+//  Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+//  if (ui_cb_data_base_p->useMediaFoundation)
 //  {
-//    mediafoundation_data_p =
-//      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+//    mediafoundation_ui_cb_data_p =
+//      static_cast<Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
 //
 //    // sanity check(s)
-//    ACE_ASSERT (mediafoundation_data_p);
-//    ACE_ASSERT (mediafoundation_data_p->configuration);
+//    ACE_ASSERT (mediafoundation_ui_cb_data_p);
+//    ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 //  } // end IF
 //  else
 //  {
-//    directshow_data_p =
-//      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+//    directshow_ui_cb_data_p =
+//      static_cast<Test_I_Target_DirectShow_UI_CBData*> (userData_in);
 //
 //    // sanity check(s)
-//    ACE_ASSERT (directshow_data_p);
-//    ACE_ASSERT (directshow_data_p->configuration);
+//    ACE_ASSERT (directshow_ui_cb_data_p);
+//    ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 //  } // end ELSE
 //#else
-//  Test_I_Target_GTK_CBData* data_p =
-//    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+//  Test_I_Target_UI_CBData* ui_cb_data_p =
+//    static_cast<Test_I_Target_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
+//  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p->configuration);
 //#endif
 
   unsigned int connection_count = 0;
@@ -3987,7 +3942,7 @@ idle_end_target_UI_cb (gpointer userData_in)
   // *TODO*: this doesn't always work as conceived. Depending on the runtime
   //         (and scheduling), the (last) connection may not yet have
   //         deregistered with the manager at this stage
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4009,7 +3964,7 @@ idle_end_target_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -4021,9 +3976,9 @@ idle_end_target_UI_cb (gpointer userData_in)
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
   GtkAction* action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -4038,10 +3993,10 @@ idle_end_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (progress_bar_p);
   if (connection_count == 0)
   {
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
-      ACE_OS::memset (&(data_base_p->progressData.statistic),
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock, G_SOURCE_REMOVE);
+      ACE_OS::memset (&(ui_cb_data_base_p->progressData.statistic),
                       0,
-                      sizeof (data_base_p->progressData.statistic));
+                      sizeof (ui_cb_data_base_p->progressData.statistic));
     } // end lock scope
 
     gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
@@ -4055,16 +4010,16 @@ idle_reset_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_reset_target_UI_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4088,8 +4043,8 @@ idle_reset_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (progress_bar_p);
   gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-    data_p->progressData.transferred = 0;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, G_SOURCE_REMOVE);
+    ui_cb_data_p->progressData.transferred = 0;
   } // end lock scope
 
   return G_SOURCE_REMOVE;
@@ -4100,17 +4055,17 @@ idle_update_progress_target_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_target_cb"));
 
-  struct Test_I_CamStream_GTK_ProgressData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_ProgressData*> (userData_in);
+  struct Test_I_CamStream_UI_ProgressData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_ProgressData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->state);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->state);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->state->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->state->builders.end ());
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -4121,9 +4076,9 @@ idle_update_progress_target_cb (gpointer userData_in)
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   int result = -1;
   float fps, speed = 0.0F;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-    fps   = data_p->statistic.messagesPerSecond;
-    speed = data_p->statistic.bytesPerSecond;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->state->lock, G_SOURCE_REMOVE);
+    fps   = ui_cb_data_p->statistic.messagesPerSecond;
+    speed = ui_cb_data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
   if (speed)
@@ -4162,28 +4117,28 @@ idle_finalize_source_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_UNUSED_ARG (userData_in);
 #else
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4L2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   // clean up
   int result = -1;
-  if (v4L2_data_p->fileDescriptor != -1)
+  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
   {
-    result = v4l2_close (v4L2_data_p->fileDescriptor);
+    result = v4l2_close (v4l2_ui_cb_data_p->fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4L2_data_p->fileDescriptor));
-    v4L2_data_p->fileDescriptor = -1;
+                  v4l2_ui_cb_data_p->fileDescriptor));
+    v4l2_ui_cb_data_p->fileDescriptor = -1;
   } // end IF
 #endif
 
@@ -4214,46 +4169,46 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-      static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+      static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  switch (data_base_p->mediaFramework)
+  Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_data_p->configuration);
+  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
 #endif
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -4262,12 +4217,12 @@ idle_update_info_display_cb (gpointer userData_in)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (data_base_p->eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (ui_cb_data_base_p->UIState.eventStack);
          iterator_2.next (event_p);
          iterator_2.advance ())
     { ACE_ASSERT (event_p);
@@ -4298,7 +4253,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_base_p->progressData.transferred));
+                                     static_cast<gdouble> (ui_cb_data_base_p->progressData.transferred));
 
           spin_button_p =
               GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4352,9 +4307,9 @@ idle_update_info_display_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!data_base_p->eventStack.is_empty ())
+    while (!ui_cb_data_base_p->UIState.eventStack.is_empty ())
     {
-      result = data_base_p->eventStack.pop (event_e);
+      result = ui_cb_data_base_p->UIState.eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
@@ -4369,18 +4324,18 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-      static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (userData_in);
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->logStackLock, G_SOURCE_REMOVE);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
+
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.logStackLock, G_SOURCE_REMOVE);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-      data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
@@ -4395,18 +4350,18 @@ idle_update_log_display_cb (gpointer userData_in)
 
   gchar* string_p = NULL;
   // sanity check
-  if (data_p->logStack.empty ())
+  if (ui_cb_data_p->UIState.logStack.empty ())
     return G_SOURCE_CONTINUE;
 
   // step1: convert text
-  while (!data_p->logStack.empty ())
+  while (!ui_cb_data_p->UIState.logStack.empty ())
   {
-    string_p = Common_UI_GTK_Tools::localeToUTF8 (data_p->logStack.front ());
+    string_p = Common_UI_GTK_Tools::localeToUTF8 (ui_cb_data_p->UIState.logStack.front ());
     if (!string_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Tools::localeToUTF8(\"%s\"), aborting\n"),
-                  ACE_TEXT (data_p->logStack.front ().c_str ())));
+                  ACE_TEXT (ui_cb_data_p->UIState.logStack.front ().c_str ())));
       return G_SOURCE_REMOVE;
     } // end IF
 
@@ -4417,12 +4372,12 @@ idle_update_log_display_cb (gpointer userData_in)
                             -1);
 
     // clean up
-    g_free (string_p);
+    g_free (string_p); string_p = NULL;
 
-    data_p->logStack.pop_front ();
+    ui_cb_data_p->UIState.logStack.pop_front ();
   } // end FOR
 
-  data_p->logStack.clear ();
+  ui_cb_data_p->UIState.logStack.clear ();
 
   // step3: scroll the view accordingly
 //  // move the iterator to the beginning of line, so it doesn't scroll
@@ -4456,15 +4411,15 @@ idle_update_video_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-      static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+      static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_p->builders.end ());
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
@@ -4499,99 +4454,97 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // --> user pressed play/pause/stop
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (userData_in);
+
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
-
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
-
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
-
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   struct Test_I_CamStream_ThreadData* thread_data_p = NULL;
   enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      protocol = directshow_data_p->configuration->protocol;
+      protocol = directshow_ui_cb_data_p->configuration->protocol;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      protocol = mediafoundation_data_p->configuration->protocol;
+      protocol = mediafoundation_ui_cb_data_p->configuration->protocol;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   struct Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
   ACE_thread_t thread_id = -1;
-  protocol = v4l2_data_p->configuration->protocol;
+  protocol = v4l2_ui_cb_data_p->configuration->protocol;
 #endif
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
@@ -4605,48 +4558,48 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     case NET_TRANSPORTLAYER_TCP:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (data_p->mediaFramework)
+      switch (ui_cb_data_p->mediaFramework)
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          stream_p = directshow_data_p->stream;
+          stream_p = directshow_ui_cb_data_p->stream;
           break;
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          stream_p = mediafoundation_data_p->stream;
+          stream_p = mediafoundation_ui_cb_data_p->stream;
           break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      data_p->mediaFramework));
+                      ui_cb_data_p->mediaFramework));
           return;
       }
     } // end SWITCH
 #else
-      stream_p = v4l2_data_p->stream;
+      stream_p = v4l2_ui_cb_data_p->stream;
 #endif
       break;
     }
     case NET_TRANSPORTLAYER_UDP:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      switch (data_p->mediaFramework)
+      switch (ui_cb_data_p->mediaFramework)
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          stream_p = directshow_data_p->UDPStream;
+          stream_p = directshow_ui_cb_data_p->UDPStream;
           break;
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          stream_p = mediafoundation_data_p->UDPStream;
+          stream_p = mediafoundation_ui_cb_data_p->UDPStream;
           break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                      data_p->mediaFramework));
+                      ui_cb_data_p->mediaFramework));
           return;
         }
       } // end SWITCH
 #else
-      stream_p = v4l2_data_p->UDPStream;
+      stream_p = v4l2_ui_cb_data_p->UDPStream;
 #endif
       break;
     }
@@ -4654,7 +4607,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                  data_p->configuration->protocol));
+                  ui_cb_data_p->configuration->protocol));
       return;
     }
   } // end SWITCH
@@ -4696,8 +4649,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // --> user pressed play
 
-  if (data_p->isFirst)
-    data_p->isFirst = false;
+  if (ui_cb_data_p->isFirst)
+    ui_cb_data_p->isFirst = false;
 
   // step0: modify widgets
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
@@ -4732,7 +4685,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   // step1: set up progress reporting
-  data_p->progressData.transferred = 0;
+  ui_cb_data_p->progressData.transferred = 0;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -4755,17 +4708,18 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
     ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
-    GValue value = G_VALUE_INIT;
+  GValue value = G_VALUE_INIT;
 #else
-    GValue value;
-    g_value_init (&value, G_TYPE_STRING);
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                               &iterator_4,
                               1, &value);
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (data_p->mediaFramework)
+    switch (ui_cb_data_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         (*directshow_modulehandler_iterator).second.second.deviceIdentifier =
@@ -4779,7 +4733,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    data_p->mediaFramework));
+                    ui_cb_data_p->mediaFramework));
         return;
       }
     } // end SWITCH
@@ -4791,9 +4745,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (v4l2_data_p->fileDescriptor != -1)
+  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
     (*modulehandler_iterator).second.second.fileDescriptor =
-      v4l2_data_p->fileDescriptor;
+      v4l2_ui_cb_data_p->fileDescriptor;
 #endif
 
   // retrieve port number
@@ -4804,13 +4758,13 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   unsigned short port_number =
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_3 =
-        directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_3 != directshow_data_p->configuration->connectionConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_3 != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
         (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                        1);
       break;
@@ -4818,8 +4772,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_3 =
-        mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_3 != mediafoundation_data_p->configuration->connectionConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_3 != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
         (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                        1);
       break;
@@ -4828,14 +4782,14 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_5 =
-    v4l2_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_5 != v4l2_data_p->configuration->connectionConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_5 != v4l2_ui_cb_data_p->configuration->connectionConfigurations.end ());
   (*iterator_5).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                  1);
 #endif
@@ -4849,24 +4803,24 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio_button_p)) ? NET_TRANSPORTLAYER_TCP
                                                                        : NET_TRANSPORTLAYER_UDP);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      directshow_data_p->configuration->protocol = protocol;
+      directshow_ui_cb_data_p->configuration->protocol = protocol;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      mediafoundation_data_p->configuration->protocol = protocol;
+      mediafoundation_ui_cb_data_p->configuration->protocol = protocol;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  v4l2_data_p->configuration->protocol = protocol;
+  v4l2_ui_cb_data_p->configuration->protocol = protocol;
 #endif
 
   // retrieve buffer
@@ -4875,7 +4829,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       (*directshow_stream_iterator).second.allocatorConfiguration_.defaultBufferSize =
@@ -4889,7 +4843,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4903,7 +4857,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
   IMFTopology* topology_p = NULL;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { 
@@ -4929,7 +4883,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           goto error;
         } // end IF
       } // end IF
@@ -4943,7 +4897,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -4961,7 +4915,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // step3: start processing thread
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -4970,7 +4924,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                         struct Test_I_Source_DirectShow_ThreadData ());
       if (thread_data_2)
       {
-        thread_data_2->CBData = directshow_data_p;
+        thread_data_2->CBData = directshow_ui_cb_data_p;
         thread_data_p = thread_data_2;
       } // end ELSE
       break;
@@ -4979,17 +4933,17 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       topology_p->Release ();
       //struct _AMMediaType* media_type_p = NULL;
-      //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+      //Stream_Module_Device_Tools::getCaptureFormat (ui_cb_data_p->configuration->moduleHandlerConfiguration.builder,
       //                                              media_type_p);
       //media_type.Set (*media_type_p);
-      //ACE_ASSERT (media_type == *data_p->configuration->moduleHandlerConfiguration.format);
+      //ACE_ASSERT (media_type == *ui_cb_data_p->configuration->moduleHandlerConfiguration.format);
 
       struct Test_I_Source_MediaFoundation_ThreadData* thread_data_2 = NULL;
       ACE_NEW_NORETURN (thread_data_2,
                         struct Test_I_Source_MediaFoundation_ThreadData ());
       if (thread_data_2)
       {
-        thread_data_2->CBData = mediafoundation_data_p;
+        thread_data_2->CBData = mediafoundation_ui_cb_data_p;
         thread_data_p = thread_data_2;
       } // end IF
       break;
@@ -4998,18 +4952,18 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
   if (thread_data_p)
-    thread_data_p->mediaFramework = data_p->mediaFramework;
+    thread_data_p->mediaFramework = ui_cb_data_p->mediaFramework;
 #else
   ACE_NEW_NORETURN (thread_data_2,
                     struct Test_I_Source_V4L2_ThreadData ());
   if (thread_data_2)
   {
-    thread_data_2->CBData = v4l2_data_p;
+    thread_data_2->CBData = v4l2_ui_cb_data_p;
     thread_data_p = thread_data_2;
   } // end ELSE
 #endif
@@ -5044,7 +4998,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock);
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
       thread_manager_p->spawn (function_p,                       // function
@@ -5071,18 +5025,18 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 
     // step3: start progress reporting
-    ACE_ASSERT (!data_p->progressEventSourceId);
-    data_p->progressEventSourceId =
+    ACE_ASSERT (!ui_cb_data_p->progressEventSourceId);
+    ui_cb_data_p->progressEventSourceId =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
-      //                 &data_p->progressData,
+      //                 &ui_cb_data_p->progressData,
       //                 NULL);
       g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
                           COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                           idle_update_progress_source_cb,
-                          &data_p->progressData,
+                          &ui_cb_data_p->progressData,
                           NULL);
-    if (!data_p->progressEventSourceId)
+    if (!ui_cb_data_p->progressEventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_source_cb): \"%m\", returning\n")));
@@ -5097,13 +5051,13 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
       goto error;
     } // end IF
-    thread_data_p->eventSourceId = data_p->progressEventSourceId;
-    data_p->progressData.pendingActions[data_p->progressEventSourceId] =
+    thread_data_p->eventSourceId = ui_cb_data_p->progressEventSourceId;
+    ui_cb_data_p->progressData.pendingActions[ui_cb_data_p->progressEventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
-    data_p->eventSourceIds.insert (data_p->progressEventSourceId);
+    ui_cb_data_p->UIState.eventSourceIds.insert (ui_cb_data_p->progressEventSourceId);
   } // end lock scope
 
   return;
@@ -5122,14 +5076,14 @@ action_reset_activate_cb (GtkAction* action_in,
 
   ACE_UNUSED_ARG (action_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 } // action_reset_activate_cb
 
 void
@@ -5140,15 +5094,15 @@ action_settings_activate_cb (GtkAction* action_in,
 
   ACE_UNUSED_ARG (action_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 } // action_settings_activate_cb
 
 //////////////////////////////////////////
@@ -5159,60 +5113,55 @@ action_close_all_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
-  gtk_action_set_sensitive (action_in, FALSE);
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (action_in);
+  ACE_ASSERT (userData_in);
+
+  gtk_action_set_sensitive (action_in, FALSE);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-
+      mediafoundation_ui_cb_data_p =
+      static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
-
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
   int result = -1;
 
@@ -5233,24 +5182,24 @@ action_close_all_activate_cb (GtkAction* action_in,
   // closed the UDP "listener" ? --> toggle listen button
   enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      protocol = directshow_data_p->configuration->protocol;
+      protocol = directshow_ui_cb_data_p->configuration->protocol;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      protocol = mediafoundation_data_p->configuration->protocol;
+      protocol = mediafoundation_ui_cb_data_p->configuration->protocol;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  protocol = data_p->configuration->protocol;
+  protocol = ui_cb_data_p->configuration->protocol;
 #endif
   if (protocol == NET_TRANSPORTLAYER_UDP)
   {
@@ -5270,78 +5219,78 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 
   ACE_UNUSED_ARG (toggleAction_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
   Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_modulehandler_iterator =
-        directshow_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_data_p->configuration->streamConfiguration.end ());
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       directshow_connection_configuration_iterator =
-        directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_data_p->configuration->connectionConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+      static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_modulehandler_iterator =
-        mediafoundation_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       mediafoundation_connection_configuration_iterator =
-        mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_data_p->configuration->connectionConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_base_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState.builders.end ());
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5369,24 +5318,24 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   else
     protocol = NET_TRANSPORTLAYER_UDP;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      directshow_data_p->configuration->protocol = protocol;
+      directshow_ui_cb_data_p->configuration->protocol = protocol;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      mediafoundation_data_p->configuration->protocol = protocol;
+      mediafoundation_ui_cb_data_p->configuration->protocol = protocol;
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  protocol = data_p->configuration->protocol;
+  protocol = ui_cb_data_p->configuration->protocol;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5394,7 +5343,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     NULL;
   Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
     NULL;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -5414,7 +5363,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -5433,76 +5382,76 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         // listening on UDP ? --> stop
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_base_p->mediaFramework)
+        switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+            if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
               Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
+                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
                 connection_p->decrease ();
               } // end ELSE
-              directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+              directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
 
-            ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
+            ACE_ASSERT (directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
             itask_p =
-              directshow_data_p->configuration->signalHandlerConfiguration.listener;
+              directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             result =
-              directshow_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_data_p->configuration->listenerConfiguration);
+              directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_ui_cb_data_p->configuration->listenerConfiguration);
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
-            if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+            if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
               Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
+                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
                 connection_p->decrease ();
               } // end ELSE
-              mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+              mediafoundation_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
 
-            ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
+            ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
             itask_p =
-              mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+              mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             result =
-              mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_data_p->configuration->listenerConfiguration);
+              mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_ui_cb_data_p->configuration->listenerConfiguration);
             break;
           }
           default:
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_base_p->mediaFramework));
+                        ui_cb_data_base_p->mediaFramework));
             return;
           }
         } // end SWITCH
 #else
-        if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          data_p->configuration->handle = ACE_INVALID_HANDLE;
+          ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
+        ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
         itask_p =
-          data_p->configuration->signalHandlerConfiguration.listener;
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
         result =
-          data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration);
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (ui_cb_data_p->configuration->listenerConfiguration);
 #endif
         if (!result)
         {
@@ -5525,35 +5474,35 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         // listening on TCP ? --> stop
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_base_p->mediaFramework)
+        switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          { ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-            if (directshow_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+          { ACE_ASSERT (directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+            if (directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
               itask_p =
-              directshow_data_p->configuration->signalHandlerConfiguration.listener;
+              directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          { ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-            if (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+          { ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+            if (mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
               itask_p =
-                mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+                mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             break;
           }
           default:
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_base_p->mediaFramework));
+                        ui_cb_data_base_p->mediaFramework));
             return;
           }
         } // end SWITCH
 #else
-        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-        if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+        ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
+        if (ui_cb_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
           itask_p =
-            data_p->configuration->signalHandlerConfiguration.listener;
+            ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
 #endif
         if (itask_p)
         {
@@ -5566,35 +5515,35 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_base_p->mediaFramework)
+        switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+            if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
               Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
+                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
                 connection_p->decrease ();
               } // end ELSE
-              directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+              directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
-            if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+            if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
               Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
+                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
                 connection_p->decrease ();
               } // end ELSE
-              mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+              mediafoundation_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
             } // end IF
             break;
           }
@@ -5602,21 +5551,21 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_base_p->mediaFramework));
+                        ui_cb_data_base_p->mediaFramework));
             return;
           }
         } // end SWITCH
 #else
-        if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          data_p->configuration->handle = ACE_INVALID_HANDLE;
+          ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 #endif
 
@@ -5632,14 +5581,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           NULL;
         Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* mediafoundation_connection_p =
           NULL;
-        switch (data_base_p->mediaFramework)
+        switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
             inet_address =
               (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
             use_reactor =
-              (directshow_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+              (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
             Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
               directshow_connection_manager_p;
             ACE_ASSERT (iconnection_manager_p);
@@ -5668,7 +5617,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             inet_address =
               (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
             use_reactor =
-              (mediafoundation_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+              (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
             Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
               mediafoundation_connection_manager_p;
             ACE_ASSERT (iconnection_manager_p);
@@ -5696,24 +5645,24 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_base_p->mediaFramework));
+                        ui_cb_data_base_p->mediaFramework));
             return;
           }
         } // end SWITCH
 #else
         Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
-          data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
+          ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
         Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
           NULL;
         Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
-          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+          ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
         inet_address =
           (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         use_reactor =
-          (data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+          (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
@@ -5765,7 +5714,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           do
           {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-            switch (data_base_p->mediaFramework)
+            switch (ui_cb_data_base_p->mediaFramework)
             {
               case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
                 directshow_connection_p =
@@ -5779,7 +5728,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
               {
                 ACE_DEBUG ((LM_ERROR,
                             ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                            data_base_p->mediaFramework));
+                            ui_cb_data_base_p->mediaFramework));
                 return;
               }
             } // end SWITCH
@@ -5788,7 +5737,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-            switch (data_base_p->mediaFramework)
+            switch (ui_cb_data_base_p->mediaFramework)
             {
               case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
               {
@@ -5818,7 +5767,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
               {
                 ACE_DEBUG ((LM_ERROR,
                             ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                            data_base_p->mediaFramework));
+                            ui_cb_data_base_p->mediaFramework));
                 return;
               }
             } // end SWITCH
@@ -5845,24 +5794,24 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           return;
         } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (data_base_p->mediaFramework)
+        switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-            directshow_data_p->configuration->handle = handle;
+            directshow_ui_cb_data_p->configuration->handle = handle;
             break;
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-            mediafoundation_data_p->configuration->handle = handle;
+            mediafoundation_ui_cb_data_p->configuration->handle = handle;
             break;
           default:
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        data_base_p->mediaFramework));
+                        ui_cb_data_base_p->mediaFramework));
             return;
           }
         } // end SWITCH
 #else
-        data_p->configuration->handle = handle;
+        ui_cb_data_p->configuration->handle = handle;
 #endif
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
@@ -5896,20 +5845,20 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (progress_bar_p);
     gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), true);
 
-    ACE_ASSERT (!data_base_p->progressEventSourceId);
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock);
-      data_base_p->progressEventSourceId =
+    ACE_ASSERT (!ui_cb_data_base_p->progressEventSourceId);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock);
+      ui_cb_data_base_p->progressEventSourceId =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
-        //                 &data_p->progressData,
+        //                 &ui_cb_data_p->progressData,
         //                 NULL);
         g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                            // _LOW doesn't work (on Win32)
                             COMMON_UI_GTK_INTERVAL_DEFAULT_PROGRESSBAR_REFRESH, // ms (?)
                             idle_update_progress_target_cb,
-                            &data_base_p->progressData,
+                            &ui_cb_data_base_p->progressData,
                             NULL);
-      if (data_base_p->progressEventSourceId > 0)
-        data_base_p->eventSourceIds.insert (data_base_p->progressEventSourceId);
+      if (ui_cb_data_base_p->progressEventSourceId > 0)
+        ui_cb_data_base_p->UIState.eventSourceIds.insert (ui_cb_data_base_p->progressEventSourceId);
       else
       {
         ACE_DEBUG ((LM_ERROR,
@@ -5921,33 +5870,33 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   else
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (data_base_p->mediaFramework)
+    switch (ui_cb_data_base_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      { ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
+      { ACE_ASSERT (directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
         itask_p =
-          directshow_data_p->configuration->signalHandlerConfiguration.listener;
+          directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
+        ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
         itask_p =
-          mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+          mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
         break;
       }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    data_base_p->mediaFramework));
+                    ui_cb_data_base_p->mediaFramework));
         return;
       }
     } // end SWITCH
 #else
-    ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
+    ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
     itask_p =
-      data_p->configuration->signalHandlerConfiguration.listener;
+      ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
 #endif
     ACE_ASSERT (itask_p);
     try {
@@ -5958,35 +5907,35 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     } // end catch
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (data_base_p->mediaFramework)
+    switch (ui_cb_data_base_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
+            directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+        if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
+            mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
           } // end ELSE
-          mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          mediafoundation_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
         break;
       }
@@ -5994,21 +5943,21 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    data_base_p->mediaFramework));
+                    ui_cb_data_base_p->mediaFramework));
         return;
       }
     } // end SWITCH
 #else
-    if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+    if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
       Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
       if (connection_p)
       {
         connection_p->close ();
         connection_p->decrease ();
       } // end ELSE
-      data_p->configuration->handle = ACE_INVALID_HANDLE;
+      ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF
 #endif
 
@@ -6022,14 +5971,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     idle_reset_target_UI_cb (userData_in);
 
     // stop progress reporting
-    ACE_ASSERT (data_base_p->progressEventSourceId);
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock);
-      if (!g_source_remove (data_base_p->progressEventSourceId))
+    ACE_ASSERT (ui_cb_data_base_p->progressEventSourceId);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock);
+      if (!g_source_remove (ui_cb_data_base_p->progressEventSourceId))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    data_base_p->progressEventSourceId));
-      data_base_p->eventSourceIds.erase (data_base_p->progressEventSourceId);
-      data_base_p->progressEventSourceId = 0;
+                    ui_cb_data_base_p->progressEventSourceId));
+      ui_cb_data_base_p->UIState.eventSourceIds.erase (ui_cb_data_base_p->progressEventSourceId);
+      ui_cb_data_base_p->progressEventSourceId = 0;
     } // end lock scope
     GtkProgressBar* progress_bar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -6048,62 +5997,62 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_modulehandler_iterator =
-        directshow_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_data_p->configuration->streamConfiguration.end ());
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+      static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_modulehandler_iterator =
-        mediafoundation_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 #endif
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
@@ -6137,7 +6086,7 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   g_free (string_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       (*directshow_modulehandler_iterator).second.second.targetFileName =
@@ -6151,14 +6100,14 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   (*iterator).second.second.targetFileName = file_name;
 #endif
@@ -6169,62 +6118,62 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p);
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_modulehandler_iterator =
-        directshow_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directshow_data_p->configuration->streamConfiguration.end ());
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p);
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_modulehandler_iterator =
-        mediafoundation_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 #endif
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
@@ -6258,7 +6207,7 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   g_free (string_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       (*directshow_modulehandler_iterator).second.second.targetFileName =
@@ -6272,14 +6221,14 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   (*iterator).second.second.targetFileName = file_name;
 #endif
@@ -6320,16 +6269,16 @@ action_report_activate_cb (GtkAction* action_in,
 //  if (!gtk_toggle_button_get_active (toggleButton_in))
 //    return; // nothing to do
 //
-//  Test_I_GTK_CBData* data_p =
+//  Test_I_GTK_CBData* ui_cb_data_p =
 //    static_cast<Test_I_GTK_CBData*> (userData_in);
 //
 //  Common_UI_GTK_BuildersIterator_t iterator =
-//    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
-//  ACE_ASSERT (iterator != data_p->builders.end ());
+//  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p->configuration);
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 //
 //  GtkRadioButton* radio_button_p =
 //    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -6340,9 +6289,9 @@ action_report_activate_cb (GtkAction* action_in,
 //  ACE_ASSERT (string_p);
 //  if (ACE_OS::strcmp (string_p,
 //                      gtk_buildable_get_name (GTK_BUILDABLE (toggleButton_in))) == 0)
-//    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+//    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
 //  else
-//    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+//    ui_cb_data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
 //}
 
 //void
@@ -6351,16 +6300,16 @@ action_report_activate_cb (GtkAction* action_in,
 //{
 //  STREAM_TRACE (ACE_TEXT ("::spinbutton_port_value_changed_cb"));
 //
-//  Test_I_GTK_CBData* data_p =
+//  Test_I_GTK_CBData* ui_cb_data_p =
 //    static_cast<Test_I_GTK_CBData*> (userData_in);
 //
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
+//  ACE_ASSERT (ui_cb_data_p);
+//  ACE_ASSERT (ui_cb_data_p->configuration);
 //
 //  unsigned short port_number =
 //    static_cast<unsigned short> (gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in)));
-//  data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
+//  ui_cb_data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
 //                                                                          1);
 //} // spinbutton_port_value_changed_cb
 
@@ -6377,12 +6326,12 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  if (!data_p->pixelBuffer)
+  ACE_ASSERT (ui_cb_data_p);
+  if (!ui_cb_data_p->pixelBuffer)
     return FALSE; // --> widget has not been realized yet
 
   //GdkWindow* window_p = gtk_widget_get_window (widget_in);
@@ -6391,14 +6340,14 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   //gtk_widget_get_allocation (widget_in,
   //                           &allocation);
   gdk_cairo_set_source_pixbuf (context_in,
-                               data_p->pixelBuffer,
+                               ui_cb_data_p->pixelBuffer,
                                0.0, 0.0);
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState.lock, FALSE);
     // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an
     //                   X server running on a different host
     //gdk_draw_pixbuf (GDK_DRAWABLE (window_p), NULL,
-    //                 data_p->pixelBuffer,
+    //                 ui_cb_data_p->pixelBuffer,
     //                 0, 0, 0, 0, allocation.width, allocation.height,
     //                 GDK_RGB_DITHER_NONE, 0, 0);
     cairo_paint (context_in);
@@ -6416,16 +6365,16 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
     static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTextView* view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
@@ -6448,16 +6397,16 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
       static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   // retrieve about dialog handle
   GtkDialog* about_dialog =
@@ -6495,23 +6444,23 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
-  //struct Test_I_GTK_CBData* data_p =
+  //struct Test_I_GTK_CBData* ui_cb_data_p =
   //  static_cast<struct Test_I_GTK_CBData*> (userData_in);
   //// sanity check(s)
-  //ACE_ASSERT (data_p);
+  //ACE_ASSERT (ui_cb_data_p);
 
   //// step1: remove event sources
   //{
-  //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
+  //  ACE_Guard<ACE_Thread_Mutex> aGuard (ui_cb_data_p->UIState.lock);
 
-  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
-  //       iterator != data_p->eventSourceIds.end ();
+  //  for (Common_UI_GTKeventSourceIdsIterator_t iterator = ui_cb_data_p->UIState.eventSourceIds.begin ();
+  //       iterator != ui_cb_data_p->UIState.eventSourceIds.end ();
   //       iterator++)
   //    if (!g_source_remove (*iterator))
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
   //                  *iterator));
-  //  data_p->eventSourceIds.clear ();
+  //  ui_cb_data_p->UIState.eventSourceIds.clear ();
   //} // end lock scope
 
   // step2: initiate shutdown sequence
@@ -6543,16 +6492,16 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (rectangle_in);
-  struct Test_I_GTK_CBData* data_p =
+  struct Test_I_GTK_CBData* ui_cb_data_p =
       static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT(iterator != data_p->builders.end ());
+  ACE_ASSERT(iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkScrolledWindow* scrolled_window_p =
     GTK_SCROLLED_WINDOW (gtk_builder_get_object ((*iterator).second.second,
@@ -6571,35 +6520,35 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
 //  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -6608,15 +6557,15 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
 
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -6627,25 +6576,25 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
   Common_UI_GTK_BuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_p->builders.end ());
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
   GtkTreeIter iterator_2;
   if (!gtk_combo_box_get_active_iter (comboBox_in,
@@ -6659,6 +6608,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -6680,22 +6630,22 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string module_name;
   Stream_Module_t* module_p = NULL;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       //module_name =
       //  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);
       //module_p =
-      //  const_cast<Stream_Module_t*> (directshow_data_p->stream->find (module_name));
+      //  const_cast<Stream_Module_t*> (directshow_ui_cb_data_p->stream->find (module_name));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //if (mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader)
+      //if (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader)
       //{
-      //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
-      //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader =
+      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
+      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader =
       //    NULL;
       //} // end IF
       if ((*mediafoundation_modulehandler_iterator).second.second.mediaSource)
@@ -6719,27 +6669,27 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
-      //if (!Stream_Module_Device_Tools::getSourceReader (mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource,
+      //if (!Stream_Module_Device_Tools::getSourceReader (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource,
       //                                                  symbolic_link_p,
       //                                                  symbolic_link_size,
       //                                                  NULL,
       //                                                  NULL,
       //                                                  false,
-      //                                                  mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader))
+      //                                                  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader))
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
-      //              ACE_TEXT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
-      //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
-      //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
+      //              ACE_TEXT (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
+      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
+      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
       //  return;
       //} // end IF
-      //ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.sourceReader);
+      //ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader);
 
       module_name =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
       module_p =
-        const_cast<Stream_Module_t*> (mediafoundation_data_p->stream->find (module_name));
+        const_cast<Stream_Module_t*> (mediafoundation_ui_cb_data_p->stream->find (module_name));
       if (!module_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -6753,7 +6703,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -6761,13 +6711,13 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   Test_I_Stream_MediaFoundation_CamSource* mediafoundation_source_impl_p = NULL;
   Test_I_Stream_DirectShow_CamSource* directshow_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (directshow_data_p->streamConfiguration)
+      if (directshow_ui_cb_data_p->streamConfiguration)
       {
-        directshow_data_p->streamConfiguration->Release (); directshow_data_p->streamConfiguration = NULL;
+        directshow_ui_cb_data_p->streamConfiguration->Release (); directshow_ui_cb_data_p->streamConfiguration = NULL;
       } // end IF
       if ((*directshow_modulehandler_iterator).second.second.builder)
       {
@@ -6779,7 +6729,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                                                                    CLSID_VideoInputDeviceCategory,
                                                                    (*directshow_modulehandler_iterator).second.second.builder,
                                                                    buffer_negotiation_p,
-                                                                   directshow_data_p->streamConfiguration,
+                                                                   directshow_ui_cb_data_p->streamConfiguration,
                                                                    (*directshow_stream_iterator).second.configuration_.graphLayout))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -6789,7 +6739,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
       ACE_ASSERT (buffer_negotiation_p);
-      ACE_ASSERT (directshow_data_p->streamConfiguration);
+      ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
       buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
       break;
     }
@@ -6840,7 +6790,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.inputFormat);
@@ -6852,7 +6802,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       result =
@@ -6862,7 +6812,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_INTERLACE_MODE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       result =
@@ -6873,7 +6823,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFSetAttributeRatio(MF_MT_PIXEL_ASPECT_RATIO): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       break;
@@ -6882,34 +6832,34 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   int result_3 = -1;
-  if (v4l2_data_p->fileDescriptor != -1)
+  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
   {
-    result_3 = v4l2_close (v4l2_data_p->fileDescriptor);
+    result_3 = v4l2_close (v4l2_ui_cb_data_p->fileDescriptor);
     if (result_3 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4l2_data_p->fileDescriptor));
-    v4l2_data_p->fileDescriptor = -1;
+                  v4l2_ui_cb_data_p->fileDescriptor));
+    v4l2_ui_cb_data_p->fileDescriptor = -1;
   } // end IFs
-  ACE_ASSERT (v4l2_data_p->fileDescriptor == -1);
+  ACE_ASSERT (v4l2_ui_cb_data_p->fileDescriptor == -1);
   Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
-      v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfigurations.end ());
+      v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   int open_mode =
       (((*iterator_4).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                     : O_RDONLY);
-  v4l2_data_p->fileDescriptor = v4l2_open (device_identifier_string.c_str (),
+  v4l2_ui_cb_data_p->fileDescriptor = v4l2_open (device_identifier_string.c_str (),
                                            open_mode);
-  if (v4l2_data_p->fileDescriptor == -1)
+  if (v4l2_ui_cb_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
@@ -6920,17 +6870,17 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      result_2 = load_formats (directshow_data_p->streamConfiguration,
+      result_2 = load_formats (directshow_ui_cb_data_p->streamConfiguration,
                                list_store_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+      //if (!load_formats (ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader,
       result_2 =
         load_formats ((*mediafoundation_modulehandler_iterator).second.second.mediaSource,
                       list_store_p);
@@ -6940,12 +6890,12 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  result_2 = load_formats (v4l2_data_p->fileDescriptor,
+  result_2 = load_formats (v4l2_ui_cb_data_p->fileDescriptor,
                            list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -6982,30 +6932,30 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -7014,12 +6964,12 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -7030,26 +6980,26 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator_2 != data_p->builders.end ());
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->UIState.builders.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (comboBox_in,
@@ -7067,6 +7017,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -7092,20 +7043,20 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { 
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->streamConfiguration);
+      ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
       //struct _AMMediaType* media_type_p = NULL;
       //result_2 =
-      //  directshow_data_p->streamConfiguration->GetFormat (&media_type_p);
+      //  directshow_ui_cb_data_p->streamConfiguration->GetFormat (&media_type_p);
       //if (FAILED (result))
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       //  return;
       //} // end IF
       //ACE_ASSERT (media_type_p);
@@ -7114,7 +7065,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       //  GUID_s;
 
       result =
-        load_resolutions (directshow_data_p->streamConfiguration,
+        load_resolutions (directshow_ui_cb_data_p->streamConfiguration,
                           GUID_s,
                           list_store_p);
       break;
@@ -7131,7 +7082,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
 
@@ -7146,7 +7097,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7155,7 +7106,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       format_i;
 
   result =
-    load_resolutions (v4l2_data_p->fileDescriptor,
+    load_resolutions (v4l2_ui_cb_data_p->fileDescriptor,
                       format_i,
                       list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7184,30 +7135,30 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -7216,12 +7167,12 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -7232,26 +7183,26 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
-    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_base_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator_2 != data_base_p->builders.end ());
+  ACE_ASSERT (iterator_2 != ui_cb_data_base_p->UIState.builders.end ());
 
   GtkTreeIter iterator_3;
   GtkComboBox* combo_box_p =
@@ -7273,6 +7224,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -7304,6 +7256,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
   g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -7326,21 +7279,21 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  switch (data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { 
       // sanity check(s)
       //ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
-      ACE_ASSERT (directshow_data_p->streamConfiguration);
+      ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
 
       //struct _AMMediaType* media_type_p = NULL;
-      //result_2 = directshow_data_p->streamConfiguration->GetFormat (&media_type_p);
+      //result_2 = directshow_ui_cb_data_p->streamConfiguration->GetFormat (&media_type_p);
       //if (FAILED (result_2))
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       //  return;
       //} // end IF
       //ACE_ASSERT (media_type_p);
@@ -7374,7 +7327,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 
       } // end ELSE
 
-      result = load_rates (directshow_data_p->streamConfiguration,
+      result = load_rates (directshow_ui_cb_data_p->streamConfiguration,
                            GUID_s,
                            width,
                            list_store_p);
@@ -7392,7 +7345,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
       //if ((GUID_s == FORMAT_VideoInfo) ||
@@ -7406,7 +7359,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
 
@@ -7418,7 +7371,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%d): \"%s\", returning\n"),
                     width * height * 4,
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
       result_2 =
@@ -7430,7 +7383,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFSetAttributeSize(%d,%d): \"%s\", returning\n"),
                     width, height,
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
 
@@ -7446,7 +7399,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7454,7 +7407,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   (*modulehandler_iterator).second.second.inputFormat.fmt.pix.width = width;
   (*modulehandler_iterator).second.second.inputFormat.fmt.pix.height = height;
 
-  result = load_rates (v4l2_data_p->fileDescriptor,
+  result = load_rates (v4l2_ui_cb_data_p->fileDescriptor,
                        format_i,
                        width, height,
                        list_store_p);
@@ -7485,31 +7438,31 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_rate_changed_cb"));
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -7518,12 +7471,12 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -7534,26 +7487,26 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersIterator_t iterator_2 =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator_2 != data_p->builders.end ());
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->UIState.builders.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (comboBox_in,
@@ -7572,7 +7525,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value, value_2;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_UINT);
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
   g_value_init (&value_2, G_TYPE_UINT);
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
@@ -7590,20 +7545,20 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result = E_FAIL;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { 
       // sanity check(s)
       //ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
-      ACE_ASSERT (directshow_data_p->streamConfiguration);
+      ACE_ASSERT (directshow_ui_cb_data_p->streamConfiguration);
       //struct _AMMediaType* media_type_p = NULL;
-      //HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
+      //HRESULT result = ui_cb_data_p->streamConfiguration->GetFormat (&media_type_p);
       //if (FAILED (result))
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       //  return;
       //} // end IF
       //ACE_ASSERT (media_type_p);
@@ -7643,7 +7598,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
       ACE_ASSERT (format_type == MFMediaType_Video);
@@ -7651,7 +7606,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
       //struct tagPROPVARIANT property_s;
       //PropVariantInit (&property_s);
       //result =
-      //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->SetItem (MF_MT_FRAME_RATE,
+      //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.format->SetItem (MF_MT_FRAME_RATE,
       //                                                                                     property_s);
       result =
         MFSetAttributeSize ((*mediafoundation_modulehandler_iterator).second.second.inputFormat,
@@ -7663,7 +7618,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
                     //ACE_TEXT ("failed to IMFMediaType::SetItem(MF_MT_FRAME_RATE): \"%s\", returning\n"),
                     ACE_TEXT ("failed to MFSetAttributeSize(MF_MT_FRAME_RATE,%u): \"%s\", returning\n"),
                     frame_rate,
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
         //// clean up
         //PropVariantClear (&property_s);
@@ -7677,7 +7632,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7686,8 +7641,8 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   (*modulehandler_iterator).second.second.frameRate.denominator =
     frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
-  set_capture_format (data_p);
-  update_buffer_size (data_p);
+  set_capture_format (ui_cb_data_p);
+  update_buffer_size (ui_cb_data_p);
 } // combobox_rate_changed_cb
 
 #if GTK_CHECK_VERSION(3,0,0)
@@ -7700,34 +7655,34 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (allocation_in);
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -7736,14 +7691,14 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -7754,31 +7709,31 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_data_p->configuration);
+  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
-  //if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
+  //if (!ui_cb_data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
   //  return;
 
   //Common_UI_GTK_BuildersIterator_t iterator =
-  //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //  ui_cb_data_p->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
-  //ACE_ASSERT (iterator != data_p->builders.end ());
+  //ACE_ASSERT (iterator != ui_cb_data_p->UIState.builders.end ());
 
 
   //GtkDrawingArea* drawing_area_p =
@@ -7790,10 +7745,10 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
   //gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
   //                           &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {//ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+    {//ACE_ASSERT (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration->windowController);
       (*directshow_modulehandler_iterator).second.second.area.bottom =
         allocation_in->height;
       (*directshow_modulehandler_iterator).second.second.area.left =
@@ -7804,16 +7759,16 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
         allocation_in->y;
 
       //HRESULT result =
-      //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+      //  ui_cb_data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom);
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom,
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7832,7 +7787,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return;
     }
   } // end SWITCH
@@ -7850,33 +7805,33 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (allocation_in);
 
-  struct Test_I_CamStream_GTK_CBData* cb_data_base_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* cb_ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (cb_data_base_p);
+  ACE_ASSERT (cb_ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (cb_data_base_p->mediaFramework)
+  switch (cb_ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -7885,14 +7840,14 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -7903,31 +7858,31 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  cb_data_base_p->mediaFramework));
+                  cb_ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_GTK_CBData* data_p =
-    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (cb_data_base_p->mediaFramework)
+  switch (cb_ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+    { //ACE_ASSERT (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration->windowController);
       //gint x, y;
       //gtk_widget_translate_coordinates (widget_in,
       //                                  gtk_widget_get_toplevel (widget_in),
@@ -7942,16 +7897,16 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
         allocation_in->y + allocation_in->height;
 
       //HRESULT result =
-      //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+      //  ui_cb_data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom);
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom,
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -7970,14 +7925,14 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  cb_data_base_p->mediaFramework));
+                  cb_ui_cb_data_base_p->mediaFramework));
       return;
     }
   } // end SWITCH
 #else
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   (*iterator).second.second.area = *allocation_in;
 #endif
@@ -7992,34 +7947,34 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (event_in);
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (ui_cb_data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Source_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
 
   Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
   Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Source_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
       directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+        directshow_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_ui_cb_data_p->configuration->streamConfigurations.end ());
       directshow_modulehandler_iterator =
         (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
@@ -8028,14 +7983,14 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
 
       mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+        mediafoundation_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfigurations.end ());
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
@@ -8046,30 +8001,30 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_data_p);
-  ACE_ASSERT (v4l2_data_p->configuration);
+  ACE_ASSERT (v4l2_ui_cb_data_p);
+  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
+    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+    { //ACE_ASSERT (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration->windowController);
       (*directshow_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
       (*directshow_modulehandler_iterator).second.second.area.left =
@@ -8080,16 +8035,16 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
         event_in->configure.y;
 
       //HRESULT result =
-      //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+      //  ui_cb_data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom);
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom,
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8108,7 +8063,7 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_p->mediaFramework));
+                  ui_cb_data_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -8128,86 +8083,69 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_target_cb"));
 
-  ACE_UNUSED_ARG (widget_in);
-
-  struct Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
-
   // sanity check(s)
+  ACE_UNUSED_ARG (widget_in);
   ACE_ASSERT (event_in);
-  ACE_ASSERT (data_p);
+  struct Test_I_CamStream_UI_CBData* cb_ui_cb_data_base_p =
+    static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_ui_cb_data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+  struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
       NULL;
-
-  Test_I_Source_DirectShow_StreamConfigurationsIterator_t directshow_stream_iterator;
-  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
-  Test_I_Source_MediaFoundation_StreamConfigurationsIterator_t mediafoundation_stream_iterator;
-  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (data_p->mediaFramework)
+  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+  switch (cb_ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_data_p =
-        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      directshow_ui_cb_data_p =
+        static_cast<struct Test_I_Target_DirectShow_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (directshow_data_p->configuration);
-
-      directshow_stream_iterator =
-        directshow_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_data_p->configuration->streamConfigurations.end ());
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_modulehandler_iterator =
-        (*directshow_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != (*directshow_stream_iterator).second.end ());
-
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_data_p =
-        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
       // sanity check(s)
-      ACE_ASSERT (mediafoundation_data_p->configuration);
-
-      mediafoundation_stream_iterator =
-        mediafoundation_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_data_p->configuration->streamConfigurations.end ());
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       mediafoundation_modulehandler_iterator =
-        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
-
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_p->mediaFramework));
+                  cb_ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Target_V4L2_GTK_CBData* v4l2_ui_cb_data_p =
+    static_cast<struct Test_I_Target_V4L2_GTK_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_data_p);
-  ACE_ASSERT (v4l2_data_p->configuration);
-
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
-    (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
+  ACE_ASSERT (v4l2_ui_cb_data_p);
+  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
+  Test_I_Target_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    v4l2_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != v4l2_ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (data_p->mediaFramework)
+  switch (cb_ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+    { //ACE_ASSERT (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration->windowController);
       (*directshow_modulehandler_iterator).second.second.area.bottom =
         event_in->configure.height;
       (*directshow_modulehandler_iterator).second.second.area.left =
@@ -8218,16 +8156,16 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
         event_in->configure.y;
 
       //HRESULT result =
-      //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-      //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+      //  ui_cb_data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right,
+      //                                                                                         directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom);
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-      //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.left, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.top,
+      //              directshow_ui_cb_data_p->configuration->moduleHandlerConfiguration.area.right, ui_cb_data_p->configuration->moduleHandlerConfiguration.area.bottom,
+      //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8246,7 +8184,7 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  data_p->mediaFramework));
+                  cb_ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH
@@ -8271,11 +8209,11 @@ filechooserdialog_target_cb (GtkFileChooser* chooser_in,
 
   ACE_UNUSED_ARG (userData_in);
 
-//  Test_I_GTK_CBData* data_p =
+//  Test_I_GTK_CBData* ui_cb_data_p =
 //    static_cast<Test_I_GTK_CBData*> (userData_in);
 
 //  // sanity check(s)
-//  ACE_ASSERT (data_p);
+//  ACE_ASSERT (ui_cb_data_p);
 
   gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
                        GTK_RESPONSE_ACCEPT);

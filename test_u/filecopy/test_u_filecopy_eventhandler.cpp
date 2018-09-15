@@ -29,9 +29,10 @@
 
 #include "stream_macros.h"
 
+#include "test_u_filecopy_common.h"
 #include "test_u_filecopy_defines.h"
 
-Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (struct Stream_Filecopy_GTK_CBData* CBData_in)
+Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (struct Stream_Filecopy_UI_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
@@ -56,7 +57,7 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionId_in,
   sessionData_ =
     &const_cast<struct Stream_Filecopy_SessionData&> (sessionData_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     if (sessionData_->lock)
     {
       result = sessionData_->lock->acquire ();
@@ -78,16 +79,16 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionId_in,
 //  //Common_UI_GladeXMLsIterator_t iterator =
 //  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 //  Common_UI_GTKBuildersIterator_t iterator =
-//    CBData_->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//    CBData_->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
 //  // sanity check(s)
 //  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-//  ACE_ASSERT (iterator != CBData_->builders.end ());
+//  ACE_ASSERT (iterator != CBData_->UIState.builders.end ());
 
 //  gdk_threads_enter ();
 //  gdk_threads_leave ();
 
-    CBData_->eventStack.push (COMMON_UI_EVENT_STARTED);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
 }
 
@@ -119,11 +120,11 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
   Common_UI_GTK_BuildersIterator_t iterator;
   GtkTable* table_p = NULL;
   GtkAction* action_p = NULL;
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     iterator =
-      CBData_->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+      CBData_->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
-    ACE_ASSERT (iterator != CBData_->builders.end ());
+    ACE_ASSERT (iterator != CBData_->UIState.builders.end ());
 
     gdk_threads_enter ();
     table_p =
@@ -144,7 +145,7 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
     gtk_action_set_sensitive (action_p, FALSE);
     gdk_threads_leave ();
 
-    CBData_->eventStack.push (COMMON_UI_EVENT_FINISHED);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
 
   if (sessionData_)
@@ -162,9 +163,9 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     CBData_->progressData.copied += message_in.total_length ();
-    CBData_->eventStack.push (COMMON_UI_EVENT_DATA);
+    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
 }
 void
@@ -182,7 +183,7 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-    CBData_->eventStack.push (event_e);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+    CBData_->UIState.eventStack.push (event_e);
   } // end lock scope
 }

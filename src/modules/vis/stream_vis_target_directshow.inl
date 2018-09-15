@@ -18,8 +18,29 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <dshow.h>
+///////////////////////////////////////////////////////////////////////////
+// Define OLE Automation constants
+///////////////////////////////////////////////////////////////////////////
+#ifndef OATRUE
+#define OATRUE (-1)
+#endif // OATRUE
+#ifndef OAFALSE
+#define OAFALSE (0)
+#endif // OAFALSE
+//#include <DShow.h>
 #include <Mferror.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+//#ifndef OUR_GUID_ENTRY
+//    #define OUR_GUID_ENTRY(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+//    DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8);
+//#endif
+//OUR_GUID_ENTRY(FORMAT_VideoInfo,
+//0x05589f80, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a)
+#define UUIDS_H
+#include <uuids.h>
+#endif // UUIDS_H
 #include <vfwmsgs.h>
 #include <WinUser.h>
 
@@ -100,14 +121,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
     result = IVideoWindow_->put_MessageDrain (NULL);
     if (unlikely (FAILED (result)))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
     IVideoWindow_->Release ();
   } // end IF
@@ -158,7 +179,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IVideoWindow::get_FullScreenMode(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     is_fullscreen = (fullscreen_mode == OATRUE);
@@ -175,7 +196,7 @@ get_mode:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::GetFullscreen(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     is_fullscreen = fullscreen_b;
@@ -191,7 +212,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OAFALSE): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
 
@@ -201,7 +222,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
 
@@ -211,7 +232,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(OATRUE): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
     } // end IF
@@ -233,7 +254,7 @@ get_mode:
                     ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
                     inherited::mod_->name (),
                     window_,
-                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
         return;
       } // end IF
 
@@ -243,7 +264,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(FALSE): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
     } // end ELSE
@@ -260,7 +281,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
 
@@ -270,7 +291,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OATRUE): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
     } // end IF
@@ -292,7 +313,7 @@ get_mode:
                     ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
                     inherited::mod_->name (),
                     window_,
-                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
         return;
       } // end IF
 
@@ -302,7 +323,7 @@ get_mode:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(TRUE): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
     } // end ELSE
@@ -413,10 +434,10 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       // step2: assemble display format
       height =
         (inherited::configuration_->area.bottom -
-          inherited::configuration_->area.top);
+         inherited::configuration_->area.top);
       width =
         (inherited::configuration_->area.right -
-          inherited::configuration_->area.left);
+         inherited::configuration_->area.left);
 
       ACE_ASSERT (session_data_r.inputFormat);
       if (unlikely (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*session_data_r.inputFormat,
@@ -533,7 +554,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       }
       ACE_ASSERT (window_);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: window handle: %@\n"),
+                  ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
                   window_));
       Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
@@ -566,7 +587,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaControl::GetState(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error;
       } // end IF
       switch (static_cast<enum _FilterState> (graph_state))
@@ -581,7 +602,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", aborting\n"),
                         inherited::mod_->name (),
-                        ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                        ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
             goto error;
           } // end IF
           else if (result_2 == S_FALSE)
@@ -596,7 +617,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
             //  ACE_DEBUG ((LM_ERROR,
             //              ACE_TEXT ("%s: failed to IMediaControl::GetState(): \"%s\", aborting\n"),
             //              inherited::mod_->name (),
-            //              ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+            //              ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
             //  goto error;
             //} // end IF
             //ACE_ASSERT (graph_state == State_Running);
@@ -660,7 +681,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       } // end IF
 
       if (media_type_p)
@@ -676,7 +697,7 @@ error:
                       ACE_TEXT ("%s: failed to DestroyWindow(%@): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       window_,
-                      ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
         closeWindow_ = false;
         window_ = NULL;
       } // end IF
@@ -714,7 +735,7 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMediaControl::GetState(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error_2;
       } // end IF
       if ((filter_state == State_Paused) ||
@@ -728,7 +749,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error_2;
         } // end IF
       } // end IF
@@ -755,7 +776,7 @@ error:
                     inherited::mod_->name (),
                     (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
                                       : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error_2;
       } // end IF
       pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
@@ -767,7 +788,7 @@ error:
                     inherited::mod_->name (),
                     (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
                                       : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         filter_p->Release (); filter_p = NULL;
         goto error_2;
       } // end IF
@@ -782,7 +803,7 @@ error:
                     (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
                                       : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         pin_p->Release (); pin_p = NULL;
         goto error_2;
       } // end IF
@@ -866,7 +887,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
           goto error_2;
         } // end IF
       } // end IF
@@ -889,7 +910,7 @@ error_2:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         break;
       } // end IF
       COM_initialized = true;
@@ -909,28 +930,28 @@ error_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
         result_2 = IVideoWindow_->put_Visible (OAFALSE);
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IVideoWindow::put_Visible(OAFALSE): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_MessageDrain (NULL);
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(NULL): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_Owner (NULL);
         if (unlikely (FAILED (result_2)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
         IVideoWindow_->Release (); IVideoWindow_ = NULL;
       } // end IF
@@ -941,7 +962,7 @@ error_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(FALSE): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
         IMFVideoDisplayControl_->Release (); IMFVideoDisplayControl_ = NULL;
       } // end ELSEIF
@@ -965,7 +986,7 @@ error_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         inherited::IMediaEventEx_->Release (); inherited::IMediaEventEx_ = NULL;
       } // end IF
 
@@ -982,7 +1003,7 @@ error_2:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         inherited::IMediaControl_->Release (); inherited::IMediaControl_ = NULL;
       } // end IF
 
@@ -1001,7 +1022,7 @@ error_2:
                       ACE_TEXT ("%s: failed to DestroyWindow(%@): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       window_,
-                      ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
         window_ = NULL;
         closeWindow_ = false;
       } // end IF
@@ -1051,14 +1072,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
       result = IVideoWindow_->put_Owner (NULL);
       if (unlikely (FAILED (result)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 
       IVideoWindow_->Release (); IVideoWindow_ = NULL;
     } // end IF
@@ -1142,9 +1163,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
   ACE_ASSERT (video_info_header_p);
 
-  //if (windowHandle_inout)
-  //  goto continue_;
-
+  if (windowHandle_inout)
+    goto continue_;
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
   HMONITOR monitor_h = NULL;
@@ -1155,7 +1175,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDisplayDevice(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (monitor_h);
@@ -1170,7 +1190,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
-                ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     goto error;
   } // end IF
   // *NOTE*: center new windows on the display device
@@ -1180,10 +1200,10 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT ((monitor_info_ex_s.rcWork.bottom - 0) >= video_info_header_p->bmiHeader.biHeight);
   delta_x =
     (fullScreen_in ? 0
-                    : (static_cast<unsigned int> ((monitor_info_ex_s.rcWork.right - monitor_info_ex_s.rcWork.left) - video_info_header_p->bmiHeader.biWidth) / 2));
+                   : (static_cast<unsigned int> ((monitor_info_ex_s.rcWork.right - monitor_info_ex_s.rcWork.left) - video_info_header_p->bmiHeader.biWidth) / 2));
   delta_y =
     (fullScreen_in ? 0
-                    : (static_cast<unsigned int> ((monitor_info_ex_s.rcWork.bottom - monitor_info_ex_s.rcWork.top) - video_info_header_p->bmiHeader.biHeight) / 2));
+                   : (static_cast<unsigned int> ((monitor_info_ex_s.rcWork.bottom - monitor_info_ex_s.rcWork.top) - video_info_header_p->bmiHeader.biHeight) / 2));
 
   DWORD window_style = (WS_CAPTION     |
                         WS_MAXIMIZEBOX |
@@ -1192,32 +1212,38 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                         WS_SIZEBOX     |
                         WS_SYSMENU     |
                         WS_VISIBLE);
-  DWORD window_style_ex = (WS_EX_APPWINDOW      |
-                            WS_EX_RIGHTSCROLLBAR// |
-                            /*WS_EX_WINDOWEDGE*/);
+  DWORD window_style_ex = (WS_EX_APPWINDOW     |
+                           WS_EX_RIGHTSCROLLBAR// |
+                           /*WS_EX_WINDOWEDGE*/);
   windowHandle_inout =
-    CreateWindowEx (window_style_ex,                                 // dwExStyle
-                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                   // lpClassName
-                    ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()), // lpWindowName
-                    window_style,                                    // dwStyle
+    CreateWindowEx (window_style_ex,                                  // dwExStyle
+#if defined (UNICODE)
+                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+                    ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
+#else
+                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                    ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
+#endif // UNICODE
+                    window_style,                                     // dwStyle
                     //CW_USEDEFAULT, CW_USEDEFAULT,                    // x,y
-                    delta_x, delta_y,                                // x,y
-                    video_info_header_p->bmiHeader.biWidth, video_info_header_p->bmiHeader.biHeight, // width, height
-                    //parent_window_handle,                          // hWndParent
-                    NULL,                                            // hWndParent
-                    NULL,                                            // hMenu
-                    GetModuleHandle (NULL),                          // hInstance
-                    NULL);                                           // lpParam
+                    delta_x, delta_y,                                 // x,y
+                    video_info_header_p->bmiHeader.biWidth,           // width
+                    video_info_header_p->bmiHeader.biHeight,          // height
+                    //parent_window_handle,                           // hWndParent
+                    NULL,                                             // hWndParent
+                    NULL,                                             // hMenu
+                    GetModuleHandle (NULL),                           // hInstance
+                    NULL);                                            // lpParam
   if (unlikely (!windowHandle_inout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CreateWindow(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: opened display window (size: %dx%d, handle: %@)\n"),
+              ACE_TEXT ("%s: opened display window (size: %dx%d, handle: 0x%@)\n"),
               inherited::mod_->name (),
               video_info_header_p->bmiHeader.biWidth, video_info_header_p->bmiHeader.biHeight,
               windowHandle_inout));
@@ -1226,13 +1252,13 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   if (unlikely (!result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to GetClientRect(%@): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to GetClientRect(0x%@): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 windowHandle_inout,
-                ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     goto error;
   } // end IF
-//continue_:
+continue_:
   ACE_ASSERT (windowHandle_inout);
 
   result =
@@ -1242,7 +1268,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaEventEx): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (imedia_event_ex_p);
@@ -1256,11 +1282,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(0x%@): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 windowHandle_inout,
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: window %@ will receive DirectShow messages (id: 0x%x)\n"),
+              ACE_TEXT ("%s: window handle 0x%@ will receive DirectShow messages (id: 0x%x)\n"),
               inherited::mod_->name (),
               windowHandle_inout,
               window_message));
@@ -1276,7 +1302,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (ibase_filter_p);
@@ -1303,7 +1329,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetVideoWindow(%@): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   windowHandle_inout,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -1314,7 +1340,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetAspectRatioMode(MFVideoARMode_PreservePicture): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     struct tagRECT destination_rectangle_s;
@@ -1333,7 +1359,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetVideoPosition(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   windowHandle_inout,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = IMFVideoDisplayControl_out->SetFullscreen (fullScreen_in);
@@ -1342,129 +1368,137 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
   } // end IF
-  else
+  else if (InlineIsEqualGUID (CLSID_VideoMixingRenderer, GUID_s) ||
+           InlineIsEqualGUID (CLSID_VideoRendererDefault, GUID_s))
   { // set up windowless mode ?
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0501) // _WIN32_WINNT_WINXP
-    ACE_ASSERT (false); // *TODO*
-    ACE_NOTSUP_RETURN (false);
-    ACE_NOTREACHED (return false;);
+    //ACE_ASSERT (false); // *TODO*
+    //ACE_NOTSUP_RETURN (false);
+    //ACE_NOTREACHED (return false;);
 #elif COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-    if (InlineIsEqualGUID (CLSID_VideoMixingRenderer, GUID_s) ||
-        InlineIsEqualGUID (CLSID_VideoRendererDefault, GUID_s))
-    {
-      IVMRFilterConfig* ivmr_filter_config_p = NULL;
-      result =
-        ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_filter_config_p));
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRFilterConfig): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (ivmr_filter_config_p);
-      result = ivmr_filter_config_p->SetRenderingMode (VMRMode_Windowless);
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVMRFilterConfig::SetRenderingMode(VMRMode_Windowless): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
-        goto error;
-      } // end IF
-      ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
-      IVMRWindowlessControl* ivmr_windowless_control_p = NULL;
-      result =
-        ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_windowless_control_p));
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRWindowlessControl): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (ivmr_windowless_control_p);
-      result = ivmr_windowless_control_p->SetVideoClippingWindow (windowHandle_inout);
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVMRWindowlessControl::SetVideoClippingWindow(%@): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    windowHandle_inout,
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
-        goto error;
-      } // end IF
-      ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
-    } // end IF
-    else if (InlineIsEqualGUID (CLSID_VideoMixingRenderer9, GUID_s))
-    {
-      IVMRFilterConfig9* ivmr_filter_config_p = NULL;
-      result =
-        ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_filter_config_p));
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRFilterConfig9): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (ivmr_filter_config_p);
-      result = ivmr_filter_config_p->SetRenderingMode (VMR9Mode_Windowless);
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVMRFilterConfig::SetRenderingMode(VMR9Mode_Windowless): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
-        goto error;
-      } // end IF
-      ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
-      IVMRWindowlessControl9* ivmr_windowless_control_p = NULL;
-      result =
-        ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_windowless_control_p));
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRWindowlessControl9): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (ivmr_windowless_control_p);
-      result = ivmr_windowless_control_p->SetVideoClippingWindow (windowHandle_inout);
-      if (unlikely (FAILED (result)))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVMRWindowlessControl9::SetVideoClippingWindow(%@): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-                    windowHandle_inout,
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
-        goto error;
-      } // end IF
-      ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
-    } // end ELSEIF
-#else
+    IVMRFilterConfig* ivmr_filter_config_p = NULL;
     result =
-      IGraphBuilder_in->QueryInterface (IID_PPV_ARGS (&IVideoWindow_out));
+      ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_filter_config_p));
     if (unlikely (FAILED (result)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IVideoWindow): \"%s\", aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRFilterConfig): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
+    ACE_ASSERT (ivmr_filter_config_p);
+    result = ivmr_filter_config_p->SetRenderingMode (VMRMode_Windowless);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVMRFilterConfig::SetRenderingMode(VMRMode_Windowless): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
+      goto error;
+    } // end IF
+    ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
+    IVMRWindowlessControl* ivmr_windowless_control_p = NULL;
+    result =
+      ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_windowless_control_p));
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRWindowlessControl): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (ivmr_windowless_control_p);
+    result = ivmr_windowless_control_p->SetVideoClippingWindow (windowHandle_inout);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVMRWindowlessControl::SetVideoClippingWindow(%@): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  windowHandle_inout,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
+      goto error;
+    } // end IF
+    ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (CLSID_VideoMixingRenderer9, GUID_s))
+  {
+    IVMRFilterConfig9* ivmr_filter_config_p = NULL;
+    result =
+      ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_filter_config_p));
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRFilterConfig9): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (ivmr_filter_config_p);
+    result = ivmr_filter_config_p->SetRenderingMode (VMR9Mode_Windowless);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVMRFilterConfig::SetRenderingMode(VMR9Mode_Windowless): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
+      goto error;
+    } // end IF
+    ivmr_filter_config_p->Release (); ivmr_filter_config_p = NULL;
+    IVMRWindowlessControl9* ivmr_windowless_control_p = NULL;
+    result =
+      ibase_filter_p->QueryInterface (IID_PPV_ARGS (&ivmr_windowless_control_p));
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVMRWindowlessControl9): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (ivmr_windowless_control_p);
+    result = ivmr_windowless_control_p->SetVideoClippingWindow (windowHandle_inout);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVMRWindowlessControl9::SetVideoClippingWindow(%@): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+                  windowHandle_inout,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
+      goto error;
+    } // end IF
+    ivmr_windowless_control_p->Release (); ivmr_windowless_control_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0501)
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (CLSID_VideoRenderer, GUID_s)) {}
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid/unknown renderer filter (was: %s), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_s).c_str ())));
+    goto error;
+  } // end ELSE
+
+  result =
+    IGraphBuilder_in->QueryInterface (IID_PPV_ARGS (&IVideoWindow_out));
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IVideoWindow): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    goto error;
+  } // end IF
 //result =
 //  ibase_filter_p->QueryInterface (IID_PPV_ARGS (&IVideoWindow_out));
 //if (unlikely (FAILED (result)))
@@ -1472,86 +1506,85 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 //  ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVideoWindow): \"%s\", aborting\n"),
 //              ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
-//              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+//              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //  goto error;
 //} // end IF
-    ACE_ASSERT (IVideoWindow_out);
+  ACE_ASSERT (IVideoWindow_out);
 
-    result =
-      IVideoWindow_out->put_Owner (reinterpret_cast<OAHWND> (windowHandle_inout));
-    // *NOTE*: "...For the Filter Graph Manager's implementation, if the graph
-    //         does not contain a video renderer filter, all methods return
-    //         E_NOINTERFACE..."
+  result =
+    IVideoWindow_out->put_Owner (reinterpret_cast<OAHWND> (windowHandle_inout));
+  // *NOTE*: "...For the Filter Graph Manager's implementation, if the graph
+  //         does not contain a video renderer filter, all methods return
+  //         E_NOINTERFACE..."
+  if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(0x%@): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                windowHandle_inout,
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+
+  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPSIBLINGS);
+  if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  result =
+    IVideoWindow_out->SetWindowPosition (windowArea_inout.left,
+                                          windowArea_inout.top,
+                                          (windowArea_inout.right -
+                                          windowArea_inout.left),
+                                          (windowArea_inout.bottom -
+                                          windowArea_inout.top));
+  if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                windowArea_inout.left, windowArea_inout.top,
+                (windowArea_inout.right - windowArea_inout.left),
+                (windowArea_inout.bottom - windowArea_inout.top),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  // redirect mouse and keyboard events to the main gtk window
+  result =
+    IVideoWindow_out->put_MessageDrain (reinterpret_cast<OAHWND> (windowHandle_inout));
+  if (unlikely (FAILED (result))) // E_NOINTERFACE      : 0x80004002
+                                  // VFW_E_NOT_CONNECTED: 0x80040209
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(0x%@): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                windowHandle_inout,
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  result = IVideoWindow_out->put_Visible (OATRUE);
+  if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::put_Visible(OATRUE): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  result =
+    IVideoWindow_out->put_FullScreenMode (fullScreen_in ? OATRUE : OAFALSE);
+  if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+
+  if (!fullScreen_in)
+  {
+    result = IVideoWindow_out->SetWindowForeground (OATRUE);
     if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(0x%@): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  windowHandle_inout,
-                  ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  } // end IF
 
-    result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPSIBLINGS);
-    if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+  // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage
+  //         (see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407298(v=vs.85).aspx)
 
-    result =
-      IVideoWindow_out->SetWindowPosition (windowArea_inout.left,
-                                           windowArea_inout.top,
-                                           (windowArea_inout.right -
-                                            windowArea_inout.left),
-                                           (windowArea_inout.bottom -
-                                            windowArea_inout.top));
-    if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  windowArea_inout.left, windowArea_inout.top,
-                  (windowArea_inout.right - windowArea_inout.left),
-                  (windowArea_inout.bottom - windowArea_inout.top),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    // redirect mouse and keyboard events to the main gtk window
-    result =
-      IVideoWindow_out->put_MessageDrain (reinterpret_cast<OAHWND> (windowHandle_inout));
-    if (unlikely (FAILED (result))) // E_NOINTERFACE      : 0x80004002
-                                    // VFW_E_NOT_CONNECTED: 0x80040209
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(0x%@): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  windowHandle_inout,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    result = IVideoWindow_out->put_Visible (OATRUE);
-    if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_Visible(OATRUE): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    result =
-      IVideoWindow_out->put_FullScreenMode (fullScreen_in ? OATRUE : OAFALSE);
-    if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    if (!fullScreen_in)
-    {
-      result = IVideoWindow_out->SetWindowForeground (OATRUE);
-      if (unlikely (FAILED (result))) // E_NOINTERFACE: 0x80004002
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(): \"%s\", continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    } // end IF
-
-    // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage
-    //         (see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407298(v=vs.85).aspx)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0501)
-  } // end ELSE
 
   return true;
 
