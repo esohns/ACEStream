@@ -35,6 +35,8 @@
 #include "common_iinitialize.h"
 #include "common_time_common.h"
 
+#include "common_ui_ifullscreen.h"
+
 #include "stream_common.h"
 #include "stream_iallocator.h"
 #include "stream_task_base_synch.h"
@@ -67,6 +69,7 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+ , public Common_UI_IFullscreen
  , public Common_IInitialize_T<struct _AMMediaType>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
  , public IMFMediaSourceEx
@@ -97,6 +100,9 @@ class Stream_Vis_Target_MediaFoundation_T
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
+
+  // implement Common_UI_IFullscreen
+  virtual void toggle ();
 
   // implement Common_IInitialize_T
   // *NOTE*: this allocates the media source presentation descriptor

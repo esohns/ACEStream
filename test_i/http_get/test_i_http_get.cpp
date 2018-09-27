@@ -35,11 +35,17 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
+#if defined (HAVE_CONFIG_H)
+#include "libCommon_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "common.h"
 #include "common_file_tools.h"
 #include "common_logger.h"
 #include "common_signal_tools.h"
 #include "common_tools.h"
+
+#include "common_log_tools.h"
 
 #include "common_timer_tools.h"
 
@@ -52,20 +58,23 @@
 
 #include "stream_dec_common.h"
 
-#include "stream_net_http_defines.h"
-
-#include "ace/Synch.h"
 #include "stream_file_sink.h"
+
+#if defined (HAVE_CONFIG_H)
+#include "libACENetwork_config.h"
+#endif // HAVE_CONFIG_H
+
+#include "stream_net_http_defines.h"
 
 #include "net_common_tools.h"
 
 #include "test_i_common.h"
-#include "test_i_defines.h"
 
 #include "test_i_module_databasewriter.h"
 
 #include "test_i_connection_manager_common.h"
 #include "test_i_http_get_common.h"
+#include "test_i_http_get_defines.h"
 #include "test_i_http_get_signalhandler.h"
 #include "test_i_http_get_stream.h"
 
@@ -1014,7 +1023,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -1054,7 +1062,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   if (number_of_dispatch_threads == 0)
@@ -1066,15 +1073,15 @@ ACE_TMAIN (int argc_in,
     log_file_name =
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                          ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
-                                        log_file_name,                        // log file name
-                                        false,                                // log to syslog ?
-                                        false,                                // trace messages ?
-                                        trace_information,                    // debug messages ?
-                                        NULL))                                // logger ?
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
+                                            log_file_name,                        // log file name
+                                            false,                                // log to syslog ?
+                                            false,                                // trace messages ?
+                                            trace_information,                    // debug messages ?
+                                            NULL))                                // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1083,7 +1090,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -1101,7 +1107,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1109,7 +1115,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -1120,7 +1125,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1128,7 +1133,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   ACE_SYNCH_RECURSIVE_MUTEX signal_lock;
@@ -1146,7 +1150,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1154,7 +1158,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_SUCCESS;
   } // end IF
 
@@ -1172,7 +1175,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1180,7 +1183,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
 
@@ -1234,7 +1236,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1242,7 +1244,6 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
-
     return EXIT_FAILURE;
   } // end IF
   ACE_Profile_Timer::Rusage elapsed_rusage;
@@ -1256,7 +1257,15 @@ ACE_TMAIN (int argc_in,
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              elapsed_time.real_time,
+              elapsed_time.user_time,
+              elapsed_time.system_time,
+              ACE_TEXT (user_time_string.c_str ()),
+              ACE_TEXT (system_time_string.c_str ())));
+#else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
@@ -1278,14 +1287,6 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#else
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
-              elapsed_time.real_time,
-              elapsed_time.user_time,
-              elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
 #endif
 
   Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
@@ -1293,8 +1294,7 @@ ACE_TMAIN (int argc_in,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Tools::finalizeLogging ();
-
+  Common_Log_Tools::finalizeLogging ();
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::fini ();

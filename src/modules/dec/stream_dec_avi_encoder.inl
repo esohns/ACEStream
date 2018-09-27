@@ -224,7 +224,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         and movi
   unsigned int value_i;
   char buffer_a[BUFSIZ];
-  std::ios::streamoff list_movi_offset = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
+  std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN;
   //std::ios::streamoff chunk_idx1_offset = 0;
   // *NOTE*: "...A joint file position is maintained for both the input sequence
   //         and the output sequence. ...", i.e. std::fstream::read()/write()
@@ -668,14 +668,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   message_block_p =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
+    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
                                                                : sizeof (struct _riffchunk) + frameSize_)
-                                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
+                                                   : (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                                                : sizeof (struct _riffchunk))));
 #else
-    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
+    inherited::allocateMessage ((transformContext_ ? (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
                                                                : (4 + 4) + frameSize_)
-                                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
+                                                   : (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
                                                                : (4 + 4))));
 #endif // ACE_WIN32 || ACE_WIN64
   if (!message_block_p)
@@ -684,17 +684,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                 inherited::mod_->name (),
-                (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
+                (transformContext_ ? (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk) + frameSize_
                                                : sizeof (struct _riffchunk) + frameSize_)
-                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
+                                   : (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + sizeof (struct _rifflist) + sizeof (struct _riffchunk)
                                                : sizeof (struct _riffchunk)))));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
                 inherited::mod_->name (),
-                (transformContext_ ? (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
+                (transformContext_ ? (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4) + frameSize_
                                                : (4 + 4) + frameSize_)
-                                   : (isFirst_ ? STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
+                                   : (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
                                                : (4 + 4)))));
 #endif // ACE_WIN32 || ACE_WIN64
     goto error;
@@ -854,7 +854,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       getResolution (session_data_r,
                      *format_p,
                      width_, height_);
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (format_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (format_p);
 #else
       format_ = getFormat (session_data_r.inputFormat);
       frame_rate_s = getFrameRate (session_data_r,
@@ -1390,8 +1390,8 @@ continue_:
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   AVI_header_avih.dwPaddingGranularity =
-    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN)
-                                           : STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN);
+    ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (STREAM_DEC_AVI_JUNK_CHUNK_ALIGN)
+                                           : STREAM_DEC_AVI_JUNK_CHUNK_ALIGN);
   value_i = (AVIF_HASINDEX       |
              AVIF_MUSTUSEINDEX   |
              AVIF_WASCAPTUREFILE);
@@ -1610,12 +1610,12 @@ continue_:
   currentFrameOffset_ += sizeof (struct _rifflist);
 
   // clean up
-  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
   goto continue_2;
 
 error:
-  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
   return false;
 
@@ -1628,7 +1628,7 @@ continue_2:
                         1,                                                                // write flag
                         messageBlock_inout,                                               // act
                         NULL,                                                             // read callback
-                        stream_decoder_aviencoder_libav_write_cb,                         // write callback
+                        STREAM_DEC_aviencoder_libav_write_cb,                         // write callback
                         NULL);                                                            // seek callback
   if (!formatContext_->pb)
   {
@@ -1685,12 +1685,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
-  struct _AMMediaType* result_p = NULL;
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (format_in,
-                                                              result_p))
+  struct _AMMediaType* result_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (format_in);
+  if (!result_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
                 inherited::mod_->name ()));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
@@ -2634,7 +2634,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                         1,                                        // write flag
                         messageBlock_inout,                       // act
                         NULL,                                     // read callback
-                        stream_decoder_aviencoder_libav_write_cb, // write callback
+                        STREAM_DEC_aviencoder_libav_write_cb, // write callback
                         NULL);                                    // seek callback
   if (!formatContext_->pb)
   {
@@ -2973,7 +2973,7 @@ error:
   //                   --> convert the data in memory first
   size_t samples_read, samples_written = 0;
   /* Temporary store whilst copying. */
-  sox_sample_t samples[STREAM_DECODER_SOX_SAMPLE_BUFFERS];
+  sox_sample_t samples[STREAM_DEC_SOX_SAMPLE_BUFFERS];
   sox_format_t* memory_buffer_p =
       sox_open_mem_read (message_inout->rd_ptr (),
                          message_inout->length (),
@@ -2992,7 +2992,7 @@ error:
   {
     samples_read = sox_read (memory_buffer_p,
                              samples,
-                             STREAM_DECODER_SOX_SAMPLE_BUFFERS);
+                             STREAM_DEC_SOX_SAMPLE_BUFFERS);
     if (!samples_read)
       break;
     samples_written = sox_write (outputFile_,
@@ -3089,7 +3089,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
           sox_open_write (inherited::configuration_->targetFileName.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
-                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING),
+                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_FORMATTYPE_STRING),
                           NULL,
                           &oob_data,
                           sox_overwrite_permitted);
@@ -3214,7 +3214,7 @@ continue_:
 
       // clean up
       media_type_p = &media_type_r;
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       delete [] wave_header_p;
       result = file_IO.close ();
       if (result == -1)
@@ -3227,7 +3227,7 @@ continue_:
 
 error_2:
       media_type_p = &media_type_r;
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       if (wave_header_p)
         delete [] wave_header_p;
       if (close_file)
@@ -3339,7 +3339,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   // clean up
   struct _AMMediaType* media_type_p = &media_type_r;
-  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
   return true;
 }

@@ -289,7 +289,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   PDUSize_ = media_type_p->lSampleSize;
 
   // clean up
-  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 #else
   PDUSize_ =
       av_image_get_buffer_size (configuration_in.format,
@@ -778,7 +778,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   PDUSize_ = media_type_p->lSampleSize;
 
   // clean up
-  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_Module_Device_DirectShow_Tools::delete_ (media_type_p);
 #else
   PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
 #endif

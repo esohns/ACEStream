@@ -19,16 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "stream_lib_directshow_tools.h"
 
 #include <sstream>
 
-//#include <combaseapi.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see e.g. dxva.h)
 #include <amvideo.h>
-#include <dmoreg.h>
-//#include <dshow.h>
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.Applications
 //            that require the KS proxy module should use the version defined in
@@ -39,19 +34,21 @@
 //            whichever header file the compiler scans first is the one whose
 //            definition of IKsPropertySet is used by the compiler. ..."
 //#include <dsound.h>
-#include <dvdmedia.h>
 //#include <dxva.h>
-#include <Dmodshow.h>
 #include <fourcc.h>
-#include <ks.h>
+#include <Ks.h>
 #include <ksmedia.h>
-#include <ksproxy.h>
-#include <uuids.h>
+#include <KsProxy.h>
+#include <dmoreg.h>
+#include <Dmodshow.h>
+#include <dvdmedia.h>
 //#include <ksuuids.h>
 #include <mmreg.h>
 #include <oleauto.h>
 #include <qedit.h>
 #include <strsafe.h>
+//#include <strmif.h>
+#include <uuids.h>
 #include <vfwmsgs.h>
 #include <wmcodecdsp.h>
 
@@ -67,6 +64,7 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
@@ -742,6 +740,13 @@ Stream_MediaFramework_DirectShow_Tools::dump (IPin* pin_in)
   // sanity check(s)
   ACE_ASSERT (pin_in);
 
+  IBaseFilter* filter_p =
+    Stream_MediaFramework_DirectShow_Tools::toFilter (pin_in);
+  ACE_ASSERT (filter_p);
+  std::string filter_name_string =
+    Stream_MediaFramework_DirectShow_Tools::name (filter_p);
+  filter_p->Release (); filter_p = NULL;
+
   IEnumMediaTypes* ienum_media_types_p = NULL;
   HRESULT result = pin_in->EnumMediaTypes (&ienum_media_types_p);
   if (FAILED (result))
@@ -760,20 +765,18 @@ Stream_MediaFramework_DirectShow_Tools::dump (IPin* pin_in)
   while (S_OK == ienum_media_types_p->Next (1,
                                             media_types_a,
                                             &fetched))
-  {
-    // sanity check(s)
-    ACE_ASSERT (media_types_a[0]);
-
+  { ACE_ASSERT (media_types_a[0]);
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("#%d: \"%s\"\n"),
+                ACE_TEXT ("%s:%s[#%d]: %s\n"),
+                ACE_TEXT (filter_name_string.c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_in).c_str ()),
                 index,
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*media_types_a[0]).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_types_a[0], true).c_str ())));
 
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_types_a[0]);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
     ++index;
   } // end WHILE
-
-  ienum_media_types_p->Release ();
+  ienum_media_types_p->Release (); ienum_media_types_p = NULL;
 }
 void
 Stream_MediaFramework_DirectShow_Tools::dump (const struct _AMMediaType& mediaType_in)
@@ -990,7 +993,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
                   ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       result->Release (); result = NULL;
-      enumerator_p->Release ();
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
     if (pin_direction != PINDIR_OUTPUT)
@@ -998,7 +1001,6 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
       result->Release (); result = NULL;
       continue;
     } // end IF
-    //result_2 = result->QueryInterface (IID_PPV_ARGS (&property_set_p));
     result_2 = result->QueryInterface (IID_IKsPropertySet,
                                        (void**)&property_set_p);
     if (FAILED (result_2))
@@ -1007,7 +1009,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
                   ACE_TEXT ("failed to IPin::QueryInterface(IID_IKsPropertySet): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       result->Release (); result = NULL;
-      enumerator_p->Release ();
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
     ACE_ASSERT (property_set_p);
@@ -1021,7 +1023,7 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       property_set_p->Release ();
       result->Release (); result = NULL;
-      enumerator_p->Release ();
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
     ACE_ASSERT (returned_size == sizeof (struct _GUID));
@@ -1035,10 +1037,38 @@ Stream_MediaFramework_DirectShow_Tools::capturePin (IBaseFilter* filter_in)
   return result;
 }
 
-IBaseFilter*
-Stream_MediaFramework_DirectShow_Tools::pinToFilter (IPin* pin_in)
+struct _AMMediaType*
+Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (IBaseFilter* filter_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::pinToFilter"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat"));
+
+  struct _AMMediaType* result_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (filter_in);
+
+  IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::capturePin (filter_in);
+  ACE_ASSERT (pin_p);
+  if (!Stream_MediaFramework_DirectShow_Tools::getFirstFormat (pin_p,
+                                                               GUID_NULL,
+                                                               result_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::getFirstFormat(\"%s\"), returning\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+    pin_p->Release (); pin_p = NULL;
+    return NULL;
+  } // end IF
+  ACE_ASSERT (result_p);
+  pin_p->Release (); pin_p = NULL;
+
+  return result_p;
+}
+
+IBaseFilter*
+Stream_MediaFramework_DirectShow_Tools::toFilter (IPin* pin_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFilter"));
 
   // sanity check(s)
   ACE_ASSERT (pin_in);
@@ -1083,6 +1113,24 @@ Stream_MediaFramework_DirectShow_Tools::name (IBaseFilter* filter_in)
     filter_info.pGraph->Release ();
 
   return result;
+}
+
+bool
+Stream_MediaFramework_DirectShow_Tools::hasPropertyPages (IBaseFilter* filter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::hasPropertyPages"));
+
+  // sanity check(s)
+  ACE_ASSERT (filter_in);
+  
+  ISpecifyPropertyPages* property_pages_p = NULL;
+  HRESULT result = filter_in->QueryInterface (IID_PPV_ARGS (&property_pages_p));
+  if (property_pages_p)
+  {
+    property_pages_p->Release (); property_pages_p = NULL;
+  } // end IF
+
+  return SUCCEEDED (result);
 }
 
 bool
@@ -1345,7 +1393,7 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                   ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())));
     else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(NULL): \"%s\", continuing\n"),
@@ -1408,17 +1456,20 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       //         _AMMediaType (in-)compatibilities, and other inner workings of
       //         DirectShow (such as what the algorithm is that IGraphBuilder
       //         uses to intelligently retrieve 'pin'-compatible media types)...
-
-      //if (result == VFW_E_NO_ACCEPTABLE_TYPES)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to IPin::Connect() \"%s\", aborting\n"),
-      //              ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
-
-      //  // debug info
-      //  Stream_MediaFramework_DirectShow_Tools::dump (pin_p);
-      //  Stream_MediaFramework_DirectShow_Tools::dump (pin_2);
-      //} // end IF
+#if defined (_DEBUG)
+      if ((result == VFW_E_INVALIDMEDIATYPE)    ||
+          (result == VFW_E_NO_ACCEPTABLE_TYPES) ||
+          (result == VFW_E_TYPE_NOT_ACCEPTED))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("failed to connect \"%s\" to \"%s\": \"%s\" (0x%x), dumping pins\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
+        Stream_MediaFramework_DirectShow_Tools::dump (pin_p);
+        Stream_MediaFramework_DirectShow_Tools::dump (pin_2);
+      } // end IF
+#endif // _DEBUG
       //else
       //{
         ACE_DEBUG ((LM_WARNING,
@@ -1427,10 +1478,9 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                    ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())
+                    ((*iterator).mediaType ? ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*(*iterator).mediaType, true).c_str ())
                                            : ACE_TEXT ("NULL")),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
-                    result));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result));
       //} // end ELSE
 
       result = builder_in->Connect (pin_p, pin_2);
@@ -1459,15 +1509,15 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     } // end IF
 continue_:
 #if defined (_DEBUG)
-    struct _AMMediaType* media_type_p = NULL;
-    Stream_MediaFramework_DirectShow_Tools::getFormat (pin_p, media_type_p);
+    struct _AMMediaType* media_type_p =
+      Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
     ACE_ASSERT (media_type_p);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("connected \"%s\" to \"%s\": %s\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*media_type_p, true).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_p, true).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 #endif // _DEBUG
 //continue_2:
     pin_2->Release (); pin_2 = NULL;
@@ -1531,7 +1581,7 @@ loop:
   result = pin_p->ConnectedTo (&pin_2);
   if (FAILED (result))
   {
-    filter_p = Stream_MediaFramework_DirectShow_Tools::pinToFilter (pin_p);
+    filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_p);
     ACE_ASSERT (filter_p);
     result = builder_in->Render (pin_p);
     if (FAILED (result))
@@ -1554,11 +1604,11 @@ loop:
   ACE_ASSERT (pin_2);
   pin_p->Release ();
 
-  filter_p = Stream_MediaFramework_DirectShow_Tools::pinToFilter (pin_2);
+  filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_2);
   if (!filter_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::pinToFilter(0x%@), aborting\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::toFilter(0x%@), aborting\n"),
                 pin_2));
 
     // clean up
@@ -1629,11 +1679,11 @@ loop:
   ACE_ASSERT (pin_2);
   pin_p->Release ();
 
-  filter_p = Stream_MediaFramework_DirectShow_Tools::pinToFilter (pin_2);
+  filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_2);
   if (!filter_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::pinToFilter(0x%@), aborting\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::toFilter(0x%@), aborting\n"),
                 pin_2));
 
     // clean up
@@ -1984,18 +2034,8 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
 #endif // _DEBUG
   while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
   { ACE_ASSERT (filter_p);
-    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-    result = builder_in->RemoveFilter (filter_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      filter_p->Release (); filter_p = NULL;
-      enumerator_p->Release (); enumerator_p = NULL;
-      return false;
-    } // end IF
 #if defined (_DEBUG)
+    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
     result = filter_p->QueryFilterInfo (&filter_info);
     if (FAILED (result))
     {
@@ -2008,6 +2048,19 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
     } // end IF
     if (filter_info.pGraph)
       filter_info.pGraph->Release ();
+#endif // _DEBUG
+    result = builder_in->RemoveFilter (filter_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
+      return false;
+    } // end IF
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed \"%s\"...\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
@@ -2040,27 +2093,7 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
 
   IEnumPins* enumerator_p = NULL;
   IPin* pin_p = NULL, *pin_2 = NULL;
-  struct _FilterInfo filter_info;
-  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-
-  HRESULT result = filter_in->QueryFilterInfo (&filter_info);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    // clean up
-    enumerator_p->Release ();
-
-    return false;
-  } // end IF
-
-  // clean up
-  if (filter_info.pGraph)
-    filter_info.pGraph->Release ();
-
-  result = filter_in->EnumPins (&enumerator_p);
+  HRESULT result = filter_in->EnumPins (&enumerator_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2071,16 +2104,12 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
   ACE_ASSERT (enumerator_p);
 
   while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
-  {
-    ACE_ASSERT (pin_p);
-
+  { ACE_ASSERT (pin_p);
     pin_2 = NULL;
     result = pin_p->ConnectedTo (&pin_2);
     if (FAILED (result))
     {
-      pin_p->Release ();
-      pin_p = NULL;
-
+      pin_p->Release (); pin_p = NULL;
       continue;
     } // end IF
     ACE_ASSERT (pin_2);
@@ -2091,15 +2120,12 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::Disconnect(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      // clean up
-      pin_2->Release ();
-      pin_p->Release ();
-      enumerator_p->Release ();
-
+      pin_2->Release (); pin_2 = NULL;
+      pin_p->Release (); pin_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
-    pin_2->Release ();
+    pin_2->Release (); pin_2 = NULL;
 
     result = pin_p->Disconnect ();
     if (FAILED (result))
@@ -2107,21 +2133,18 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPin::Disconnect(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      // clean up
-      pin_p->Release ();
-      enumerator_p->Release ();
-
+      pin_p->Release (); pin_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("disconnected \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
-
-    pin_p->Release ();
-    pin_p = NULL;
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+#endif // _DEBUG
+    pin_p->Release (); pin_p = NULL;
   } // end WHILE
-  enumerator_p->Release ();
+  enumerator_p->Release (); enumerator_p = NULL;
 
   return true;
 }
@@ -2144,46 +2167,20 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
-  struct _FilterInfo filter_info;
   while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
-  {
-    ACE_ASSERT (filter_p);
-
-    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-    result = filter_p->QueryFilterInfo (&filter_info);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      enumerator_p->Release ();
-
-      return false;
-    } // end IF
-
-    // clean up
-    if (filter_info.pGraph)
-      filter_info.pGraph->Release ();
-
+  { ACE_ASSERT (filter_p);
     if (!Stream_MediaFramework_DirectShow_Tools::disconnect (filter_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::disconnect(%s), aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
-
-      // clean up
-      filter_p->Release ();
-      enumerator_p->Release ();
-
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
-    filter_p->Release ();
-    filter_p = NULL;
+    filter_p->Release (); filter_p = NULL;
   } // end WHILE
-  enumerator_p->Release ();
+  enumerator_p->Release (); enumerator_p = NULL;
 
   return true;
 }
@@ -2229,11 +2226,11 @@ Stream_MediaFramework_DirectShow_Tools::get (IGraphBuilder* builder_in,
       break;
     pin_p->Release ();
     filter_p->Release ();
-    filter_p = Stream_MediaFramework_DirectShow_Tools::pinToFilter (pin_2);
+    filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_2);
     if (!filter_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::pinToFilter(), returning\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::toFilter(), returning\n")));
       break;
     } // end IF
     pin_2->Release ();
@@ -2292,10 +2289,10 @@ Stream_MediaFramework_DirectShow_Tools::has (const Stream_MediaFramework_DirectS
 }
 
 bool
-Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder* builder_in,
-                                                    REFGUID deviceCategory_in)
+Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
+                                               REFGUID deviceCategory_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::resetGraph"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::reset"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
@@ -2555,9 +2552,9 @@ Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder* builder_i
 }
 
 std::string
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToString2 (const struct _AMMediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToString2"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString_2"));
 
   std::string result;
 
@@ -2857,47 +2854,43 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedi
   return result;
 }
 
-bool
-Stream_MediaFramework_DirectShow_Tools::getFormat (IPin* pin_in,
-                                                   struct _AMMediaType*& mediaType_out)
+struct _AMMediaType*
+Stream_MediaFramework_DirectShow_Tools::toFormat (IPin* pin_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::getFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFormat"));
+
+  // initialize return value(s)
+  struct _AMMediaType* result_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (pin_in);
-  if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
-  //mediaType_out = CreateMediaType (NULL);
-  mediaType_out =
+  result_p =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!mediaType_out)
+  if (!result_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory(): \"%m\", aborting\n")));
-    return false;
+    return NULL;
   } // end IF
-  ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
+  ACE_OS::memset (result_p, 0, sizeof (struct _AMMediaType));
 
-  HRESULT result = pin_in->ConnectionMediaType (mediaType_out);
+  HRESULT result = pin_in->ConnectionMediaType (result_p);
   if (FAILED (result))
   {
     IBaseFilter* filter_p =
-      Stream_MediaFramework_DirectShow_Tools::pinToFilter (pin_in);
+      Stream_MediaFramework_DirectShow_Tools::toFilter (pin_in);
     ACE_ASSERT (filter_p);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: failed to IPin::ConnectionMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_in).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
-
-    return false;
+    filter_p->Release (); filter_p = NULL;
+    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
+    return NULL;
   } // end IF
 
-  return true;
+  return result_p;
 }
 
 bool
@@ -2911,7 +2904,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
   ACE_ASSERT (builder_in);
   ACE_ASSERT (!filterName_in.empty ());
   if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
   //mediaType_out = CreateMediaType (NULL);
   mediaType_out =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
@@ -2941,7 +2934,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
   ACE_ASSERT (filter_p);
 
   if (!ACE_OS::strcmp (filterName_in.c_str (),
-                       MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB))
+                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB))
   {
     ISampleGrabber* isample_grabber_p = NULL;
     result = filter_p->QueryInterface (IID_ISampleGrabber,
@@ -2980,11 +2973,11 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     goto error;
   } // end IF
   ACE_ASSERT (pin_p);
-  if (!Stream_MediaFramework_DirectShow_Tools::getFormat (pin_p,
-                                                          mediaType_out))
+  mediaType_out = Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
+  if (!mediaType_out)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::getFormat(), aborting\n"),
+                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::toFormat(), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ())));
     goto error;
@@ -2998,9 +2991,11 @@ continue_:
 
 error:
   if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
-  if (filter_p) filter_p->Release ();
-  if (pin_p) pin_p->Release ();
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+  if (filter_p)
+    filter_p->Release ();
+  if (pin_p)
+    pin_p->Release ();
 
   return false;
 }
@@ -3041,11 +3036,11 @@ Stream_MediaFramework_DirectShow_Tools::getFirstFormat (IPin* pin_in,
     // sanity check(s)
     ACE_ASSERT (media_types_a[0]);
 
-    if ((mediaSubType_in == GUID_NULL) ||
-        (mediaSubType_in == media_types_a[0]->subtype))
+    if (InlineIsEqualGUID (mediaSubType_in, GUID_NULL) ||
+        InlineIsEqualGUID (mediaSubType_in, media_types_a[0]->subtype))
       break;
 
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_types_a[0]);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
   } while (true);
   enumerator_p->Release (); enumerator_p = NULL;
 
@@ -3101,7 +3096,7 @@ Stream_MediaFramework_DirectShow_Tools::hasUncompressedFormat (REFGUID deviceCat
                                                     STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
       break;
 
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_types_a[0]);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
   } while (true);
   enumerator_p->Release ();
 
@@ -3153,64 +3148,48 @@ Stream_MediaFramework_DirectShow_Tools::countFormats (IPin* pin_in,
 #endif
 
 continue_:
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_types_a[0]);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_types_a[0]);
   } while (true);
   enumerator_p->Release (); enumerator_p = NULL;
 
   return result;
 }
 
-bool
-Stream_MediaFramework_DirectShow_Tools::copyMediaType (const struct _AMMediaType& mediaType_in,
-                                                       struct _AMMediaType*& mediaType_out)
+struct _AMMediaType*
+Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::copyMediaType"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::copy"));
 
-  bool free_memory = false;
-
-  // sanity check(s)
-  if (mediaType_out)
-    FreeMediaType (*mediaType_out);
-  else
+  // initialize return value(s)
+  struct _AMMediaType* result_p =
+    static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+  if (!result_p)
   {
-    mediaType_out =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!mediaType_out)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, aborting\n")));
-      return false;
-    } // end IF
-    ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
-    free_memory = true;
-  } // end ELSE
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, aborting\n")));
+    return NULL;
+  } // end IF
+  ACE_OS::memset (result_p, 0, sizeof (struct _AMMediaType));
 
-  HRESULT result = CopyMediaType (mediaType_out,
+  HRESULT result = CopyMediaType (result_p,
                                   &mediaType_in);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    // clean up
-    if (free_memory)
-    {
-      CoTaskMemFree (mediaType_out);
-      mediaType_out = NULL;
-    } // end IF
-
-    return false;
+    CoTaskMemFree (result_p);
+    return NULL;
   } // end IF
 
-  return true;
+  return result_p;
 }
 
 bool
-Stream_MediaFramework_DirectShow_Tools::matchBitmapInfo (const struct tagBITMAPINFOHEADER& bitmapInfo_in,
-                                                         const struct tagBITMAPINFOHEADER& bitmapInfo2_in)
+Stream_MediaFramework_DirectShow_Tools::match (const struct tagBITMAPINFOHEADER& bitmapInfo_in,
+                                               const struct tagBITMAPINFOHEADER& bitmapInfo2_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::matchBitmapInfo"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::match"));
 
   if (bitmapInfo_in.biBitCount != bitmapInfo2_in.biBitCount)
     return false;
@@ -3240,10 +3219,10 @@ Stream_MediaFramework_DirectShow_Tools::matchBitmapInfo (const struct tagBITMAPI
 }
 
 bool
-Stream_MediaFramework_DirectShow_Tools::matchVideoInfo (const struct tagVIDEOINFOHEADER& videoInfo_in,
-                                                        const struct tagVIDEOINFOHEADER& videoInfo2_in)
+Stream_MediaFramework_DirectShow_Tools::match (const struct tagVIDEOINFOHEADER& videoInfo_in,
+                                               const struct tagVIDEOINFOHEADER& videoInfo2_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::matchVideoInfo"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::match"));
 
   if (videoInfo_in.AvgTimePerFrame != videoInfo2_in.AvgTimePerFrame)
     return false;
@@ -3251,17 +3230,17 @@ Stream_MediaFramework_DirectShow_Tools::matchVideoInfo (const struct tagVIDEOINF
     return false;
   if (videoInfo_in.dwBitRate != videoInfo2_in.dwBitRate)
     return false;
-  if (!Stream_MediaFramework_DirectShow_Tools::matchBitmapInfo (videoInfo_in.bmiHeader,
+  if (!Stream_MediaFramework_DirectShow_Tools::match (videoInfo_in.bmiHeader,
                                                                 videoInfo2_in.bmiHeader))
     return false;
 
   return true;
 }
 bool
-Stream_MediaFramework_DirectShow_Tools::matchVideoInfo2 (const struct tagVIDEOINFOHEADER2& videoInfo_in,
-                                                         const struct tagVIDEOINFOHEADER2& videoInfo2_in)
+Stream_MediaFramework_DirectShow_Tools::match (const struct tagVIDEOINFOHEADER2& videoInfo_in,
+                                               const struct tagVIDEOINFOHEADER2& videoInfo2_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::matchVideoInfo2"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::match"));
 
   if (videoInfo_in.AvgTimePerFrame != videoInfo2_in.AvgTimePerFrame)
     return false;
@@ -3279,18 +3258,15 @@ Stream_MediaFramework_DirectShow_Tools::matchVideoInfo2 (const struct tagVIDEOIN
     return false;
   if (videoInfo_in.dwPictAspectRatioY != videoInfo2_in.dwPictAspectRatioY)
     return false;
-  if (!Stream_MediaFramework_DirectShow_Tools::matchBitmapInfo (videoInfo_in.bmiHeader,
-                                                                videoInfo2_in.bmiHeader))
-    return false;
-
-  return true;
+  return Stream_MediaFramework_DirectShow_Tools::match (videoInfo_in.bmiHeader,
+                                                        videoInfo2_in.bmiHeader);
 }
 
 bool
-Stream_MediaFramework_DirectShow_Tools::matchMediaType (const struct _AMMediaType& mediaType_in,
-                                                        const struct _AMMediaType& mediaType2_in)
+Stream_MediaFramework_DirectShow_Tools::match (const struct _AMMediaType& mediaType_in,
+                                               const struct _AMMediaType& mediaType2_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::matchMediaType"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::match"));
 
   //CMediaType media_type (mediaType_in);
   //CMediaType media_type_2 (mediaType2_in);
@@ -3299,8 +3275,8 @@ Stream_MediaFramework_DirectShow_Tools::matchMediaType (const struct _AMMediaTyp
   //{
   //  ACE_DEBUG ((LM_DEBUG,
   //              ACE_TEXT ("%s does not match %s\n"),
-  //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (mediaType_in, true).c_str ()),
-  //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (mediaType2_in, true).c_str ())));
+  //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, true).c_str ()),
+  //              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType2_in, true).c_str ())));
   //  return false;
   //} // end IF
 
@@ -3326,8 +3302,8 @@ Stream_MediaFramework_DirectShow_Tools::matchMediaType (const struct _AMMediaTyp
           reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
         struct tagVIDEOINFOHEADER* video_info_header_2 =
           reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType2_in.pbFormat);
-        if (!Stream_MediaFramework_DirectShow_Tools::matchVideoInfo (*video_info_header_p,
-                                                                     *video_info_header_2))
+        if (!Stream_MediaFramework_DirectShow_Tools::match (*video_info_header_p,
+                                                            *video_info_header_2))
           return false;
       } // end IF
       else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
@@ -3336,8 +3312,8 @@ Stream_MediaFramework_DirectShow_Tools::matchMediaType (const struct _AMMediaTyp
           reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
         struct tagVIDEOINFOHEADER2* video_info_header2_2 =
           reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType2_in.pbFormat);
-        if (!Stream_MediaFramework_DirectShow_Tools::matchVideoInfo2 (*video_info_header2_p,
-                                                                      *video_info_header2_2))
+        if (!Stream_MediaFramework_DirectShow_Tools::match (*video_info_header2_p,
+                                                            *video_info_header2_2))
           return false;
       } // end ELSE IF
       else
@@ -3363,14 +3339,136 @@ continue_:
   return true;
 }
 
-std::string
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (const struct _AMMediaType& mediaType_in,
-                                                           bool condensed_in)
+struct _AMMediaType*
+Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toRGB"));
+
+  // initialize return value(s)
+  struct _AMMediaType* result_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+
+  // sanity check(s)
+  if (!result_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
+    return NULL;
+  } // end IF
+  if (Stream_MediaFramework_Tools::isRGB (result_p->subtype,
+                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
+    return result_p; // nothing to do
+
+  HRESULT result_2 = E_FAIL;
+  ACE_ASSERT (InlineIsEqualGUID (result_p->majortype, MEDIATYPE_Video));
+  result_p->subtype =
+    (Stream_MediaFramework_Tools::isRGB (STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT,
+                                         STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT
+                                                                           : MEDIASUBTYPE_RGB32);
+  result_p->bFixedSizeSamples = TRUE;
+  result_p->bTemporalCompression = FALSE;
+  if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo))
+  { ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
+    // *NOTE*: empty --> use entire video
+    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+    // *NOTE*: empty --> fill entire buffer
+    ACE_ASSERT (SUCCEEDED (result_2));
+    //ACE_ASSERT (video_info_header_p->dwBitRate);
+    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
+    //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+    ACE_ASSERT (video_info_header_p->bmiHeader.biWidth);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biHeight);
+    //if (video_info_header_p->bmiHeader.biHeight > 0)
+    //  video_info_header_p->bmiHeader.biHeight =
+    //    -video_info_header_p->bmiHeader.biHeight;
+    //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+    video_info_header_p->bmiHeader.biBitCount =
+      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+    video_info_header_p->bmiHeader.biCompression = BI_RGB;
+    video_info_header_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header_p->bmiHeader);
+    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+    ////video_info_header_p->bmiHeader.biClrUsed;
+    ////video_info_header_p->bmiHeader.biClrImportant;
+    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+    result_p->lSampleSize =
+      video_info_header_p->bmiHeader.biSizeImage;
+  } // end IF
+  else if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo2))
+  {
+    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    struct tagVIDEOINFOHEADER2* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_p->pbFormat);
+    // *NOTE*: empty --> use entire video
+    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+    // *NOTE*: empty --> fill entire buffer
+    ACE_ASSERT (SUCCEEDED (result_2));
+    //ACE_ASSERT (video_info_header_p->dwBitRate);
+    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
+    //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+    ACE_ASSERT (video_info_header_p->dwInterlaceFlags == 0);
+    ACE_ASSERT (video_info_header_p->dwCopyProtectFlags == 0);
+    ACE_ASSERT (video_info_header_p->dwPictAspectRatioX);
+    ACE_ASSERT (video_info_header_p->dwPictAspectRatioY);
+    ACE_ASSERT (video_info_header_p->dwReserved1 == 0);
+    ACE_ASSERT (video_info_header_p->dwReserved2 == 0);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
+    ACE_ASSERT (video_info_header_p->bmiHeader.biWidth);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biHeight);
+    //if (video_info_header_p->bmiHeader.biHeight > 0)
+    //  video_info_header_p->bmiHeader.biHeight =
+    //    -video_info_header_p->bmiHeader.biHeight;
+    //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+    video_info_header_p->bmiHeader.biBitCount =
+      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
+    ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+    video_info_header_p->bmiHeader.biCompression = BI_RGB;
+    video_info_header_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header_p->bmiHeader);
+    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+    ////video_info_header_p->bmiHeader.biClrUsed;
+    ////video_info_header_p->bmiHeader.biClrImportant;
+    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+    result_p->lSampleSize =
+      video_info_header_p->bmiHeader.biSizeImage;
+  } // end IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_p->formattype).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
+  } // end ELSE
+
+  return result_p;
+}
+
+std::string
+Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& mediaType_in,
+                                                  bool condensed_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toString"));
 
   if (condensed_in)
-    return Stream_MediaFramework_DirectShow_Tools::mediaTypeToString2 (mediaType_in);
+    return Stream_MediaFramework_DirectShow_Tools::toString_2 (mediaType_in);
 
   std::string result;
 
@@ -3815,9 +3913,9 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (const struct _AMMedia
 }
 
 Common_UI_Resolution_t
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution (const struct _AMMediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::toResolution (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toResolution"));
 
   Common_UI_Resolution_t result;
   ACE_OS::memset (&result, 0, sizeof (Common_UI_Resolution_t));
@@ -3848,9 +3946,9 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution (const struct _AMM
 }
 
 unsigned int
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate (const struct _AMMediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFramerate"));
 
   unsigned int result = 0;
 
@@ -3880,9 +3978,9 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate (const struct _AMMe
 }
 
 unsigned int
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramesize (const struct _AMMediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::toFramesize (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramesize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFramesize"));
 
   unsigned int result = 0;
 
@@ -3910,9 +4008,9 @@ Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramesize (const struct _AMMe
 }
 
 unsigned int
-Stream_MediaFramework_DirectShow_Tools::mediaTypeToBitrate (const struct _AMMediaType& mediaType_in)
+Stream_MediaFramework_DirectShow_Tools::toBitrate (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::mediaTypeToBitrate"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toBitrate"));
 
   unsigned int result = 0;
 

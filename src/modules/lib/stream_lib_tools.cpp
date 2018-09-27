@@ -30,7 +30,6 @@
 #include <dxva.h>
 #include <fourcc.h>
 #include <uuids.h>
-//#include <ksuuids.h>
 #include <mfapi.h>
 #include <wmcodecdsp.h>
 #endif // ACE_WIN32 || ACE_WIN64
@@ -557,6 +556,7 @@ Stream_MediaFramework_Tools::isChromaLuminance (REFGUID subType_in,
               InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YVYU) ||
               InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUYV));
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      //return MFIsFormatYUV ();
       return (InlineIsEqualGUID (subType_in, MFVideoFormat_AYUV) ||
               InlineIsEqualGUID (subType_in, MFVideoFormat_YUY2) ||
               InlineIsEqualGUID (subType_in, MFVideoFormat_YVYU) ||
@@ -589,6 +589,114 @@ Stream_MediaFramework_Tools::isChromaLuminance (REFGUID subType_in,
   } // end SWITCH
 
   return false;
+}
+
+WORD
+Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
+                                         enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toBitCount"));
+
+  // initialize return value(s)
+  WORD result = 0;
+
+  // sanity check(s)
+  if (!Stream_MediaFramework_Tools::isRGB (subType_in,
+                                           mediaFramework_in))
+  { // *TODO*
+    ACE_ASSERT (false);
+    ACE_NOTSUP_RETURN (0);
+    ACE_NOTREACHED (return 0;)
+  } // end IF
+
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      // uncompressed RGB (no alpha)
+      if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB1))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB4))
+        return 4;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB8))
+        return 8;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB555))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB565))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB24))
+        return 24;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32))
+        return 32;
+      // uncompressed RGB (alpha)
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2R10G10B10))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2B10G10R10))
+        return 32;
+      // video mixing renderer (VMR-7)
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX7_RT))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX7_RT))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX7_RT))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX7_RT))
+        return 16;
+      // video mixing renderer (VMR-9)
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX9_RT))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB16_D3D_DX9_RT))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB32_D3D_DX9_RT))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB4444_D3D_DX9_RT))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_ARGB1555_D3D_DX9_RT))
+        return 16;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB32))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_ARGB32))
+        return 32;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB24))
+        return 24;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB555))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB565))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB8))
+        return 8;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+  } // end SWITCH
+
+  return result;
 }
 
 std::string

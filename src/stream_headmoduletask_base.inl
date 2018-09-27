@@ -1023,30 +1023,38 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  SessionEventType message_type = STREAM_SESSION_MESSAGE_INVALID;
+  SessionEventType message_type_e = STREAM_SESSION_MESSAGE_INVALID;
 
   switch (control_in)
   {
-    case STREAM_CONTROL_END:
-      message_type = STREAM_SESSION_MESSAGE_END;
-      goto send_session_message;
+    // control
+    case STREAM_CONTROL_ABORT:
+    case STREAM_CONTROL_CONNECT:
+    case STREAM_CONTROL_DISCONNECT:
     case STREAM_CONTROL_FLUSH:
+    case STREAM_CONTROL_RESET:
+    case STREAM_CONTROL_STEP:
+    case STREAM_CONTROL_STEP_2:
     {
-      if (!inherited::putControlMessage (STREAM_CONTROL_FLUSH))
+      if (!inherited::putControlMessage (control_in))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
                     inherited::name (),
                     control_in));
       break;
     }
-    case STREAM_CONTROL_LINK:
-      message_type = STREAM_SESSION_MESSAGE_LINK;
+    // session notification
+    case STREAM_CONTROL_END:
+      message_type_e = STREAM_SESSION_MESSAGE_END;
       goto send_session_message;
-    case STREAM_CONTROL_STEP:
-      message_type = STREAM_SESSION_MESSAGE_STEP;
+    case STREAM_CONTROL_LINK:
+      message_type_e = STREAM_SESSION_MESSAGE_LINK;
+      goto send_session_message;
+    case STREAM_CONTROL_RESIZE:
+      message_type_e = STREAM_SESSION_MESSAGE_RESIZE;
       goto send_session_message;
     case STREAM_CONTROL_UNLINK:
-      message_type = STREAM_SESSION_MESSAGE_UNLINK;
+      message_type_e = STREAM_SESSION_MESSAGE_UNLINK;
       goto send_session_message;
     default:
     {
@@ -1085,13 +1093,13 @@ send_session_message:
   if (likely (session_data_container_p))
     session_data_container_p->increase ();
 
-  if (unlikely (!inherited::putSessionMessage (message_type,
+  if (unlikely (!inherited::putSessionMessage (message_type_e,
                                                session_data_container_p,
                                                (streamState_ ? streamState_->userData : NULL))))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                 inherited::name (),
-                message_type));
+                message_type_e));
 
   // clean up
   if (unlikely (release_lock))

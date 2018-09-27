@@ -93,7 +93,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   //         below) will fail (ESHUTDOWN)
   //         --> (re-)activate() the queue
   result = inherited::queue_.activate ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
@@ -103,7 +103,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
   // step2: spawn worker thread(s)
   result = inherited::open (NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_TaskBase_T::open(): \"%m\", aborting\n"),
@@ -180,26 +180,31 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: worker thread (id was: %t) stopping...\n"),
                   inherited::mod_->name ()));
+#endif // _DEBUG
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
         // *NOTE*: deactivate the queue so it does not accept new data
         result = inherited::msg_queue_->deactivate ();
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
         result = inherited::msg_queue_->flush ();
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-        else if (result)
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: flushed %d message(s)\n"),
-                      inherited::mod_->name (),
-                      result));
+#if defined (_DEBUG)
+        else
+          if (result)
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s: flushed %d message(s)\n"),
+                        inherited::mod_->name (),
+                        result));
+#endif // _DEBUG
       } // end IF
 
       // don't (need to) do anything
@@ -215,7 +220,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid argument: %u, aborting\n"),
+                  ACE_TEXT ("%s: invalid argument (was: %u), aborting\n"),
                   inherited::mod_->name (),
                   arg_in));
       return -1;
@@ -286,22 +291,19 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     // *TODO*: support selective flushing via ControlMessageType
     int result = inherited::msg_queue_->flush ();
-    if (result == -1)
-    {
+    if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-    } // end IF
-    else if (result > 0)
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: flushed %d messages\n"),
-                  inherited::mod_->name ()));
-    } // end ELSE IF
-
-    // clean up
+#if defined (_DEBUG)
+    else
+      if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: flushed %d messages\n"),
+                    inherited::mod_->name (),
+                    result));
+#endif // _DEBUG
     messageBlock_in->release ();
-
     return (result > 0 ? 0 : result);
   } // end IF
 
@@ -334,9 +336,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: worker thread %t starting...\n"),
               inherited::mod_->name ()));
+#endif // _DEBUG
 
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block::ACE_Message_Type message_type;
@@ -348,7 +352,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   do
   {
     result = inherited::getq (message_block_p, NULL);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       error = ACE_OS::last_error ();
       if (error != ESHUTDOWN)
@@ -365,7 +369,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       if (inherited::thr_count_ > 1)
       {
         result_2 = inherited::putq (message_block_p, NULL);
-        if (result_2 == -1)
+        if (unlikely (result_2 == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
@@ -376,7 +380,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
         result = 0;
 
       // clean up
-      message_block_p->release ();
+      message_block_p->release (); message_block_p = NULL;
 
       break; // done
     } // end IF
@@ -384,11 +388,10 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
-    if (stop_processing && inherited::thr_count_)
+    if (unlikely (stop_processing && inherited::thr_count_))
       inherited::stop (false,  // wait ?
                        false); // N/A
 
-    // initialize
     message_block_p = NULL;
   } while (true);
 

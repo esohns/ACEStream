@@ -130,23 +130,28 @@ Stream_ControlMessage_T<ControlType,
   // *NOTE*: some control types have not (yet) been defined in ACE
   switch (type_in)
   {
-    case STREAM_CONTROL_DISCONNECT:
-      type_ = STREAM_CONTROL_MESSAGE_DISCONNECT; break;
     case STREAM_CONTROL_END:
       type_ = STREAM_CONTROL_MESSAGE_END; break;
+    case STREAM_CONTROL_ABORT:
+      type_ = STREAM_CONTROL_MESSAGE_ABORT; break;
+    case STREAM_CONTROL_CONNECT:
+      type_ = STREAM_CONTROL_MESSAGE_CONNECT; break;
+    case STREAM_CONTROL_DISCONNECT:
+      type_ = STREAM_CONTROL_MESSAGE_DISCONNECT; break;
+    case STREAM_CONTROL_LINK:
+      type_ = STREAM_CONTROL_MESSAGE_LINK; break;
+    case STREAM_CONTROL_RESIZE:
+      type_ = STREAM_CONTROL_MESSAGE_RESIZE; break;
+    case STREAM_CONTROL_UNLINK:
+      type_ = STREAM_CONTROL_MESSAGE_UNLINK; break;
     case STREAM_CONTROL_FLUSH:
       type_ = STREAM_CONTROL_MESSAGE_FLUSH; break;
     case STREAM_CONTROL_RESET:
       type_ = STREAM_CONTROL_MESSAGE_RESET; break;
-    case STREAM_CONTROL_UNLINK:
-      type_ = STREAM_CONTROL_MESSAGE_UNLINK; break;
-    //////////////////////////////////////
-    case STREAM_CONTROL_CONNECT:
-      type_ = STREAM_CONTROL_MESSAGE_CONNECT; break;
-    case STREAM_CONTROL_LINK:
-      type_ = STREAM_CONTROL_MESSAGE_LINK; break;
     case STREAM_CONTROL_STEP:
       type_ = STREAM_CONTROL_MESSAGE_STEP; break;
+    case STREAM_CONTROL_STEP_2:
+      type_ = STREAM_CONTROL_MESSAGE_STEP_2; break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

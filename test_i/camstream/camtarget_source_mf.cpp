@@ -19,12 +19,12 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <sdkddkver.h>
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
-#else
-#include <windef.h>
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+//#include <sdkddkver.h>
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+//#include <minwindef.h>
+//#else
+//#include <windef.h>
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #include <WinNT.h>
 //#include <Guiddef.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
@@ -196,10 +196,10 @@ DllRegisterServer ()
     RegisterObject (g_hModule,
                     CLSID_ACEStream_MediaFramework_MF_MediaSource,
 #if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT_ALWAYS_WCHAR (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
                     ACE_TEXT_ALWAYS_WCHAR ("Both"));
 #else
-                    ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
                     ACE_TEXT_ALWAYS_CHAR ("Both"));
 #endif // UNICODE
   if (FAILED (result))
@@ -215,7 +215,7 @@ DllRegisterServer ()
   //result =
   //  RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler,                                 // CLSID 
   //                             fileExtension_in,                                                     // Supported file extension
-  //                             ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION)); // Description
+  //                             ACE_TEXT (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION)); // Description
   //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -375,16 +375,16 @@ RegisterByteStreamHandler (REFCLSID CLSID_in,
   result =
       CreateRegistryKey (HKEY_LOCAL_MACHINE,
 #if defined (UNICODE)
-                         ACE_TEXT_ALWAYS_WCHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                         ACE_TEXT_ALWAYS_WCHAR (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
 #else
-                         ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
 #endif // UNICODE
                          &key_p);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CreateRegistryKey(%s): \"%s\", aborting\n"),
-                ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                ACE_TEXT (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
@@ -449,7 +449,7 @@ UnregisterByteStreamHandler (REFCLSID CLSID_in,
 #else
                      ACE_TEXT_ALWAYS_CHAR ("%s\\%s"),
 #endif // UNICODE
-                     ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                     ACE_TEXT (STREAM_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
                      fileExtension_in);
   if (unlikely (FAILED (result)))
   {

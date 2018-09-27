@@ -39,6 +39,8 @@
 #include "common_signal_tools.h"
 #include "common_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_timer_tools.h"
 
 #include "common_ui_defines.h"
@@ -459,6 +461,15 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Test_I_Source_Configuration configuration;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   // step0a: initialize event dispatch
   if (useReactor_in)
@@ -597,18 +608,22 @@ do_work (unsigned int bufferSize_in,
   //modulehandler_configuration.stream =
   //  ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
   //                                                      : CBData_in.UDPStream);
+#if defined (GUI_SUPPORT)
   modulehandler_configuration.subscriber = &ui_event_handler;
+#if defined (GTK_USE)
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.subscribersLock =
-    &CBData_in.UIState.subscribersLock;
+    &state_r.subscribersLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
+      bufferSize_in;
 
   configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
+    &message_allocator;
   configuration.streamConfiguration.configuration_.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
@@ -693,19 +708,20 @@ do_work (unsigned int bufferSize_in,
   // [GTK events:]
   // - dispatch UI events (if any)
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.UIState.eventHooks.initHook = idle_initialize_source_UI_cb;
+#if defined (GTK_USE)
+    state_r.eventHooks.finiHook = idle_finalize_UI_cb;
+    state_r.eventHooks.initHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
     //CBData_in.userData = &CBData_in;
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    gtk_manager_p->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -713,7 +729,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!gtk_manager_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -722,6 +738,7 @@ do_work (unsigned int bufferSize_in,
       delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
       return;
     } // end IF
+#endif // GTK_USE
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -739,7 +756,7 @@ do_work (unsigned int bufferSize_in,
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
-#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
 
   // step1b: initialize worker(s)
   int group_id = -1;
@@ -755,20 +772,25 @@ do_work (unsigned int bufferSize_in,
     //					 iterator++)
     //				g_source_remove(*iterator);
     //		} // end lock scope
+
+#if defined (GUI_SUPPORT)
     if (!UIDefinitionFile_in.empty ())
-#if defined (GTK_SUPPORT)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+#if defined (GTK_USE)
+      gtk_manager_p->stop ();
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
     timer_manager_p->stop ();
     delete CBData_in.stream; CBData_in.stream = NULL;
     delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
     return;
   } // end IF
 
+#if defined (GUI_SUPPORT)
   if (UIDefinitionFile_in.empty ())
   {
+#endif // GUI_SUPPORT
     Test_I_StreamBase_t* stream_p =
       ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                           : CBData_in.UDPStream);
@@ -820,18 +842,22 @@ loop:
     Common_Tools::finalizeEventDispatch (useReactor_in,
                                          !useReactor_in,
                                          group_id);
+#if defined (GUI_SUPPORT)
   } // end IF
   else
     Common_Tools::dispatchEvents (useReactor_in,
                                   group_id);
+#endif // GUI_SUPPORT
 
   // step3: clean up
+#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
 #else
     ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1053,26 +1079,41 @@ ACE_TMAIN (int argc_in,
   if (number_of_dispatch_threads == 0)
     number_of_dispatch_threads = 1;
 
+  Common_MessageStack_t* logstack_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+#if defined (GUI_SUPPORT)
   struct Test_I_Source_UI_CBData ui_cb_data;
   ui_cb_data.loop = loop;
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  logstack_p = &state_r.logStack;
+  lock_p = &state_r.logStackLock;
+  lock_2 = &state_r.subscribersLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&ui_cb_data.UIState.logStack,
-                          &ui_cb_data.UIState.lock);
+  Common_Logger_t logger (logstack_p,
+                          lock_p);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
-  if (!Common_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
-                                        log_file_name,                        // log file name
-                                        false,                                // log to syslog ?
-                                        false,                                // trace messages ?
-                                        trace_information,                    // debug messages ?
-                                        (gtk_glade_file.empty () ? NULL
-                                                                 : &logger))) // logger ?
+  if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
+                                            log_file_name,                        // log file name
+                                            false,                                // log to syslog ?
+                                            false,                                // trace messages ?
+                                            trace_information,                    // debug messages ?
+                                            (gtk_glade_file.empty () ? NULL
+                                                                     : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1098,7 +1139,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1116,7 +1157,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1128,7 +1169,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   Test_I_Source_SignalHandler signal_handler (((ui_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                              &ui_cb_data.UIState.subscribersLock);
+                                              lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -1139,7 +1180,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1164,7 +1205,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1175,17 +1216,17 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  ui_cb_data.UIState.RCFiles.push_back (gtk_rc_file);
+#if defined (GTK_USE)
+  state_r.RCFiles.push_back (gtk_rc_file);
   Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
                                                       argv_in,
                                                       &ui_cb_data);
   if (!gtk_glade_file.empty ())
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                   argv_in,
-                                                                   &ui_cb_data.UIState,
-                                                                   &ui_definition))
+    if (!gtk_manager_p->initialize (argc_in,
+                                    argv_in,
+                                    &ui_definition))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
@@ -1195,7 +1236,7 @@ ACE_TMAIN (int argc_in,
                                      signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
-      Common_Tools::finalizeLogging ();
+      Common_Log_Tools::finalizeLogging ();
       // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = ACE::fini ();
@@ -1205,7 +1246,8 @@ ACE_TMAIN (int argc_in,
 #endif
       return EXIT_FAILURE;
     } // end IF
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1255,7 +1297,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1313,7 +1355,7 @@ ACE_TMAIN (int argc_in,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Tools::finalizeLogging ();
+  Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

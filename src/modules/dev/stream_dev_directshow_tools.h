@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_DEV_DIRECTSHOW_TOOLS_H
-#define STREAM_MODULE_DEV_DIRECTSHOW_TOOLS_H
+#ifndef STREAM_DEVICE_DIRECTSHOW_TOOLS_H
+#define STREAM_DEVICE_DIRECTSHOW_TOOLS_H
 
 #include <string>
 
 #include <winnt.h>
-#include <guiddef.h>
 #include <CGuid.h>
+#include <Guiddef.h>
 #include <strmif.h>
 
 #include "ace/Global_Macros.h"
@@ -33,10 +33,11 @@
 #include "common_ui_common.h"
 
 #include "stream_lib_common.h"
+#include "stream_lib_directshow_common.h"
 
 #include "stream_dev_common.h"
 
-class Stream_Module_Device_DirectShow_Tools
+class Stream_Device_DirectShow_Tools
 {
  public:
   static bool initialize (bool = true); // initialize COM ?
@@ -46,9 +47,10 @@ class Stream_Module_Device_DirectShow_Tools
   // *NOTE*: returns the devices' "FriendlyName"
   static std::string devicePathToString (const std::string&); // device path
   static std::string devicePath (const std::string&); // device 'friendly' name
+
   // *NOTE*: returns the devices' 'path'
-  static std::string getDefaultDevice (REFGUID); // (capture) device category
-  static Stream_Module_Device_List_t getCaptureDevices (REFGUID); // (capture) device category
+  static std::string getDefaultCaptureDevice (REFGUID); // (capture) device category
+  static Stream_Device_List_t getCaptureDevices (REFGUID); // (capture) device category
 
   // -------------------------------------
 
@@ -88,9 +90,9 @@ class Stream_Module_Device_DirectShow_Tools
                                Stream_MediaFramework_DirectShow_Graph_t&); // return value: graph layout
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_DirectShow_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_DirectShow_Tools (const Stream_Module_Device_DirectShow_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_DirectShow_Tools& operator= (const Stream_Module_Device_DirectShow_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_DirectShow_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_DirectShow_Tools (const Stream_Device_DirectShow_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_DirectShow_Tools& operator= (const Stream_Device_DirectShow_Tools&))
 };
 
 #endif

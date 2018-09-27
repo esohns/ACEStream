@@ -43,6 +43,7 @@
 #include "common_ui_common.h"
 
 #include "stream_lib_common.h"
+#include "stream_lib_directshow_common.h"
 
 class Stream_MediaFramework_DirectShow_Tools
 {
@@ -107,6 +108,8 @@ class Stream_MediaFramework_DirectShow_Tools
   // pin
   static void dump (IPin*); // pin handle
   static std::string name (IPin*); // pin handle
+  // *NOTE*: return value (if any) has an outstanding reference --> Release()
+  static IBaseFilter* toFilter (IPin*); // pin handle
   static unsigned int countFormats (IPin*,                // pin handle
                                     REFGUID = GUID_NULL); // format type (GUID_NULL: all)
   // *NOTE*: this is also the most 'preferred' one
@@ -123,10 +126,7 @@ class Stream_MediaFramework_DirectShow_Tools
                                      struct _AMMediaType*&); // return value: media type
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   // *NOTE*: pin must be connected
-  static bool getFormat (IPin*,                  // pin handle
-                         struct _AMMediaType*&); // return value: media type
-  // *NOTE*: return value (if any) has an outstanding reference --> Release()
-  static IBaseFilter* pinToFilter (IPin*); // pin handle
+  static struct _AMMediaType* toFormat (IPin*); // pin handle
 
   // filter
   // *NOTE*: "...filters are given names when they participate [!] in a filter
@@ -136,6 +136,10 @@ class Stream_MediaFramework_DirectShow_Tools
   static IPin* pin (IBaseFilter*,        // filter handle
                     enum _PinDirection); // direction
   static IPin* capturePin (IBaseFilter*); // filter handle
+  // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
+  static struct _AMMediaType* defaultCaptureFormat (IBaseFilter*); // filter handle
+
+  static bool hasPropertyPages (IBaseFilter*); // filter handle
   // -------------------------------------
 
   static bool loadSourceGraph (IBaseFilter*,           // source filter
@@ -144,34 +148,37 @@ class Stream_MediaFramework_DirectShow_Tools
                                IAMBufferNegotiation*&, // return value: source filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
   // *NOTE*: disconnects the graph and removes all but a specific source filter
-  static bool resetGraph (IGraphBuilder*, // filter graph handle
-                          REFGUID);       // retain (device) category (GUID_NULL: retain first filter w/o input pins)
+  static bool reset (IGraphBuilder*, // filter graph handle
+                     REFGUID);       // retain (device) category (GUID_NULL: retain first filter w/o input pins)
 
   // -------------------------------------
 
-  static bool matchBitmapInfo (const struct tagBITMAPINFOHEADER&,  // bitmap info
-                               const struct tagBITMAPINFOHEADER&); // bitmap info
+  static bool match (const struct tagBITMAPINFOHEADER&,  // bitmap info
+                     const struct tagBITMAPINFOHEADER&); // bitmap info
 
-  static bool matchVideoInfo (const struct tagVIDEOINFOHEADER&,  // video info
-                              const struct tagVIDEOINFOHEADER&); // video info
-  static bool matchVideoInfo2 (const struct tagVIDEOINFOHEADER2&,  // video info
-                               const struct tagVIDEOINFOHEADER2&); // video info
+  static bool match (const struct tagVIDEOINFOHEADER&,  // video info
+                     const struct tagVIDEOINFOHEADER&); // video info
+  static bool match (const struct tagVIDEOINFOHEADER2&,  // video info
+                     const struct tagVIDEOINFOHEADER2&); // video info
 
   // media type
   static void dump (const struct _AMMediaType&); // media type
-  static bool copyMediaType (const struct _AMMediaType&, // media type
-                             struct _AMMediaType*&);     // return value: handle
-  static bool matchMediaType (const struct _AMMediaType&,  // media type
-                              const struct _AMMediaType&); // media type
-  inline static void deleteMediaType (struct _AMMediaType*& mediaType_inout) { DeleteMediaType (mediaType_inout); mediaType_inout = NULL; }
-  inline static void freeMediaType (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); }
-  static std::string mediaTypeToString (const struct _AMMediaType&, // media type
-                                        bool = false);              // condensed version ?
-  inline static bool AMMediaTypeToDMOMediaType (const struct _AMMediaType& mediaType_in, DMO_MEDIA_TYPE*& mediaType_out) { return Stream_MediaFramework_DirectShow_Tools::copyMediaType (mediaType_in, reinterpret_cast<struct _AMMediaType*&> (mediaType_out)); }
-  static Common_UI_Resolution_t mediaTypeToResolution (const struct _AMMediaType&); // media type
-  static unsigned int mediaTypeToFramerate (const struct _AMMediaType&); // media type
-  static unsigned int mediaTypeToFramesize (const struct _AMMediaType&); // media type
-  static unsigned int mediaTypeToBitrate (const struct _AMMediaType&); // media type
+  // *IMPORTANT NOTE*: callers must 'delete_' any return values
+  static struct _AMMediaType* copy (const struct _AMMediaType&);
+  inline static void delete_ (struct _AMMediaType*& mediaType_inout) { DeleteMediaType (mediaType_inout); mediaType_inout = NULL; }
+  inline static void free (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); }
+  static bool match (const struct _AMMediaType&,  // media type
+                     const struct _AMMediaType&); // media type
+  static unsigned int toBitrate (const struct _AMMediaType&); // media type
+  // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
+  inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
+  static unsigned int toFramerate (const struct _AMMediaType&); // media type
+  static unsigned int toFramesize (const struct _AMMediaType&); // media type
+  static Common_UI_Resolution_t toResolution (const struct _AMMediaType&); // media type
+  // *IMPORTANT NOTE*: callers must 'delete_' any return values
+  static struct _AMMediaType* toRGB (const struct _AMMediaType&); // media type
+  static std::string toString (const struct _AMMediaType&, // media type
+                               bool = false);              // condensed version ?
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())
@@ -186,7 +193,7 @@ class Stream_MediaFramework_DirectShow_Tools
 
   static ACE_HANDLE logFileHandle;
 
-  static std::string mediaTypeToString2 (const struct _AMMediaType&); // media type
+  static std::string toString_2 (const struct _AMMediaType&); // media type
 };
 
 #endif

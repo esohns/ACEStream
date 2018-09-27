@@ -46,6 +46,8 @@
 #include "common_signal_tools.h"
 #include "common_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_timer_tools.h"
 
 #include "common_ui_defines.h"
@@ -985,14 +987,22 @@ ACE_TMAIN (int argc_in,
   struct HTTPGet_UI_CBData ui_cb_data;
   //Common_Logger_t logger (&ui_cb_data.UIState.logStack,
   //                        &ui_cb_data.UIState.lock);
-#if defined (GTK_SUPPORT)
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+  lock_p = state_r.subscribersLock;
+#endif // GTK_USE
   HTTPGet_GtkBuilderDefinition_t ui_definition (argc_in,
                                                 argv_in,
                                                 &ui_cb_data);
-#endif // GTK_SUPPORT
+#endif // GUI_SUPPORT
   struct HTTPGet_Configuration configuration;
   HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        &ui_cb_data.UIState.subscribersLock);
+                                        lock_p);
   ACE_Profile_Timer process_profile;
   ACE_High_Res_Timer timer;
   std::string working_time_string;
@@ -1139,17 +1149,15 @@ ACE_TMAIN (int argc_in,
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0],
                                                                               ACE_DIRECTORY_SEPARATOR_CHAR)));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
-                                        log_file_name,                        // log file name
-                                        false,                                // log to syslog ?
-                                        false,                                // trace messages ?
-                                        trace_information,                    // debug messages ?
-                                        NULL))
-                                        //(interface_definition_file.empty () ? NULL
-                                        //                                    : &logger))) // logger ?
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
+                                            log_file_name,                        // log file name
+                                            false,                                // log to syslog ?
+                                            false,                                // trace messages ?
+                                            trace_information,                    // debug messages ?
+                                            NULL))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
     goto error;
   } // end IF
 
@@ -1164,7 +1172,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     goto error;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
@@ -1175,7 +1183,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     goto error;
   } // end IF
 
@@ -1193,7 +1201,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     goto error;
   } // end IF
 
@@ -1204,19 +1212,20 @@ ACE_TMAIN (int argc_in,
   if (UI_file_path.empty ())
     goto continue_;
 
-#if defined (GTK_SUPPORT)
-  ui_cb_data.UIState.argc = argc_in;
-  ui_cb_data.UIState.argv = argv_in;
-  ui_cb_data.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  state_r.argc = argc_in;
+  state_r.argv = argv_in;
+  state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
-  ui_cb_data.UIState.eventHooks.finiHook = idle_finalize_ui_cb;
-  ui_cb_data.UIState.eventHooks.initHook = idle_initialize_ui_cb;
+  state_r.eventHooks.finiHook = idle_finalize_ui_cb;
+  state_r.eventHooks.initHook = idle_initialize_ui_cb;
   //ui_cb_data.userData = &ui_cb_data;
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                             argv_in,
-                                                            &ui_cb_data.UIState,
                                                             &ui_definition);
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 continue_:
   timer.start ();
@@ -1268,7 +1277,7 @@ done:
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     goto error;
   } // end IF
   process_profile.elapsed_rusage (elapsed_rusage);
@@ -1276,7 +1285,15 @@ done:
   system_time.set (elapsed_rusage.ru_stime);
   user_time_string = Common_Timer_Tools::periodToString (user_time);
   system_time_string = Common_Timer_Tools::periodToString (system_time);
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              elapsed_time.real_time,
+              elapsed_time.user_time,
+              elapsed_time.system_time,
+              ACE_TEXT (user_time_string.c_str ()),
+              ACE_TEXT (system_time_string.c_str ())));
+#else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
@@ -1298,14 +1315,6 @@ done:
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#else
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
-              elapsed_time.real_time,
-              elapsed_time.user_time,
-              elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
 #endif
 
   // step9: clean up
@@ -1314,7 +1323,7 @@ done:
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Tools::finalizeLogging ();
+  Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_DEV_MEDIAFOUNDATION_TOOLS_H
-#define STREAM_MODULE_DEV_MEDIAFOUNDATION_TOOLS_H
+#ifndef STREAM_DEVICE_MEDIAFOUNDATION_TOOLS_H
+#define STREAM_DEVICE_MEDIAFOUNDATION_TOOLS_H
 
 #include <string>
 
@@ -34,7 +34,7 @@
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 
-class Stream_Module_Device_MediaFoundation_Tools
+class Stream_Device_MediaFoundation_Tools
 {
  public:
   static void initialize ();
@@ -86,9 +86,9 @@ class Stream_Module_Device_MediaFoundation_Tools
   // -------------------------------------
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools (const Stream_Module_Device_MediaFoundation_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_MediaFoundation_Tools& operator= (const Stream_Module_Device_MediaFoundation_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools (const Stream_Device_MediaFoundation_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_MediaFoundation_Tools& operator= (const Stream_Device_MediaFoundation_Tools&))
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   static bool setCaptureFormat (IMFMediaSourceEx*,    // source handle

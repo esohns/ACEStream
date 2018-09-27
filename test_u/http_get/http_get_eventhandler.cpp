@@ -19,7 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_common.h"
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "ace/Synch.h"
 #include "http_get_eventhandler.h"
@@ -30,18 +34,27 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_common.h"
+
 #include "http_get_common.h"
 #include "http_get_callbacks.h"
 
-HTTPGet_EventHandler::HTTPGet_EventHandler (struct HTTPGet_UI_CBData* CBData_in,
+HTTPGet_EventHandler::HTTPGet_EventHandler (
+#if defined (GUI_SUPPORT)
+                                            struct HTTPGet_UI_CBData* CBData_in,
+#endif // GUI_SUPPORT
                                             bool consoleMode_in)
  : consoleMode_ (consoleMode_in)
+#if defined (GUI_SUPPORT)
  , CBData_ (CBData_in)
+#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::HTTPGet_EventHandler"));
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 }
 
 void
@@ -54,23 +67,30 @@ HTTPGet_EventHandler::start (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionData_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   guint event_source_id = 0;
-#endif // GTK_SUPPORT
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-#if defined (GTK_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_session_start_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_start_cb): \"%m\", continuing\n")));
     else
-      CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_SUPPORT
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
+      state_r.eventSourceIds.insert (event_source_id);
+    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 void
@@ -93,11 +113,20 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (message_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
+#if defined (GUI_SUPPORT)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GUI_SUPPORT
 }
 
 void
@@ -109,10 +138,21 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   switch (message_in.type ())
   {
     case STREAM_SESSION_MESSAGE_CONNECT:
@@ -130,7 +170,10 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
       struct HTTPGet_SessionData& session_data_r =
         const_cast<struct HTTPGet_SessionData&> (session_data_container_r.getR ());
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE
         if (session_data_r.lock)
         {
           result = session_data_r.lock->acquire ();
@@ -148,7 +191,10 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
         } // end IF
+#if defined (GTK_USE)
       } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
       event_e = COMMON_UI_EVENT_STATISTIC;
       break;
@@ -162,9 +208,13 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
     }
   } // end SWITCH
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
     CBData_->UIState.eventStack.push (event_e);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 void
@@ -174,19 +224,29 @@ HTTPGet_EventHandler::end (Stream_SessionId_t sessionId_in)
 
   ACE_UNUSED_ARG (sessionId_in);
 
-#if defined (GTK_SUPPORT)
+  // sanity check(s)
+#if defined (GUI_SUPPORT)
+  ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   guint event_source_id = 0;
-#endif // GTK_SUPPORT
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-#if defined (GTK_SUPPORT)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
     else
-      CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_SUPPORT
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STOPPED);
+      state_r.eventSourceIds.insert (event_source_id);
+    state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }

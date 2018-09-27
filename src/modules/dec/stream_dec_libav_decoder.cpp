@@ -25,7 +25,7 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_libav_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
 enum AVPixelFormat
 stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,

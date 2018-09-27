@@ -29,6 +29,7 @@
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
 #include <wxdebug.h>
+#include <strmif.h>
 #include <combase.h>
 #include <MMReg.h>
 #include <mtype.h>

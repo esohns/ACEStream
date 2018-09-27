@@ -11,8 +11,11 @@
 #include "test_u_camsave_stream.h"
 #include "test_u_camsave_ui_base.h"
 
+// helper functions
+void process_stream_events (struct Stream_CamSave_UI_CBData*, bool&);
+
 // thread functions
-ACE_THR_FUNC_RETURN event_processing_thread (void*);
+//ACE_THR_FUNC_RETURN event_processing_thread (void*);
 ACE_THR_FUNC_RETURN stream_processing_thread (void*);
 
 template <typename InterfaceType, // implements Common_UI_wxWidgets_IApplication_T
@@ -41,13 +44,16 @@ class Stream_CamSave_WxWidgetsDialog_T
                                            StreamType> OWN_TYPE_T;
 
   // event handlers
-  virtual void OnIdle (wxIdleEvent&);
+  virtual void dialog_main_idle_cb (wxIdleEvent&);
+  virtual void dialog_main_keydown_cb (wxKeyEvent&);
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
   virtual void button_snapshot_click_cb (wxCommandEvent&);
   virtual void button_cut_click_cb (wxCommandEvent&);
+#if defined (_DEBUG)
   virtual void button_report_click_cb (wxCommandEvent&);
+#endif // _DEBUG
   virtual void choice_source_selected_cb (wxCommandEvent&);
   virtual void button_hardware_settings_click_cb (wxCommandEvent&);
   virtual void choice_format_selected_cb (wxCommandEvent&);
@@ -56,7 +62,9 @@ class Stream_CamSave_WxWidgetsDialog_T
   virtual void button_reset_format_click_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
@@ -99,13 +107,16 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
                                            Stream_CamSave_DirectShow_Stream> OWN_TYPE_T;
 
   // event handlers
-  virtual void OnIdle (wxIdleEvent&);
+  virtual void dialog_main_idle_cb (wxIdleEvent&);
+  virtual void dialog_main_keydown_cb (wxKeyEvent&);
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
   virtual void button_snapshot_click_cb (wxCommandEvent&);
   virtual void button_cut_click_cb (wxCommandEvent&);
+#if defined (_DEBUG)
   virtual void button_report_click_cb (wxCommandEvent&);
+#endif // _DEBUG
   virtual void choice_source_selected_cb (wxCommandEvent&);
   virtual void button_hardware_settings_click_cb (wxCommandEvent&);
   virtual void choice_format_selected_cb (wxCommandEvent&);
@@ -114,7 +125,9 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
   virtual void button_reset_format_click_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
@@ -124,6 +137,7 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
 
   Stream_CamSave_DirectShow_WxWidgetsIApplication_t* application_;
   bool                                               initializing_;
+  bool                                               reset_; // direct3d device-
   bool                                               untoggling_;
 };
 
@@ -153,13 +167,16 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
                                            Stream_CamSave_MediaFoundation_Stream> OWN_TYPE_T;
 
   // event handlers
-  virtual void OnIdle (wxIdleEvent&);
+  virtual void dialog_main_idle_cb (wxIdleEvent&);
+  virtual void dialog_main_keydown_cb (wxKeyEvent&);
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
   virtual void button_snapshot_click_cb (wxCommandEvent&);
   virtual void button_cut_click_cb (wxCommandEvent&);
+#if defined (_DEBUG)
   virtual void button_report_click_cb (wxCommandEvent&);
+#endif // _DEBUG
   virtual void choice_source_selected_cb (wxCommandEvent&);
   virtual void button_hardware_settings_click_cb (wxCommandEvent&);
   virtual void choice_format_selected_cb (wxCommandEvent&);
@@ -168,7 +185,9 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
   virtual void button_reset_format_click_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
@@ -178,6 +197,7 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
 
   Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t* application_;
   bool                                                    initializing_;
+  bool                                                    reset_; // direct3d device-
   bool                                                    untoggling_;
 };
 #endif // ACE_WIN32 || ACE_WIN64

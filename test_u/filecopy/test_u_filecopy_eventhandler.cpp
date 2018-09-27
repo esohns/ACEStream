@@ -19,6 +19,12 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "gtk/gtk.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
 #include "ace/Synch.h"
 #include "test_u_filecopy_eventhandler.h"
 
@@ -33,8 +39,12 @@
 #include "test_u_filecopy_defines.h"
 
 Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (struct Stream_Filecopy_UI_CBData* CBData_in)
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
+#else
+ : sessionData_ (NULL)
+#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler"));
 
@@ -49,7 +59,9 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
   ACE_ASSERT (!sessionData_);
 
   int result = -1;
@@ -57,7 +69,15 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionId_in,
   sessionData_ =
     &const_cast<struct Stream_Filecopy_SessionData&> (sessionData_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE
     if (sessionData_->lock)
     {
       result = sessionData_->lock->acquire ();
@@ -88,8 +108,11 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionId_in,
 //  gdk_threads_enter ();
 //  gdk_threads_leave ();
 
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
+#if defined (GTK_USE)
+    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 void
@@ -115,16 +138,25 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
   Common_UI_GTK_BuildersIterator_t iterator;
   GtkTable* table_p = NULL;
   GtkAction* action_p = NULL;
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     iterator =
-      CBData_->UIState.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+      state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
-    ACE_ASSERT (iterator != CBData_->UIState.builders.end ());
+    ACE_ASSERT (iterator != state_r.builders.end ());
 
     gdk_threads_enter ();
     table_p =
@@ -144,9 +176,10 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
     ACE_ASSERT (action_p);
     gtk_action_set_sensitive (action_p, FALSE);
     gdk_threads_leave ();
-
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_FINISHED);
+    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -161,12 +194,25 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE
     CBData_->progressData.copied += message_in.total_length ();
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
+#if defined (GTK_USE)
+    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 void
 Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
@@ -177,13 +223,24 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
   enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-    CBData_->UIState.eventStack.push (event_e);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (event_e);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }

@@ -44,11 +44,21 @@
 
 #include "common_error_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (HAVE_CONFIG_H)
+#include "libACEStream_config.h"
+#endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
@@ -62,14 +72,16 @@
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
-#endif // HAVE_CONFIG_H
+#include "stream_misc_defines.h"
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_u_audioeffect_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_defines.h"
 #include "test_u_audioeffect_eventhandler.h"
@@ -152,7 +164,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
+            << (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -243,7 +255,7 @@ do_processArguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  mediaFramework_out = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
+  mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -530,15 +542,15 @@ continue_:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
   //Stream_Module_Device_Tools::initialize (true);
 
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
-                                                               CLSID_AudioInputDeviceCategory,
-                                                               IGraphBuilder_out,
-                                                               buffer_negotiation_p,
-                                                               IAMStreamConfig_out,
-                                                               graph_layout))
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
+                                                        CLSID_AudioInputDeviceCategory,
+                                                        IGraphBuilder_out,
+                                                        buffer_negotiation_p,
+                                                        IAMStreamConfig_out,
+                                                        graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceIdentifier_in.c_str ())));
     goto error;
   } // end IF
@@ -616,12 +628,12 @@ continue_:
 
   //mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
 
-  if (!Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
-                                                                CLSID_AudioInputDeviceCategory,
-                                                                *mediaType_out))
+  if (!Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
+                                                         CLSID_AudioInputDeviceCategory,
+                                                         *mediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 
@@ -675,7 +687,7 @@ error:
   } // end IF
 
   if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -894,16 +906,16 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (&directShowCBData_in);
   Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (istream_p,
-                                                                                     ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
+                                                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (istream_p,
-                                                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
+                                                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
   Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
-                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
+                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_U_AudioEffect_ModuleHandlerConfiguration modulehandler_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -956,10 +968,14 @@ do_work (unsigned int bufferSize_in,
       //ACE_ASSERT (SUCCEEDED (result));
 
 #if defined (GTKGL_SUPPORT)
+      Common_UI_GTK_Manager_t* gtk_manager_p =
+        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+      Common_UI_GTK_State_t& state_r =
+        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
       (*directshow_modulehandler_iterator).second.second.OpenGLInstructions =
         &directShowCBData_in.OpenGLInstructions;
       (*directshow_modulehandler_iterator).second.second.OpenGLInstructionsLock =
-        &directShowCBData_in.UIState.lock;
+        &state_r.lock;
 #endif // GTKGL_SUPPORT
 
       (*directshow_modulehandler_iterator).second.second.printProgressDot =
@@ -992,10 +1008,14 @@ do_work (unsigned int bufferSize_in,
         &mediaFoundationCBData_in.surfaceLock;
 
 #if defined (GTKGL_SUPPORT)
+      Common_UI_GTK_Manager_t* gtk_manager_p =
+        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+      Common_UI_GTK_State_t& state_r =
+        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
       (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructions =
         &mediaFoundationCBData_in.OpenGLInstructions;
       (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructionsLock =
-        &mediaFoundationCBData_in.UIState.lock;
+        &state_r.lock;
 #endif // GTKGL_SUPPORT
 
       (*mediafoundation_modulehandler_iterator).second.second.printProgressDot =
@@ -1038,10 +1058,12 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
 
 #if defined (GTKGL_SUPPORT)
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   (*modulehandler_iterator).second.second.OpenGLInstructions =
-      &CBData_in.OpenGLInstructions;
+    &CBData_in.OpenGLInstructions;
   (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
-      &CBData_in.UIState.lock;
+    &state_r.lock;
 #endif // GTKGL_SUPPORT
 
   (*modulehandler_iterator).second.second.printProgressDot =
@@ -1109,7 +1131,7 @@ do_work (unsigned int bufferSize_in,
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
   CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
-      true;
+    true;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -1242,32 +1264,43 @@ do_work (unsigned int bufferSize_in,
     goto error;
   } // end IF
 
-  // step1a: start event loop ?
+#if defined (GUI_SUPPORT)
+  // step1a: start ui event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
+#if defined (GTK_USE)
+    Common_UI_GTK_Manager_t* gtk_manager_p =
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    Common_UI_GTK_State_t& state_r =
+      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (mediaFramework_in)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directShowCBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-        directShowCBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
+#if defined (GTK_USE)
+        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
+        state_r.eventHooks.initHook = idle_initialize_UI_cb;
         //directShowCBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        directShowCBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+#endif // GTK_USE
         directShowCBData_in.stream = &directshow_stream;
         //directShowCBData_in.userData = &directShowCBData_in;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediaFoundationCBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-        mediaFoundationCBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
+#if defined (GTK_USE)
+        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
+        state_r.eventHooks.initHook = idle_initialize_UI_cb;
         //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        mediaFoundationCBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+#endif // GTK_USE
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
         //mediaFoundationCBData_in.UIState.userData = &mediaFoundationCBData_in;
         break;
@@ -1281,15 +1314,18 @@ do_work (unsigned int bufferSize_in,
       }
     } // end SWITCH
 #else
-    CBData_in.UIState.eventHooks.finiHook = idle_initialize_UI_cb;
-    CBData_in.UIState.eventHooks.initHook = idle_finalize_UI_cb;
+#if defined (GTK_USE)
+    state_r.eventHooks.finiHook = idle_initialize_UI_cb;
+    state_r.eventHooks.initHook = idle_finalize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+#endif // GTK_USE
     CBData_in.stream = &stream;
     //CBData_in.userData = &CBData_in;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_USE)
     itask_control_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (itask_control_p);
     itask_control_p->start ();
@@ -1306,6 +1342,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to start GTK event dispatch, aborting\n")));
       goto error;
     } // end IF
+#endif // GTK_USE
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -1323,7 +1360,9 @@ do_work (unsigned int bufferSize_in,
     itask_control_p->wait ();
   } // end IF
   else
-  { ACE_ASSERT (istream_control_p);
+  {
+#endif // GUI_SUPPORT
+    ACE_ASSERT (istream_control_p);
     istream_control_p->start ();
 //    if (!istream_control_p->isRunning ())
 //    {
@@ -1334,7 +1373,9 @@ do_work (unsigned int bufferSize_in,
     istream_control_p->wait (true,
                              false,
                              false);
+#if defined (GUI_SUPPORT)
   } // end ELSE
+#endif // GUI_SUPPORT
 
   // step3: clean up
   //		{ // synch access
@@ -1390,8 +1431,10 @@ do_work (unsigned int bufferSize_in,
   return;
 
 error:
+#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty () && itask_control_p)
     itask_control_p->stop (true); // wait for completion ?
+#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 }
 
@@ -1511,7 +1554,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
-    MODULE_LIB_DEFAULT_MEDIAFRAMEWORK;
+    STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
@@ -1544,6 +1587,7 @@ ACE_TMAIN (int argc_in,
                             //run_stress_test))
   {
     do_printUsage (ACE::basename (argv_in[0]));
+
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1583,6 +1627,13 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+#endif // GTK_USE
   struct Test_U_AudioEffect_UI_CBDataBase* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_Configuration directshow_configuration;
@@ -1593,15 +1644,19 @@ ACE_TMAIN (int argc_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_ui_cb_data.progressData.state = &directshow_ui_cb_data.UIState;
+#if defined (GTK_USE)
+      directshow_ui_cb_data.progressData.state = &state_r;
+#endif // GTK_USE
       cb_data_base_p = &directshow_ui_cb_data;
+      cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
       directshow_ui_cb_data.configuration = &directshow_configuration;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_ui_cb_data.progressData.state =
-        &mediafoundation_ui_cb_data.UIState;
+#if defined (GTK_USE)
+      mediafoundation_ui_cb_data.progressData.state = &state_r;
+#endif // GTK_USE
       cb_data_base_p = &mediafoundation_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
@@ -1626,30 +1681,43 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_U_AudioEffect_Configuration configuration;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
-  ui_cb_data.progressData.state = &ui_cb_data.UIState;
+#if defined (GTK_USE)
+  ui_cb_data.progressData.state = &state_r;
+#endif // GTK_USE
   cb_data_base_p = &ui_cb_data;
   ui_cb_data.configuration = &configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
+#endif // GUI_SUPPORT
+
+  Common_MessageStack_t* logstack_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  logstack_p = &state_r.logStack;
+  lock_p = &state_r.logStackLock;
 #if GTK_CHECK_VERSION(3,0,0)
   if (!UI_CSS_file.empty ())
-    cb_data_base_p->UIState.CSSProviders[UI_CSS_file] = NULL;
+    state_r.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&cb_data_base_p->UIState.logStack,
-                          &cb_data_base_p->UIState.logStackLock);
+  Common_Logger_t logger (logstack_p,
+                          lock_p);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-        Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
-                                           ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
-                                        log_file_name,                            // log file name
-                                        false,                                    // log to syslog ?
-                                        false,                                    // trace messages ?
-                                        trace_information,                        // debug messages ?
-                                        (UI_definition_file.empty () ? NULL
-                                                                     : &logger))) // logger ?
+      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
+                                         ACE::basename (argv_in[0]));
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                            log_file_name,                            // log file name
+                                            false,                                    // log to syslog ?
+                                            false,                                    // trace messages ?
+                                            trace_information,                        // debug messages ?
+                                            (UI_definition_file.empty () ? NULL
+                                                                         : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -1678,7 +1746,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1695,7 +1763,7 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1705,17 +1773,24 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-  Test_U_AudioEffect_SignalHandler signal_handler (&cb_data_base_p->UIState.subscribersLock);
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  lock_2 = &state_r.subscribersLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  Test_U_AudioEffect_SignalHandler signal_handler (lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
+
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1739,7 +1814,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1772,7 +1847,6 @@ ACE_TMAIN (int argc_in,
       {
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                   argv_in,
-                                                                  &directshow_ui_cb_data.UIState,
                                                                   &directshow_ui_definition);
         break;
       }
@@ -1780,7 +1854,6 @@ ACE_TMAIN (int argc_in,
       {
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                   argv_in,
-                                                                  &mediafoundation_ui_cb_data.UIState,
                                                                   &mediafoundation_ui_definition);
         break;
       }
@@ -1802,10 +1875,9 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
   } // end IF
 #else
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              &ui_cb_data.UIState,
-                                                              &ui_definition);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                            argv_in,
+                                                            &ui_definition);
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_High_Res_Timer timer;
@@ -1864,7 +1936,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -1885,7 +1957,15 @@ ACE_TMAIN (int argc_in,
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              elapsed_time.real_time,
+              elapsed_time.user_time,
+              elapsed_time.system_time,
+              ACE_TEXT (user_time_string.c_str ()),
+              ACE_TEXT (system_time_string.c_str ())));
+#else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
@@ -1907,21 +1987,13 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#else
-  ACE_DEBUG ((LM_DEBUG,
-    ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
-              elapsed_time.real_time,
-              elapsed_time.user_time,
-              elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Tools::finalizeLogging ();
+  Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

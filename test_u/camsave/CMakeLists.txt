@@ -285,6 +285,7 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  if (WIN32)

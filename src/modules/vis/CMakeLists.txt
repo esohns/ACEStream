@@ -127,16 +127,25 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
- # *NOTE*: workaround
+ if (DEFINED ENV{DXSDK_DIR})
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+ else ()
+  set (DXSDK_DIR
+       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+ endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
+      "D:/projects/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
+                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
 # target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 #                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
@@ -201,6 +210,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/log>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer>)
@@ -208,7 +219,7 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

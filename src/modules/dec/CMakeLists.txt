@@ -2,7 +2,9 @@
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
+
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
+ pkg_check_modules (PKG_OPENCV REQUIRED opencv)
 endif (UNIX)
 
 if (UNIX)
@@ -24,15 +26,20 @@ add_library (${PROJECT_NAME}_Decoder STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 # include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
-# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
+
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
@@ -41,21 +48,67 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
 elseif (WIN32)
-# *NOTE*: workaround
+ if (DEFINED ENV{DXSDK_DIR})
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+ else ()
+  set (DXSDK_DIR
+       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+ endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
 # cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "D:/projects/DShowBaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/build>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/calib3d/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/core/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/features2d/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/flann/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/highgui/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/imgcodecs/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/imgproc/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/ml/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/objdetect/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/photo/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/shape/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/stitching/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/superres/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/video/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/videoio/include>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/videostab/include>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8>)
 
@@ -75,6 +128,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/image>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/log>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -84,10 +139,13 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
 #message (STATUS "INTERFACE_INCLUDE_DIRECTORIES=${INTERFACE_INCLUDE_DIRECTORIES}")
 
@@ -105,7 +163,7 @@ set (source_files
      stream_dec_avi_parser_driver.h
      stream_dec_common.h
      stream_dec_defines.h
-     stream_dec_exports.h
+#     stream_dec_exports.h
      stream_dec_h264_nal_bisector.cpp
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.cpp
@@ -120,6 +178,9 @@ set (source_files
      stream_dec_mpeg_ts_decoder.cpp
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
+     stream_dec_opencv_decoder.cpp
+     stream_dec_opencv_decoder.h
+     stream_dec_opencv_decoder.inl
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
      stream_dec_tools.cpp
@@ -236,7 +297,7 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_avi_parser_driver.h
      stream_dec_common.h
      stream_dec_defines.h
-     stream_dec_exports.h
+#     stream_dec_exports.h
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
@@ -246,6 +307,8 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_libav_decoder.inl
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
+     stream_dec_opencv_decoder.h
+     stream_dec_opencv_decoder.inl
      stream_dec_riff_scanner.h
      stream_dec_tools.h
      stream_dec_zip_decoder.h

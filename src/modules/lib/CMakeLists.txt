@@ -7,6 +7,13 @@
  endif ()
 endif (WIN32)
 
+if (UNIX)
+elseif (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions (-DD3D_DEBUG_INFO)
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif ()
+
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
 if (UNIX)
@@ -20,7 +27,18 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui>)
 elseif (WIN32)
-# *NOTE*: workaround
+ if (DEFINED ENV{DXSDK_DIR})
+  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+ else ()
+  set (DXSDK_DIR
+       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
+  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                              $<BUILD_INTERFACE:${DXSDK_DIR}/Include>)
+ endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
 # cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
@@ -49,6 +67,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/error>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/log>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer>)
@@ -69,12 +89,15 @@ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
 set (source_files
      stream_lib_common.h
      stream_lib_defines.h
-     stream_lib_exports.h
+#     stream_lib_exports.h
      stream_lib_tools.cpp
      stream_lib_tools.h)
 if (WIN32)
  set (source_files
       ${source_files}
+      stream_lib_directdraw_common.h
+      stream_lib_directdraw_tools.cpp
+      stream_lib_directdraw_tools.h
       stream_lib_directshow_allocator.cpp
       stream_lib_directshow_allocator.h
       stream_lib_directshow_allocator.inl
@@ -93,6 +116,7 @@ if (WIN32)
       stream_lib_directshow_target.inl
       stream_lib_directshow_tools.cpp
       stream_lib_directshow_tools.h
+      stream_lib_guids.h
       stream_lib_mediafoundation_callback.cpp
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl
@@ -144,14 +168,19 @@ add_dependencies (${PROJECT_NAME}_MediaFramework Common)
 add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
 
 if (WIN32)
+ if (DEFINED ENV{DXSDK_DIR})
+  target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
+ else ()
+  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DXSDK_DIR}/Lib/x86/D3dx9.lib)
+ endif (DEFINED ENV{DXSDK_DIR})
+
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
   target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
  else ()
-#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 # target_link_libraries (${PROJECT_NAME}_MediaFramework winmm.lib)
+
  target_link_libraries (${PROJECT_NAME}_MediaFramework ${ACE_LIBRARY})
 endif (WIN32)
 
@@ -171,6 +200,8 @@ if (WIN32)
  install (FILES
           stream_lib_common.h
           stream_lib_defines.h
+          stream_lib_directdraw_common.h
+          stream_lib_directdraw_tools.h
           stream_lib_directshow_allocator.h
           stream_lib_directshow_allocator.inl
           stream_lib_directshow_asynch_source_filter.h
@@ -183,7 +214,8 @@ if (WIN32)
           stream_lib_directshow_target.h
           stream_lib_directshow_target.inl
           stream_lib_directshow_tools.h
-          stream_lib_exports.h
+#          stream_lib_exports.h
+          stream_lib_guids.h
           stream_lib_mediafoundation_callback.h
           stream_lib_mediafoundation_callback.inl
           stream_lib_mediafoundation_mediasource.h
@@ -202,7 +234,7 @@ elseif (UNIX)
  install (FILES
           stream_lib_common.h
           stream_lib_defines.h
-          stream_lib_exports.h
+#          stream_lib_exports.h
           stream_lib_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)

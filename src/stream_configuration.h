@@ -52,7 +52,7 @@ struct Stream_SignalHandlerConfiguration
   Stream_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
@@ -89,7 +89,7 @@ struct Stream_ModuleHandlerConfiguration
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
@@ -167,7 +167,7 @@ struct Stream_Configuration
    , deleteModule (false)
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , module (NULL)

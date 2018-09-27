@@ -571,6 +571,34 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename UserDataType>
+void
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    SessionDataType,
+                                    SessionDataContainerType,
+                                    UserDataType>::toggle ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::toggle"));
+
+  // *TODO*
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename UserDataType>
 bool
 Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
@@ -1316,7 +1344,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFTopology* topology_p = NULL;
-  ACE_Time_Value timeout (MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
   ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
   // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls

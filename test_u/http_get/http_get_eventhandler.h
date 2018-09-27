@@ -29,7 +29,6 @@
 
 #include "http_get_message.h"
 #include "http_get_session_message.h"
-//#include "http_get_stream_common.h"
 
 // forward declarations
 struct HTTPGet_UI_CBData;
@@ -39,7 +38,10 @@ class HTTPGet_EventHandler
  : public HTTPGet_Notification_t
 {
  public:
-  HTTPGet_EventHandler (struct HTTPGet_UI_CBData*, // UI state
+  HTTPGet_EventHandler (
+#if defined (GUI_SUPPORT)
+                        struct HTTPGet_UI_CBData*, // UI state
+#endif // GUI_SUPPORT
                         bool = false);             // console mode ?
   inline virtual ~HTTPGet_EventHandler () {}
 
@@ -60,7 +62,9 @@ class HTTPGet_EventHandler
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_EventHandler& operator= (const HTTPGet_EventHandler&))
 
   bool                      consoleMode_;
+#if defined (GUI_SUPPORT)
   struct HTTPGet_UI_CBData* CBData_;
+#endif // GUI_SUPPORT
 };
 
 #endif

@@ -25,27 +25,18 @@
 #include <sstream>
 
 #include <oleauto.h>
-
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see e.g. dxva.h)
 #include <d3d9types.h>
 #include <dmoreg.h>
 #include <dshow.h>
-//#include <dsound.h>
 #include <dvdmedia.h>
-//#include <dxva.h>
 #include <Dmodshow.h>
 #include <evr.h>
-//#include <fourcc.h>
 #include <ks.h>
 #include <ksmedia.h>
 #include <mediaobj.h>
-//#include <ksuuids.h>
 #include <qedit.h>
-
 #include <mfapi.h>
 #include <mferror.h>
-//#include <mftransform.h>
-
 #include <wmcodecdsp.h>
 
 #include "ace/Log_Msg.h"
@@ -71,9 +62,9 @@
 #include "stream_dev_tools.h"
 
 bool
-Stream_Module_Device_DirectShow_Tools::initialize (bool coInitialize_in)
+Stream_Device_DirectShow_Tools::initialize (bool coInitialize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::initialize"));
 
   HRESULT result = E_FAIL;
   if (likely (coInitialize_in))
@@ -96,18 +87,18 @@ Stream_Module_Device_DirectShow_Tools::initialize (bool coInitialize_in)
 }
 
 void
-Stream_Module_Device_DirectShow_Tools::finalize (bool coUninitialize_in)
+Stream_Device_DirectShow_Tools::finalize (bool coUninitialize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::finalize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::finalize"));
 
   if (likely (coUninitialize_in))
     CoUninitialize ();
 }
 
 std::string
-Stream_Module_Device_DirectShow_Tools::devicePathToString (const std::string& devicePath_in)
+Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePath_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::devicePathToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::devicePathToString"));
 
   // sanity check(s)
   ACE_ASSERT (!devicePath_in.empty ());
@@ -236,9 +227,9 @@ error:
   return result;
 }
 std::string
-Stream_Module_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
+Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::devicePath"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::devicePath"));
 
   // sanity check(s)
   ACE_ASSERT (!friendlyName_in.empty ());
@@ -368,28 +359,28 @@ error:
 }
 
 std::string
-Stream_Module_Device_DirectShow_Tools::getDefaultDevice (REFGUID deviceCategory_in)
+Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (REFGUID deviceCategory_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getDefaultDevice"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getDefaultCaptureDevice"));
 
   // initialize return value(s)
   std::string result;
 
-  Stream_Module_Device_List_t devices_a =
-    Stream_Module_Device_DirectShow_Tools::getCaptureDevices (deviceCategory_in);
+  Stream_Device_List_t devices_a =
+    Stream_Device_DirectShow_Tools::getCaptureDevices (deviceCategory_in);
   if (likely (!devices_a.empty ()))
     result = devices_a.front ();
 
   return result;
 }
 
-Stream_Module_Device_List_t
-Stream_Module_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
+Stream_Device_List_t
+Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureDevices"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureDevices"));
 
   // initialize return value(s)
-  Stream_Module_Device_List_t result;
+  Stream_Device_List_t result;
 
   // sanity check(s)
   if (!InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory) &&
@@ -523,9 +514,9 @@ Stream_Module_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory
 }
 
 bool
-Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& mediaType_in)
+Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::isMediaTypeBottomUp"));
 
   // initialize return value(s)
   bool result = false;
@@ -552,9 +543,9 @@ Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMedi
 }
 
 Common_Identifiers_t
-Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStreamConfig_in)
+Stream_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStreamConfig_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
 
   // initialize return value(s)
   Common_Identifiers_t result;
@@ -594,7 +585,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IA
     if (!InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) &&
         !InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
 
@@ -602,7 +593,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IA
     //         directly --> insert the Overlay Mixer
     result.push_back (media_type_p->subtype);
 
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end FOR
   result.sort (common_less_guid ());
   result.unique (common_equal_guid ());
@@ -610,10 +601,10 @@ Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IA
   return result;
 }
 Common_UI_Resolutions_t
-Stream_Module_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
+Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
                                                               REFGUID mediaSubType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
 
   // initialize return value(s)
   Common_UI_Resolutions_t result;
@@ -654,7 +645,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* I
     if (!InlineIsEqualGUID (mediaSubType_in, GUID_NULL) &&
         !InlineIsEqualGUID (media_type_p->subtype, mediaSubType_in))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
@@ -679,10 +670,10 @@ Stream_Module_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* I
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_p->formattype).c_str ())));
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end ELSE
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end FOR
   result.sort (common_ui_resolution_less ());
   result.unique (common_ui_resolution_equal ());
@@ -690,11 +681,11 @@ Stream_Module_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* I
   return result;
 }
 Common_UI_Framerates_t
-Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamConfig_in,
-                                                             REFGUID mediaSubType_in,
-                                                             Common_UI_Resolution_t resolution_in)
+Stream_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamConfig_in,
+                                                      REFGUID mediaSubType_in,
+                                                      Common_UI_Resolution_t resolution_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureSubFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
 
   // initialize return value(s)
   Common_UI_Framerates_t result;
@@ -735,7 +726,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAM
     ACE_ASSERT (media_type_p);
     if (!InlineIsEqualGUID (media_type_p->subtype, mediaSubType_in))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
@@ -744,7 +735,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAM
       if ((video_info_header_p->bmiHeader.biWidth  != resolution_in.cx) ||
           (video_info_header_p->bmiHeader.biHeight != resolution_in.cy))
       {
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
         continue;
       } // end IF
       frame_duration =
@@ -757,7 +748,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAM
       if ((video_info_header2_p->bmiHeader.biWidth  != resolution_in.cx) ||
           (video_info_header2_p->bmiHeader.biHeight != resolution_in.cy))
       {
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
         continue;
       } // end IF
       frame_duration =
@@ -768,11 +759,11 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAM
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), continuing\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_p->formattype).c_str ())));
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end ELSE
     result.push_back (NANOSECONDS / frame_duration);
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end FOR
   std::sort (result.begin (), result.end ());
   result.erase (std::unique (result.begin (), result.end ()), result.end ());
@@ -781,11 +772,11 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAM
 }
 
 bool
-Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
+Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
                                                          REFGUID deviceCategory_in,
                                                          struct _AMMediaType*& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
@@ -793,7 +784,7 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_
   // initialize return value(s)
   if (mediaType_out)
   {
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
     mediaType_out = NULL;
   } // end IF
 
@@ -865,21 +856,21 @@ Stream_Module_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_
 }
 
 bool
-Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in,
+Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in,
                                                               REFGUID mediaSubType_in,
                                                               LONG width_in,
                                                               LONG height_in,
                                                               unsigned int frameRate_in,
                                                               struct _AMMediaType*& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getVideoCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
 
   // initialize return value(s)
   if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
@@ -954,22 +945,22 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
     ACE_ASSERT (mediaType_out);
     if (!InlineIsEqualGUID (mediaSubType_in, mediaType_out->subtype))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
       continue;
     } // end IF
     resolution_s =
-      Stream_MediaFramework_DirectShow_Tools::mediaTypeToResolution (*mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::toResolution (*mediaType_out);
     if ((width_in  && (resolution_s.cx != width_in)) ||
         (height_in && (resolution_s.cy != height_in)))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
       continue;
     } // end IF
     framerate_i =
-      Stream_MediaFramework_DirectShow_Tools::mediaTypeToFramerate (*mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::toFramerate (*mediaType_out);
     if (frameRate_in && (framerate_i != frameRate_in))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
       continue;
     } // end IF
     break; // --> found a match
@@ -980,10 +971,10 @@ Stream_Module_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* bui
 }
 
 void
-Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_in,
+Stream_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_in,
                                                            REFGUID formatType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::listCaptureFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::listCaptureFormats"));
 
   // sanity check(s)
   ACE_ASSERT (filter_in);
@@ -1061,7 +1052,7 @@ Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_i
     if (!InlineIsEqualGUID (formatType_in, GUID_NULL) &&
         !InlineIsEqualGUID (formatType_in, media_type_p->formattype))
     {
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     ACE_ASSERT (media_type_p->pbFormat);
@@ -1085,20 +1076,20 @@ Stream_Module_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_i
                   ACE_TEXT ("invalid/unknown device category (IAMStreamConfig::GetNumberOfCapabilities() returned size: %d), returning\n"),
                   size));
       stream_config_p->Release ();
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       return;
     } // end ELSE
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end FOR
   stream_config_p->Release (); stream_config_p = NULL;
 }
 
 bool
-Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
+Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                                                          REFGUID deviceCategory_in,
                                                          const struct _AMMediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::setCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::setCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
@@ -1130,7 +1121,7 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
   } // end IF
   ACE_ASSERT (filter_p);
 //#if defined (_DEBUG)
-//  Stream_Module_Device_DirectShow_Tools::listCaptureFormats (filter_p,
+//  Stream_Device_DirectShow_Tools::listCaptureFormats (filter_p,
 //                                                             mediaType_in.formattype);
 //#endif
 
@@ -1165,7 +1156,7 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result,
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (mediaType_in, false).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, false).c_str ())));
     stream_config_p->Release ();
     return false;
   } // end IF
@@ -1175,21 +1166,21 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: set capture format: %s\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (mediaType_in, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, true).c_str ())));
 #endif // _DEBUG
 
   return true;
 }
 
 bool
-Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_in,
+Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_in,
                                                         REFGUID deviceCategory_in,
                                                         IGraphBuilder*& IGraphBuilder_inout,
                                                         IAMBufferNegotiation*& IAMBufferNegotiation_out,
                                                         IAMStreamConfig*& IAMStreamConfig_out,
                                                         Stream_MediaFramework_DirectShow_Graph_t& graphLayout_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadDeviceGraph"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::loadDeviceGraph"));
 
   // initialize return value(s)
   graphLayout_out.clear ();

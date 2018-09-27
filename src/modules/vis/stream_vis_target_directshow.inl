@@ -48,6 +48,8 @@
 
 #include "common_tools.h"
 
+#include "common_ui_tools.h"
+
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
@@ -361,7 +363,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   // forward message to the directshow filter graph ?
-  if (likely (!InlineIsEqualGUID (inherited::configuration_->filterCLSID, GUID_NULL)))
+  if (likely (!InlineIsEqualGUID (inherited::configuration_->filterIdentifier, GUID_NULL)))
     inherited::handleDataMessage (message_inout,
                                   passMessageDownstream_out);
 }
@@ -440,11 +442,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
          inherited::configuration_->area.left);
 
       ACE_ASSERT (session_data_r.inputFormat);
-      if (unlikely (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*session_data_r.inputFormat,
-                                                                            media_type_p)))
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (*session_data_r.inputFormat);
+      if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -498,7 +501,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
 
-        if (unlikely (!inherited::loadGraph (inherited::configuration_->filterCLSID,
+        if (unlikely (!inherited::loadGraph (inherited::configuration_->filterIdentifier,
                                              *inherited::configuration_->filterConfiguration,
                                              *media_type_p,
                                              window_,
@@ -518,7 +521,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (inherited::IGraphBuilder_,
                                                      log_file_name);
 #endif // _DEBUG
@@ -557,7 +560,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
                   window_));
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
       // retrieve interfaces for media control and the event sink
       if (!inherited::IMediaControl_)
@@ -685,7 +688,7 @@ error:
       } // end IF
 
       if (media_type_p)
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
       if (COM_initialized)
         CoUninitialize ();
@@ -755,8 +758,8 @@ error:
       } // end IF
 
       Stream_MediaFramework_DirectShow_Tools::get (inherited::IGraphBuilder_,
-                                                   (inherited::push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                   (inherited::push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                    filter_graph_layout);
       for (Stream_MediaFramework_DirectShow_GraphConstIterator_t iterator = filter_graph_layout.begin ();
            iterator != filter_graph_layout.end ();
@@ -766,16 +769,16 @@ error:
         filter_graph_configuration.push_back (graph_entry);
       } // end FOR
       result_2 =
-        inherited::IGraphBuilder_->FindFilterByName ((inherited::push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                       : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+        inherited::IGraphBuilder_->FindFilterByName ((inherited::push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                      &filter_p);
       if (unlikely (FAILED (result_2)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         goto error_2;
       } // end IF
@@ -786,8 +789,8 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::pin(\"%s\",PINDIR_OUTPUT): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         filter_p->Release (); filter_p = NULL;
         goto error_2;
@@ -800,8 +803,8 @@ error:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IPin::ConnectionMediaType(\"%s\"/\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
-                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
                     ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         pin_p->Release (); pin_p = NULL;
@@ -1143,6 +1146,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   struct _GUID GUID_s = GUID_NULL;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  struct Common_UI_DisplayDevice display_device_s;
+  MONITORINFOEX monitor_info_ex_s;
+  unsigned int delta_x, delta_y;
 
   // initialize return value(s)
   if (IVideoWindow_out)
@@ -1167,23 +1173,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     goto continue_;
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
-  HMONITOR monitor_h = NULL;
-  if (unlikely (!Stream_Module_Device_Tools::getDisplayDevice (inherited::configuration_->deviceIdentifier,
-                                                               monitor_h)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDisplayDevice(\"%s\"): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (monitor_h);
-  MONITORINFOEX monitor_info_ex_s;
-  unsigned int delta_x, delta_y;
+  display_device_s =
+    Common_UI_Tools::getDisplayDevice (inherited::configuration_->deviceIdentifier);
+  ACE_ASSERT (display_device_s.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
-  if (unlikely (!GetMonitorInfo (monitor_h,
+  if (unlikely (!GetMonitorInfo (display_device_s.handle,
                                  reinterpret_cast<struct tagMONITORINFO*> (&monitor_info_ex_s))))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1294,14 +1289,14 @@ continue_:
 
   // retrieve video window control and configure output
   result =
-    IGraphBuilder_in->FindFilterByName (MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+    IGraphBuilder_in->FindFilterByName (STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
                                         &ibase_filter_p);
   if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1311,7 +1306,7 @@ continue_:
   if (InlineIsEqualGUID (CLSID_EnhancedVideoRenderer, GUID_s))
   { 
     if (unlikely (!Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder_in,
-                                                                           MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+                                                                           STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
                                                                            IMFVideoDisplayControl_out)))
     {
       ACE_DEBUG ((LM_ERROR,

@@ -34,6 +34,8 @@
 
 #include "common_time_common.h"
 
+#include "common_ui_ifullscreen.h"
+
 #include "stream_lib_directshow_target.h"
 
 #include "stream_vis_common.h"
@@ -71,7 +73,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     PinConfigurationType,
                                                     struct _AMMediaType,
                                                     FilterType>
- , public Stream_Module_Visualization_IFullscreen
+ , public Common_UI_IFullscreen
 {
   typedef Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                                     TimePolicyType,
@@ -99,7 +101,7 @@ class Stream_Vis_Target_DirectShow_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_Module_Visualization_IFullscreen
+  // implement Common_UI_IFullscreen
   virtual void toggle ();
 
  private:

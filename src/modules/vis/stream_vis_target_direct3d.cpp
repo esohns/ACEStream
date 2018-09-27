@@ -32,7 +32,7 @@
 
 // initialize globals
 const char libacestream_default_vis_direct3d_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING);
 
 //////////////////////////////////////////
 
@@ -113,7 +113,7 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 #else
   ACE_ASSERT (::abs (lSrcStride) <= ::abs (lDestStride));
-  if (lSrcStride == lDestStride)
+  if (likely (lSrcStride == lDestStride))
     ACE_OS::memcpy (pDest,
                     pSrc,
                     (lSrcStride * dwHeightInPixels));

@@ -48,19 +48,22 @@ class Stream_MediaFramework_Tools
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool initialize (enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
-  static void finalize (enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static bool initialize (enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static void finalize (enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   static bool isChromaLuminance (REFGUID,                          // media subtype
-                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static bool isRGB (REFGUID,                          // media subtype
-                     enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                     enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  // *NOTE*: as used in struct tagBITMAPINFOHEADER.biBitCount
+  static WORD toBitCount (REFGUID,                          // media subtype
+                          enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   static std::string mediaFormatTypeToString (REFGUID); // media format type
   static std::string mediaSubTypeToString (REFGUID,                          // media subtype
-                                           enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                           enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static std::string mediaMajorTypeToString (REFGUID, // media major type
-                                             enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                             enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   static unsigned int frameSize (const struct _AMMediaType&);
   static unsigned int frameSize (const IMFMediaType*);

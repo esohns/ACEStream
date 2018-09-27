@@ -24,6 +24,5 @@
 
 #include "stream_dec_defines.h"
 
-//Stream_Dec_Export const char libacestream_default_dec_zip_decoder_module_name_string[] =
 const char libacestream_default_dec_zip_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_ZIP_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ZIP_DEFAULT_NAME_STRING);

@@ -24,6 +24,5 @@
 
 #include "stream_vis_defines.h"
 
-//Stream_Vis_Export const char libacestream_default_vis_mediafoundation_module_name_string[] =
 const char libacestream_default_vis_mediafoundation_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING);

@@ -86,10 +86,10 @@ extern "C"
 #include "stream_session_data.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 
 #include "stream_vis_common.h"
@@ -352,10 +352,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , area ()
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
-   , window (NULL)
 #endif // GTK_USE
+   , window (NULL)
    , targetFileName ()
   {
+    concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
     hasHeader = true;
   }
 
@@ -366,6 +367,12 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   GdkPixbuf*       pixelBuffer;
   ACE_SYNCH_MUTEX* pixelBufferLock;
   GdkWindow*       window;
+#elif defined (WXWIDGETS_USE)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND             window;
+#else
+  XID              window;
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GTK_USE
   std::string      targetFileName;
 };
@@ -385,19 +392,17 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
    , area ()
    , builder (NULL)
    , direct3DConfiguration (NULL)
-   , direct3DDevice (NULL)
-   , filterCLSID (GUID_NULL)
    , filterConfiguration (NULL)
+   , filterIdentifier (GUID_NULL)
    , inputFormat (NULL)
-   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sourceFormat (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , window (NULL)
    , windowController (NULL)
    , windowController2 (NULL)
   {
-    //mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
+    mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
   }
 
   struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration operator= (const struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration& rhs_in)
@@ -412,41 +417,38 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
       rhs_in.builder->AddRef ();
       builder = rhs_in.builder;
     } // end IF
-    if (direct3DDevice)
-    {
-      direct3DDevice->Release (); direct3DDevice = NULL;
-    } // end IF
-    if (rhs_in.direct3DDevice)
-    {
-      rhs_in.direct3DDevice->AddRef ();
-      direct3DDevice = rhs_in.direct3DDevice;
-    } // end IF
-    filterCLSID = rhs_in.filterCLSID;
+    direct3DConfiguration = rhs_in.direct3DConfiguration;
     filterConfiguration = rhs_in.filterConfiguration;
+    filterIdentifier = rhs_in.filterIdentifier;
     if (inputFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
     if (rhs_in.inputFormat)
-      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
-                                                                  inputFormat))
+    {
+      inputFormat =
+        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.inputFormat);
+      if (!inputFormat)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), returning\n")));
         return *this;
       } // end IF
+    } // end IF
     push = rhs_in.push;
     if (sourceFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (sourceFormat);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (sourceFormat);
     if (rhs_in.sourceFormat)
-      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.sourceFormat,
-                                                                  sourceFormat))
+    {
+      sourceFormat =
+        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.sourceFormat);
+      if (!sourceFormat)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), returning\n")));
         return *this;
       } // end IF
+    } // end IF
     subscriber = rhs_in.subscriber;
     subscribers = rhs_in.subscribers;
-    window = rhs_in.window;
     if (windowController)
     {
       windowController->Release (); windowController = NULL;
@@ -471,20 +473,14 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
 
   struct tagRECT                                        area;
   IGraphBuilder*                                        builder;
-  struct Stream_Module_Device_Direct3DConfiguration*    direct3DConfiguration;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex*                                   direct3DDevice;
-#else
-  IDirect3DDevice9*                                     direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  struct _GUID                                          filterCLSID;
+  struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
   struct Stream_CamSave_DirectShow_FilterConfiguration* filterConfiguration;
+  CLSID                                                 filterIdentifier;
   struct _AMMediaType*                                  inputFormat;
   bool                                                  push;
   struct _AMMediaType*                                  sourceFormat;
   Stream_CamSave_DirectShow_ISessionNotify_t*           subscriber;
   Stream_CamSave_DirectShow_Subscribers_t*              subscribers;
-  HWND                                                  window;
   IVideoWindow*                                         windowController;
   IMFVideoDisplayControl*                               windowController2; // EVR
 };
@@ -501,7 +497,7 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
   Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration ()
    : Stream_CamSave_ModuleHandlerConfiguration ()
    , area ()
-   , direct3DDevice (NULL)
+   , direct3DConfiguration (NULL)
    , inputFormat (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
@@ -509,28 +505,21 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
    , sourceFormat (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , window (NULL)
    , windowController (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
   }
 
-  struct tagRECT                                     area;
-  struct Stream_Module_Device_Direct3DConfiguration* direct3DConfiguration;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex*                                direct3DDevice;
-#else
-  IDirect3DDevice9*                                  direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  IMFMediaType*                                      inputFormat;
-  TOPOID                                             rendererNodeId;
-  TOPOID                                             sampleGrabberNodeId;
-  IMFMediaSession*                                   session;
-  IMFMediaType*                                      sourceFormat;
-  Stream_CamSave_MediaFoundation_ISessionNotify_t*   subscriber;
-  Stream_CamSave_MediaFoundation_Subscribers_t*      subscribers;
-  HWND                                               window;
-  IMFVideoDisplayControl*                            windowController;
+  struct tagRECT                                       area;
+  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
+  IMFMediaType*                                        inputFormat;
+  TOPOID                                               rendererNodeId;
+  TOPOID                                               sampleGrabberNodeId;
+  IMFMediaSession*                                     session;
+  IMFMediaType*                                        sourceFormat;
+  Stream_CamSave_MediaFoundation_ISessionNotify_t*     subscriber;
+  Stream_CamSave_MediaFoundation_Subscribers_t*        subscribers;
+  IMFVideoDisplayControl*                              windowController;
 };
 #else
 struct Stream_CamSave_V4L_ModuleHandlerConfiguration;
@@ -602,14 +591,14 @@ struct Stream_CamSave_StreamConfiguration
 {
   Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-   , renderer (MODULE_VIS_RENDERER_VIDEO_DEFAULT)
+   , renderer (STREAM_VIS_RENDERER_VIDEO_DEFAULT)
    , userData (NULL)
   {
     printFinalReport = true;
   }
 
-  enum Stream_Module_Visualization_VideoRenderer renderer;
-  struct Stream_CamSave_UserData*                userData;
+  enum Stream_Visualization_VideoRenderer renderer;
+  struct Stream_CamSave_UserData*         userData;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
@@ -630,12 +619,12 @@ struct Stream_CamSave_DirectShow_Configuration
   {}
 
   // **************************** signal data **********************************
-  struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Stream_CamSave_SignalHandlerConfiguration    signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_Module_Device_Direct3DConfiguration direct3DConfiguration;
-  Stream_CamSave_DirectShow_StreamConfiguration_t   streamConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
+  Stream_CamSave_DirectShow_StreamConfiguration_t     streamConfiguration;
 
-  struct Stream_CamSave_UserData                    userData;
+  struct Stream_CamSave_UserData                      userData;
 };
 
 struct Stream_CamSave_MediaFoundation_Configuration
@@ -652,7 +641,7 @@ struct Stream_CamSave_MediaFoundation_Configuration
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_Module_Device_Direct3DConfiguration    direct3DConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t streamConfiguration;
 
   struct Stream_CamSave_UserData                       userData;

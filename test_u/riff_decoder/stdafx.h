@@ -22,6 +22,7 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
+#include "ace/Synch.h"
 
 //#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)
@@ -33,11 +34,22 @@
 #include "common_macros.h"
 #include "common_pragmas.h"
 
+#if defined (HAVE_CONFIG_H)
+#include "libACEStream_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "stream_common.h"
 #include "stream_macros.h"
 
-#if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
-#endif
+#include "test_u_common.h"
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
+//#include "test_u_gtk_common.h"
+//#elif defined (WXWIDGETS_USE)
+//#include "test_u_wxwidgets_common.h"
+//#endif
+//#endif // GUI_SUPPORT
+
+#include "test_u_riffdecoder_common.h"
 
 // *TODO*: reference additional headers your program requires here

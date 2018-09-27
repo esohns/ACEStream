@@ -317,8 +317,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
 #if defined (_DEBUG)
-      std::string media_type_string, log_file_name;
-#endif
+      std::string log_file_name;
+#endif // _DEBUG
 
       if (inherited::configuration_->statisticCollectionInterval !=
           ACE_Time_Value::zero)
@@ -391,7 +391,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
         filter_p = NULL;
 
         result_2 =
-          IGraphBuilder_->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+          IGraphBuilder_->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                             &filter_p);
         if (FAILED (result_2))
           goto error_3;
@@ -493,30 +493,28 @@ continue_2:
       ACE_ASSERT (IMediaEventEx_);
 
       //ACE_ASSERT (!session_data_r.format);
-      //if (!Stream_Module_Device_Tools::getOutputFormat (builder_p,
+      //if (!Stream_Device_Tools::getOutputFormat (builder_p,
       //                                                  session_data_r.format))
       //{
       //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+      //              ACE_TEXT ("failed to Stream_Device_Tools::getCaptureFormat(), aborting\n")));
       //  goto error;
       //} // end IF
       ACE_ASSERT (session_data_r.inputFormat);
 
 #if defined (_DEBUG)
-      media_type_string =
-        Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*session_data_r.inputFormat);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("output format: \"%s\"\n"),
-                  ACE_TEXT (media_type_string.c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*session_data_r.inputFormat).c_str ())));
 
       log_file_name =
         Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
                                                      log_file_name);
-#endif
+#endif // _DEBUG
 
       // start audio data capture
       result_2 = IMediaControl_->Run ();
@@ -578,7 +576,7 @@ error:
       } // end IF
 
       //if (session_data_r.format)
-      //  Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+      //  Stream_Device_Tools::deleteMediaType (session_data_r.format);
 
       //if (manageCOM_ && COM_initialized)
       //  CoUninitialize ();
@@ -1304,15 +1302,15 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
-                                                               CLSID_AudioInputDeviceCategory,
-                                                               graph_builder_p,
-                                                               buffer_negotiation_p,
-                                                               stream_config_p,
-                                                               graph_layout))
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
+                                                        CLSID_AudioInputDeviceCategory,
+                                                        graph_builder_p,
+                                                        buffer_negotiation_p,
+                                                        stream_config_p,
+                                                        graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceIdentifier_in.c_str ())));
     goto error;
   } // end IF
@@ -1332,10 +1330,10 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   //// *NOTE*: (re-)Connect()ion of the video renderer input pin fails
   ////         consistently, so reuse is not feasible
   ////         --> rebuild the whole graph from scratch each time
-  //if (!Stream_Module_Device_Tools::reset (IGraphBuilder_in))
+  //if (!Stream_Device_Tools::reset (IGraphBuilder_in))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::reset(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Device_Tools::reset(), aborting\n")));
   //  return false;
   //} // end IF
 
@@ -1396,16 +1394,16 @@ continue_:
 
   //// convert PCM to WAV ?
   //struct _AMMediaType* media_type_p = NULL;
-  //if (!Stream_Module_Device_Tools::getCaptureFormat (graph_builder_p,
+  //if (!Stream_Device_Tools::getCaptureFormat (graph_builder_p,
   //                                                   media_type_p))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Device_Tools::getCaptureFormat(), aborting\n")));
   //  goto error;
   //} // end IF
   //ACE_ASSERT (media_type_p);
   //struct _GUID media_subtype = media_type_p->subtype;
-  //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //Stream_Device_Tools::deleteMediaType (media_type_p);
   //struct _GUID converter_guid = CLSID_Colour;
   //LPCWSTR converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
   //bool needs_converter = false;
@@ -1417,7 +1415,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-  //              ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ())));
+  //              ACE_TEXT (Stream_Device_Tools::mediaSubTypeToString (media_subtype).c_str ())));
   //  goto error;
   //} // end ELSE
   IBaseFilter* filter_2 = NULL;
@@ -1443,7 +1441,7 @@ continue_:
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("%s: failed to CoCreateInstance() converter: \"%s\", aborting\n"),
-  //                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ()),
+  //                ACE_TEXT (Stream_Device_Tools::mediaSubTypeToString (media_subtype).c_str ()),
   //                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //    goto error;
   //  } // end IF
@@ -1467,7 +1465,7 @@ continue_:
   // grab
   IBaseFilter* filter_3 = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                        &filter_3);
   if (FAILED (result))
   {
@@ -1475,7 +1473,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1492,7 +1490,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_3);
     result = graph_builder_p->AddFilter (filter_3,
-                                         MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1520,8 +1518,8 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                       : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1529,8 +1527,8 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                           : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                           : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1551,8 +1549,8 @@ continue_:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                  : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                  : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1562,8 +1560,8 @@ continue_:
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("added \"%s\"\n"),
-    //            ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-    //                                                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+    //                                                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1572,7 +1570,7 @@ continue_:
 //  IBaseFilter* filter_4 = NULL;
 //  result =
 //    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                        : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+//                                                        : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
 //                                       &filter_4);
 //  if (FAILED (result))
 //  {
@@ -1581,7 +1579,7 @@ continue_:
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
 //                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                            : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+//                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
 //                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      goto error;
 //    } // end IF
@@ -1603,7 +1601,7 @@ continue_:
 //    result =
 //      graph_builder_p->AddFilter (filter_4,
 //                                  (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                   : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+//                                                   : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 //    if (FAILED (result))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
@@ -1614,7 +1612,7 @@ continue_:
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("added \"%s\"\n"),
 //                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-//                                                          : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+//                                                          : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 //  } // end IF
 //  ACE_ASSERT (filter_4);
 //
@@ -1653,11 +1651,11 @@ continue_:
   graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_configuration.push_back (graph_entry);
   //filter_pipeline.push_back (converter_name);
-  graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (audioOutput_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                    : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (audioOutput_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,
                                                         graph_configuration))
@@ -1667,7 +1665,7 @@ continue_:
     goto error;
   } // end IF
 
-  // debug info
+#if defined (_DEBUG)
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
   result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
   if (FAILED (result))
@@ -1675,15 +1673,17 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+              ACE_TEXT ("%s: allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+              inherited::mod_->name (),
               allocator_properties.cBuffers,
               allocator_properties.cbBuffer,
               allocator_properties.cbAlign,
               allocator_properties.cbPrefix));
+#endif // _DEBUG
 
   // clean up
   if (filter_p)

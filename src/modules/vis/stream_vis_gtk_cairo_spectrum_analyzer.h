@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
-#define STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
+#ifndef STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
+#define STREAM_VISUALIZATION_GTK_CAIRO_SPECTRUM_ANALYZER_H
 
 #include <functional>
 #include <random>
@@ -72,25 +72,23 @@
 #include "stream_stat_common.h"
 
 #include "stream_vis_common.h"
-#include "stream_vis_exports.h"
 
-//extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
-enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
+enum Stream_Visualization_SpectrumAnalyzer2DMode
 { // *TODO*: implement discrete modes of operation
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM,
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM,
   ////////////////////////////////////////
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX,
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX,
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID
 };
-enum Stream_Module_Visualization_SpectrumAnalyzer3DMode
+enum Stream_Visualization_SpectrumAnalyzer3DMode
 {
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
   ////////////////////////////////////////
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX,
-  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX,
+  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID
 };
 
 template <ACE_SYNCH_DECL,
@@ -105,7 +103,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename TimerManagerType> // implements Common_ITimer
-class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
+class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -140,11 +138,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*);                     // stream handle
+  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*);                     // stream handle
 #else
-  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
+  virtual ~Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T ();
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -160,9 +158,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   typedef ACE_Singleton<TimerManagerType,
                         ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T&))
 
   virtual int svc (void);
 
@@ -191,23 +189,23 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif // ACE_WIN32 || ACE_WIN64
 
-  cairo_t*                                                 cairoContext_;
-  ACE_SYNCH_MUTEX_T*                                       surfaceLock_;
+  cairo_t*                                          cairoContext_;
+  ACE_SYNCH_MUTEX_T*                                surfaceLock_;
 #if GTK_CHECK_VERSION (3,10,0)
-  cairo_surface_t*                                         cairoSurface_;
+  cairo_surface_t*                                  cairoSurface_;
 #else
-  GdkPixbuf*                                               pixelBuffer_;
+  GdkPixbuf*                                        pixelBuffer_;
 #endif
 #if defined (GTKGL_SUPPORT)
-  Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
-  ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
+  Stream_Visualization_OpenGL_Instructions_t*       OpenGLInstructions_;
+  ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock_;
   //GLuint                                                   OpenGLTextureId_;
 #if GTK_CHECK_VERSION(3,0,0)
-  GdkRGBA                                                  backgroundColor_;
-  GdkRGBA                                                  foregroundColor_;
+  GdkRGBA                                           backgroundColor_;
+  GdkRGBA                                           foregroundColor_;
 #else
-  GdkColor                                                 backgroundColor_;
-  GdkColor                                                 foregroundColor_;
+  GdkColor                                          backgroundColor_;
+  GdkColor                                          foregroundColor_;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 //#if GTK_CHECK_VERSION(3,0,0)
 //#if GTK_CHECK_VERSION(3,16,0)
@@ -228,26 +226,26 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 //#endif // GTKGLAREA_SUPPORT
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
-  double                                                   channelFactor_;
-  double                                                   scaleFactorX_;
-  double                                                   scaleFactorY_;
-  int                                                      height_;
-  int                                                      width_;
+  double                                            channelFactor_;
+  double                                            scaleFactorX_;
+  double                                            scaleFactorY_;
+  int                                               height_;
+  int                                               width_;
 
-  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode* mode2D_;
+  enum Stream_Visualization_SpectrumAnalyzer2DMode* mode2D_;
 #if defined (GTKGL_SUPPORT)
-  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode* mode3D_;
+  enum Stream_Visualization_SpectrumAnalyzer3DMode* mode3D_;
 #endif // GTKGL_SUPPORT
 
-  Stream_ResetCounterHandler                               renderHandler_;
-  long                                                     renderHandlerTimerId_;
+  Stream_ResetCounterHandler                        renderHandler_;
+  long                                              renderHandlerTimerId_;
 
-  Common_Math_FFT_SampleIterator                           sampleIterator_;
+  Common_Math_FFT_SampleIterator                    sampleIterator_;
 
   // random number generator
-  std::uniform_int_distribution<int>                       randomDistribution_;
-  std::default_random_engine                               randomEngine_;
-  std::function<int ()>                                    randomGenerator_;
+  std::uniform_int_distribution<int>                randomDistribution_;
+  std::default_random_engine                        randomEngine_;
+  std::function<int ()>                             randomGenerator_;
 };
 
 // include template definition

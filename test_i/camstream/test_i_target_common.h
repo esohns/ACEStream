@@ -23,14 +23,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include <string>
-
-#include "ace/INET_Addr.h"
-#include "ace/os_include/sys/os_socket.h"
-#include "ace/Singleton.h"
-#include "ace/Synch_Traits.h"
-#include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <BaseTyps.h>
@@ -40,21 +34,31 @@
 #include <evr.h>
 #include <mfapi.h>
 #include <mfobjects.h>
-//#include <mtype.h>
 #include <strmif.h>
 #else
 //#include <linux/videodev2.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
-#if defined (GTK_SUPPORT)
+#include "ace/INET_Addr.h"
+#include "ace/os_include/sys/os_socket.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_common.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_control_message.h"
 #include "stream_isessionnotify.h"
@@ -66,6 +70,9 @@
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_guids.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "net_defines.h"
 #include "net_ilistener.h"
@@ -303,10 +310,10 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , contextId (0)
    , crunch (true)
    , deviceIdentifier ()
-   , filterCLSID (GUID_NULL)
    , filterConfiguration (NULL)
+   , filterIdentifier (GUID_NULL)
    , inputFormat (NULL)
-   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -326,8 +333,9 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
       ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 
     push = true; // *TODO*: support asynch directshow filter
-    filterCLSID = (push ? CLSID_ACEStream_MediaFramework_Source_Filter
-                        : CLSID_ACEStream_MediaFramework_Asynch_Source_Filter);
+    filterIdentifier =
+      (push ? CLSID_ACEStream_MediaFramework_Source_Filter
+            : CLSID_ACEStream_MediaFramework_Asynch_Source_Filter);
   }
 
   struct tagRECT                                       area;              // display module
@@ -338,8 +346,8 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   guint                                                contextId;
   bool                                                 crunch;            // splitter module
   std::string                                          deviceIdentifier;
-  struct _GUID                                         filterCLSID;
   struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
+  CLSID                                                filterIdentifier;
   struct _AMMediaType*                                 inputFormat;       // splitter module
   bool                                                 push; // media sample passing strategy
   ACE_Message_Queue_Base*                              queue; // (inbound) buffer queue handle
@@ -828,7 +836,8 @@ struct Test_I_Target_UI_CBData
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct Test_I_Target_DirectShow_UI_CBData> Test_I_Target_DirectShow_GtkBuilderDefinition_t;
@@ -838,6 +847,7 @@ typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct Test_I_Target_UI_CBData> Test_I_Target_GtkBuilderDefinition_t;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #endif

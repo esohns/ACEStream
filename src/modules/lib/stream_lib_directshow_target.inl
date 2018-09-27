@@ -58,7 +58,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                           FilterType>::Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , push_ (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+ , push_ (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
 //, IMemInputPin_ (NULL)
@@ -419,7 +419,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
         ACE_ASSERT (inherited::configuration_->inputFormat);
 
-        if (!loadGraph (inherited::configuration_->filterCLSID,
+        if (!loadGraph (inherited::configuration_->filterIdentifier,
                         *inherited::configuration_->filterConfiguration,
                         *inherited::configuration_->inputFormat,
                         inherited::configuration_->window,
@@ -437,7 +437,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         Common_File_Tools::getLogDirectory (std::string (),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,
                                                      log_file_name);
 #endif // _DEBUG
@@ -459,7 +459,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       // set the window handle used to process graph events
       result =
         IMediaEventEx_->SetNotifyWindow (reinterpret_cast<OAHWND> (inherited::configuration_->window),
-                                         MODULE_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
+                                         STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -623,7 +623,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                           FilterConfigurationType,
                                           PinConfigurationType,
                                           MediaType,
-                                          FilterType>::loadGraph (REFGUID filterCLSID_in,
+                                          FilterType>::loadGraph (REFGUID filterIdentifier_in,
                                                                   const FilterConfigurationType& filterConfiguration_in,
                                                                   const struct _AMMediaType& mediaType_in,
                                                                   HWND windowHandle_in,
@@ -641,16 +641,16 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
   std::wstring render_filter_name =
-    (windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   bool release_configuration = false;
 
-  if (!InlineIsEqualGUID (filterCLSID_in, GUID_NULL))
+  if (!InlineIsEqualGUID (filterIdentifier_in, GUID_NULL))
   {
     result =
-      CoCreateInstance (filterCLSID_in, NULL,
+      CoCreateInstance (filterIdentifier_in, NULL,
                         CLSCTX_INPROC_SERVER,
                         IID_PPV_ARGS (&filter_p));
     if (FAILED (result)) // REGDB_E_CLASSNOTREG: 0x80040154
@@ -658,7 +658,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::GUIDToString (filterCLSID_in).c_str ()),
+                  ACE_TEXT (Common_Tools::GUIDToString (filterIdentifier_in).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       return false;
     } // end IF
@@ -709,8 +709,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   } // end IF
 
   if (!Stream_Module_Decoder_Tools::loadTargetRendererGraph (filter_p,
-                                                             (push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
-                                                                    : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                             (push_ ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
                                                              mediaType_in,
                                                              windowHandle_in,
                                                              IGraphBuilder_out,
@@ -814,7 +814,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
        iterator != graph_configuration.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
 
   return true;
 
@@ -830,7 +830,7 @@ error:
        iterator != graph_configuration.end ();
        ++iterator)
       if ((*iterator).mediaType)
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+        Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
 
   return false;
 }

@@ -27,7 +27,6 @@
 #else
 #include <windef.h>
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <WinNT.h>
 #include <Guiddef.h>
 #if _MSC_VER>=1100
 #define AM_NOVTABLE __declspec(novtable)
@@ -39,9 +38,10 @@
 #include <wxdebug.h>
 #include <combase.h>
 #include <Unknwn.h>
-#include <strmif.h>
+#include <mmsystem.h>
+#include <strmif.h>     // Generated IDL header file for streams interfaces
+// *TODO*: currently, this compiles only as long as stdafx includes streams.h
 #include <reftime.h>
-#include <MMSystem.h>
 #include <wxutil.h>
 #include <mtype.h>
 #include <wxlist.h>

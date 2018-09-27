@@ -58,15 +58,11 @@ struct Test_U_GTK_CBData
   Test_U_GTK_CBData ()
    : Test_U_UI_CBData ()
    , progressData ()
-   , progressEventSourceId (0)
-   , UIState ()
-  {
-    progressData.state = &UIState;
-  }
+   , UIState (NULL)
+  {}
 
   struct Test_U_GTK_ProgressData progressData;
-  guint                          progressEventSourceId;
-  Common_UI_GTK_State_t          UIState;
+  Common_UI_GTK_State_t*         UIState;
 };
 
 struct Test_U_GTK_ThreadData

@@ -474,13 +474,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         //  goto error;
         //} // end IF
         //IMFMediaSource* media_source_p = NULL;
-        //if (!Stream_Module_Device_Tools::getMediaSource (inherited::configuration_->device,
+        //if (!Stream_Device_Tools::getMediaSource (inherited::configuration_->device,
         //                                                  media_source_p,
         //                                                  symbolicLink_,
         //                                                  symbolicLinkSize_))
         //{
         //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+        //              ACE_TEXT ("failed to Stream_Device_Tools::getMediaSource(), aborting\n")));
         //  goto error;
         //} // end IF
         //ACE_ASSERT (media_source_p);
@@ -506,18 +506,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         } // end IF
         ACE_ASSERT (topology_p);
 
-        if (unlikely (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                                     inherited::configuration_->inputFormat)))
+        if (unlikely (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                              inherited::configuration_->inputFormat)))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"\n"),
-                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->inputFormat).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (inherited::configuration_->inputFormat).c_str ())));
 #endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
@@ -598,7 +598,7 @@ error:
       //  session_data_r.direct3DManagerResetToken = 0;
       //} // end IF
       if (session_data_r.inputFormat)
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (session_data_r.session)
       {
@@ -677,11 +677,11 @@ error:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
       //IMFMediaSource* media_source_p = NULL;
-      //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+      //if (!Stream_Device_Tools::getMediaSource (mediaSession_,
       //                                                 media_source_p))
       //{
       //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+      //              ACE_TEXT ("failed to Stream_Device_Tools::getMediaSource(), continuing\n")));
       //  goto continue_;
       //} // end IF
       //result_2 = media_source_p->Stop ();
@@ -699,7 +699,7 @@ continue_:
       } // end IF
 
       if (likely (session_data_r.inputFormat))
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (likely (session_data_r.session))
       {
@@ -1949,13 +1949,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   if (likely (!IMFMediaSource_inout))
   {
-    if (unlikely (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+    if (unlikely (!Stream_Device_Tools::getMediaSource (deviceName_in,
                                                                IMFMediaSource_inout,
                                                                symbolicLink_out,
                                                                symbolicLinkSize_out)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceName_in.c_str ())));
       return false;
     } // end IF
@@ -1963,27 +1963,27 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (IMFMediaSource_inout);
 
-  //if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_inout,
+  //if (!Stream_Device_Tools::getSourceReader (IMFMediaSource_inout,
   //                                                  symbolicLink_out,
   //                                                  symbolicLinkSize_out,
   //                                                  IDirect3DDeviceManager_in,
   //                                                  this,
-  //                                                  Stream_Module_Device_Tools::isChromaLuminance (IMFMediaType_in),
+  //                                                  Stream_Device_Tools::isChromaLuminance (IMFMediaType_in),
   //                                                  IMFSourceReaderEx_out))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Device_Tools::getSourceReader(), aborting\n")));
   //  goto error;
   //} // end IF
   //ACE_ASSERT (IMFSourceReaderEx_out);
-  if (unlikely (!Stream_Module_Device_Tools::loadRendererTopology (deviceName_in,
+  if (unlikely (!Stream_Device_Tools::loadRendererTopology (deviceName_in,
                                                                    IMFMediaType_in,
                                                                    IMFSampleGrabberSinkCallback_in,
                                                                    windowHandle_in,
                                                                    IMFTopology_out)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_Tools::loadRendererTopology(), aborting\n")));
     goto error;
   } // end IF
 

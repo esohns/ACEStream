@@ -30,13 +30,13 @@
 
 template <typename MessageType>
 bool
-Stream_Module_Device_Tools::initializeBuffers (int fd_in,
-                                               v4l2_memory method_in,
-                                               __u32 numberOfBuffers_in,
-                                               Stream_Module_Device_BufferMap_t& bufferMap_out,
-                                               Stream_IAllocator* allocator_in)
+Stream_Device_Tools::initializeBuffers (int fd_in,
+                                        v4l2_memory method_in,
+                                        __u32 numberOfBuffers_in,
+                                        Stream_Module_Device_BufferMap_t& bufferMap_out,
+                                        Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeBuffers"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeBuffers"));
 
   // initialize return values(s)
   bufferMap_out.clear ();
@@ -300,11 +300,11 @@ error:
 
 template <typename MessageType>
 void
-Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
+Stream_Device_Tools::finalizeBuffers (int fd_in,
                                              v4l2_memory method_in,
                                              Stream_Module_Device_BufferMap_t& bufferMap_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::finalizeBuffers"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::finalizeBuffers"));
 
   int result = -1;
 

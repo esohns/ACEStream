@@ -18,45 +18,46 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_DECODER_DEFINES_H
-#define STREAM_DECODER_DEFINES_H
+#ifndef STREAM_DEC_DEFINES_H
+#define STREAM_DEC_DEFINES_H
+
+#define STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING       "LibAVConverter"
+#define STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING         "LibAVDecoder"
+#define STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEGTSDecoder"
+#define STREAM_DEC_DECODER_OPENCV_DECODER_DEFAULT_NAME_STRING        "OpenCVDecoder"
+#define STREAM_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIPDecoder"
+
+#define STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVIEncoder"
+#define STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoXEffect"
+#define STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAVEncoder"
 
 #include "ace/config-lite.h"
-
-#define MODULE_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING       "LibAVConverter"
-#define MODULE_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING         "LibAVDecoder"
-#define MODULE_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIPDecoder"
-#define MODULE_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEGTSDecoder"
-#define MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVIEncoder"
-#define MODULE_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoXEffect"
-#define MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAVEncoder"
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM                L"WAV Converter"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB                L"Color Space Converter"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_PCM                L"WAV Converter"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB                L"Color Space Converter"
 //#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV                L"Color Converter DSP DMO"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV                L"Color Converter DSP DMO"
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI             L"AVI Decompressor"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264            L"H264 Decompressor"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG            L"MJPG Decompressor"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO               L"Video Renderer"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO              L"Video Resizer DSP DMO"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI                  L"AVI Splitter"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI             L"AVI Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264            L"H264 Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG            L"MJPG Decompressor"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO               L"Video Renderer"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO              L"Video Resizer DSP DMO"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_SPLIT_AVI                  L"AVI Splitter"
 
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO               L"Audio Effect"
-#define MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO               L"Audio Renderer"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO               L"Audio Effect"
+#define STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO               L"Audio Renderer"
 
-#define MODULE_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT   MEDIASUBTYPE_RGB32
+#define STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT   MEDIASUBTYPE_RGB32
 #endif // ACE_WIN32 || ACE_WIN64
 
 // zlib
-#define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS                       15 // 0,(-)[8-15], see zlib.h
-#define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET                   16
+#define STREAM_DEC_DEFAULT_ZLIB_WINDOWBITS                           15 // 0,(-)[8-15], see zlib.h
+#define STREAM_DEC_ZLIB_WINDOWBITS_GZIP_OFFSET                       16
 
 // stream
-#define STREAM_DECODER_BUFFER_SIZE                                   16384 // bytes
+#define STREAM_DEC_BUFFER_SIZE                                       16384 // bytes
 
 // "crunch" messages (for easier decoding/parsing/processing) ?
 // *NOTE*: this comes at the cost of alloc/free, memcopy and locking per
@@ -71,48 +72,49 @@
 // *TODO*: write a (robust) flex-scanner/bison parser that can handle
 //         switching of buffers/"backing-up" reliably and stress-test the
 //         application to see which option proves to be more efficient...
-#define STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES                       true
+#define STREAM_DEC_DEFAULT_CRUNCH_MESSAGES                           true
 
 // ---------------------------------------
 
 // AVI
-#define STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN                          2048 // bytes
+#define STREAM_DEC_AVI_JUNK_CHUNK_ALIGN                              2048 // bytes
 
 // MPEG
-#define STREAM_DECODER_MPEG_TS_PACKET_ID_PAT                         0
-#define STREAM_DECODER_MPEG_TS_TABLE_ID_PAT                          0
-#define STREAM_DECODER_MPEG_TS_TABLE_ID_PMT                          2
-#define STREAM_DECODER_MPEG_TS_PACKET_SIZE                           188 // bytes
-#define STREAM_DECODER_MPEG_TS_SYNCHRONIZATION_BYTE                  0x47
-#define STREAM_DECODER_MPEG_TS_STREAM_TYPE_PADDING                   0xBE
-#define STREAM_DECODER_MPEG_TS_STREAM_TYPE_PRIVATE_2_NAVIGATION_DATA 0xBF
+#define STREAM_DEC_MPEG_TS_PACKET_ID_PAT                             0
+#define STREAM_DEC_MPEG_TS_TABLE_ID_PAT                              0
+#define STREAM_DEC_MPEG_TS_TABLE_ID_PMT                              2
+#define STREAM_DEC_MPEG_TS_PACKET_SIZE                               188 // bytes
+#define STREAM_DEC_MPEG_TS_SYNCHRONIZATION_BYTE                      0x47
+#define STREAM_DEC_MPEG_TS_STREAM_TYPE_PADDING                       0xBE
+#define STREAM_DEC_MPEG_TS_STREAM_TYPE_PRIVATE_2_NAVIGATION_DATA     0xBF
 
 // h264
-#define STREAM_DECODER_H264_NAL_START_CODE_SIZE                      3 // bytes
+#define STREAM_DEC_H264_NAL_START_CODE_SIZE                          3 // bytes
 
 // ---------------------------------------
 
 // libav/ffmpeg
-#define STREAM_DECODER_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT             AV_PIX_FMT_RGB24
+#define STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT                 AV_PIX_FMT_RGB24
 
 // ---------------------------------------
 
 // SoX
-#define STREAM_DECODER_SOX_BUFFER_SIZE                               32768 // bytes (default: 8192)
-#define STREAM_DECODER_SOX_FORMAT_RAW_STRING                         "raw"
-#define STREAM_DECODER_SOX_FORMAT_WAV_STRING                         "waveaudio"
-#define STREAM_DECODER_SOX_SAMPLE_BUFFERS                            8192
+#define STREAM_DEC_SOX_BUFFER_SIZE                                   32768 // bytes (default: 8192)
+#define STREAM_DEC_SOX_FORMAT_RAW_STRING                             "raw"
+#define STREAM_DEC_SOX_FORMAT_WAV_STRING                             "waveaudio"
+#define STREAM_DEC_SOX_SAMPLE_BUFFERS                                8192
 
 // ---------------------------------------
 
 // useful macros
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <sdkddkver.h>
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT >= 0x0603) // _WIN32_WINNT_WINBLUE
+#include "common_defines.h"
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0603) // _WIN32_WINNT_WINBLUE
 #include <mmsyscom.h>
 #else
 #include <MMSystem.h>
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0603)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0603)
 #else
 #include <cstdint>
 

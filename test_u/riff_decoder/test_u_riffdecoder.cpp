@@ -25,7 +25,7 @@
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -37,12 +37,14 @@
 #include "common_logger.h"
 #include "common_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
@@ -465,12 +467,12 @@ ACE_TMAIN (int argc_in,
     log_file_name =
         Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                            ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]), // program name
-                                        log_file_name,              // log file name
-                                        false,                      // log to syslog ?
-                                        false,                      // trace messages ?
-                                        trace_information,          // debug messages ?
-                                        NULL))                      // logger ?
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]), // program name
+                                            log_file_name,              // log file name
+                                            false,                      // log to syslog ?
+                                            false,                      // trace messages ?
+                                            trace_information,          // debug messages ?
+                                            NULL))                      // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -491,7 +493,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -512,7 +514,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -554,7 +556,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -608,7 +610,7 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT (system_time_string.c_str ())));
 #endif
 
-  Common_Tools::finalizeLogging ();
+  Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

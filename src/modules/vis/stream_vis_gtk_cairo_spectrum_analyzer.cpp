@@ -24,6 +24,5 @@
 
 #include "stream_vis_defines.h"
 
-//Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[] =
 const char libacestream_default_vis_spectrum_analyzer_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);

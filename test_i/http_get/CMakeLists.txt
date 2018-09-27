@@ -168,6 +168,7 @@ if (UNIX)
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
@@ -201,8 +202,9 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
@@ -234,7 +236,6 @@ set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
-     test_i_defines.h
      test_i_message.cpp
      test_i_message.h
      test_i_module_databasewriter.cpp
@@ -246,6 +247,7 @@ set (${EXECUTABLE}_EXE_SRCS
 #     test_i_module_httpparser.cpp
 #     test_i_module_httpparser.h
      test_i_session_message.cpp
+     test_i_http_get_defines.h
      test_i_http_get_signalhandler.h
      test_i_session_message.h
      test_i_http_get.cpp
@@ -317,6 +319,7 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
 target_link_libraries (${EXECUTABLE} ACEStream)

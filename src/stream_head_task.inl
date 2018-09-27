@@ -120,16 +120,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_PROTO:
       result = 0; break;
     //////////////////////////////////////
-    case STREAM_CONTROL_DISCONNECT:
-    case STREAM_CONTROL_END:
-    case STREAM_CONTROL_FLUSH:
-    case STREAM_CONTROL_RESET:
-    case STREAM_CONTROL_UNLINK:
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
-      result = 0; enqueue_message = false; break;
-    //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
     {
       enqueue_message = false;
@@ -193,6 +183,10 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
 
       break;
     }
+    //////////////////////////////////////
+    case STREAM_MESSAGE_CONTROL:
+      result = 0; enqueue_message = false; break;
+    //////////////////////////////////////
     default:
     {
       enqueue_message = false;
@@ -298,16 +292,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_PROTO:
       result = 0; break;
     //////////////////////////////////////
-    case STREAM_CONTROL_DISCONNECT:
-    case STREAM_CONTROL_END:
-    case STREAM_CONTROL_FLUSH:
-    case STREAM_CONTROL_RESET:
-    case STREAM_CONTROL_UNLINK:
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
-      result = 0; enqueue_message = false; break;
-    //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
     {
       enqueue_message = false;
@@ -357,6 +341,10 @@ Stream_TailTask_T<ACE_SYNCH_USE,
       } // end SWITCH
       break;
     }
+    //////////////////////////////////////
+    case STREAM_MESSAGE_CONTROL:
+      result = 0; enqueue_message = false; break;
+    //////////////////////////////////////
     default:
     {
       enqueue_message = false;

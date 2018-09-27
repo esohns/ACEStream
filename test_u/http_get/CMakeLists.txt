@@ -315,6 +315,7 @@ endif (SSL_SUPPORT)
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  target_link_libraries (${EXECUTABLE} CommonUI)

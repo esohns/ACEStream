@@ -2,6 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
   <object class="wxDialog" name="dialog_main">
     <style>wxCAPTION|wxDIALOG_NO_PARENT|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER</style>
+    <exstyle>wxWS_EX_PROCESS_IDLE</exstyle>
     <size>637,467</size>
     <title>camsave</title>
     <centered>1</centered>
@@ -334,7 +335,7 @@
                                   <option>0</option>
                                   <flag></flag>
                                   <border>0</border>
-                                  <object class="wxBitmapButton" name="button_reset">
+                                  <object class="wxBitmapButton" name="button_reset_format">
                                     <enabled>0</enabled>
                                     <tooltip>reset format</tooltip>
                                     <bitmap stock_id="wxART_UNDO" stock_client="wxART_BUTTON">undefined.png</bitmap>
@@ -409,27 +410,65 @@
                     <object class="wxPanel" name="m_panel5">
                       <style>wxBORDER_SIMPLE|wxTAB_TRAVERSAL</style>
                       <object class="wxBoxSizer">
-                        <orient>wxHORIZONTAL</orient>
+                        <orient>wxVERTICAL</orient>
                         <object class="sizeritem">
                           <option>0</option>
-                          <flag></flag>
+                          <flag>wxEXPAND</flag>
                           <border>0</border>
-                          <object class="wxToggleButton" name="togglebutton_fullscreen">
-                            <enabled>0</enabled>
-                            <tooltip>fullscreen ?</tooltip>
-                            <label>fullscreen</label>
-                            <checked>0</checked>
+                          <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                              <option>0</option>
+                              <flag></flag>
+                              <border>0</border>
+                              <object class="wxToggleButton" name="togglebutton_display">
+                                <enabled>0</enabled>
+                                <tooltip>display stream ?</tooltip>
+                                <label>display</label>
+                                <checked>0</checked>
+                              </object>
+                            </object>
+                            <object class="sizeritem">
+                              <option>0</option>
+                              <flag></flag>
+                              <border>0</border>
+                              <object class="wxToggleButton" name="togglebutton_fullscreen">
+                                <enabled>0</enabled>
+                                <tooltip>fullscreen ?</tooltip>
+                                <label>fullscreen</label>
+                                <checked>0</checked>
+                              </object>
+                            </object>
                           </object>
                         </object>
                         <object class="sizeritem">
-                          <option>0</option>
-                          <flag></flag>
+                          <option>1</option>
+                          <flag>wxEXPAND</flag>
                           <border>5</border>
-                          <object class="wxBitmapButton" name="button_display_settings">
-                            <enabled>0</enabled>
-                            <tooltip>display settings</tooltip>
-                            <bitmap stock_id="wxART_LIST_VIEW" stock_client="wxART_BUTTON">undefined.png</bitmap>
-                            <default>0</default>
+                          <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                              <option>1</option>
+                              <flag></flag>
+                              <border>0</border>
+                              <object class="wxChoice" name="choice_display">
+                                <enabled>0</enabled>
+                                <tooltip>display</tooltip>
+                                <selection>0</selection>
+                                <content />
+                              </object>
+                            </object>
+                            <object class="sizeritem">
+                              <option>0</option>
+                              <flag></flag>
+                              <border>5</border>
+                              <object class="wxBitmapButton" name="button_display_settings">
+                                <enabled>0</enabled>
+                                <tooltip>display settings</tooltip>
+                                <bitmap stock_id="wxART_LIST_VIEW" stock_client="wxART_BUTTON">undefined.png</bitmap>
+                                <default>0</default>
+                              </object>
+                            </object>
                           </object>
                         </object>
                       </object>

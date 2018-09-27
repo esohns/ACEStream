@@ -27,6 +27,7 @@
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 
 #include "common.h"
@@ -180,7 +181,7 @@ struct Test_I_UI_CBData
    : allowUserRuntimeStatistic (true)
    //, configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
    , UIState ()
@@ -202,7 +203,7 @@ struct Test_I_UI_ThreadData
   Test_I_UI_ThreadData ()
    : CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , sessionId (0)
   {}

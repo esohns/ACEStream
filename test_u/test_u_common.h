@@ -120,7 +120,7 @@ struct Test_U_SessionData
    : Stream_SessionData ()
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , userData (NULL)
   {}
@@ -158,7 +158,7 @@ struct Test_U_ModuleHandlerConfiguration
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -184,7 +184,7 @@ struct Test_U_SignalHandlerConfiguration
   Test_U_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
@@ -229,7 +229,7 @@ struct Test_U_UI_CBData
    : allowUserRuntimeStatistic (true)
    //, configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
    , UIState ()
@@ -251,7 +251,7 @@ struct Test_U_UI_ThreadData
   Test_U_UI_ThreadData ()
    : CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , sessionId (0)
   {}

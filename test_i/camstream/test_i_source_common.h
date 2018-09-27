@@ -26,7 +26,7 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <Dshow.h>
+#include <OAIdl.h>
 #include <control.h>
 #include <evr.h>
 #include <mfapi.h>
@@ -305,11 +305,10 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , direct3DDevice (NULL)
-   , filterCLSID (GUID_NULL)
    , filterConfiguration (NULL)
+   , filterIdentifier (GUID_NULL)
    , inputFormat (NULL)
-   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
+   , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sourceFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -345,38 +344,35 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     } // end IF
     connectionConfigurations = rhs_in.connectionConfigurations;
     connectionManager = rhs_in.connectionManager;
-    if (direct3DDevice)
-    {
-      direct3DDevice->Release (); direct3DDevice = NULL;
-    } // end IF
-    if (rhs_in.direct3DDevice)
-    {
-      rhs_in.direct3DDevice->AddRef ();
-      direct3DDevice = rhs_in.direct3DDevice;
-    } // end IF
-    filterCLSID = rhs_in.filterCLSID;
     filterConfiguration = rhs_in.filterConfiguration;
+    filterIdentifier = rhs_in.filterIdentifier;
     if (inputFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
     if (rhs_in.inputFormat)
-      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
-                                                                  inputFormat))
+    {
+      inputFormat =
+        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.inputFormat);
+      if (!inputFormat)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), returning\n")));
         return *this;
       } // end IF
+    } // end IF
     push = rhs_in.push;
     if (sourceFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (sourceFormat);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (sourceFormat);
     if (rhs_in.sourceFormat)
-      if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.sourceFormat,
-                                                                  sourceFormat))
+    {
+      sourceFormat =
+        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.sourceFormat);
+      if (!sourceFormat)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), returning\n")));
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), returning\n")));
         return *this;
       } // end IF
+    } // end IF
     streamConfiguration = rhs_in.streamConfiguration;
     subscriber = rhs_in.subscriber;
     subscribers = rhs_in.subscribers;
@@ -408,13 +404,8 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  IDirect3DDevice9Ex*                                  direct3DDevice;
-#else
-  IDirect3DDevice9*                                    direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  struct _GUID                                         filterCLSID;
   struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
+  CLSID                                                filterIdentifier;
   struct _AMMediaType*                                 inputFormat; // source module
   bool                                                 push;
   struct _AMMediaType*                                 sourceFormat;
@@ -869,9 +860,7 @@ struct Test_I_Source_DirectShow_UI_CBData
    , subscribersLock ()
    , streamConfiguration (NULL)
    , UDPStream (NULL)
-  {
-    progressData.state = &this->UIState;
-  }
+  {}
 
   struct Test_I_Source_DirectShow_Configuration* configuration;
   Test_I_Source_DirectShow_StreamBase_t*         stream;
@@ -891,9 +880,7 @@ struct Test_I_Source_MediaFoundation_UI_CBData
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {
-    progressData.state = &this->UIState;
-  }
+  {}
 
   struct Test_I_Source_MediaFoundation_Configuration* configuration;
   Test_I_Source_MediaFoundation_StreamBase_t*         stream;
@@ -913,9 +900,7 @@ struct Test_I_Source_V4L2_UI_CBData
    , subscribers ()
    , subscribersLock ()
    , UDPStream (NULL)
-  {
-    progressData.state = &this->UIState;
-  }
+  {}
 
   struct Test_I_Source_V4L2_Configuration* configuration;
   int                                      fileDescriptor; // (capture) device file descriptor

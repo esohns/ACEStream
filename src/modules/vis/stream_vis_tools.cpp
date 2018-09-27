@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "stream_vis_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -36,11 +37,153 @@
 
 #include "stream_macros.h"
 
+#include "stream_lib_common.h"
+#include "stream_lib_directdraw_tools.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-enum AVPixelFormat
-Stream_Module_Visualization_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_in)
+bool
+Stream_Visualization_Tools::initialize (enum Stream_Visualization_Framework framework_in,
+                                        bool initializeCOM_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Visualization_Tools::mediaSubTypeToAVPixelFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::initialize"));
+
+  bool result = false;
+
+  switch (framework_in)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW:
+    {
+      result =
+        Stream_MediaFramework_DirectDraw_Tools::initialize (initializeCOM_in);
+      if (!result)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::initialize(), aborting\n")));
+        return false;
+      }
+      break;
+    }
+    case STREAM_VISUALIZATION_FRAMEWORK_DIRECTSHOW:
+      break;
+    case STREAM_VISUALIZATION_FRAMEWORK_GDI:
+      break;
+    case STREAM_VISUALIZATION_FRAMEWORK_MEDIAFOUNDATION:
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown visualization framework (was: %d), aborting\n"),
+                  framework_in));
+      return false;
+    }
+  } // end SWITCH
+
+  return result;
+}
+void
+Stream_Visualization_Tools::finalize (enum Stream_Visualization_Framework framework_in,
+                                      bool initializeCOM_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::finalize"));
+
+  switch (framework_in)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW:
+    {
+      Stream_MediaFramework_DirectDraw_Tools::finalize (initializeCOM_in);
+      break;
+    }
+    case STREAM_VISUALIZATION_FRAMEWORK_DIRECTSHOW:
+      break;
+    case STREAM_VISUALIZATION_FRAMEWORK_GDI:
+      break;
+    case STREAM_VISUALIZATION_FRAMEWORK_MEDIAFOUNDATION:
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown visualization framework (was: %d), returning\n"),
+                  framework_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+std::string
+Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_AudioRenderer renderer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::rendererToModuleName"));
+
+  std::string result;
+
+  switch (renderer_in)
+  {
+    case STREAM_VISUALIZATION_AUDIORENDERER_NULL:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING); break;
+#if defined (GTK_SUPPORT)
+    case STREAM_VISUALIZATION_AUDIORENDERER_GTK_CAIRO_SPECTRUMANALYZER:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING); break;
+#endif // GTK_SUPPORT
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown audio renderer (was: %d), aborting\n"),
+                  renderer_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+std::string
+Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_VideoRenderer renderer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::rendererToModuleName"));
+
+  std::string result;
+
+  switch (renderer_in)
+  {
+    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING); break;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GDI_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING); break;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING); break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+      result = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING); break;
+#endif // GTK_SUPPORT
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown video renderer (was: %d), aborting\n"),
+                  renderer_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+
+enum AVPixelFormat
+Stream_Visualization_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::mediaSubTypeToAVPixelFormat"));
 
   // DirectShow
   /////////////////////////////////////// AUDIO

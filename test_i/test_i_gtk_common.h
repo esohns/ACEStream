@@ -54,22 +54,12 @@ struct Test_I_GTK_CBData
 {
   Test_I_GTK_CBData ()
    : Test_I_UI_CBData ()
-   //, configuration (NULL)
    , progressData ()
-   , progressEventSourceId (0)
-   , UIState ()
-  {
-    progressData.state = &UIState;
-  }
+   , UIState (NULL)
+  {}
 
-  //struct Test_I_Configuration*   configuration;
   struct Test_I_GTK_ProgressData progressData;
-  guint                          progressEventSourceId;
-#if defined (GTKGL_SUPPORT)
-  struct Common_UI_GTK_GLState   UIState;
-#else
-  struct Common_UI_GTK_State     UIState;
-#endif // GTKGL_SUPPORT
+  Common_UI_GTK_State_t*         UIState;
 };
 
 struct Test_I_GTK_ThreadData
@@ -85,7 +75,7 @@ struct Test_I_GTK_ThreadData
   guint                     eventSourceId;
 };
 
-typedef Common_ITaskControl_T<ACE_MT_SYNCH,
-                              Common_ILock_T<ACE_MT_SYNCH> > Test_I_GTK_Manager_t;
+//typedef Common_ITaskControl_T<ACE_MT_SYNCH,
+//                              Common_ILock_T<ACE_MT_SYNCH> > Test_I_GTK_Manager_t;
 
 #endif

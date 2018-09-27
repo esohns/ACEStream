@@ -74,7 +74,7 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Display_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
@@ -161,12 +161,12 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   // ******************* Display Handler ***************************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
+                ACE_TEXT (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)));
     goto error;
   } // end IF
 
@@ -273,18 +273,18 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //  goto continue_;
   //} // end IF
 
-  //if (!IsEqualGUID (configuration_in.moduleHandlerConfiguration->filterCLSID,
+  //if (!IsEqualGUID (configuration_in.moduleHandlerConfiguration->filterIdentifier,
   //                  GUID_NULL))
   //{
   //  result =
-  //    CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterCLSID, NULL,
+  //    CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterIdentifier, NULL,
   //                      CLSCTX_INPROC_SERVER,
   //                      IID_PPV_ARGS (&filter_p));
   //  if (FAILED (result)) // REGDB_E_CLASSNOTREG: 0x80040154
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-  //                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (configuration_in.moduleHandlerConfiguration->filterCLSID).c_str ()),
+  //                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (configuration_in.moduleHandlerConfiguration->filterIdentifier).c_str ()),
   //                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
   //    goto error;
   //  } // end IF
@@ -355,22 +355,21 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //struct Stream_Module_Device_DirectShow_GraphEntry& graph_entry_r =
   //  graph_configuration.front ();
   //ACE_ASSERT (!graph_entry_r.mediaType);
-  //if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*configuration_in.moduleHandlerConfiguration->format,
+  //if (!Stream_Module_Device_DirectShow_Tools::copy (*configuration_in.moduleHandlerConfiguration->format,
   //                                                           graph_entry_r.mediaType))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copy(), aborting\n")));
   //  goto error;
   //} // end IF
   //ACE_ASSERT (graph_entry_r.mediaType);
 #if defined (_DEBUG)
   //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("input format: \"%s\"...\n"),
-  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry_r.mediaType, true).c_str ())));
+  //            ACE_TEXT ("input format: %s\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::toString (*graph_entry_r.mediaType, true).c_str ())));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("input format: \"%s\"\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*configuration_p->inputFormat,
-                                                                                   true).c_str ())));
+              ACE_TEXT ("input format: %s\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*configuration_p->inputFormat, true).c_str ())));
 
   //log_file_name =
   //  Common_File_Tools::getLogDirectory (std::string (),
@@ -452,7 +451,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //     iterator != graph_configuration.end ();
   //     ++iterator)
   //  if ((*iterator).mediaType)
-  //    Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+  //    Stream_Module_Device_DirectShow_Tools::delete_ ((*iterator).mediaType);
 
   //// debug info
   //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -521,13 +520,14 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   // ---------------------------------------------------------------------------
 
   if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
   ACE_ASSERT (!session_data_r.inputFormat);
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*configuration_p->inputFormat,
-                                                              session_data_r.inputFormat))
+  session_data_r.inputFormat =
+    Stream_MediaFramework_DirectShow_Tools::copy (*configuration_p->inputFormat);
+  if (!session_data_r.inputFormat)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (session_data_r.inputFormat);
@@ -573,7 +573,7 @@ error:
   //     iterator != graph_configuration.end ();
   //     ++iterator)
   //  if ((*iterator).mediaType)
-  //    Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+  //    Stream_Module_Device_DirectShow_Tools::delete_ ((*iterator).mediaType);
   //if (graphBuilder_)
   //  graphBuilder_->Release ();
   ////if (direct3D_manager_p)
@@ -584,7 +584,7 @@ error:
   //  session_data_r.direct3DDevice = NULL;
   //} // end IF
   if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
   //session_data_r.resetToken = 0;
 
   //if (COM_initialized)
@@ -691,12 +691,12 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Display_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)),
+//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)),
 //                  false);
 //  ACE_ASSERT (module_p);
 //  modules_out.push_back (module_p);
@@ -803,7 +803,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
 
     // clean up
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 
     goto error;
   } // end IF
@@ -856,7 +856,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: input format: \"%s\"\n"),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (configuration_p->inputFormat).c_str ()),
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_p->inputFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
 #endif // _DEBUG
 
@@ -928,7 +928,7 @@ error:
     session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
   session_data_r.direct3DManagerResetToken = 0;
 
   if (COM_initialized)
@@ -964,12 +964,12 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
 //                  Test_I_Target_DisplayNull_Module (this,
-//                                                    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)),
+//                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;

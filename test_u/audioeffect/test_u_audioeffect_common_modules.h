@@ -256,30 +256,30 @@ DATASTREAM_MODULE_DUPLEX (struct Test_U_AudioEffect_SessionData,                
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
-                                                       Common_TimePolicy_t,
-                                                       struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                                       Test_U_ControlMessage_t,
-                                                       Test_U_AudioEffect_DirectShow_Message,
-                                                       Test_U_AudioEffect_DirectShow_SessionMessage,
-                                                       struct Test_U_AudioEffect_DirectShow_SessionData,
-                                                       Test_U_AudioEffect_DirectShow_SessionData_t,
-                                                       Common_Timer_Manager_t> Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer;
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                          Test_U_ControlMessage_t,
+                                                          Test_U_AudioEffect_DirectShow_Message,
+                                                          Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                          struct Test_U_AudioEffect_DirectShow_SessionData,
+                                                          Test_U_AudioEffect_DirectShow_SessionData_t,
+                                                          Common_Timer_Manager_t> Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer);             // writer type
-typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
-                                                       Common_TimePolicy_t,
-                                                       struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                                       Test_U_ControlMessage_t,
-                                                       Test_U_AudioEffect_MediaFoundation_Message,
-                                                       Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                                       struct Test_U_AudioEffect_MediaFoundation_SessionData,
-                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                                                       Common_Timer_Manager_t> Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer;
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                          Test_U_ControlMessage_t,
+                                                          Test_U_AudioEffect_MediaFoundation_Message,
+                                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                          struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                                          Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                                          Common_Timer_Manager_t> Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
@@ -350,15 +350,15 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,            
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_U_AudioEffect_Target_ALSA);                         // writer type
 
-typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
-                                                       Common_TimePolicy_t,
-                                                       struct Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                                       Test_U_ControlMessage_t,
-                                                       Test_U_AudioEffect_Message,
-                                                       Test_U_AudioEffect_SessionMessage,
-                                                       struct Test_U_AudioEffect_SessionData,
-                                                       Test_U_AudioEffect_SessionData_t,
-                                                       Common_Timer_Manager_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                          Test_U_ControlMessage_t,
+                                                          Test_U_AudioEffect_Message,
+                                                          Test_U_AudioEffect_SessionMessage,
+                                                          struct Test_U_AudioEffect_SessionData,
+                                                          Test_U_AudioEffect_SessionData_t,
+                                                          Common_Timer_Manager_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_U_AudioEffect_ModuleHandlerConfiguration,          // module handler configuration type

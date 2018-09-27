@@ -104,7 +104,7 @@ struct Test_I_SignalHandlerConfiguration
   Test_I_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerId (-1)

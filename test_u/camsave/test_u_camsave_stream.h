@@ -22,17 +22,15 @@
 #define TEST_U_CAMSAVE_STREAM_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <guiddef.h>
-#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs
-                      //         (see: stream_lib_common.h)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
 #include <minwindef.h>
 #else
 #include <windef.h>
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#include <winnt.h>
+#include <guiddef.h>
 #include <mfidl.h>
 #include <mfobjects.h>
-#include <winnt.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"

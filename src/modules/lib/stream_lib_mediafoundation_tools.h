@@ -143,19 +143,19 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
-  static bool copyAttribute (const IMFAttributes*, // source
-                             IMFAttributes*,       // destination
-                             REFGUID);             // key
-  static bool copyMediaType (const IMFMediaType*, // media type
-                             IMFMediaType*&);     // return value: handle
+  static bool copy (const IMFAttributes*, // source
+                    IMFAttributes*,       // destination
+                    REFGUID);             // key
+  // *IMPORTANT NOTE*: callers must 'Release' any return values !
+  static IMFMediaType* copy (const IMFMediaType*); // media type
   //static std::string mediaSubTypeToString (REFGUID); // media subtype
-  static std::string mediaTypeToString (const IMFMediaType*); // media type
-  static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
-  static std::string activateToString (IMFActivate*); // activate handle
+  static std::string toString (const IMFMediaType*); // media type
+  static std::string toString (MF_TOPOSTATUS); // topology status
+  static std::string toString (IMFActivate*); // activate handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-  static std::string mediaSourceToString (IMFMediaSourceEx*); // media source handle
+  static std::string toString (IMFMediaSourceEx*); // media source handle
 #else
-  static std::string mediaSourceToString (IMFMediaSource*); // media source handle
+  static std::string toString (IMFMediaSource*); // media source handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   //static std::string transformToString (IMFTransform*); // transform handle
 
@@ -192,7 +192,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
   static bool expand (TOPOLOGY_PATH_T&,   // input/return value: topology path
                       TOPOLOGY_PATHS_T&); // input/return value: topology paths
 
-  static std::string nodeTypeToString (enum MF_TOPOLOGY_TYPE); // node type
+  static std::string toString (enum MF_TOPOLOGY_TYPE); // node type
 };
 
 #endif

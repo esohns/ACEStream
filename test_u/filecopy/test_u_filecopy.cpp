@@ -38,6 +38,8 @@
 #include "common_signal_tools.h"
 #include "common_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_timer_tools.h"
 
 #include "common_ui_gtk_defines.h"
@@ -50,9 +52,9 @@
 
 #include "stream_misc_defines.h"
 
-#ifdef HAVE_CONFIG_H
+#if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
@@ -461,19 +463,26 @@ do_work (unsigned int bufferSize_in,
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
   // [- signal timer expiration to perform server queries] (see above)
 
-  // step1a: start GTK event loop ?
+  // step1a: start GUI event loop ?
+#if defined (GUI_SUPPORT)
   if (!UIDefinitionFile_in.empty ())
   {
-#if defined (GTK_SUPPORT)
-    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
+#if defined (GTK_USE)
+    Common_UI_GTK_Manager_t* gtk_manager_p =
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (gtk_manager_p);
+    const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+    state_r.eventHooks.finiHook = idle_finalize_UI_cb;
+    state_r.eventHooks.initHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+#endif // GTK_USE
     CBData_in.stream = &stream;
     //CBData_in.userData = &CBData_in;
 
+#if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
@@ -488,7 +497,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       return;
     } // end IF
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -503,12 +512,13 @@ do_work (unsigned int bufferSize_in,
     ACE_UNUSED_ARG (was_visible_b);
 #endif
 
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
-#endif // GTK_SUPPORT
+#endif // GTK_USE
   } // end IF
   else
   {
+#endif // GUI_SUPPORT
     if (!stream.initialize (CBData_in.configuration->streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -526,7 +536,9 @@ do_work (unsigned int bufferSize_in,
 //      return;
 //    } // end IF
     stream.wait (true, false, false);
+#if defined (GUI_SUPPORT)
   } // end ELSE
+#endif // GUI_SUPPORT
 
   // step3: clean up
   //		{ // synch access
@@ -716,22 +728,34 @@ ACE_TMAIN (int argc_in,
   struct Stream_Filecopy_Configuration configuration;
   struct Stream_Filecopy_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
-  ui_cb_data.progressData.state = &ui_cb_data.UIState;
+  Common_MessageStack_t* logstack_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+  ui_cb_data.progressData.state = &state_r;
+  logstack_p = &state_r.logStack;
+  lock_p = &state_r.logStackLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   // step1d: initialize logging and/or tracing
-  Common_Logger_t logger (&ui_cb_data.UIState.logStack,
-                          &ui_cb_data.UIState.lock);
+  Common_Logger_t logger (logstack_p,
+                          lock_p);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
         Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
                                            ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
-                                        log_file_name,                            // log file name
-                                        false,                                    // log to syslog ?
-                                        false,                                    // trace messages ?
-                                        trace_information,                        // debug messages ?
-                                        (UI_definition_file.empty () ? NULL
-                                                                     : &logger))) // logger ?
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                            log_file_name,                            // log file name
+                                            false,                                    // log to syslog ?
+                                            false,                                    // trace messages ?
+                                            trace_information,                        // debug messages ?
+                                            (UI_definition_file.empty () ? NULL
+                                                                         : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -760,7 +784,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -778,7 +802,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
 
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -788,9 +812,15 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  lock_2 = &state_r.subscribersLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   Stream_Filecopy_SignalHandler signal_handler (((configuration.dispatchConfiguration.numberOfReactorThreads) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                                &ui_cb_data.UIState.subscribersLock);
+                                                lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -802,7 +832,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -827,7 +857,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -838,7 +868,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
@@ -848,9 +878,8 @@ ACE_TMAIN (int argc_in,
   if (!UI_definition_file.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                               argv_in,
-                                                              &ui_cb_data.UIState,
                                                               &ui_definition);
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -895,7 +924,7 @@ ACE_TMAIN (int argc_in,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
-    Common_Tools::finalizeLogging ();
+    Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -916,7 +945,15 @@ ACE_TMAIN (int argc_in,
   system_time_string = Common_Timer_Tools::periodToString (system_time);
 
   // debug info
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              elapsed_time.real_time,
+              elapsed_time.user_time,
+              elapsed_time.system_time,
+              ACE_TEXT (user_time_string.c_str ()),
+              ACE_TEXT (system_time_string.c_str ())));
+#else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\nmaximum resident set size = %d\nintegral shared memory size = %d\nintegral unshared data size = %d\nintegral unshared stack size = %d\npage reclaims = %d\npage faults = %d\nswaps = %d\nblock input operations = %d\nblock output operations = %d\nmessages sent = %d\nmessages received = %d\nsignals received = %d\nvoluntary context switches = %d\ninvoluntary context switches = %d\n"),
               elapsed_time.real_time,
@@ -938,14 +975,6 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nsignals,
               elapsed_rusage.ru_nvcsw,
               elapsed_rusage.ru_nivcsw));
-#else
-  ACE_DEBUG ((LM_DEBUG,
-    ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
-              elapsed_time.real_time,
-              elapsed_time.user_time,
-              elapsed_time.system_time,
-              ACE_TEXT (user_time_string.c_str ()),
-              ACE_TEXT (system_time_string.c_str ())));
 #endif
 
   Common_Signal_Tools::finalize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
@@ -953,7 +982,7 @@ ACE_TMAIN (int argc_in,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
-  Common_Tools::finalizeLogging ();
+  Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

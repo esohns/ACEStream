@@ -39,7 +39,11 @@ class Test_I_Source_EventHandler_T
                                       SessionMessageType>
 {
  public:
+#if defined (GUI_SUPPORT)
   Test_I_Source_EventHandler_T (CallbackDataType*); // UI state
+#else
+  Test_I_Source_EventHandler_T ();
+#endif // GUI_SUPPORT
   inline virtual ~Test_I_Source_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T

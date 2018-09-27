@@ -210,7 +210,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , audioOutput (0)
    , deviceIdentifier ()
    , dispatch (NULL)
-   , fps (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
+   , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , captureDeviceHandle (NULL)
@@ -238,9 +238,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , OpenGLTextureId (0)
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
-   , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
-   , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , spectrumAnalyzer2DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , spectrumAnalyzer3DMode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
+   , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -262,65 +262,65 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   }
 
 #if defined (GTK_SUPPORT)
-  GdkRectangle                                            area2D;
+  GdkRectangle                                     area2D;
 #if defined (GTKGL_SUPPORT)
-  GdkRectangle                                            area3D;
+  GdkRectangle                                     area3D;
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
   //         is not possible (playback eventually hogs all threads and starves)
-  bool                                                    asynchPlayback;
+  bool                                             asynchPlayback;
 #endif // ACE_WIN32 || ACE_WIN64
-  int                                                     audioOutput;
+  int                                              audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                                             deviceIdentifier;
-  Test_U_AudioEffect_IDispatch_t*                         dispatch;
-  unsigned int                                            fps;
+  std::string                                      deviceIdentifier;
+  Test_U_AudioEffect_IDispatch_t*                  dispatch;
+  unsigned int                                     fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct _snd_pcm*                                        captureDeviceHandle;
-  std::string                                             effect;
-  std::vector<std::string>                                effectOptions;
-  struct Stream_Module_Device_ALSAConfiguration*          format;
-  struct AVRational                                       frameRate; // *TODO*: remove ASAP !
-  bool                                                    manageSoX;
-  struct _snd_pcm*                                        playbackDeviceHandle;
+  struct _snd_pcm*                                 captureDeviceHandle;
+  std::string                                      effect;
+  std::vector<std::string>                         effectOptions;
+  struct Stream_Module_Device_ALSAConfiguration*   format;
+  struct AVRational                                frameRate; // *TODO*: remove ASAP !
+  bool                                             manageSoX;
+  struct _snd_pcm*                                 playbackDeviceHandle;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
-  GdkWindow*                                              GdkWindow2D;
+  GdkWindow*                                       GdkWindow2D;
 #endif // GTK_SUPPORT
-  bool                                                    mute;
+  bool                                             mute;
 #if defined (GTK_SUPPORT)
-  ACE_SYNCH_MUTEX*                                        surfaceLock;
+  ACE_SYNCH_MUTEX*                                 surfaceLock;
 #if GTK_CHECK_VERSION(3,11,0)
-  cairo_surface_t*                                        cairoSurface2D;
+  cairo_surface_t*                                 cairoSurface2D;
 #else
-  GdkPixbuf*                                              pixelBuffer2D;
+  GdkPixbuf*                                       pixelBuffer2D;
 #endif /* GTK_CHECK_VERSION(3,11,0) */
 #if defined (GTKGL_SUPPORT)
-  Stream_Module_Visualization_OpenGLInstructions_t*       OpenGLInstructions;
-  ACE_SYNCH_MUTEX*                                        OpenGLInstructionsLock;
-  GLuint                                                  OpenGLTextureId;
+  Stream_Visualization_OpenGL_Instructions_t*      OpenGLInstructions;
+  ACE_SYNCH_MUTEX*                                 OpenGLInstructionsLock;
+  GLuint                                           OpenGLTextureId;
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_SUPPORT
-  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
-  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
-  unsigned int                                            spectrumAnalyzerResolution;
-  bool                                                    sinus;
-  double                                                  sinusFrequency;
+  enum Stream_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
+  enum Stream_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
+  unsigned int                                     spectrumAnalyzerResolution;
+  bool                                             sinus;
+  double                                           sinusFrequency;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_StreamConfiguration_t*               streamConfiguration;
+  Test_U_AudioEffect_StreamConfiguration_t*        streamConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_ISessionNotify_t*                    subscriber;
-  Test_U_AudioEffect_Subscribers_t*                       subscribers;
+  Test_U_AudioEffect_ISessionNotify_t*             subscriber;
+  Test_U_AudioEffect_Subscribers_t*                subscribers;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string                                             targetFileName;
+  std::string                                      targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];
@@ -704,24 +704,24 @@ struct Test_U_AudioEffect_UI_CBDataBase
   {}
 
 #if defined (GTK_SUPPORT)
-  GdkRectangle                                     area2D;
+  GdkRectangle                               area2D;
 #if defined (GTKGL_SUPPORT)
-  GdkRectangle                                     area3D;
+  GdkRectangle                               area3D;
 #endif // GTKGL_SUPPORT
-  ACE_SYNCH_MUTEX                                  surfaceLock;
+  ACE_SYNCH_MUTEX                            surfaceLock;
 #if GTK_CHECK_VERSION(3,10,0)
-  cairo_surface_t*                                 cairoSurface2D;
+  cairo_surface_t*                           cairoSurface2D;
 #else
-  GdkPixbuf*                                       pixelBuffer2D;
+  GdkPixbuf*                                 pixelBuffer2D;
 #endif // GTK_CHECK_VERSION(3,10,0)
 #if defined (GTKGL_SUPPORT)
-  Stream_Module_Visualization_OpenGLInstructions_t OpenGLInstructions;
+  Stream_Visualization_OpenGL_Instructions_t OpenGLInstructions;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-  bool                                             isFirst; // first activation ?
-  struct Test_U_AudioEffect_ProgressData           progressData;
-  Test_U_Common_ISet_t*                            resizeNotification;
-  Stream_IStreamControlBase*                       stream;
+  bool                                       isFirst; // first activation ?
+  struct Test_U_AudioEffect_ProgressData     progressData;
+  Test_U_Common_ISet_t*                      resizeNotification;
+  Stream_IStreamControlBase*                 stream;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_UI_CBData

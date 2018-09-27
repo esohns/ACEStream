@@ -21,9 +21,11 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -43,8 +45,12 @@ Test_I_Target_EventHandler_T<SessionIdType,
                              MessageType,
                              SessionMessageType,
                              CallbackDataType>::Test_I_Target_EventHandler_T (CallbackDataType* CBData_in)
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
+#else
+ : sessionData_ (NULL)
+#endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler_T::Test_I_Target_EventHandler_T"));
 
@@ -70,27 +76,39 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
   ACE_ASSERT (!sessionData_);
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
-#endif // GTK_USE
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.transferred = 0;
-#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_start_target_UI_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_start_target_UI_cb): \"%m\", continuing\n")));
     else
-      CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STARTED);
+      state_r.eventSourceIds.insert (event_source_id);
+    state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 template <typename SessionIdType,
@@ -112,23 +130,35 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
-#endif // GTK_USE
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-#if defined (GTK_USE)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_end_target_UI_cb,
                                   CBData_);
     if (!event_source_id)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", continuing\n")));
     else
-      CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_STOPPED);
+      state_r.eventSourceIds.insert (event_source_id);
+    state_r.eventStack.push (COMMON_UI_EVENT_STOPPED);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -154,14 +184,25 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
-#endif // GTK_USE
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.transferred += message_in.total_length ();
-#if defined (GTK_USE)
     event_source_id = g_idle_add (idle_update_video_display_cb,
                                   CBData_);
     if (!event_source_id)
@@ -169,9 +210,10 @@ Test_I_Target_EventHandler_T<SessionIdType,
                   ACE_TEXT ("failed to g_idle_add(idle_update_video_display_cb): \"%m\", continuing\n")));
     //else
     //  CBData_->UIState.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
+    state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 template <typename SessionIdType,
@@ -194,7 +236,9 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
 
   // sanity check(s)
+#if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
+#endif // GUI_SUPPORT
 
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
@@ -217,9 +261,15 @@ Test_I_Target_EventHandler_T<SessionIdType,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+#endif // GTK_USE
         CBData_->progressData.statistic = sessionData_->statistic;
+#if defined (GTK_USE)
       } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
       if (sessionData_->lock)
       {
@@ -242,7 +292,11 @@ continue_:
     }
   } // end SWITCH
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
-    CBData_->UIState.eventStack.push (event_e);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    state_r.eventStack.push (event_e);
   } // end lock scope
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }

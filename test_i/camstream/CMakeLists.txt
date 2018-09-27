@@ -260,7 +260,7 @@ if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
-#target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
+target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
@@ -555,7 +555,7 @@ if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-#target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
+target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
 target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})

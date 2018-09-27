@@ -51,6 +51,8 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+#include "stream_lib_directshow_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_common.h"
@@ -69,11 +71,11 @@ class Stream_Module_Decoder_Tools
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool isCompressed (REFGUID,                                                              // media subtype
                             REFGUID,                                                              // device category
-                            enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                            enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static bool isCompressedAudio (REFGUID,                                                              // media subtype
-                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   static bool isCompressedVideo (REFGUID, // media subtype
-                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
   static bool isCompressedVideo (enum AVPixelFormat); // pixel format
 
@@ -85,10 +87,10 @@ class Stream_Module_Decoder_Tools
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
   static enum AVCodecID mediaSubTypeToAVCodecId (REFGUID,                                                              // media subtype
-                                                 enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                                 enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
-                                                         enum Stream_MediaFramework_Type = MODULE_LIB_DEFAULT_MEDIAFRAMEWORK);
+                                                         enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
   // -------------------------------------
   // filter graphs / topologies

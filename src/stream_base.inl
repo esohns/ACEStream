@@ -1088,9 +1088,16 @@ Stream_Base_T<ACE_SYNCH_USE,
   switch (control_in)
   {
     case STREAM_CONTROL_END:
+    case STREAM_CONTROL_ABORT:
+    case STREAM_CONTROL_CONNECT:
+    case STREAM_CONTROL_DISCONNECT:
     case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
+    case STREAM_CONTROL_RESIZE:
     case STREAM_CONTROL_UNLINK:
+    case STREAM_CONTROL_FLUSH:
+    case STREAM_CONTROL_RESET:
+    case STREAM_CONTROL_STEP:
+    case STREAM_CONTROL_STEP_2:
     {
       istreamcontrol_p =
         dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
@@ -1893,8 +1900,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->wait (false,                 // wait for threads ?
-                             waitForupstream_in,
-                             waitForDownStream_in);
+                            waitForupstream_in,
+                            waitForDownStream_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl::wait(), returning\n"),

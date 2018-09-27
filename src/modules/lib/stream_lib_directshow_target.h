@@ -22,6 +22,7 @@
 #define STREAM_LIB_DIRECTSHOW_TARGET_H
 
 #include <BaseTyps.h>
+#include <OAIdl.h>
 #include <control.h>
 #include <guiddef.h>
 #include <strmif.h>

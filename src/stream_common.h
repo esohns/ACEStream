@@ -25,11 +25,7 @@
 #include <map>
 
 #include "ace/Message_Block.h"
-//#include "ace/Message_Queue_T.h"
-//#include "ace/Module.h"
-//#include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
-//#include "ace/Task_T.h"
 #include "ace/Time_Value.h"
 
 #include "common.h"
@@ -102,16 +98,21 @@ enum Stream_ControlType
 enum Stream_ControlType : int
 #endif
 {
-  STREAM_CONTROL_DISCONNECT = ACE_Message_Block::MB_HANGUP,
-  STREAM_CONTROL_END,
-  STREAM_CONTROL_FLUSH      = ACE_Message_Block::MB_FLUSH,
-  STREAM_CONTROL_RESET      = ACE_Message_Block::MB_NORMAL,
-  STREAM_CONTROL_UNLINK     = ACE_Message_Block::MB_BREAK,
-  ////////////////////////////////////////
-  STREAM_CONTROL_USER_MASK  = 0x200, // user-defined message mask
+  // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
+  STREAM_CONTROL_USER_MASK   = 0x400, // user-defined message mask
+  STREAM_CONTROL_END,                 // end session (i.e. user cancel)
+  STREAM_CONTROL_ABORT,
   STREAM_CONTROL_CONNECT,
-  STREAM_CONTROL_LINK,
-  STREAM_CONTROL_STEP,
+  STREAM_CONTROL_DISCONNECT  = ACE_Message_Block::MB_HANGUP,
+  STREAM_CONTROL_LINK        = 0x404,
+  STREAM_CONTROL_RESIZE,
+  STREAM_CONTROL_UNLINK      = ACE_Message_Block::MB_BREAK,
+  STREAM_CONTROL_FLUSH       = ACE_Message_Block::MB_FLUSH,
+  STREAM_CONTROL_RESET       = ACE_Message_Block::MB_NORMAL,
+  STREAM_CONTROL_STEP        = 0x406, // e.g. take screenshot, split target file, etc.
+  STREAM_CONTROL_STEP_2,              // e.g. take screenshot, split target file, etc.
+  ////////////////////////////////////////
+  STREAM_CONTROL_USER_MASK_2 = 0x800, // user-defined message mask
   ////////////////////////////////////////
   STREAM_CONTROL_MAX,
   STREAM_CONTROL_INVALID
@@ -123,19 +124,21 @@ enum Stream_ControlMessageType : int
 #endif
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
-  STREAM_CONTROL_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_CONTROL_MESSAGE_MASK      = 0x400,
   // *** control ***
+  STREAM_CONTROL_MESSAGE_END,
   STREAM_CONTROL_MESSAGE_ABORT,
   STREAM_CONTROL_MESSAGE_CONNECT,
   STREAM_CONTROL_MESSAGE_DISCONNECT,
-  STREAM_CONTROL_MESSAGE_END,
-  STREAM_CONTROL_MESSAGE_FLUSH,
   STREAM_CONTROL_MESSAGE_LINK,
+  STREAM_CONTROL_MESSAGE_RESIZE,
+  STREAM_CONTROL_MESSAGE_UNLINK,
+  STREAM_CONTROL_MESSAGE_FLUSH,
   STREAM_CONTROL_MESSAGE_RESET,
   STREAM_CONTROL_MESSAGE_STEP,
-  STREAM_CONTROL_MESSAGE_UNLINK,
+  STREAM_CONTROL_MESSAGE_STEP_2,
   ////////////////////////////////////////
-  STREAM_CONTROL_MESSAGE_USER_MASK = 0x400, // user-defined message mask
+  STREAM_CONTROL_MESSAGE_USER_MASK = 0x800, // user-defined message mask
   ////////////////////////////////////////
   STREAM_CONTROL_MESSAGE_MAX,
   STREAM_CONTROL_MESSAGE_INVALID
@@ -148,7 +151,7 @@ enum Stream_SessionMessageType : int
 #endif
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
-  STREAM_SESSION_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** notification ***
   STREAM_SESSION_MESSAGE_ABORT,
   STREAM_SESSION_MESSAGE_CONNECT,
@@ -159,11 +162,11 @@ enum Stream_SessionMessageType : int
   // *** control ***
   STREAM_SESSION_MESSAGE_BEGIN,
   STREAM_SESSION_MESSAGE_END,
-  STREAM_SESSION_MESSAGE_STEP,
+  STREAM_SESSION_MESSAGE_STEP, // i.e. processing next source file
   // *** data ***
   STREAM_SESSION_MESSAGE_STATISTIC,
   ////////////////////////////////////////
-  STREAM_SESSION_MESSAGE_USER_MASK    = 0x400, // user-defined message mask
+  STREAM_SESSION_MESSAGE_USER_MASK = 0x400, // user-defined message mask
   ////////////////////////////////////////
   STREAM_SESSION_MESSAGE_MAX,
   STREAM_SESSION_MESSAGE_INVALID

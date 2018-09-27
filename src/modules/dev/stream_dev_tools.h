@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_DEV_TOOLS_H
-#define STREAM_MODULE_DEV_TOOLS_H
+#ifndef STREAM_DEVICE_TOOLS_H
+#define STREAM_DEVICE_TOOLS_H
 
 #include <string>
 
@@ -53,50 +53,23 @@ extern "C"
 
 #include "stream_dev_common.h"
 
+#include "stream_lib_common.h"
+
 // forward declarations
 class Stream_IAllocator;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 
-class Stream_Module_Device_Tools
+class Stream_Device_Tools
 {
  public:
   static void initialize (bool = true); // initialize media frameworks ?
 
+  static std::string getDefaultAudioCaptureDevice ();
+  static std::string getDefaultVideoCaptureDevice ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool getDirect3DDevice (const struct Stream_Module_Device_Direct3DConfiguration&, // configuration
-                                 HWND,                                                     // 'device' window handle
-                                 const struct _AMMediaType&,                               // media format handle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                 IDirect3DDevice9Ex*&,                                     // return value: device handle
-#else
-                                 IDirect3DDevice9*&,                                       // return value: device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                 struct _D3DPRESENT_PARAMETERS_&,                          // return value: presentation parameters
-                                 IDirect3DDeviceManager9*&,                                // return value: device manager handle
-                                 UINT&);                                                   // return value: reset token
-
-  struct Stream_EnumDisplayMonitors_CBData // ::EnumDisplayMonitors() callback data
-  {
-    Stream_EnumDisplayMonitors_CBData ()
-     : deviceIdentifier ()
-     , handle (NULL)
-    {}
-
-    std::string deviceIdentifier;
-    HMONITOR    handle;
-  };
-  static bool getDisplayDevice (const std::string&, // device identifier
-                                HMONITOR&);         // return value: monitor handle
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
-#else
-  static bool initializeDirect3DManager (const IDirect3DDevice9*,   // Direct3D device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                         IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
-                                         UINT&);                    // return value: reset token
 #else
   static void dump (struct _snd_pcm*); // device handle
 
@@ -150,9 +123,9 @@ class Stream_Module_Device_Tools
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools (const Stream_Module_Device_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools& operator= (const Stream_Module_Device_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_Tools (const Stream_Device_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Device_Tools& operator= (const Stream_Device_Tools&))
 };
 
 // include template definitions

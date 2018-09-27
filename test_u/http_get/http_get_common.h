@@ -160,9 +160,7 @@ struct HTTPGet_UI_CBData
    , messageAllocator (NULL)
    , progressData ()
    , stream (NULL)
-  {
-    progressData.state = &this->UIState;
-  }
+  {}
 
   struct HTTPGet_Configuration*    configuration;
   struct Common_EventDispatchState dispatchState;

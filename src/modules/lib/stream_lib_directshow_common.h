@@ -22,8 +22,8 @@
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
 #include <list>
+#include <string>
 
-//#include <ks.h>
 //// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 ////            incompatible versions of the IKsPropertySet interface.
 ////            Applications that require the KS proxy module should use the
@@ -33,12 +33,88 @@
 ////            If an application must include both ksproxy.h and dsound.h,
 ////            whichever header file the compiler scans first is the one whose
 ////            definition of IKsPropertySet is used by the compiler. ..."
-//#include <ksproxy.h>
+//#include <MMReg.h>
+#include <WinNT.h>
+#include <Ks.h>
+#include <KsProxy.h>
+#include <MMSystem.h>
 #include <dsound.h>
 #include <strmif.h>
 
+#include "ace/OS.h"
+
+#include "stream_lib_defines.h"
+
+// forward declarations
+class ACE_Message_Queue_Base;
+class Stream_IAllocator;
+
 typedef std::list<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
 typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
+
+struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
+{
+  Stream_MediaFramework_DirectShow_FilterPinConfiguration ()
+   : format (NULL)
+   , hasMediaSampleBuffers (false)
+   , isTopToBottom (false)
+   , queue (NULL)
+  {}
+
+  struct _AMMediaType*    format; // (preferred) media type handle
+  bool                    hasMediaSampleBuffers;
+  bool                    isTopToBottom; // frame memory layout
+  ACE_Message_Queue_Base* queue;  // (inbound) buffer queue handle
+};
+
+struct Stream_MediaFramework_DirectShow_FilterConfiguration
+{
+  Stream_MediaFramework_DirectShow_FilterConfiguration ()
+   : allocator (NULL)
+   , allocatorProperties ()
+  {
+    ACE_OS::memset (&allocatorProperties,
+                    0,
+                    sizeof (struct _AllocatorProperties));
+    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties_.cbAlign = -1;  // <-- use default
+    allocatorProperties.cbAlign = 1;
+    allocatorProperties.cbBuffer = -1; // <-- use default
+    // *TODO*: IMemAllocator::SetProperties returns E_INVALIDARG (0x80070057)
+    //         if this is -1/0 (why ?)
+    //allocatorProperties.cbPrefix = -1; // <-- use default
+    allocatorProperties.cbPrefix = 0;
+    allocatorProperties.cBuffers =
+      STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_BUFFERS;
+    //allocatorProperties_.cBuffers = -1; // <-- use default
+  }
+
+  Stream_IAllocator*          allocator;
+  struct _AllocatorProperties allocatorProperties;
+};
+
+typedef std::list<std::wstring> Stream_MediaFramework_DirectShow_Graph_t;
+typedef Stream_MediaFramework_DirectShow_Graph_t::iterator Stream_MediaFramework_DirectShow_GraphIterator_t;
+typedef Stream_MediaFramework_DirectShow_Graph_t::const_iterator Stream_MediaFramework_DirectShow_GraphConstIterator_t;
+struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry
+{
+  Stream_MediaFramework_DirectShow_GraphConfigurationEntry ()
+   : filterName ()
+   , mediaType (NULL)
+   , connectDirect (false)
+  {}
+
+  // *NOTE*: apparently, some filters (e.g. Video Resizer DSP DMO) need to
+  //         connect to their downstream peer 'direct'ly
+  bool                 connectDirect; // use IGraphBuilder::ConnectDirect() ? : IPin::Connect()
+  std::wstring         filterName;
+  struct _AMMediaType* mediaType; // media type to connect the
+                                  // (head entry ? output- : input-) pin with
+};
+typedef std::list<struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry> Stream_MediaFramework_DirectShow_GraphConfiguration_t;
+typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::iterator Stream_MediaFramework_DirectShow_GraphConfigurationIterator_t;
+typedef Stream_MediaFramework_DirectShow_GraphConfiguration_t::const_iterator Stream_MediaFramework_DirectShow_GraphConfigurationConstIterator_t;
 
 union Stream_MediaFramework_DirectShow_AudioEffectOptions
 {

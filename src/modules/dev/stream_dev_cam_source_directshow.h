@@ -27,6 +27,7 @@
 #include "ace/Synch_Traits.h"
 
 #include <BaseTyps.h>
+#include <OAIdl.h>
 #include <control.h>
 #include <qedit.h>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8

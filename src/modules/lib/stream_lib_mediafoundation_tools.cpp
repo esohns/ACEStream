@@ -95,7 +95,7 @@ Stream_MediaFramework_MediaFoundation_Tools::initialize ()
 //    ACE_DEBUG ((LM_INFO,
 //                ACE_TEXT ("#%d: %s\n"),
 //                count + 1,
-//                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
+//                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
 //
 //    // clean up
 //    media_type_p->Release ();
@@ -191,7 +191,7 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTopology* topology_in)
   //  ACE_DEBUG ((LM_INFO,
   //              ACE_TEXT ("#%u: %s (id: %q)\n"),
   //              i + 1,
-  //              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::nodeTypeToString (node_type).c_str ()),
+  //              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (node_type).c_str ()),
   //              id));
 
   //  topology_node_p->Release ();
@@ -294,7 +294,7 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTopology* topology_in)
       ACE_ASSERT (SUCCEEDED (result));
 
       topology_string =
-        Stream_MediaFramework_MediaFoundation_Tools::nodeTypeToString (node_type);
+        Stream_MediaFramework_MediaFoundation_Tools::toString (node_type);
       topology_string += ACE_TEXT_ALWAYS_CHAR (" (");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -411,7 +411,7 @@ Stream_MediaFramework_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in
                   //ACE_TEXT ("%s: #%d: %s\n"),
                   //ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::transformToString (IMFTransform_in).c_str ()),
                   count,
-                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
 
       // clean up
       media_type_p->Release ();
@@ -1756,7 +1756,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_set_event = false;
   MediaEventType event_type = MEUnknown;
-  ACE_Time_Value timeout (MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
 
   // initialize return value(s)
@@ -2220,7 +2220,7 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::clear"));
 
-  ACE_Time_Value timeout (MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (STREAM_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
   ACE_Time_Value deadline;
   IMFMediaEvent* media_event_p = NULL;
@@ -2960,9 +2960,9 @@ error:
 //}
 
 std::string
-Stream_MediaFramework_MediaFoundation_Tools::nodeTypeToString (enum MF_TOPOLOGY_TYPE nodeType_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (enum MF_TOPOLOGY_TYPE nodeType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::nodeTypeToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
   std::string result;
 
@@ -2989,9 +2989,9 @@ Stream_MediaFramework_MediaFoundation_Tools::nodeTypeToString (enum MF_TOPOLOGY_
 }
 
 std::string
-Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (MF_TOPOSTATUS topologyStatus_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (MF_TOPOSTATUS topologyStatus_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
   std::string result;
 
@@ -3024,9 +3024,9 @@ Stream_MediaFramework_MediaFoundation_Tools::topologyStatusToString (MF_TOPOSTAT
 }
 
 std::string
-Stream_MediaFramework_MediaFoundation_Tools::activateToString (IMFActivate* activate_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (IMFActivate* activate_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::activateToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
   std::string result;
 
@@ -3054,12 +3054,12 @@ Stream_MediaFramework_MediaFoundation_Tools::activateToString (IMFActivate* acti
 }
 std::string
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-Stream_MediaFramework_MediaFoundation_Tools::mediaSourceToString (IMFMediaSourceEx* mediaSource_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSourceEx* mediaSource_in)
 #else
-Stream_MediaFramework_MediaFoundation_Tools::mediaSourceToString (IMFMediaSource* mediaSource_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSource* mediaSource_in)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::mediaSourceToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
   std::string result;
 
@@ -3200,11 +3200,11 @@ Stream_MediaFramework_MediaFoundation_Tools::load (REFGUID category_in,
 //}
 
 bool
-Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (const IMFAttributes* source_in,
-                                                           IMFAttributes* destination_in,
-                                                           REFGUID key_in)
+Stream_MediaFramework_MediaFoundation_Tools::copy (const IMFAttributes* source_in,
+                                                   IMFAttributes* destination_in,
+                                                   REFGUID key_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::copyAttribute"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::copy"));
 
   // sanity check(s)
   ACE_ASSERT (source_in);
@@ -3236,39 +3236,36 @@ clean:
 
   return (result == S_OK);
 }
-bool
-Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (const IMFMediaType* mediaType_in,
-                                                           IMFMediaType*& IMFMediaType_out)
+
+IMFMediaType*
+Stream_MediaFramework_MediaFoundation_Tools::copy (const IMFMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::copyMediaType"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::copy"));
 
-  // sanity check(s)
-  if (IMFMediaType_out)
-  {
-    IMFMediaType_out->Release (); IMFMediaType_out = NULL;
-  } // end IF
+  // initialize return value(s)
+  IMFMediaType* result_p = NULL;
 
-  HRESULT result = MFCreateMediaType (&IMFMediaType_out);
+  HRESULT result = MFCreateMediaType (&result_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return false;
+    return NULL;
   } // end IF
 
   result =
-    const_cast<IMFMediaType*> (mediaType_in)->CopyAllItems (IMFMediaType_out);
+    const_cast<IMFMediaType*> (mediaType_in)->CopyAllItems (result_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    IMFMediaType_out->Release (); IMFMediaType_out = NULL;
-    return false;
+    result_p->Release (); result_p = NULL;
+    return NULL;
   } // end IF
 
-  return true;
+  return result_p;
 }
 
 //std::string
@@ -3297,9 +3294,9 @@ Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (const IMFMediaType* 
 //}
 
 std::string
-Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (const IMFMediaType* mediaType_in)
+Stream_MediaFramework_MediaFoundation_Tools::toString (const IMFMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toString"));
 
   std::string result;
 
@@ -3318,7 +3315,7 @@ Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (const IMFMediaTy
   //} // end IF
 
   //result =
-  //  Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (media_type_s);
+  //  Stream_MediaFramework_DirectShow_Tools::toString (media_type_s);
 
   //// clean up
   //Stream_MediaFramework_DirectShow_Tools::freeMediaType (media_type_s);

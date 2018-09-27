@@ -703,13 +703,31 @@ error:
 
       break;
     }
-    case ACE_Message_Block::MB_BREAK:
-    case ACE_Message_Block::MB_FLUSH:
-    case ACE_Message_Block::MB_HANGUP:
-    case ACE_Message_Block::MB_NORMAL: // undifferentiated
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
+    case ACE_Message_Block::MB_USER:
+    {
+      try {
+        handleUserMessage (messageBlock_in,
+                           stopProcessing_out,
+                           forward_b);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error_2;
+      }
+
+      break;
+
+error_2:
+      messageBlock_in->release ();
+      forward_b = false;
+
+      stopProcessing_out = true;
+
+      break;
+    }
+    case STREAM_MESSAGE_CONTROL:
     {
       ControlMessageType* control_message_p =
         dynamic_cast<ControlMessageType*> (messageBlock_in);
@@ -720,7 +738,7 @@ error:
                     inherited::mod_->name (),
                     messageBlock_in,
                     ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto error_2;
+        goto error_3;
       } // end IF
 
       try {
@@ -733,32 +751,8 @@ error:
 
       break;
 
-error_2:
-      // clean up
-      messageBlock_in->release ();
-      forward_b = false;
-
-      stopProcessing_out = true;
-
-      break;
-    }
-    case ACE_Message_Block::MB_USER:
-    {
-      try {
-        handleUserMessage (messageBlock_in,
-                           stopProcessing_out,
-                           forward_b);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto error_3;
-      }
-
-      break;
-
 error_3:
+      // clean up
       messageBlock_in->release ();
       forward_b = false;
 
@@ -865,14 +859,14 @@ allocate:
 
   // forward message
   result = (sendUpStream_in ? inherited::reply (message_block_p, NULL)
-                            : inherited::put (message_block_p, NULL));
+                            : put (message_block_p, NULL));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::%s(): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 (sendUpStream_in ? ACE_TEXT ("reply") : ACE_TEXT ("put"))));
-    message_block_p->release ();
+    message_block_p->release (); message_block_p = NULL;
     return false;
   } // end IF
 

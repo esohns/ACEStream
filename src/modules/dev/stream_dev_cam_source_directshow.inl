@@ -79,10 +79,10 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    TimerManagerType,
                                    UserDataType,
                                    MediaSampleIsDataMessage>::Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* stream_in)
- : inherited (stream_in,                            // stream handle
-              false,                                // auto-start ? (active mode only)
-              STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
-              true)                                 // generate session messages ?
+ : inherited (stream_in,                               // stream handle
+              false,                                   // auto-start ? (active mode only)
+              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
+              true)                                    // generate session messages ?
  , isFirst_ (true)
  , IAMVideoControl_ (NULL)
  , IAMDroppedFrames_ (NULL)
@@ -402,7 +402,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
         filter_p->Release (); filter_p = NULL;
 
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+          inherited::configuration_->builder->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -471,17 +471,17 @@ continue_:
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
 
-      if (!Stream_Module_Device_DirectShow_Tools::getCaptureFormat (builder_p,
-                                                                    CLSID_VideoInputDeviceCategory,
-                                                                    media_type_p))
+      if (!Stream_Device_DirectShow_Tools::getCaptureFormat (builder_p,
+                                                             CLSID_VideoInputDeviceCategory,
+                                                             media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getCaptureFormat(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::getCaptureFormat(), aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
       ACE_ASSERT (media_type_p);
-      if (Stream_Module_Device_DirectShow_Tools::isMediaTypeBottomUp (*media_type_p))
+      if (Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (*media_type_p))
       {
         result_2 =
           inherited::configuration_->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
@@ -502,7 +502,7 @@ continue_:
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: device (was: \"%s\") cannot flip image vertically using IAMVideoControl, continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->deviceIdentifier).c_str ())));
+                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->deviceIdentifier).c_str ())));
 
         result_2 = IAMVideoControl_->GetMode (pin_p,
                                               &flags_i);
@@ -517,24 +517,24 @@ continue_:
         ACE_ASSERT (SUCCEEDED (result_2));
         if (!(flags_2 & VideoControlFlag_FlipVertical))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: device (was: \"%s\") failed to IAMVideoControl::SetMode(0x%x), continuing\n"),
+                      ACE_TEXT ("%s: failed to IAMVideoControl::SetMode(0x%x) (device was: \"%s\"), continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->deviceIdentifier).c_str ()),
-                      flags_i));
+                      flags_i,
+                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->deviceIdentifier).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
       if (!session_data_r.inputFormat)
       {
         if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (builder_p,
-                                                                      MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                                      STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                       session_data_r.inputFormat))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getCaptureFormat(\"%s\"), aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
           goto error;
         } // end IF
         release_session_data_format = true;
@@ -545,13 +545,13 @@ continue_:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: input format: \"%s\"\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*session_data_r.inputFormat, true).c_str ())));
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*session_data_r.inputFormat, true).c_str ())));
 
       log_file_name =
         Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (builder_p,
                                                      log_file_name);
       ACE_DEBUG ((LM_DEBUG,
@@ -648,7 +648,7 @@ error:
         sample_grabber_p->Release ();
 
       if (release_session_data_format)
-        Stream_MediaFramework_DirectShow_Tools::deleteMediaType (session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 
       if (COM_initialized)
         CoUninitialize ();
@@ -1120,12 +1120,12 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   struct _GUID decompressor_guid = CLSID_Colour;
   IBaseFilter* filter_p = NULL, *filter_2 = NULL;
   struct _AMMediaType* media_type_p = NULL;
-  LPCWSTR decompressor_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  LPCWSTR decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   bool needs_converter = false;
   struct _AllocatorProperties allocator_properties;
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
 
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (devicePath_in,
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (devicePath_in,
                                                                CLSID_VideoInputDeviceCategory,
                                                                graph_builder_p,
                                                                buffer_negotiation_p,
@@ -1133,7 +1133,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                                                graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (devicePath_in.c_str ())));
     goto error;
@@ -1155,10 +1155,10 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   //// *NOTE*: (re-)Connect()ion of the video renderer input pin fails
   ////         consistently, so reuse is not feasible
   ////         --> rebuild the whole graph from scratch each time
-  //if (!Stream_Module_Device_Tools::reset (IGraphBuilder_in))
+  //if (!Stream_Device_Tools::reset (IGraphBuilder_in))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::reset(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Device_Tools::reset(), aborting\n")));
   //  return false;
   //} // end IF
 
@@ -1186,7 +1186,7 @@ continue_:
   // set the window handle used to process graph events
   result =
     IMediaEventEx_->SetNotifyWindow ((OAHWND)windowHandle_in,
-                                     MODULE_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
+                                     STREAM_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1231,12 +1231,12 @@ continue_:
   filter_p->Release (); filter_p = NULL;
 
   // decompress ?
-  if (!Stream_Module_Device_DirectShow_Tools::getCaptureFormat (graph_builder_p,
+  if (!Stream_Device_DirectShow_Tools::getCaptureFormat (graph_builder_p,
                                                                 CLSID_VideoInputDeviceCategory,
                                                                 media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -1245,12 +1245,12 @@ continue_:
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     decompressor_guid = CLSID_AVIDec;
-    decompressor_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   } // end IF
   else if (InlineIsEqualGUID (media_type_p->subtype, MEDIASUBTYPE_MJPG))
   {
     decompressor_guid = CLSID_MjpegDec;
-    decompressor_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+    decompressor_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
   } // end IF
   else
   {
@@ -1314,7 +1314,7 @@ continue_:
 
   // grab
   result =
-    graph_builder_p->FindFilterByName (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
                                        &filter_p);
   if (FAILED (result))
   {
@@ -1323,7 +1323,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1341,7 +1341,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_2);
     result = graph_builder_p->AddFilter (filter_2,
-                                         MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1372,8 +1372,8 @@ continue_:
   // render to a window (GtkDrawingArea) ?
 continue_2:
   result =
-    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                        : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                        : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_p);
   if (FAILED (result))
   {
@@ -1382,8 +1382,8 @@ continue_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                            : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                            : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1405,8 +1405,8 @@ continue_2:
     ACE_ASSERT (filter_2);
     result =
       graph_builder_p->AddFilter (filter_2,
-                                  (windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                   : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                  (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                   : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1417,8 +1417,8 @@ continue_2:
     } // end IF
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("added \"%s\"\n"),
-    //            ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-    //                                                      : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+    //                                                      : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
     filter_2->Release (); filter_2 = NULL;
   } // end IF
   else
@@ -1463,11 +1463,11 @@ continue_2:
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName = decompressor_name;
   graph_configuration.push_back (graph_entry);
-  graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,
                                                         graph_configuration))
@@ -1486,7 +1486,7 @@ continue_2:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
@@ -1499,7 +1499,7 @@ continue_2:
 #endif // _DEBUG
 
   // clean up
-  Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   // *NOTE*: apparently, this is necessary
   //         (see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd373396(v=vs.85).aspx)
   graph_builder_p->Release (); graph_builder_p = NULL;
@@ -1516,7 +1516,7 @@ error:
   if (stream_config_p)
     stream_config_p->Release ();
   if (media_type_p)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
   if (ISampleGrabber_out)
   {

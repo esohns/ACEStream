@@ -72,6 +72,7 @@ extern "C"
 #include "stream_lib_defines.h"
 //#include "stream_lib_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -150,11 +151,12 @@ struct Test_I_CamStream_DirectShow_SessionData
       goto continue_; // nothing to do
 
     if (inputFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
-    if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*(rhs_in.inputFormat),
-                                                                inputFormat))
+      Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
+    inputFormat =
+      Stream_MediaFramework_DirectShow_Tools::copy (*(rhs_in.inputFormat));
+    if (!inputFormat)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), continuing\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), continuing\n")));
 
 continue_:
     userData = (userData ? userData : rhs_in.userData);
@@ -203,11 +205,12 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     ACE_ASSERT (rhs_in.inputFormat);
 
     if (inputFormat)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (inputFormat);
-    if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*rhs_in.inputFormat,
-                                                                inputFormat))
+      Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
+    inputFormat =
+      Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.inputFormat);
+    if (!inputFormat)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), continuing\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), continuing\n")));
 
     userData = (userData ? userData : rhs_in.userData);
 
@@ -296,7 +299,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , interfaceIdentifier (GUID_NULL)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #else
    , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
 #endif // ACE_WIN32 || ACE_WIN64
@@ -309,27 +312,27 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
-  struct Test_I_CamStream_Configuration*             configuration;
-  guint                                              contextId;
-  std::string                                        deviceIdentifier;
+  struct Test_I_CamStream_Configuration*               configuration;
+  guint                                                contextId;
+  std::string                                          deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_Module_Device_Direct3DConfiguration* direct3DConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                               fullScreen;
+  bool                                                 fullScreen;
   // *PORTABILITY*: UNIX: v4l2 device file (e.g. "/dev/video0" (Linux))
   //                Win32: interface GUID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID                                       interfaceIdentifier;
-  enum Stream_MediaFramework_Type                    mediaFramework;
+  struct _GUID                                         interfaceIdentifier;
+  enum Stream_MediaFramework_Type                      mediaFramework;
 #else
-  std::string                                        interfaceIdentifier;
+  std::string                                          interfaceIdentifier;
 #endif
-  GdkPixbuf*                                         pixelBuffer;
-  ACE_SYNCH_MUTEX*                                   pixelBufferLock;
+  GdkPixbuf*                                           pixelBuffer;
+  ACE_SYNCH_MUTEX*                                     pixelBufferLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                               window;
+  HWND                                                 window;
 #else
-  GdkWindow*                                         window;
+  GdkWindow*                                           window;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
@@ -382,13 +385,11 @@ struct Test_I_CamStream_UI_CBData
    , configuration (NULL)
    , isFirst (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , pixelBuffer (NULL)
    , progressData ()
-  {
-    progressData.state = &this->UIState;
-  }
+  {}
 
   struct Test_I_CamStream_Configuration*  configuration;
   bool                                    isFirst; // first activation ?
@@ -414,7 +415,7 @@ struct Test_I_CamStream_ThreadData
 #endif // GTK_SUPPORT
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaFramework (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK)
+   , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 

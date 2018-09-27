@@ -36,8 +36,22 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
+
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 elseif (WIN32)
- # *NOTE*: workaround
+ if (DEFINED ENV{DXSDK_DIR})
+  target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+ else ()
+  set (DXSDK_DIR
+       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
+  target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+ endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
  cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
@@ -46,9 +60,7 @@ elseif (WIN32)
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
-
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-#                             $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}>)
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -65,6 +77,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/log>)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -72,6 +86,8 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 endif ()
 #target_include_directories (${PROJECT_NAME}_Device PUBLIC
 #                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)

@@ -47,7 +47,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
             COMMON_PARSER_DEFAULT_YACC_TRACE)
  , allocator_ (NULL)
  , buffer_ (NULL)
- , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
+ , crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
  , frameSize_ (0)
  , debugParser_ (COMMON_PARSER_DEFAULT_YACC_TRACE)
  , debugScanner_ (COMMON_PARSER_DEFAULT_LEX_TRACE)
@@ -112,7 +112,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
-    crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
+    crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
     frameSize_ = 0;
 
     debugParser_ = COMMON_PARSER_DEFAULT_YACC_TRACE;
@@ -236,12 +236,12 @@ dispatch:
     //     message->dump_state();
 
     // step1: get a new message buffer
-    DataMessageType* message_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+    DataMessageType* message_p = allocateMessage (STREAM_DEC_BUFFER_SIZE);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to allocate message(%u), returning\n"),
-                  STREAM_DECODER_BUFFER_SIZE));
+                  STREAM_DEC_BUFFER_SIZE));
       goto error;
     } // end IF
 

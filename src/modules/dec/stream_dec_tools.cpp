@@ -81,12 +81,14 @@ extern "C"
 #include "stream_lib_defines.h"
 #include "stream_lib_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dev_defines.h"
-#include "stream_dev_mediafoundation_tools.h"
-
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_defines.h"
+#include "stream_dev_mediafoundation_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_defines.h"
@@ -913,18 +915,16 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   ACE_ASSERT (IGraphBuilder_in);
 
   // *TODO*: add source filter name
-  if (!Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder_in,
-                                                          CLSID_AudioInputDeviceCategory))
+  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
+                                                      CLSID_AudioInputDeviceCategory))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::resetGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));
     return false;
   } // end IF
 
-  IBaseFilter* filter_p = NULL;
-  IBaseFilter* filter_2 = NULL;
-  IBaseFilter* filter_3 = NULL;
-  IBaseFilter* filter_4 = NULL;
+  IBaseFilter* filter_p = NULL, *filter_2 = NULL;
+  IBaseFilter* filter_3 = NULL, *filter_4 = NULL;
   IDMOWrapperFilter* wrapper_filter_p = NULL;
 
   //// encode PCM --> WAV ?
@@ -933,13 +933,13 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   //if (mediaType_in.subtype == MEDIASUBTYPE_WAVE)
   //{
   //  converter_CLSID = CLSID_MjpegDec;
-  //  converter_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+  //  converter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
   //} // end IF
   //else if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
   //{
   //  // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
   //  converter_CLSID = CLSID_AVIDec;
-  //  converter_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+  //  converter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   //} // end IF
   //else
   //{
@@ -976,7 +976,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   ACE_ASSERT (filter_2);
   result =
     IGraphBuilder_in->AddFilter (filter_2,
-                                 MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
+                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -984,7 +984,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graphConfiguration_out.push_back (graph_entry);
 
   // add effect DMO ?
@@ -1282,7 +1282,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
   wrapper_filter_p = NULL;
   result =
     IGraphBuilder_in->AddFilter (filter_3,
-                                 MODULE_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
+                                 STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1290,7 +1290,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
-  graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
+  graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
   graphConfiguration_out.push_back (graph_entry);
 
 continue_:
@@ -1298,12 +1298,12 @@ continue_:
   if (audioOutput_in > 0)
   {
     GUID_s = CLSID_AudioRender;
-    graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO;
   } // end IF
   else
   {
     GUID_s = CLSID_NullRenderer;
-    graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
   } // end ELSE
   result = CoCreateInstance (GUID_s, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -1402,7 +1402,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
        iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
   graphConfiguration_out.clear ();
 
   // sanity check(s)
@@ -1422,19 +1422,20 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
     goto error;
   } // end ELSE
 
-  if (!Stream_MediaFramework_DirectShow_Tools::resetGraph (IGraphBuilder_in,
+  if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
                                                            deviceCategory_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::resetGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::has (IGraphBuilder_in, graph_entry.filterName));
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (captureFormat_in,
-                                                              graph_entry.mediaType))
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_in);
+  if (!graph_entry.mediaType)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
@@ -1445,11 +1446,12 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
       !Stream_Module_Decoder_Tools::isCompressedVideo (captureFormat_in.subtype,
                                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
-    if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (captureFormat_in,
-                                                                graph_entry.mediaType))
+    graph_entry.mediaType =
+      Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_in);
+    if (!graph_entry.mediaType)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
       goto error;
     } // end IF
     goto decode;
@@ -1458,13 +1460,16 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
 decompress:
   // *NOTE*: the first decompressors' input format is the capture format
   if (is_first_decompress)
-    if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (captureFormat_in,
-                                                                graph_entry.mediaType))
+  {
+    graph_entry.mediaType =
+      Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_in);
+    if (!graph_entry.mediaType)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
       goto error;
     } // end IF
+  } // end IF
   ACE_ASSERT (graph_entry.mediaType);
 
   fourcc_map.SetFOURCC (&graph_entry.mediaType->subtype);
@@ -1475,7 +1480,7 @@ decompress:
     {
       CLSID_s = CLSID_CMPEG2VidDecoderDS;
       graph_entry.filterName =
-        MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
       preferred_subtype = MEDIASUBTYPE_NV12;
       // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
       //         --> do not decode
@@ -1490,7 +1495,7 @@ decompress:
     {
       CLSID_s = CLSID_MjpegDec;
       graph_entry.filterName =
-        MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
       break;
     }
     default:
@@ -1607,14 +1612,14 @@ decode:
                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
     CLSID_s = CLSID_Colour;
-    graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   } // end IF
   else if (Stream_MediaFramework_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
                                                            STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     CLSID_s = CLSID_AVIDec;
-    graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   } // end ELSE IF
   else
   {
@@ -1704,7 +1709,7 @@ grab:
   if (skip_grab)
     goto render;
 
-  graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_p));
@@ -1729,12 +1734,12 @@ grab:
   } // end IF
   filter_p->Release (); filter_p = NULL;
   graphConfiguration_out.push_back (graph_entry);
-  graph_entry.mediaType = NULL;
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (outputFormat_in,
-                                                              graph_entry.mediaType))
+  graph_entry.mediaType =
+    Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_in);
+  if (!graph_entry.mediaType)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
 
@@ -1746,18 +1751,18 @@ render:
     //         'sample grabber' (go ahead, try it in with graphedit.exe)
     //         --> use the 'Video Renderer' instead
     // *TODO*: find out why this happens
-    CLSID_s = MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
+    CLSID_s = STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
     if (Stream_MediaFramework_DirectShow_Tools::has (graphConfiguration_out,
-                                                     MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI) &&
+                                                     STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI) &&
         Stream_MediaFramework_DirectShow_Tools::has (graphConfiguration_out,
-                                                     MODULE_LIB_DIRECTSHOW_FILTER_NAME_GRAB) &&
+                                                     STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB) &&
         !InlineIsEqualGUID (CLSID_s, CLSID_VideoRenderer))
     {
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("graph has 'AVI Decompressor' and 'Sample Grabber'; using default video renderer...\n")));
-      CLSID_s = MODULE_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
+      CLSID_s = STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
     } // end IF
-    graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
+    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
   } // end IF
   else
   {
@@ -1765,7 +1770,7 @@ render:
     //         any connection between the 'AVI decompressor' and the 'sample
     //         grabber' (go ahead, try it in with graphedit.exe)
     CLSID_s = CLSID_NullRenderer;
-    graph_entry.filterName = MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL;
   } // end ELSE
   result = CoCreateInstance (CLSID_s, NULL,
                              CLSCTX_INPROC_SERVER,
@@ -1799,14 +1804,14 @@ error:
        iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
   graphConfiguration_out.clear ();
   if (pin_p)
     pin_p->Release ();
   if (filter_p)
     filter_p->Release ();
   if (graph_entry.mediaType)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (graph_entry.mediaType);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (graph_entry.mediaType);
 
   return false;
 }
@@ -1850,7 +1855,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
        iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
+      Stream_MediaFramework_DirectShow_Tools::delete_ ((*iterator).mediaType);
   graphConfiguration_out.clear ();
 
   if (!IGraphBuilder_out)
@@ -1913,11 +1918,12 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
       goto error;
     } // end IF
 
-    if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (sourceMediaType_in,
-                                                                graph_entry.mediaType))
+    graph_entry.mediaType =
+      Stream_MediaFramework_DirectShow_Tools::copy (sourceMediaType_in);
+    if (!graph_entry.mediaType)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (graph_entry.mediaType);
@@ -1993,14 +1999,14 @@ continue_:
   //skip_resize = (source_height == height) && (source_width == width);
   skip_resize = true;
 
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*graph_entry.mediaType,
-                                                              media_type_p))
+  media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (*graph_entry.mediaType);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (media_type_p);
   graph_entry.mediaType = media_type_p;
   media_type_p = NULL;
 
@@ -2017,7 +2023,7 @@ decompress:
     {
       CLSID_s = CLSID_CMPEG2VidDecoderDS;
       graph_entry.filterName =
-        MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
       // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
       //         --> do not decode
       preferred_subtype = MEDIASUBTYPE_NV12;
@@ -2028,7 +2034,7 @@ decompress:
     {
       CLSID_s = CLSID_MjpegDec;
       graph_entry.filterName =
-        MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+        STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
       break;
     }
     default:
@@ -2116,7 +2122,7 @@ decompress:
               ACE_TEXT ("%s/%s: selected output format: %s"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*graph_entry.mediaType, true).c_str ())));
 
   if (Stream_Module_Decoder_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
@@ -2138,12 +2144,12 @@ decompress:
   pin_p->Release (); pin_p = NULL;
 
 decode:
-  if (InlineIsEqualGUID (graph_entry.mediaType->subtype, MODULE_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT) ||
+  if (InlineIsEqualGUID (graph_entry.mediaType->subtype, STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT) ||
       skip_decode)
     goto grab;
 
   preferred_subtype =
-    MODULE_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT;
+    STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT;
   // *NOTE*: the Color Space Converter filter has a seriously broken allocator
   //         --> use the DMO instead
   if (Stream_MediaFramework_Tools::isRGB (graph_entry.mediaType->subtype,
@@ -2152,7 +2158,7 @@ decode:
                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
   //{
   //  CLSID_s = CLSID_Colour;
-  //  graph_entry.filterName = MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  //  graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   //} // end IF
   //else if (Stream_Module_Decoder_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
   //                                                         STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
@@ -2161,7 +2167,7 @@ decode:
     //CLSID_s = CLSID_AVIDec;
     CLSID_s = CLSID_DMOWrapperFilter;
     graph_entry.filterName =
-      MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV;
+      STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_YUV;
     filter_is_dmo_wrapper = true;
     CLSID_2 = CLSID_CColorConvertDMO;
   } // end ELSE IF
@@ -2174,7 +2180,7 @@ decode:
   //  case FCC ('RGBA'):
   //  {
   //    CLSID_s = CLSID_Colour;
-  //    filter_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  //    filter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   //    break;
   //  }
   //  // chroma-luminance types
@@ -2182,7 +2188,7 @@ decode:
   //  {
   //    // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
   //    CLSID_s = CLSID_AVIDec;
-  //    filter_name = MODULE_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+  //    filter_name = STREAM_DEC_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   //    break;
   //  }
   //  default:
@@ -2225,30 +2231,30 @@ decode:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::Init(DMOCATEGORY_VIDEO_DECODER): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      i_dmo_wrapper_filter_p->Release ();
+      i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
       goto error;
     } // end IF
 
     // set input type manually
     // *NOTE*: DMO_MEDIA_TYPE is actually a typedef for AM_MEDIA_TYPE, so this
     //         creates a copy
-    if (!Stream_MediaFramework_DirectShow_Tools::AMMediaTypeToDMOMediaType (*graph_entry.mediaType,
-                                                                            dmo_media_type_p))
+    dmo_media_type_p =
+      Stream_MediaFramework_DirectShow_Tools::toDMOMediaType (*graph_entry.mediaType);
+    if (!dmo_media_type_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
-      i_dmo_wrapper_filter_p->Release ();
+                  ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::toDMOMediaType(), aborting\n")));
+      i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
       goto error;
     } // end IF
-    ACE_ASSERT (dmo_media_type_p);
     result = filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      i_dmo_wrapper_filter_p->Release ();
-      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
+      i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
+      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
       goto error;
     } // end IF
     ACE_ASSERT (i_dmo_wrapper_filter_p);
@@ -2260,14 +2266,14 @@ decode:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
-      i_media_object_p->Release ();
-      i_dmo_wrapper_filter_p->Release ();
+      DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+      i_media_object_p->Release (); i_media_object_p = NULL;
+      i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
       goto error;
     } // end IF
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
-    i_media_object_p->Release ();
-    i_dmo_wrapper_filter_p->Release ();
+    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+    i_media_object_p->Release (); i_media_object_p = NULL;
+    i_dmo_wrapper_filter_p->Release (); i_dmo_wrapper_filter_p = NULL;
   } // end IF
   result =
     IGraphBuilder_out->AddFilter (filter_2,
@@ -2334,7 +2340,7 @@ decode:
               ACE_TEXT ("%s/%s: selected output format: %s"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*graph_entry.mediaType, true).c_str ())));
   pin_p->Release (); pin_p = NULL;
   ACE_ASSERT (graph_entry.mediaType);
 
@@ -2436,22 +2442,21 @@ decode:
   // set input type manually
   // *NOTE*: DMO_MEDIA_TYPE is actually a typedef for AM_MEDIA_TYPE, so this
   //         creates a copy
-  dmo_media_type_p = NULL;
-  if (!Stream_MediaFramework_DirectShow_Tools::AMMediaTypeToDMOMediaType (*graph_entry.mediaType,
-                                                                          dmo_media_type_p))
+  dmo_media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::toDMOMediaType (*graph_entry.mediaType);
+  if (!dmo_media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::toDMOMediaType(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (dmo_media_type_p);
   result = filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p));
+    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
     goto error;
   } // end IF
   ACE_ASSERT (i_media_object_p);
@@ -2463,24 +2468,22 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
   } // end IF
-  DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
-  dmo_media_type_p = NULL;
-  if (!Stream_MediaFramework_DirectShow_Tools::AMMediaTypeToDMOMediaType (*graph_entry.mediaType,
-                                                                          dmo_media_type_p))
+  DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
+  dmo_media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::toDMOMediaType (*graph_entry.mediaType);
+  if (!dmo_media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::toDMOMediaType(), aborting\n")));
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
   } // end IF
-  ACE_ASSERT (dmo_media_type_p);
-  ACE_ASSERT (dmo_media_type_p->pbFormat);
-  if (dmo_media_type_p->formattype == FORMAT_VideoInfo)
-  {
+  if (InlineIsEqualGUID (dmo_media_type_p->formattype, FORMAT_VideoInfo))
+  { ACE_ASSERT (dmo_media_type_p->pbFormat);
     video_info_header_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (dmo_media_type_p->pbFormat);
     video_info_header_p->bmiHeader.biHeight = height;
@@ -2498,8 +2501,8 @@ decode:
     SetRect (&video_info_header_p->rcTarget,
              0, 0, width, height);
   } // end IF
-  else if (dmo_media_type_p->formattype == FORMAT_VideoInfo2)
-  {
+  else if (InlineIsEqualGUID (dmo_media_type_p->formattype, FORMAT_VideoInfo2))
+  { ACE_ASSERT (dmo_media_type_p->pbFormat);
     video_info_header2_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (dmo_media_type_p->pbFormat);
     video_info_header2_p->bmiHeader.biHeight = height;
@@ -2532,14 +2535,14 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaObject::SetOutputType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
     i_media_object_p->Release (); i_media_object_p = NULL;
     goto error;
   } // end IF
   i_media_object_p->Release (); i_media_object_p = NULL;
 
   graph_entry.filterName =
-    MODULE_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO;
+    STREAM_DEC_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO;
   result =
     IGraphBuilder_out->AddFilter (filter_2,
                                   graph_entry.filterName.c_str ());
@@ -2548,16 +2551,18 @@ decode:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    DeleteMediaType (reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p)); dmo_media_type_p = NULL;
     goto error;
   } // end IF
   graphConfiguration_out.push_back (graph_entry);
   graph_entry.connectDirect = true;
   graph_entry.mediaType =
     reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p);
+  dmo_media_type_p = NULL;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: set output format: %s\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*graph_entry.mediaType, true).c_str ())));
 
   // *TODO*: add frame grabber support
 grab:
@@ -2565,8 +2570,8 @@ grab:
 //render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
-    (windowHandle_in ? MODULE_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : MODULE_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
 
   result =
     IGraphBuilder_out->FindFilterByName (graph_entry.filterName.c_str (),
@@ -2583,7 +2588,7 @@ grab:
     } // end IF
 
     CLSID_s =
-      (windowHandle_in ? MODULE_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
+      (windowHandle_in ? STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
                        : CLSID_NullRenderer);
     result = CoCreateInstance (CLSID_s, NULL,
                                CLSCTX_INPROC_SERVER,
@@ -2734,14 +2739,14 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   if (!topology_inout)
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
+    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
                                                                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                          media_source_p,
                                                                          NULL, // do not load a dummy sink
                                                                          topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceIdentifier_in.c_str ())));
       goto error;
     } // end IF
@@ -2796,21 +2801,22 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
   } // end IF
   if (!item_count)
   {
-    if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-                                                                       mediaType_inout))
+    if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+                                                                mediaType_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("using default/preset capture format...\n")));
   } // end IF
-  if (!Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (mediaType_inout,
-                                                                   media_type_p))
+  media_type_p =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_inout);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
   result = media_type_p->GetGUID (MF_MT_SUBTYPE,
@@ -2882,7 +2888,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererTopology (const std::string& devic
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     module_string =
-      Stream_MediaFramework_MediaFoundation_Tools::activateToString (decoders_p[0]);
+      Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
     ACE_ASSERT (SUCCEEDED (result));
@@ -3318,14 +3324,14 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   if (!topology_inout)
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-    if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
+    if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
                                                                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                          media_source_p,
                                                                          NULL, // do not load a dummy sink
                                                                          topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceIdentifier_in.c_str ())));
       goto error;
     } // end IF
@@ -3380,23 +3386,27 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   } // end IF
   if (!item_count)
   {
-    if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-                                                                       media_type_p))
+    if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+                                                                media_type_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: using default/preset capture format...\n"),
-                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaSourceToString (media_source_p).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_source_p).c_str ())));
   } // end IF
-  else if (!Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (mediaType_in,
-                                                                        media_type_p))
+  else
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copyMediaType(), aborting\n")));
-    goto error;
+    media_type_p =
+      Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in);
+    if (!media_type_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
+      goto error;
+    } // end IF
   } // end IF
   ACE_ASSERT (media_type_p);
   result = media_type_p->GetGUID (MF_MT_SUBTYPE,
@@ -3448,7 +3458,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     module_string =
-      Stream_MediaFramework_MediaFoundation_Tools::activateToString (decoders_p[0]);
+      Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
 
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
@@ -3635,7 +3645,7 @@ transform:
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   module_string =
-    Stream_MediaFramework_MediaFoundation_Tools::activateToString (decoders_p[0]);
+    Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
 
   result = decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -3731,18 +3741,18 @@ clean_2:
   } // end WHILE
   //result = media_type_p->DeleteAllItems ();
   //ACE_ASSERT (SUCCEEDED (result));
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                                              media_type_p,
-                                                              MF_MT_FRAME_RATE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                                              media_type_p,
-                                                              MF_MT_FRAME_SIZE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                                              media_type_p,
-                                                              MF_MT_INTERLACE_MODE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                                              media_type_p,
-                                                              MF_MT_PIXEL_ASPECT_RATIO);
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
+                                                     media_type_p,
+                                                     MF_MT_FRAME_RATE);
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
+                                                     media_type_p,
+                                                     MF_MT_FRAME_SIZE);
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
+                                                     media_type_p,
+                                                     MF_MT_INTERLACE_MODE);
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
+                                                     media_type_p,
+                                                     MF_MT_PIXEL_ASPECT_RATIO);
   result = transform_p->SetOutputType (0,
                                        media_type_p,
                                        0);
@@ -4163,11 +4173,12 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  if (!Stream_MediaFramework_MediaFoundation_Tools::copyMediaType (mediaType_in,
-                                                  media_type_p))
+  media_type_p =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
   while (true)
@@ -4203,7 +4214,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     module_string =
-      Stream_MediaFramework_MediaFoundation_Tools::activateToString (decoders_p[0]);
+      Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
 
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
@@ -4382,7 +4393,7 @@ transform:
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   module_string =
-    Stream_MediaFramework_MediaFoundation_Tools::activateToString (decoders_p[0]);
+    Stream_MediaFramework_MediaFoundation_Tools::toString (decoders_p[0]);
 
   result = decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -4478,16 +4489,16 @@ clean_2:
   } // end WHILE
   //result = media_type_p->DeleteAllItems ();
   //ACE_ASSERT (SUCCEEDED (result));
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
                                                              media_type_p,
                                                              MF_MT_FRAME_RATE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
                                                              media_type_p,
                                                              MF_MT_FRAME_SIZE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
                                                              media_type_p,
                                                              MF_MT_INTERLACE_MODE);
-  Stream_MediaFramework_MediaFoundation_Tools::copyAttribute (mediaType_in,
+  Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
                                                              media_type_p,
                                                              MF_MT_PIXEL_ASPECT_RATIO);
   result = transform_p->SetOutputType (0,
@@ -4508,7 +4519,7 @@ clean_2:
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("output format: \"%s\"...\n"),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
 #endif // _DEBUG
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -4570,7 +4581,7 @@ continue_:
   //} // end IF
 
   module_string =
-    Stream_MediaFramework_MediaFoundation_Tools::activateToString (activate_p);
+    Stream_MediaFramework_MediaFoundation_Tools::toString (activate_p);
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -4758,11 +4769,11 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
   IMFMediaType* media_type_p = NULL;
-  if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+  if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
                                                                      media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
   media_source_p->Release (); media_source_p = NULL;

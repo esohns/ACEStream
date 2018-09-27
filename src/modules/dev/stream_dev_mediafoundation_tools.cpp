@@ -63,22 +63,22 @@
 #include "stream_lib_mediafoundation_tools.h"
 
 void
-Stream_Module_Device_MediaFoundation_Tools::initialize ()
+Stream_Device_MediaFoundation_Tools::initialize ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::initialize"));
 
 }
 
 bool
-Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& deviceIdentifier_in,
-                                                            REFGUID deviceCategory_in,
+Stream_Device_MediaFoundation_Tools::getMediaSource (const std::string& deviceIdentifier_in,
+                                                     REFGUID deviceCategory_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                                                            IMFMediaSourceEx*& mediaSource_out)
+                                                     IMFMediaSourceEx*& mediaSource_out)
 #else
-                                                            IMFMediaSource*& mediaSource_out)
+                                                     IMFMediaSource*& mediaSource_out)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::getMediaSource"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getMediaSource"));
 
   bool result = false;
 
@@ -222,7 +222,7 @@ error:
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 bool
-Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& deviceIdentifier_in,
+Stream_Device_MediaFoundation_Tools::loadDeviceTopology (const std::string& deviceIdentifier_in,
                                                                 REFGUID deviceCategory_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
                                                                 IMFMediaSourceEx*& mediaSource_inout,
@@ -236,7 +236,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
                                                                 IMFTopology*& topology_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::loadDeviceTopology"));
 
   // initialize return value(s)
   if (topology_out)
@@ -302,12 +302,12 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
                                        MF_CONNECT_DIRECT);
   ACE_ASSERT (SUCCEEDED (result));
   if (!mediaSource_inout)
-    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
+    if (!Stream_Device_MediaFoundation_Tools::getMediaSource (deviceIdentifier_in,
                                                                      deviceCategory_in,
                                                                      mediaSource_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceIdentifier_in.c_str ())));
       goto error;
     } // end IF
@@ -365,11 +365,11 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   if (!sampleGrabberSinkCallback_in)
     goto continue_;
 
-  if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (mediaSource_inout,
+  if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (mediaSource_inout,
                                                                      media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 
@@ -477,13 +477,13 @@ error:
 
 bool
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSourceEx* mediaSource_in,
+Stream_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSourceEx* mediaSource_in,
 #else
-Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* mediaSource_in,
+Stream_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* mediaSource_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                                               IMFMediaType*& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (mediaSource_in);
@@ -555,10 +555,10 @@ error:
   return false;
 }
 //bool
-//Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFSourceReader* sourceReader_in,
+//Stream_Device_MediaFoundation_Tools::getCaptureFormat (IMFSourceReader* sourceReader_in,
 //                                                              IMFMediaType*& mediaType_out)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::getCaptureFormat"));
 //
 //  // sanity check(s)
 //  ACE_ASSERT (sourceReader_in);
@@ -584,10 +584,10 @@ error:
 //
 
 //bool
-//Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFSourceReaderEx* IMFSourceReaderEx_in,
+//Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFSourceReaderEx* IMFSourceReaderEx_in,
 //                                                              const IMFMediaType* mediaType_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::setCaptureFormat"));
 //
 //  // sanit ycheck(s)
 //  ACE_ASSERT (IMFSourceReaderEx_in);
@@ -692,7 +692,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFSourceReader::SetNativeMediaType(\"%s\"): \"%s\", aborting\n"),
-//                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ()),
+//                  ACE_TEXT (Stream_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ()),
 //                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 //      media_type_p->Release (); media_type_p = NULL;
 //      return false;
@@ -711,11 +711,11 @@ error:
 //  //         type 'natively'
 //  //         --> try to auto-load a (MFT/DMO) decoder
 //  //             see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd389281(v=vs.85).aspx#setting_output_formats
-//  if (!Stream_Module_Device_MediaFoundation_Tools::setOutputFormat (IMFSourceReaderEx_in,
+//  if (!Stream_Device_MediaFoundation_Tools::setOutputFormat (IMFSourceReaderEx_in,
 //                                                    mediaType_in))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setOutputFormat(), aborting\n")));
+//                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setOutputFormat(), aborting\n")));
 //    goto error;
 //  } // end IF
 //
@@ -724,18 +724,18 @@ error:
 //error:
 //  ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("the source reader does not support the requested media type (was: \"%s\"), aborting\n"),
-//              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (mediaType_in).c_str ())));
+//              ACE_TEXT (Stream_Device_MediaFoundation_Tools::mediaTypeToString (mediaType_in).c_str ())));
 //
 //  // debug info
-//  Stream_Module_Device_MediaFoundation_Tools::dump (IMFSourceReaderEx_in);
+//  Stream_Device_MediaFoundation_Tools::dump (IMFSourceReaderEx_in);
 //
 //  return false;
 //}
 bool
-Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_in,
+Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTopology_in,
                                                               const IMFMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::setCaptureFormat"));
 
   // sanit ycheck(s)
   ACE_ASSERT (IMFTopology_in);
@@ -781,11 +781,11 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTo
                                         IID_PPV_ARGS (&media_source_p));
   ACE_ASSERT (SUCCEEDED (result));
   topology_node_p->Release ();
-  if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (media_source_p,
+  if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (media_source_p,
                                                                      mediaType_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
     media_source_p->Release (); media_source_p = NULL;
     return false;
   } // end IF
@@ -796,13 +796,13 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTo
 
 bool
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
-Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSourceEx* mediaSource_in,
+Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSourceEx* mediaSource_in,
 #else
-Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* mediaSource_in,
+Stream_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* mediaSource_in,
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
                                                               const IMFMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_MediaFoundation_Tools::setCaptureFormat"));
 
   // sanit ycheck(s)
   ACE_ASSERT (mediaSource_in);

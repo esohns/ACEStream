@@ -180,7 +180,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
-    Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 #endif
 
   return result_2;
@@ -336,7 +336,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 //      channels = waveformatex_p->nChannels;
       sample_rate = waveformatex_p->nSamplesPerSec;
 
-      Stream_MediaFramework_DirectShow_Tools::deleteMediaType (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 #else
       sample_size =
         ((snd_pcm_format_width (session_data_r.inputFormat.format) / 8) *
@@ -558,28 +558,28 @@ template <ACE_SYNCH_DECL,
           unsigned int Aggregation>
 AM_MEDIA_TYPE*
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::getFormat_impl (const struct _AMMediaType* format_in)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::getFormat_impl (const struct _AMMediaType* format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::getFormat_impl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getFormat_impl"));
 
   // sanity check(s)
   ACE_ASSERT (format_in);
 
-  struct _AMMediaType* result_p = NULL;
-  if (unlikely (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*format_in,
-                                                                        result_p)))
+  struct _AMMediaType* result_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (*format_in);
+  if (unlikely (!result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
                 inherited::mod_->name ()));
     return NULL;
   } // end IF
@@ -600,18 +600,18 @@ template <ACE_SYNCH_DECL,
           unsigned int Aggregation>
 AM_MEDIA_TYPE*
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::getFormat_impl (const IMFMediaType* format_in)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::getFormat_impl (const IMFMediaType* format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::getFormat_impl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getFormat_impl"));
 
   // sanity check(s)
   ACE_ASSERT (format_in);
@@ -649,17 +649,17 @@ template <ACE_SYNCH_DECL,
           unsigned int Aggregation>
 void
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  StatisticContainerType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ValueType,
-                                  Aggregation>::Process (unsigned int startIndex_in,
-                                                         unsigned int endIndex_in)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     StatisticContainerType,
+                                     SessionDataType,
+                                     SessionDataContainerType,
+                                     ValueType,
+                                     Aggregation>::Process (unsigned int startIndex_in,
+                                                            unsigned int endIndex_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Process"));
 

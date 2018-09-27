@@ -35,10 +35,6 @@
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING              L"DevicePath"
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING              L"FriendlyName"
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING                L"WaveInID"
-
-// Direct3D
-#define MODULE_DEV_CAM_DIRECT3D_DEFAULT_BACK_BUFFERS              2
-
 #else
 // ALSA
 #define MODULE_DEV_ALSA_TARGET_DEFAULT_NAME_STRING                "ALSATarget"

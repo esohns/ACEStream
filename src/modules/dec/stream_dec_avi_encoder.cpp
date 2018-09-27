@@ -25,9 +25,9 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_avi_encoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING);
 const char libacestream_default_dec_wav_encoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

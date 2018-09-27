@@ -24,10 +24,12 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>
 #include <strmif.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
+
+#include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
 
@@ -57,6 +59,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -75,7 +78,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Vis_GTK_Pixbuf_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -87,11 +90,14 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Common_UI_IFullscreen
+  virtual void toggle ();
+
  protected:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T ())
@@ -104,7 +110,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   bool               isFirst_;
 

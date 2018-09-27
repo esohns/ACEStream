@@ -28,17 +28,22 @@
 #include "stream_common.h"
 
 #include "test_i_session_message.h"
-//#include "test_i_source_common.h"
 
 // forward declarations
 struct Test_I_Source_SessionData;
+#if defined (GUI_SUPPORT)
 struct Test_I_Source_UI_CBData;
+#endif // GUI_SUPPORT
 
 class Test_I_Source_EventHandler
  : public Test_I_Source_ISessionNotify_t
 {
  public:
+#if defined (GUI_SUPPORT)
   Test_I_Source_EventHandler (struct Test_I_Source_UI_CBData*); // UI state
+#else
+  Test_I_Source_EventHandler::Test_I_Source_EventHandler ();
+#endif // GUI_SUPPORT
   inline virtual ~Test_I_Source_EventHandler () {}
 
   // implement Common_INotify_T
@@ -57,7 +62,9 @@ class Test_I_Source_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler (const Test_I_Source_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler& operator= (const Test_I_Source_EventHandler&))
 
+#if defined (GUI_SUPPORT)
   struct Test_I_Source_UI_CBData*   CBData_;
+#endif // GUI_SUPPORT
   struct Test_I_Source_SessionData* sessionData_;
 };
 
