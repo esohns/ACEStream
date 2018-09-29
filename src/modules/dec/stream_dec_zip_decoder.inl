@@ -46,7 +46,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 #endif
  : inherited (stream_in)
  , buffer_ (NULL)
- , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
+ , crunchMessages_ (STREAM_DEC_DEFAULT_CRUNCH_MESSAGES)
  , format_ (STREAM_COMPRESSION_FORMAT_INVALID)
  , stream_ ()
 {
@@ -101,7 +101,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
-    crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
+    crunchMessages_ = STREAM_DEC_DEFAULT_CRUNCH_MESSAGES;
     format_ = STREAM_COMPRESSION_FORMAT_INVALID;
   } // end IF
 
@@ -203,15 +203,15 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   //    buffer_->cont ())
   //{
   //  // sanity check(s)
-  //  ACE_ASSERT (buffer_->total_length () <= STREAM_DECODER_BUFFER_SIZE);
+  //  ACE_ASSERT (buffer_->total_length () <= STREAM_DEC_BUFFER_SIZE);
 
   //  // step1: get a new message buffer
-  //  message_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+  //  message_p = allocateMessage (STREAM_DEC_BUFFER_SIZE);
   //  if (!message_p)
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to allocate message(%u), returning\n"),
-  //                STREAM_DECODER_BUFFER_SIZE));
+  //                STREAM_DEC_BUFFER_SIZE));
   //    goto error;
   //  } // end IF
 
@@ -247,10 +247,10 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   stream_.avail_in = (uInt)buffer_->length ();
   int window_bits =
     ((format_ == STREAM_COMPRESSION_FORMAT_ZLIB) ? 0 // use zlib header setting
-                                                 : STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS);
+                                                 : STREAM_DEC_DEFAULT_ZLIB_WINDOWBITS);
   // *NOTE*: see also: http://www.zlib.net/manual.html#Basic
   if (format_ == STREAM_COMPRESSION_FORMAT_GZIP)
-    window_bits += STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET;
+    window_bits += STREAM_DEC_ZLIB_WINDOWBITS_GZIP_OFFSET;
   result = inflateInit2 (&stream_, window_bits);
   if (result != Z_OK)
   {
@@ -282,13 +282,13 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   } // end IF
 
   // step1: allocate a new message
-  message_p = inherited::allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+  message_p = inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to allocate message(%u), returning\n"),
                 inherited::mod_->name (),
-                STREAM_DECODER_BUFFER_SIZE));
+                STREAM_DEC_BUFFER_SIZE));
     goto error;
   } // end IF
   message_block_p = message_p;
@@ -358,13 +358,13 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     if (!stream_.avail_out)
     {
       message_block_2 = message_block_p;
-      message_block_p = inherited::allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+      message_block_p = inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to allocate message(%u), returning\n"),
                     inherited::mod_->name (),
-                    STREAM_DECODER_BUFFER_SIZE));
+                    STREAM_DEC_BUFFER_SIZE));
         goto error;
       } // end IF
       message_block_2->cont (message_block_p);

@@ -1,44 +1,50 @@
-﻿/* config.h.cmake */
+﻿/* config.h.cmake.in */
 
 /* Name of package */
-//#cmakedefine PACKAGE "@PACKAGE@"
-
-/* Define to the address where bug reports for this package should be sent. */
-#cmakedefine PACKAGE_BUGREPORT
-
+//#cmakedefine @PROJECT_NAME@_PACKAGE "@PACKAGE@"
+#cmakedefine ACEStream_PACKAGE "@PACKAGE@"
 /* Define to the full name of this package. */
-#define ACESTREAM_PACKAGE_NAME "@PACKAGE@"
-
+#cmakedefine ACEStream_PACKAGE_NAME "@PACKAGE_NAME@"
 /* Define to the full name and version of this package. */
-#define ACESTREAM_PACKAGE_STRING "@PACKAGE@ @VERSION@"
-
-/* Define to the one symbol short name of this package. */
-#cmakedefine PACKAGE_TARNAME
+#cmakedefine ACEStream_PACKAGE_STRING "@PACKAGE_STRING@"
+#cmakedefine ACEStream_PACKAGE_DESCRIPTION "@PACKAGE_DESCRIPTION@"
+#cmakedefine ACEStream_PACKAGE_DESCRIPTION_SUMMARY "@PACKAGE_DESCRIPTION_SUMMARY@"
 
 /* Define to the home page for this package. */
-#cmakedefine PACKAGE_URL
+#cmakedefine ACEStream_PACKAGE_URL "@PACKAGE_URL@"
+/* Define the name of the current package maintainer. */
+#cmakedefine ACEStream_PACKAGE_MAINTAINER "@PACKAGE_MAINTAINER@"
+/* Define to the address where bug reports for this package should be sent. */
+#cmakedefine ACEStream_PACKAGE_BUGREPORT "@PACKAGE_BUGREPORT@"
 
 /* Define to the version of this package. */
-#define ACESTREAM_PACKAGE_VERSION "@VERSION@"
+#cmakedefine ACEStream_PACKAGE_VERSION "@PACKAGE_VERSION@"
+#cmakedefine ACEStream_PACKAGE_VERSION_FULL "@PACKAGE_VERSION_FULL@"
+/* Version numbers of package */
+//#cmakedefine ACEStream_VERSION_MAJOR @VERSION_MAJOR@
+//#cmakedefine ACEStream_VERSION_MINOR @VERSION_MINOR@
+//#cmakedefine ACEStream_VERSION_MICRO @VERSION_MICRO@
+#define ACEStream_VERSION_MAJOR @VERSION_MAJOR@
+#define ACEStream_VERSION_MINOR @VERSION_MINOR@
+#define ACEStream_VERSION_MICRO @VERSION_MICRO@
+#cmakedefine ACEStream_VERSION_DEVEL "@VERSION_DEVEL@"
 
-/* Version number of package */
-#define ACESTREAM_VERSION_MAJOR @VERSION_MAJOR@
-#define ACESTREAM_VERSION_MINOR @VERSION_MINOR@
-#define ACESTREAM_VERSION_MICRO @VERSION_MICRO@
-#define ACESTREAM_VERSION_DEVEL "@VERSION_DEVEL@"
-//#cmakedefine VERSION "@VERSION@"
+/* Define to the one symbol short name of this package. */
+#cmakedefine ACEStream_PACKAGE_TARNAME "@PACKAGE_TARNAME@"
 
-// options
-#cmakedefine01 DEBUG_DEBUGGER
+/****************************************/
 #cmakedefine TRACING
+
 #cmakedefine VALGRIND_SUPPORT
+
+//#cmakedefine DEBUG_DEBUGGER
 // sub-options - src
-#cmakedefine SSL_SUPPORT
-#cmakedefine NETLINK_SUPPORT
+/* #undef SSL_SUPPORT */
+/* #undef NETLINK_SUPPORT */
 // sub-options - wlan
-//#cmakedefine WEXT_SUPPORT
-//#cmakedefine NL80211_SUPPORT
-//#cmakedefine DBUS_SUPPORT
-//#cmakedefine DHCLIENT_SUPPORT
-//#cmakedefine WLANAPI_SUPPORT
-//#cmakedefine WINXP_SUPPORT
+/* #undef WEXT_SUPPORT */
+/* #undef NL80211_SUPPORT */
+/* #undef DBUS_SUPPORT */
+/* #undef DHCLIENT_SUPPORT */
+/* #undef WLANAPI_SUPPORT */
+/* #undef WINXP_SUPPORT */

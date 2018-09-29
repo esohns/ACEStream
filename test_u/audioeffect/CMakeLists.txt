@@ -263,9 +263,11 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/3rd_party)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
  if (GUI_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)

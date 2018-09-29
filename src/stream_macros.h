@@ -21,6 +21,8 @@
 #ifndef STREAM_MACROS_H
 #define STREAM_MACROS_H
 
+// tracing //
+
 #define STREAM_TRACE_IMPL(X) ACE_Trace ____ (ACE_TEXT (X), __LINE__, ACE_TEXT (__FILE__))
 
 // by default tracing is turned off
@@ -38,12 +40,23 @@
 #  include "ace/Trace.h"
 #endif /* STREAM_NTRACE */
 
-#ifdef __GNUC__
-#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
-#define COMPILER_NAME ACE::compiler_name()
-#define COMPILER_VERSION (ACE::compiler_major_version() * 10000 + ACE::compiler_minor_version() * 100 + ACE::compiler_beta_version())
+// application //
 
-#define STREAM_STRINGIZE(X) #X
+#define STREAM_CHECK_VERSION(major,minor,micro)                                                                    \
+  ((ACEStream_VERSION_MAJOR > major)                                                                            || \
+   ((ACEStream_VERSION_MAJOR == major) && (ACEStream_VERSION_MINOR > minor))                                    || \
+   ((ACEStream_VERSION_MAJOR == major) && (ACEStream_VERSION_MINOR == minor) && (ACEStream_VERSION_MICRO >= micro)))
+
+#define STREAM_MAKE_VERSION_STRING_VARIABLE(program,version,variable) std::string variable; do {                              \
+  variable = program; variable += ACE_TEXT_ALWAYS_CHAR (" ");                                                               \
+  variable += version; variable += ACE_TEXT_ALWAYS_CHAR (" compiled on ");                                                  \
+  variable += ACE_TEXT_ALWAYS_CHAR (COMPILATION_DATE_TIME);                                                                   \
+  variable += ACE_TEXT_ALWAYS_CHAR (" host platform "); variable += Common_Tools::compilerPlatformName ();                  \
+  variable += ACE_TEXT_ALWAYS_CHAR (" with "); variable += Common_Tools::compilerName ();                                   \
+  variable += ACE_TEXT_ALWAYS_CHAR (" "); variable += Common_Tools::compilerVersion ();                                     \
+  variable += ACE_TEXT_ALWAYS_CHAR (" against ACE "); variable += Common_Tools::compiledVersion_ACE ();                     \
+  variable += ACE_TEXT_ALWAYS_CHAR (" , libCommon "); variable += ACE_TEXT_ALWAYS_CHAR (Common_PACKAGE_VERSION_FULL);       \
+  variable += ACE_TEXT_ALWAYS_CHAR (" , libACEStream "); variable += ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL); \
+} while (0)
 
 #endif

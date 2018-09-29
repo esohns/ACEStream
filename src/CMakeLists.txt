@@ -90,6 +90,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src>)
  target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/error>)
+ target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME} PUBLIC
@@ -206,6 +208,11 @@ set (source_files
      stream_task_base_synch.inl
      stream_tools.cpp
      stream_tools.h)
+if (WIN32)
+ set (source_files
+      ../include/lib${PROJECT_NAME}_config.h
+      ${source_files})
+endif (WIN32)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -344,11 +351,18 @@ install (FILES
          stream_tools.h
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT include)
+if (WIN32)
+ install (FILES
+          ../include/lib${PROJECT_NAME}_config.h
+         DESTINATION ${INSTALL_INCLUDE_DIR})
+endif (WIN32)
 install (TARGETS ${PROJECT_NAME}
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT lib
          LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT lib
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT lib)
+
+##########################################
 
 add_subdirectory (modules)
 

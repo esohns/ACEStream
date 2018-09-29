@@ -58,11 +58,6 @@
 #define STREAM_STATEMACHINE_CONTROL_NAME                 "StreamStateMachineControl"
 
 // stream
-#define STREAM_CHECK_VERSION(major,minor,micro)                                                                        \
-    ((ACESTREAM_VERSION_MAJOR > major)                                                                              || \
-     ((ACESTREAM_VERSION_MAJOR == major) && (ACESTREAM_VERSION_MINOR > minor))                                      || \
-     ((ACESTREAM_VERSION_MAJOR == major) && (ACESTREAM_VERSION_MINOR == minor) && (ACESTREAM_VERSION_MICRO >= micro)))
-
 #define STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL     500 // ms [0: off]
 #define STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL      0 // second(s) [0: off]
 

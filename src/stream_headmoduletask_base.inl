@@ -558,8 +558,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Tools::setThreadName (inherited::threadName_,
-                               0);
+  Common_Error_Tools::setThreadName (inherited::threadName_,
+                                     0);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,

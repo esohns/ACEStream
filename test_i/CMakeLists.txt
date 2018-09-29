@@ -14,9 +14,15 @@ if (GUI_SUPPORT)
   message (STATUS "wxWidgets_CXX_FLAGS: ${wxWidgets_CXX_FLAGS}")
   message (STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
   # *NOTE*: re-enable ANSI mode
-  add_definitions (-DwxUSE_UNICODE=0)
-  add_definitions (-D__WXMSW__)
-  add_definitions (-DWXUSINGDLL)
+#  add_definitions (-DwxUSE_UNICODE=0)
+  if (WIN32)
+#   add_definitions(-DUNICODE -D_UNICODE)
+   add_definitions (-D__WXMSW__)
+   add_definitions (-DWXUSINGDLL)
+   if (MSVC)
+    add_definitions (-DwxMSVC_VERSION_AUTO)
+   endif (MSVC)
+  endif (WIN32)
   add_definitions (-DwxUSE_GUI=1)
   if (CMAKE_BUILD_TYPE STREQUAL Debug)
    add_definitions (-D__WXDEBUG__)
@@ -36,30 +42,60 @@ endif (GUI_SUPPORT)
 
 add_library (${PROJECT_NAME}_Test_I STATIC "")
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
+find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+              REQUIRED
+              CONFIG
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              NO_DEFAULT_PATH)
+if (NOT EXISTS ${Common_DIR})
+ message (FATAL_ERROR "could not find package \"Common\", aborting")
+endif ()
+add_definitions (-DCOMMON_HAS_DLL)
+if (GUI_SUPPORT)
+ if (GTK_SUPPORT)
+  add_definitions (-DCOMMON_UI_HAS_DLL)
+  add_definitions (-DCOMMON_UI_GTK_HAS_DLL)
+  if (GTKGL_SUPPORT)
+   add_definitions (-DCOMMON_GL_HAS_DLL)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
+
 include (FindPkgConfig)
 if (UNIX)
- if (GTK_SUPPORT)
-  if (GTK2_SUPPORT)
-   pkg_check_modules (PKG_GTK REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
-  elseif (GTK3_SUPPORT)
-   pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
-  endif ()
- endif (GTK_SUPPORT)
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   if (GTK2_SUPPORT)
+    pkg_check_modules (PKG_GTK REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
+   elseif (GTK3_SUPPORT)
+    pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
+   endif ()
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+
+ if (GUI_SUPPORT)
+  if (GTK_SUPPORT)
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                               $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
+
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src>)
- #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/timer)
- if (GTK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
-
-  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+ if (GUI_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui>)
-  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui/gtk>)
- endif (GTK_SUPPORT)
+  if (GTK_SUPPORT)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui/gtk>)
+  endif (GTK_SUPPORT)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
@@ -107,10 +143,10 @@ elseif (WIN32)
  else ()
   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE>)
- endif ()
+ endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/log>)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
@@ -120,14 +156,21 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui>)
   if (GTK_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/gtk>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/gtk>)
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/wxwidgets>)
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui/wxwidgets>)
   endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
 endif ()
+if (GUI_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                              $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
+ endif (WXWIDGETS_SUPPORT)
+endif (GUI_SUPPORT)
+
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
@@ -165,6 +208,9 @@ if (WIN32)
     target_link_libraries (${PROJECT_NAME}_Test_I "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
    endif (GTKGL_SUPPORT)
   endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   target_link_libraries (${PROJECT_NAME}_Test_I ${wxWidgets_LIBRARIES})
+  endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
 endif (WIN32)
 
@@ -201,6 +247,11 @@ if (GTK_SUPPORT)
       test_i_gtk_eventhandler.h
       test_i_gtk_eventhandler.inl)
 endif (GTK_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ set (source_files
+      ${source_files}
+      test_i_wxwidgets_common.h)
+endif (WXWIDGETS_SUPPORT)
 #install (FILES
 #         ${PROJECT_NAME}_Test_I_SRCS
 #         DESTINATION include)

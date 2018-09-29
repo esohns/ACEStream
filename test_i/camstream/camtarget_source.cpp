@@ -345,6 +345,12 @@ DllRegisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: registered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT (ACEStream_PACKAGE_NAME),
+              ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)));
+#endif // _DEBUG
   result =
     ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_MediaFramework_Asynch_Source_Filter, // filter CLSID
                                       STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,   // filter name
@@ -359,9 +365,12 @@ DllRegisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("registered %s synch/asynch DirectShow source filters...\n"),
-              ACE_TEXT (ACESTREAM_PACKAGE_NAME)));
+              ACE_TEXT ("%s: registered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT (ACEStream_PACKAGE_NAME),
+              ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)));
+#endif // _DEBUG
 
 clean:
   if (ifilter_mapper_p)
@@ -412,6 +421,12 @@ DllUnregisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: deregistered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT (ACEStream_PACKAGE_NAME),
+              ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)));
+#endif // _DEBUG
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
                                         STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,
@@ -423,9 +438,12 @@ DllUnregisterServer ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("deregistered %s synch/asynch DirectShow source filters...\n"),
-              ACE_TEXT (ACESTREAM_PACKAGE_NAME)));
+              ACE_TEXT ("%s: deregistered DirectShow source filter \"%s\"\n"),
+              ACE_TEXT (ACEStream_PACKAGE_NAME),
+              ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)));
+#endif // _DEBUG
 
 clean:
   if (ifilter_mapper_p)

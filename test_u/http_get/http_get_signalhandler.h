@@ -24,7 +24,7 @@
 #include "ace/Global_Macros.h"
 
 #include "common_isignal.h"
-#include "common_signalhandler.h"
+#include "common_signal_handler.h"
 
 #include "http_get_common.h"
 

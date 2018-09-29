@@ -1486,7 +1486,6 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   converter.clear ();
   converter.str (choice_framerate->GetString (choice_framerate->GetSelection ()).ToStdString ());
   unsigned int framerate_i = 0;
-  Common_UI_Resolution_t resolution_2;
   converter >> framerate_i;
 
   struct _AMMediaType* media_type_p = NULL, *media_type_2 = NULL;
@@ -1853,21 +1852,24 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   about_dialog_info.SetName (_ (Common_File_Tools::basename (wxString (state_r.argv[0]).ToStdString (),
                                                              true).c_str ()));
 #if defined (HAVE_CONFIG_H)
-  about_dialog_info.SetVersion (_ (ACESTREAM_PACKAGE_VERSION));
-  about_dialog_info.SetDescription (_ (ACESTREAM_PACKAGE_NAME));
+  about_dialog_info.SetVersion (_ (ACEStream_PACKAGE_VERSION));
+  about_dialog_info.SetDescription (_ (ACEStream_PACKAGE_DESCRIPTION));
 #endif // HAVE_CONFIG_H
   std::string copyright_string = ACE_TEXT_ALWAYS_CHAR ("(C) ");
   ACE_Date_Time date_time = COMMON_DATE_NOW;
   converter << date_time.year ();
   copyright_string += converter.str ();
+#if defined (HAVE_CONFIG_H)
   copyright_string += ACE_TEXT_ALWAYS_CHAR (" ");
-  std::string username_string, real_username_string;
-  Common_Tools::getUserName (username_string,
-                             real_username_string);
-  copyright_string +=
-    (real_username_string.empty () ? username_string : real_username_string);
-  copyright_string += ACE_TEXT_ALWAYS_CHAR (" ");
-  about_dialog_info.SetCopyright (_ ("(C) 2018 Me <my@email.addre.ss>"));
+  copyright_string += ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_MAINTAINER);
+  copyright_string += ACE_TEXT_ALWAYS_CHAR (" <");
+  copyright_string += ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_BUGREPORT);
+  copyright_string += ACE_TEXT_ALWAYS_CHAR (">");
+#endif // HAVE_CONFIG_H
+  about_dialog_info.SetCopyright (_ (copyright_string.c_str ()));
+#if defined (HAVE_CONFIG_H)
+  about_dialog_info.AddDeveloper (_ (ACEStream_PACKAGE_MAINTAINER));
+#endif // HAVE_CONFIG_H
   wxAboutBox (about_dialog_info);
 }
 void

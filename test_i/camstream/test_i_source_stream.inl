@@ -218,7 +218,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   bool release_direct3DDevice = false;
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   UINT reset_token = 0;
-  struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
+  //struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
   Stream_MediaFramework_DirectShow_Graph_t graph_layout;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry graph_entry;
@@ -1043,8 +1043,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     } // end IF
     media_source_p->Release (); media_source_p = NULL;
 
-    if (!Stream_MediaFramework_MediaFoundation_Tools::copy (media_type_p,
-                                                                     (*iterator).second.second.inputFormat))
+    (*iterator).second.second.inputFormat =
+      Stream_MediaFramework_MediaFoundation_Tools::copy (media_type_p);
+    if (!(*iterator).second.second.inputFormat)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
@@ -1053,7 +1054,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     } // end IF
   } // end IF
   else if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                          media_type_p))
+                                                                   media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -1062,10 +1063,10 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: capture format: \"%s\"...\n"),
+              ACE_TEXT ("%s: capture format: %s\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
-#endif
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
+#endif // _DEBUG
   media_type_p->Release (); media_type_p = NULL;
 
   if (session_data_r.inputFormat)

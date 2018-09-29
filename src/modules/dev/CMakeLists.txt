@@ -3,7 +3,7 @@ if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
-endif ()
+endif (UNIX)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -76,6 +76,8 @@ elseif (WIN32)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/error>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/log>)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC

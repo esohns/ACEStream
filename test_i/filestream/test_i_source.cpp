@@ -891,53 +891,7 @@ loop:
               ACE_TEXT ("finished working...\n")));
 }
 
-void
-do_printVersion (const std::string& programName_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::do_printVersion"));
-
-  std::ostringstream converter;
-
-  // compiler version string
-  converter << ACE::compiler_major_version ();
-  converter << ACE_TEXT_ALWAYS_CHAR (".");
-  converter << ACE::compiler_minor_version ();
-  converter << ACE_TEXT_ALWAYS_CHAR (".");
-  converter << ACE::compiler_beta_version ();
-
-  std::cout << programName_in
-            << ACE_TEXT_ALWAYS_CHAR (" compiled on ")
-            << ACE::compiler_name ()
-            << ACE_TEXT_ALWAYS_CHAR (" ")
-            << converter.str ()
-            << std::endl << std::endl;
-
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("libraries: ")
-            << std::endl
-#ifdef HAVE_CONFIG_H
-            << ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME)
-            << ACE_TEXT_ALWAYS_CHAR (": ")
-            << ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_VERSION)
-            << std::endl
-#endif
-            ;
-
-  converter.str ("");
-  // ACE version string...
-  converter << ACE::major_version ();
-  converter << ACE_TEXT_ALWAYS_CHAR (".");
-  converter << ACE::minor_version ();
-  converter << ACE_TEXT_ALWAYS_CHAR (".");
-  converter << ACE::beta_version ();
-
-  // *NOTE*: cannot use ACE_VERSION, as it doesn't contain the (potential) beta
-  // version number... Need this, as the library soname is compared to this
-  // string
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("ACE: ")
-//             << ACE_VERSION
-            << converter.str ()
-            << std::endl;
-}
+COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -1102,7 +1056,7 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACESTREAM_PACKAGE_NAME),
+      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
   if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                             log_file_name,                        // log file name

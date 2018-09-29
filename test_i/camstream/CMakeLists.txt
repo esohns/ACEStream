@@ -103,9 +103,8 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
@@ -122,9 +121,10 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
@@ -215,8 +215,9 @@ endif (WIN32)
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
 
 add_dependencies (${EXECUTABLE_SOURCE} Common)
-add_dependencies (${EXECUTABLE_SOURCE} CommonUI)
-add_dependencies (${EXECUTABLE_SOURCE} CommonUI_GTK)
+add_dependencies (${EXECUTABLE_SOURCE} CommonImage)
+add_dependencies (${EXECUTABLE_SOURCE} CommonLog)
+add_dependencies (${EXECUTABLE_SOURCE} CommonTimer)
 
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
@@ -255,13 +256,13 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
 endif ()
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
+target_link_libraries (${EXECUTABLE_SOURCE} CommonImage)
+target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif (WIN32)
-target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
-target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Decoder)
@@ -515,15 +516,16 @@ endif ()
 
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
-add_dependencies (${EXECUTABLE_TARGET} CommonUI)
-add_dependencies (${EXECUTABLE_TARGET} CommonUI_GTK)
+add_dependencies (${EXECUTABLE_TARGET} CommonImage)
+add_dependencies (${EXECUTABLE_TARGET} CommonLog)
+add_dependencies (${EXECUTABLE_TARGET} CommonTimer)
 
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
-
-add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
+
+add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
@@ -550,13 +552,13 @@ elseif (WIN32)
 endif ()
 
 target_link_libraries (${EXECUTABLE_TARGET} Common)
+target_link_libraries (${EXECUTABLE_TARGET} CommonImage)
+target_link_libraries (${EXECUTABLE_TARGET} CommonLog)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
-target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Decoder)
@@ -570,7 +572,6 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
-#target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 

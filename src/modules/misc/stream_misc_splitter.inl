@@ -317,20 +317,21 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::getFormat_impl (const struct _AMMediaType* format_in)
+                         SessionDataType>::getFormat_impl (const struct _AMMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
 
   // sanity check(s)
-  ACE_ASSERT (format_in);
+  ACE_ASSERT (mediaType_in);
 
   struct _AMMediaType* result_p = NULL;
 
-  if (!Stream_MediaFramework_DirectShow_Tools::copyMediaType (*format_in,
-                                                              result_p))
+  result_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (*mediaType_in);
+  if (!result_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);
@@ -1046,11 +1047,11 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 
   struct _AMMediaType* result_p = NULL;
 
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+  if (!Stream_Module_Device_DirectShow_Tools::copy (*format_in,
                                                              result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copy(), aborting\n")));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);

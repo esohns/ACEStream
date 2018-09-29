@@ -321,7 +321,6 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
   //         when converted to 1:1 PAR, is stretched to 720 x 540
   struct tagRECT normalize_aspect_ratio (const struct tagRECT&,   // rectangle
                                          const struct _MFRatio&); // pixel aspect ratio
-  virtual void update_destination_rectangle ();
 
   enum _MFVideoInterlaceMode interlaceMode_;
   struct _MFRatio            pixelAspectRatio_;
