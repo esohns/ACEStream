@@ -66,6 +66,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
  , direct3DConfiguration_ (NULL)
  , mediaFramework_ (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
  , releaseDeviceHandle_ (false)
+ , resetMode_ (false)
  , snapShotNextFrame_ (false)
  , transformation_ (NULL)
 {
@@ -96,6 +97,15 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionDataContainerType>::~Stream_Vis_Target_Direct3D_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::~Stream_Vis_Target_Direct3D_T"));
+
+  if (resetMode_)
+  { ACE_ASSERT (direct3DConfiguration_);
+    if (!direct3DConfiguration_->presentationParameters.Windowed)
+    {
+      direct3DConfiguration_->presentationParameters.Windowed = TRUE;
+      toggle ();
+    } // end IF
+  } // end IF
 
   if (closeWindow_)
   { ACE_ASSERT (direct3DConfiguration_);
@@ -511,50 +521,53 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         ACE_ASSERT (IsWindow (window_handle_p));
       } // end IF
 
-      if (direct3DConfiguration_->presentationParameters.Windowed &&
-          !window_handle_p)
-      { ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
-        ACE_ASSERT (!direct3DConfiguration_->focusWindow);
-        DWORD window_style_i = (WS_OVERLAPPED     |
-                                WS_CAPTION        |
-                                (WS_CLIPSIBLINGS  |
-                                 WS_CLIPCHILDREN) |
-                                WS_SYSMENU        |
-                                //WS_THICKFRAME     |
-                                WS_MINIMIZEBOX    |
-                                WS_VISIBLE/*
-                                WS_MAXIMIZEBOX*/);
-        DWORD window_style_ex_i = (WS_EX_APPWINDOW |
-                                   WS_EX_WINDOWEDGE);
-        direct3DConfiguration_->presentationParameters.hDeviceWindow =
-          CreateWindowEx (window_style_ex_i,                       // dwExStyle
-#if defined (UNICODE)
-                          ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
-                          ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
-#else
-                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
-                          ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
-#endif // UNICODE
-                          window_style_i,                          // dwStyle
-                          CW_USEDEFAULT,                           // x
-                          CW_USEDEFAULT,                           // y
-                          direct3DConfiguration_->presentationParameters.BackBufferWidth,  // nWidth
-                          direct3DConfiguration_->presentationParameters.BackBufferHeight, // nHeight
-                          NULL,                                    // hWndParent
-                          NULL,                                    // hMenu
-                          GetModuleHandle (NULL),                  // hInstance
-                          NULL);                                   // lpParam
-        if (unlikely (!direct3DConfiguration_->presentationParameters.hDeviceWindow))
-        { // ERROR_INVALID_PARAMETER: 87
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to CreateWindowEx(): \"%s\", aborting\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-          goto error;
+      if (direct3DConfiguration_->presentationParameters.Windowed)
+      {
+        resetMode_ = true;
+        if (!window_handle_p)
+        { ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
+          ACE_ASSERT (!direct3DConfiguration_->focusWindow);
+          DWORD window_style_i = (WS_OVERLAPPED     |
+                                  WS_CAPTION        |
+                                  (WS_CLIPSIBLINGS  |
+                                   WS_CLIPCHILDREN) |
+                                  WS_SYSMENU        |
+                                  //WS_THICKFRAME     |
+                                  WS_MINIMIZEBOX    |
+                                  WS_VISIBLE/*
+                                  WS_MAXIMIZEBOX*/);
+          DWORD window_style_ex_i = (WS_EX_APPWINDOW |
+                                     WS_EX_WINDOWEDGE);
+          direct3DConfiguration_->presentationParameters.hDeviceWindow =
+            CreateWindowEx (window_style_ex_i,                       // dwExStyle
+  #if defined (UNICODE)
+                            ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+                            ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
+  #else
+                            ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                            ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
+  #endif // UNICODE
+                            window_style_i,                          // dwStyle
+                            CW_USEDEFAULT,                           // x
+                            CW_USEDEFAULT,                           // y
+                            direct3DConfiguration_->presentationParameters.BackBufferWidth,  // nWidth
+                            direct3DConfiguration_->presentationParameters.BackBufferHeight, // nHeight
+                            NULL,                                    // hWndParent
+                            NULL,                                    // hMenu
+                            GetModuleHandle (NULL),                  // hInstance
+                            NULL);                                   // lpParam
+          if (unlikely (!direct3DConfiguration_->presentationParameters.hDeviceWindow))
+          { // ERROR_INVALID_PARAMETER: 87
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to CreateWindowEx(): \"%s\", aborting\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+            goto error;
+          } // end IF
+          window_handle_p =
+            direct3DConfiguration_->presentationParameters.hDeviceWindow;
+          closeWindow_ = true;
         } // end IF
-        window_handle_p =
-          direct3DConfiguration_->presentationParameters.hDeviceWindow;
-        closeWindow_ = true;
       } // end IF
       ACE_ASSERT (window_handle_p);
 #if defined (_DEBUG)
@@ -680,6 +693,16 @@ error:
       } // end IF
       COM_initialized = true;
 
+      if (resetMode_)
+      { ACE_ASSERT (direct3DConfiguration_);
+        if (!direct3DConfiguration_->presentationParameters.Windowed)
+        {
+          direct3DConfiguration_->presentationParameters.Windowed = TRUE;
+          toggle ();
+        } // end IF
+        resetMode_ = false;
+      } // end IF
+
       if (releaseDeviceHandle_)
       { ACE_ASSERT (direct3DConfiguration_);
         ACE_ASSERT (direct3DConfiguration_->handle);
@@ -748,10 +771,13 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_ASSERT (clientWindow_);
     ACE_ASSERT (direct3DConfiguration_->focusWindow == clientWindow_);
 
+    // *NOTE*: 0 --> use window format
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-      resolution_s.cx;
+    //  resolution_s.cx;
+      0;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-      resolution_s.cy;
+    //  resolution_s.cy;
+      0;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       D3DFMT_UNKNOWN;
     direct3DConfiguration_->presentationParameters.hDeviceWindow =
@@ -759,7 +785,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     //direct3DConfiguration_->presentationParameters.Windowed = TRUE;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
       0;
-    //direct3DConfiguration_->presentationParameters.PresentationInterval = ;    
+    //direct3DConfiguration_->presentationParameters.PresentationInterval = ;
   } // end IF
   else
   { // --> switch to fullscreen mode

@@ -52,8 +52,8 @@ struct Test_I_StockItem
    , symbol ()
    , WKN ()
    , isStock (true)
-  {};
-  inline bool operator== (const Test_I_StockItem& rhs_in) { return (ISIN == rhs_in.ISIN); }
+  {}
+  inline bool operator== (const struct Test_I_StockItem& rhs_in) { return (ISIN == rhs_in.ISIN); }
 
   //std::string description;
   std::string ISIN;
@@ -69,8 +69,8 @@ struct Test_I_StockRecord
    , item (NULL)
    , timeStamp (ACE_Time_Value::zero)
    , value (0.0)
-  {};
-  inline bool operator== (const Test_I_StockRecord& rhs_in) { ACE_ASSERT (rhs_in.item); ACE_ASSERT (item); return (*item == *rhs_in.item); }
+  {}
+  inline bool operator== (const struct Test_I_StockRecord& rhs_in) { ACE_ASSERT (rhs_in.item); ACE_ASSERT (item); return (*item == *rhs_in.item); }
 
   double                   change;
   struct Test_I_StockItem* item;
@@ -84,14 +84,14 @@ struct Test_I_MessageData
    : HTTPRecord (NULL)
    , HTMLDocument (NULL)
    , stockItem ()
-  {};
+  {}
   virtual ~Test_I_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
-  };
+  }
   inline void operator+= (Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
 
@@ -120,7 +120,7 @@ struct Test_I_HTTPGet_UserData
    : Stream_UserData ()
    //, connectionConfiguration (NULL)
    //, streamConfiguration (NULL)
-  {};
+  {}
 
   //struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
   //struct Test_I_HTTPGet_StreamConfiguration*     streamConfiguration;
@@ -136,7 +136,7 @@ struct Test_I_HTTPGet_SessionData
    //, parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
-  {};
+  {}
   struct Test_I_HTTPGet_SessionData& operator+= (const struct Test_I_HTTPGet_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -187,7 +187,7 @@ struct Test_I_SAXParserContext
    : Stream_Module_HTMLParser_SAXParserContextBase ()
    , record (NULL)
    , state (SAXPARSER_STATE_INVALID)
-  {};
+  {}
 
   struct Test_I_StockRecord* record;
   enum Test_I_SAXParserState state;
@@ -248,7 +248,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , stockItems ()
    , streamConfiguration (NULL)
    , URL ()
-  {};
+  {}
 
   struct Common_FlexParserAllocatorConfiguration* allocatorConfiguration;
   struct Test_I_HTTPGet_Configuration*            configuration;
@@ -277,7 +277,7 @@ struct Test_I_HTTPGet_StreamConfiguration
   Test_I_HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_HTTPGet_UserData* userData;
 };
@@ -289,7 +289,7 @@ struct Test_I_HTTPGet_StreamState
    : Stream_State ()
    , sessionData (NULL)
    , userData (NULL)
-  {};
+  {}
 
   struct Test_I_HTTPGet_SessionData* sessionData;
 
@@ -309,7 +309,7 @@ struct Test_I_HTTPGet_Configuration
    , connectionConfigurations ()
    , streamConfiguration ()
    , userData ()
-  {};
+  {}
 
   // *NOTE*: use the stream configurations' allocator configuration
   //struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;

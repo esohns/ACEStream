@@ -18,6 +18,8 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
   ACE_ASSERT (CBData_in);
   ACE_ASSERT (CBData_in->UIState);
 
+  enum Stream_Visualization_VideoRenderer renderer_e =
+    STREAM_VISUALIZATION_VIDEORENDERER_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
@@ -31,6 +33,10 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (CBData_in);
       ACE_ASSERT (directshow_cb_data_p->configuration);
+      renderer_e =
+        directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+      direct3DConfiguration_p =
+        &directshow_cb_data_p->configuration->direct3DConfiguration;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -38,6 +44,10 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
       mediafoundation_cb_data_p =
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (CBData_in);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
+      renderer_e =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer;
+      direct3DConfiguration_p =
+        &mediafoundation_cb_data_p->configuration->direct3DConfiguration;
       break;
     }
     default:
@@ -52,6 +62,8 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
   struct Stream_CamSave_V4L_GTK_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_GTK_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
+  renderer_e =
+    cb_data_p->configuration->streamConfiguration.configuration_.renderer;
 #endif // ACE_WIN32 || ACE_WIN64
 
   enum Common_UI_EventType* event_p = NULL;
@@ -204,6 +216,52 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
                      wxToggleButton);
           ACE_ASSERT (toggle_button_p);
           toggle_button_p->Enable (true);
+          // *NOTE*: the stream will reset the device to 'desktop' mode, if that
+          //         was the original setting; reset the control accordingly
+          toggle_button_p =
+            XRCCTRL (*dialog_p,
+                     ACE_TEXT_ALWAYS_CHAR ("togglebutton_fullscreen"),
+                     wxToggleButton);
+          ACE_ASSERT (toggle_button_p);
+          switch (renderer_e)
+          {
+            case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+            case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+              ACE_ASSERT (false); // *TODO*
+              ACE_NOTSUP;
+              ACE_NOTREACHED (break;)
+            case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
+              ACE_ASSERT (direct3DConfiguration_p);
+              toggle_button_p->SetValue (!direct3DConfiguration_p->presentationParameters.Windowed);
+              break;
+            case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
+            case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
+              ACE_ASSERT (false); // *TODO*
+              ACE_NOTSUP;
+              ACE_NOTREACHED (break;)
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+              ACE_ASSERT (false); // *TODO*
+              ACE_NOTSUP;
+              ACE_NOTREACHED (break;)
+#endif // GTK_SUPPORT
+            default:
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("invalid/unknown video renderer (was: %d), returning\n"),
+                          renderer_e));
+              return;
+            }
+          } // end SWITCH
+          toggle_button_p =
+            XRCCTRL (*dialog_p,
+                     ACE_TEXT_ALWAYS_CHAR ("togglebutton_display"),
+                     wxToggleButton);
+          ACE_ASSERT (toggle_button_p);
           choice_p =
             XRCCTRL (*dialog_p,
                      ACE_TEXT_ALWAYS_CHAR ("choice_display"),
@@ -347,47 +405,6 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
     } // end WHILE
   } // end lock scope
 }
-
-//ACE_THR_FUNC_RETURN
-//event_processing_thread (void* arg_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::event_processing_thread"));
-//
-//#if defined (_DEBUG)
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("ui event processing thread (id: %t) starting...\n")));
-//#endif // _DEBUG
-//
-//  ACE_THR_FUNC_RETURN result;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  result = std::numeric_limits<unsigned long>::max ();
-//#else
-//  result = arg_in;
-//#endif // ACE_WIN32 || ACE_WIN64
-//
-//  // sanity check(s)
-//  struct Stream_CamSave_UI_ThreadData* thread_data_p =
-//      static_cast<struct Stream_CamSave_UI_ThreadData*> (arg_in);
-//  ACE_ASSERT (thread_data_p);
-//  ACE_ASSERT (thread_data_p->CBData);
-//
-//  int result_2 = -1;
-//  ACE_Time_Value delay (0, 200000);
-//  bool finished_b = false;
-//loop:
-//  result_2 = ACE_OS::sleep (delay);
-//  if (result_2 == -1)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-//                &delay));
-//  process_stream_events (thread_data_p->CBData,
-//                         finished_b);
-//  if (!finished_b)
-//    goto loop;
-//
-////end:
-//  return result;
-//}
 
 ACE_THR_FUNC_RETURN
 stream_processing_thread (void* arg_in)
@@ -592,8 +609,10 @@ wxBEGIN_EVENT_TABLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t, dialog_main)
  EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
+ EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_adapter_selected_cb)
  EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_display_selected_cb)
  EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_display_settings_click_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_about_click_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_quit_click_cb)
  EVT_IDLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_idle_cb)
@@ -617,8 +636,10 @@ wxBEGIN_EVENT_TABLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t, dialog_ma
  EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
+ EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_adapter_selected_cb)
  EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_display_selected_cb)
  EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_click_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_about_click_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_quit_click_cb)
  EVT_IDLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_idle_cb)
@@ -662,8 +683,10 @@ wxBEGIN_EVENT_TABLE (Stream_CamSave_V4L_WxWidgetsDialog_t, dialog_main)
  EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_V4L_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
+ EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_adapter_selected_cb)
  EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_display_selected_cb)
  EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_display_settings_click_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
  EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_about_click_cb)
  EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_quit_click_cb)
  EVT_IDLE (Stream_CamSave_V4L_WxWidgetsDialog_t::dialog_main_idle_cb)

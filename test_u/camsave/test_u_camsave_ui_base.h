@@ -74,8 +74,10 @@ class dialog_main : public wxDialog
 		wxPanel* m_panel5;
 		wxToggleButton* togglebutton_display;
 		wxToggleButton* togglebutton_fullscreen;
+		wxChoice* choice_adapter;
 		wxChoice* choice_display;
 		wxBitmapButton* button_display_settings;
+		wxChoice* choice_resolution_2;
 		wxPanel* panel_video;
 		wxStaticLine* staticline_bottom;
 		wxBitmapButton* button_about;
@@ -99,8 +101,10 @@ class dialog_main : public wxDialog
 		virtual void picker_directory_save_changed_cb( wxFileDirPickerEvent& event ) = 0;
 		virtual void togglebutton_display_toggled_cb( wxCommandEvent& event ) = 0;
 		virtual void togglebutton_fullscreen_toggled_cb( wxCommandEvent& event ) = 0;
+		virtual void choice_adapter_selected_cb( wxCommandEvent& event ) = 0;
 		virtual void choice_display_selected_cb( wxCommandEvent& event ) = 0;
 		virtual void button_display_settings_click_cb( wxCommandEvent& event ) = 0;
+		virtual void choice_resolution_2_selected_cb( wxCommandEvent& event ) = 0;
 		virtual void button_about_click_cb( wxCommandEvent& event ) = 0;
 		virtual void button_quit_click_cb( wxCommandEvent& event ) = 0;
 		

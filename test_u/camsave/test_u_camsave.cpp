@@ -218,7 +218,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice display_device_s =
-    Common_UI_Tools::getDefaultDisplayDevice ();
+    Common_UI_Tools::getDefaultDisplay ();
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [STRING] : display device [\"")
             << display_device_s.description
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -317,7 +317,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  displayDevice_out = Common_UI_Tools::getDefaultDisplayDevice ();
+  displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
   renderer_out = STREAM_VIS_RENDERER_VIDEO_DEFAULT;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -407,7 +407,7 @@ do_processArguments (int argc_in,
       case 'o':
       {
         displayDevice_out =
-          Common_UI_Tools::getDisplayDevice (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+          Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
         break;
       }
       case 's':
@@ -1773,7 +1773,7 @@ ACE_TMAIN (int argc_in,
   enum Stream_Visualization_VideoRenderer video_renderer_e =
     STREAM_VIS_RENDERER_VIDEO_DEFAULT;
   struct Common_UI_DisplayDevice display_device_s =
-    Common_UI_Tools::getDefaultDisplayDevice ();
+    Common_UI_Tools::getDefaultDisplay ();
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;

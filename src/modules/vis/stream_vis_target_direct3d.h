@@ -173,6 +173,7 @@ class Stream_Vis_Target_Direct3D_T
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration_;
   enum Stream_MediaFramework_Type                      mediaFramework_;
   bool                                                 releaseDeviceHandle_; // configuration-
+  bool                                                 resetMode_; // to desktop mode ?
   bool                                                 snapShotNextFrame_;
   // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
   //         memory to a Direct3D surface in (video) memory and converts the

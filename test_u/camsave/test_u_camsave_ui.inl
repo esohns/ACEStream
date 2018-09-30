@@ -60,8 +60,7 @@ template <typename InterfaceType,
           typename StreamType>
 bool
 Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
-                                 StreamType>::OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
-                                                                                        typename InterfaceType::CONFIGURATION_T>::IAPPLICATION_T* iapplication_in)
+                                 StreamType>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnInit_2"));
 
@@ -93,8 +92,10 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
   togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
+  choice_adapter = XRCCTRL (*this, "choice_adapter", wxChoice);
   choice_display = XRCCTRL (*this, "choice_display", wxChoice);
   button_display_settings = XRCCTRL (*this, "button_display_settings", wxBitmapButton);
+  choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
   panel_video = XRCCTRL (*this, "panel_video", wxPanel);
   button_about = XRCCTRL (*this, "button_about", wxBitmapButton);
   button_quit = XRCCTRL (*this, "button_quit", wxBitmapButton);
@@ -112,6 +113,7 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+
   Stream_Device_List_t devices_a;
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   switch (configuration_r.mediaFramework)
@@ -428,6 +430,15 @@ template <typename InterfaceType,
           typename StreamType>
 void
 Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+                                 StreamType>::choice_adapter_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_adapter_selected_cb"));
+
+}
+template <typename InterfaceType,
+          typename StreamType>
+void
+Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
                                  StreamType>::choice_display_selected_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_display_selected_cb"));
@@ -441,6 +452,30 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_click_cb"));
 
+}
+template <typename InterfaceType,
+          typename StreamType>
+void
+Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+                                 StreamType>::choice_resolution_2_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_selected_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (application_);
+
+  InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  ACE_ASSERT (configuration_r.configuration);
+#if defined (ACE_WIN64) || defined (ACE_WIN32)
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+#else
+  typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+#endif // ACE_WIN64 || ACE_WIN32
 }
 
 template <typename InterfaceType,
@@ -508,8 +543,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
 bool
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
-                                 Stream_CamSave_DirectShow_Stream>::OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                                                                                              struct Stream_CamSave_DirectShow_UI_CBData>::IAPPLICATION_T* iapplication_in)
+                                 Stream_CamSave_DirectShow_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnInit_2"));
 
@@ -542,8 +576,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
   togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
+  choice_adapter = XRCCTRL (*this, "choice_adapter", wxChoice);
   choice_display = XRCCTRL (*this, "choice_display", wxChoice);
   button_display_settings = XRCCTRL (*this, "button_display_settings", wxBitmapButton);
+  choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
   panel_video = XRCCTRL (*this, "panel_video", wxPanel);
   button_about = XRCCTRL (*this, "button_about", wxBitmapButton);
   button_quit = XRCCTRL (*this, "button_quit", wxBitmapButton);
@@ -613,8 +649,25 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   directorypicker_save->SetPath (ACE_TEXT_ALWAYS_CHAR (ACE::dirname ((*stream_iterator).second.second.targetFileName.c_str (),
                                                                      ACE_DIRECTORY_SEPARATOR_CHAR)));
 
+  Common_UI_DisplayAdapters_t display_adapters_a =
+    Common_UI_Tools::getAdapters ();
+  for (Common_UI_DisplayAdaptersIterator_t iterator = display_adapters_a.begin ();
+       iterator != display_adapters_a.end ();
+       ++iterator)
+  {
+    client_data_p = NULL;
+    ACE_NEW_NORETURN (client_data_p,
+                      wxStringClientData ());
+    ACE_ASSERT (client_data_p);
+    client_data_p->SetData ((*iterator).id);
+
+    index_i =
+      choice_adapter->Append ((*iterator).description.c_str (),
+                              client_data_p);
+  } // end FOR
+
   Common_UI_DisplayDevices_t display_devices_a =
-    Common_UI_Tools::getDisplayDevices ();
+    Common_UI_Tools::getDisplays ();
   for (Common_UI_DisplayDevicesIterator_t iterator = display_devices_a.begin ();
        iterator != display_devices_a.end ();
        ++iterator)
@@ -893,25 +946,25 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
     Stream_MediaFramework_DirectShow_Tools::toResolution (*(*stream_iterator).second.second.sourceFormat);
   bool reset_device_b =
     ((resolution_s.cx != resolution_2.cx) || (resolution_s.cy != resolution_2.cy));
-  Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator).second.second.sourceFormat);
-  Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator_2).second.second.sourceFormat);
-  if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*stream_iterator).second.second.builder,
-                                                              format_s,
-                                                              resolution_s.cx, resolution_s.cy,
-                                                              framerate_i,
-                                                              (*stream_iterator).second.second.sourceFormat))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(\"%s\",%s,%dx%d,%d), returning\n"),
-                ACE_TEXT (choice_source->GetString (choice_source->GetSelection ()).ToStdString ().c_str ()),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (format_s, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                resolution_s.cx, resolution_s.cy,
-                framerate_i));
-    return;
-  } // end IF
+  //Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator).second.second.sourceFormat);
+  //Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator_2).second.second.sourceFormat);
+  //if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*stream_iterator).second.second.builder,
+  //                                                            format_s,
+  //                                                            resolution_s.cx, resolution_s.cy,
+  //                                                            framerate_i,
+  //                                                            (*stream_iterator).second.second.sourceFormat))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(\"%s\",%s,%dx%d,%d), returning\n"),
+  //              ACE_TEXT (choice_source->GetString (choice_source->GetSelection ()).ToStdString ().c_str ()),
+  //              ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (format_s, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
+  //              resolution_s.cx, resolution_s.cy,
+  //              framerate_i));
+  //  return;
+  //} // end IF
   ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
-  (*stream_iterator_2).second.second.sourceFormat =
-    Stream_MediaFramework_DirectShow_Tools::copy (*(*stream_iterator).second.second.sourceFormat);
+  //(*stream_iterator_2).second.second.sourceFormat =
+  //  Stream_MediaFramework_DirectShow_Tools::copy (*(*stream_iterator).second.second.sourceFormat);
   ACE_ASSERT ((*stream_iterator_2).second.second.sourceFormat);
   if (reset_device_b)
   {
@@ -1143,8 +1196,6 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
   // sanity check(s)
   ACE_ASSERT (application_);
-  //if (!(event_in.GetSelection () < choice_source->GetCount ()))
-  //  return;
 
   Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
     const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
@@ -1300,13 +1351,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
   // sanity check(s)
   ACE_ASSERT (application_);
-  //if (!(event_in.GetSelection () < choice_format->GetCount ()))
-  //  return;
 
   Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
     const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
-  ACE_ASSERT (configuration_r.streamConfiguration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
@@ -1384,13 +1432,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
   // sanity check(s)
   ACE_ASSERT (application_);
-  //if (!(event_in.GetSelection () < choice_resolution->GetCount ()))
-  //  return;
 
   Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
     const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
-  ACE_ASSERT (configuration_r.streamConfiguration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
@@ -1464,10 +1509,12 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
     const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
-  ACE_ASSERT (configuration_r.streamConfiguration);
   Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator_2 =
+    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator_2 != configuration_r.configuration->streamConfiguration.end ());
   ACE_ASSERT ((*stream_iterator).second.second.builder);
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
@@ -1488,12 +1535,14 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   unsigned int framerate_i = 0;
   converter >> framerate_i;
 
-  struct _AMMediaType* media_type_p = NULL, *media_type_2 = NULL;
+  struct _AMMediaType* media_type_p = NULL;
+  Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator).second.second.sourceFormat);
+  Stream_MediaFramework_DirectShow_Tools::delete_ ((*stream_iterator_2).second.second.sourceFormat);
   if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*stream_iterator).second.second.builder,
                                                               format_s,
                                                               resolution_s.cx, resolution_s.cy,
                                                               framerate_i,
-                                                              media_type_p))
+                                                              (*stream_iterator).second.second.sourceFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(\"%s\",%s,%dx%d,%d), returning\n"),
@@ -1503,7 +1552,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
                 framerate_i));
     return;
   } // end IF
-  ACE_ASSERT (media_type_p);
+  ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
+  (*stream_iterator_2).second.second.sourceFormat =
+    Stream_MediaFramework_DirectShow_Tools::copy (*(*stream_iterator).second.second.sourceFormat);
+  ACE_ASSERT ((*stream_iterator_2).second.second.sourceFormat);
 
   // update controls
   if (initializing_)
@@ -1511,28 +1563,26 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
     initializing_ = false;
     togglebutton_record->Enable (true);
   } // end IF
-  spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (*media_type_p));
+  spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (*(*stream_iterator).second.second.sourceFormat));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
     (*stream_iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result));
-  media_type_2 =
+  media_type_p =
     Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (filter_p);
-  if (!media_type_2)
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat(\"%s\"), returning\n"),
                 ACE_TEXT (choice_source->GetString (choice_source->GetSelection ()).ToStdString ().c_str ())));
     filter_p->Release (); filter_p = NULL;
-    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
     return;
   } // end IF
   filter_p->Release (); filter_p = NULL;
-  button_reset_format->Enable (!Stream_MediaFramework_DirectShow_Tools::match (*media_type_p,
-                                                                               *media_type_2));
+  button_reset_format->Enable (!Stream_MediaFramework_DirectShow_Tools::match (*(*stream_iterator).second.second.sourceFormat,
+                                                                               *media_type_p));
   Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
-  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_2);
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
@@ -1741,7 +1791,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   if (event_in.IsChecked ())
   {
     struct Common_UI_DisplayDevice display_device_s =
-      Common_UI_Tools::getDisplayDevice ((*stream_iterator).second.second.deviceIdentifier);
+      Common_UI_Tools::getDisplay ((*stream_iterator).second.second.deviceIdentifier);
     (*stream_iterator).second.second.area = display_device_s.clippingArea;
     (*stream_iterator).second.second.fullScreen = true;
   } // end IF
@@ -1821,17 +1871,120 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
+                                 Stream_CamSave_DirectShow_Stream>::choice_adapter_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_adapter_selected_cb"));
+
+}
+void
+Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
                                  Stream_CamSave_DirectShow_Stream>::choice_display_selected_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_display_selected_cb"));
 
+  // sanity check(s)
+  ACE_ASSERT (application_);
+
+  Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T& configuration_r =
+    const_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
+  ACE_ASSERT (configuration_r.configuration);
+  Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
+    configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  wxStringClientData* client_data_p =
+    dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (event_in.GetSelection ()));
+  ACE_ASSERT (client_data_p);
+  (*stream_iterator).second.second.deviceIdentifier =
+    client_data_p->GetData ().ToStdString ();
+  ACE_ASSERT (!(*stream_iterator).second.second.deviceIdentifier.empty ());
+  static struct Common_UI_DisplayDevice display_device_s =
+    Common_UI_Tools::getDisplay ((*stream_iterator).second.second.deviceIdentifier);
+  ACE_ASSERT (display_device_s.handle != NULL);
+  static struct Common_UI_DisplayAdapter display_adapter_s =
+    Common_UI_Tools::getAdapter (display_device_s);
+  ACE_ASSERT (!display_adapter_s.id.empty ());
+  int index_i = choice_adapter->FindString (display_adapter_s.description);
+  ACE_ASSERT (index_i != wxNOT_FOUND);
+  choice_adapter->Select (index_i);
+  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
+                          XRCID ("choice_adapter"));
+  event_s.SetInt (index_i);
+  //choice_source->GetEventHandler ()->ProcessEvent (event_s);
+  this->AddPendingEvent (event_s);
+  //application_->wait ();
+
   button_display_settings->Enable (togglebutton_display->IsEnabled ());
+
+  Common_UI_Resolutions_t resolutions_a =
+    Common_UI_Tools::get ((*stream_iterator).second.second.deviceIdentifier);
+  ACE_ASSERT (!resolutions_a.empty ());
+  ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
+  Common_UI_Resolution_t resolution_s =
+    Stream_MediaFramework_DirectShow_Tools::toResolution (*(*stream_iterator).second.second.sourceFormat);
+
+  choice_resolution_2->SetSelection (wxNOT_FOUND);
+  choice_resolution_2->Clear ();
+  index_i = wxNOT_FOUND;
+  std::stringstream converter;
+  std::string resolution_string;
+  for (Common_UI_ResolutionsConstIterator_t iterator = resolutions_a.begin ();
+       iterator != resolutions_a.end ();
+       ++iterator)
+  {
+    client_data_p = NULL;
+    ACE_NEW_NORETURN (client_data_p,
+                      wxStringClientData ());
+    ACE_ASSERT (client_data_p);
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << (*iterator).cx;
+    converter << ACE_TEXT_ALWAYS_CHAR (" ");
+    converter << (*iterator).cy;
+    client_data_p->SetData (converter.str ());
+
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << (*iterator).cx;
+    converter << ACE_TEXT_ALWAYS_CHAR (" x ");
+    converter << (*iterator).cy;
+
+    index_i = choice_resolution_2->Append (converter.str (),
+                                           client_data_p);
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("\"%s\": supports: %dx%d...\n"),
+                ACE_TEXT (choice_display->GetString (choice_display->GetSelection ()).ToStdString ().c_str ()),
+                (*iterator).cx, (*iterator).cy));
+#endif // _DEBUG
+    if ((resolution_s.cx == (*iterator).cx) &&
+        (resolution_s.cy == (*iterator).cy))
+      resolution_string = converter.str ();
+  } // end FOR
+  ACE_ASSERT (!resolution_string.empty ());
+  choice_resolution_2->Enable (!resolutions_a.empty ());
+  index_i =
+    (initializing_ ? choice_resolution_2->FindString (resolution_string)
+                   : 0);
+  choice_resolution_2->Select (index_i);
+  wxCommandEvent event_2 (wxEVT_COMMAND_CHOICE_SELECTED,
+                          XRCID ("choice_resolution_2"));
+  event_2.SetInt (index_i);
+  //choice_resolution_2->GetEventHandler ()->ProcessEvent (event_2);
+  this->AddPendingEvent (event_2);
+  //application_->wait ();
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
                                  Stream_CamSave_DirectShow_Stream>::button_display_settings_click_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_click_cb"));
+
+}
+void
+Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
+                                 Stream_CamSave_DirectShow_Stream>::choice_resolution_2_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_selected_cb"));
 
 }
 
@@ -1924,8 +2077,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
 
 bool
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
-                                 Stream_CamSave_MediaFoundation_Stream>::OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                                                                                                   struct Stream_CamSave_MediaFoundation_UI_CBData>::IAPPLICATION_T* iapplication_in)
+                                 Stream_CamSave_MediaFoundation_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnInit_2"));
 
@@ -1960,6 +2112,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
   togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
   choice_display = XRCCTRL (*this, "choice_display", wxChoice);
   button_display_settings = XRCCTRL (*this, "button_display_settings", wxBitmapButton);
+  choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
   panel_video = XRCCTRL (*this, "panel_video", wxPanel);
   button_about = XRCCTRL (*this, "button_about", wxBitmapButton);
   button_quit = XRCCTRL (*this, "button_quit", wxBitmapButton);
@@ -2288,6 +2441,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
+                                 Stream_CamSave_MediaFoundation_Stream>::choice_adapter_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_adapter_selected_cb"));
+
+}
+void
+Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
                                  Stream_CamSave_MediaFoundation_Stream>::choice_display_selected_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_display_selected_cb"));
@@ -2298,6 +2458,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
                                  Stream_CamSave_MediaFoundation_Stream>::button_display_settings_click_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_click_cb"));
+
+}
+void
+Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
+                                 Stream_CamSave_MediaFoundation_Stream>::choice_resolution_2_selected_cb (wxCommandEvent& event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_selected_cb"));
 
 }
 

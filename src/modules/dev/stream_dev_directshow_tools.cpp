@@ -500,9 +500,13 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     result_2 = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result_2));
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found capture device \"%s [\"%s\"]\": %s...\n"),
-                ACE_TEXT (friendly_name_string.c_str ()),
+                ACE_TEXT ("found %scapture device \"%s\" [%s]: %s\n"),
+                (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory) ? ACE_TEXT ("audio ")
+                                                                                       : (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory) ? ACE_TEXT ("video ")
+                                                                                                                                                                : (InlineIsEqualGUID (deviceCategory_in, AM_KSCATEGORY_CAPTURE) ? ACE_TEXT ("WDM ")
+                                                                                                                                                                                                                                : ACE_TEXT ("")))),
                 ACE_TEXT (converter_3.char_rep ()),
+                ACE_TEXT (friendly_name_string.c_str ()),
                 ACE_TEXT (converter.char_rep ())));
 #endif // _DEBUG
     properties_p->Release (); properties_p = NULL;
@@ -602,7 +606,7 @@ Stream_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStream
 }
 Common_UI_Resolutions_t
 Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
-                                                              REFGUID mediaSubType_in)
+                                                       REFGUID mediaSubType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
 

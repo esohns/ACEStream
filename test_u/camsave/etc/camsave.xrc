@@ -442,6 +442,17 @@
                           </object>
                         </object>
                         <object class="sizeritem">
+                          <option>0</option>
+                          <flag>wxEXPAND</flag>
+                          <border>0</border>
+                          <object class="wxChoice" name="choice_adapter">
+                            <enabled>0</enabled>
+                            <tooltip>adapter</tooltip>
+                            <selection>0</selection>
+                            <content />
+                          </object>
+                        </object>
+                        <object class="sizeritem">
                           <option>1</option>
                           <flag>wxEXPAND</flag>
                           <border>5</border>
@@ -469,6 +480,17 @@
                                 <default>0</default>
                               </object>
                             </object>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <option>0</option>
+                          <flag>wxEXPAND</flag>
+                          <border>0</border>
+                          <object class="wxChoice" name="choice_resolution_2">
+                            <enabled>0</enabled>
+                            <tooltip>display resolution</tooltip>
+                            <selection>0</selection>
+                            <content />
                           </object>
                         </object>
                       </object>

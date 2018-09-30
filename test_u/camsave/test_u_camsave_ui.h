@@ -30,18 +30,24 @@ class Stream_CamSave_WxWidgetsDialog_T
   //                                        typename InterfaceType::CONFIGURATION_T> inherited2;
 
  public:
+  // convenient types
+  typedef Common_UI_wxWidgets_IApplication_T<typename InterfaceType::STATE_T,
+                                             typename InterfaceType::CONFIGURATION_T> IAPPLICATION_T;
+
   Stream_CamSave_WxWidgetsDialog_T (wxWindow* = NULL); // parent window (if any)
   inline virtual ~Stream_CamSave_WxWidgetsDialog_T () {}
 
   // implement Common_UI_wxWidgets_ITopLevel
-  virtual bool OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
-                                                         typename InterfaceType::CONFIGURATION_T>::IAPPLICATION_T*);
-  virtual void OnExit_2 ();
+  inline virtual const IAPPLICATION_T* const getP () const { ACE_ASSERT (application_); return application_; }
 
  private:
   // convenient types
   typedef Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
                                            StreamType> OWN_TYPE_T;
+
+  // implement Common_UI_wxWidgets_ITopLevel
+  virtual bool OnInit_2 (IAPPLICATION_T*);
+  virtual void OnExit_2 ();
 
   // event handlers
   virtual void dialog_main_idle_cb (wxIdleEvent&);
@@ -64,8 +70,10 @@ class Stream_CamSave_WxWidgetsDialog_T
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_adapter_selected_cb (wxCommandEvent&);
   virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
 
@@ -93,18 +101,24 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
   //                                        struct Stream_CamSave_DirectShow_UI_CBData> inherited2;
 
  public:
+  // convenient types
+  typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
+                                             struct Stream_CamSave_DirectShow_UI_CBData> IAPPLICATION_T;
+
   Stream_CamSave_WxWidgetsDialog_T (wxWindow* = NULL); // parent window (if any)
   inline virtual ~Stream_CamSave_WxWidgetsDialog_T () {}
 
   // implement Common_UI_wxWidgets_ITopLevel
-  virtual bool OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                                         struct Stream_CamSave_DirectShow_UI_CBData>::IAPPLICATION_T*);
-  virtual void OnExit_2 ();
+  inline virtual const IAPPLICATION_T* const getP () const { ACE_ASSERT (application_); return application_; }
 
  private:
   // convenient types
   typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication_t,
                                            Stream_CamSave_DirectShow_Stream> OWN_TYPE_T;
+
+  // implement Common_UI_wxWidgets_ITopLevel
+  virtual bool OnInit_2 (IAPPLICATION_T*);
+  virtual void OnExit_2 ();
 
   // event handlers
   virtual void dialog_main_idle_cb (wxIdleEvent&);
@@ -127,8 +141,10 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_adapter_selected_cb (wxCommandEvent&);
   virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
 
@@ -153,18 +169,24 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
   //                                        struct Stream_CamSave_MediaFoundation_UI_CBData> inherited2;
 
  public:
+  // convenient types
+  typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
+                                             struct Stream_CamSave_MediaFoundation_UI_CBData> IAPPLICATION_T;
+
   Stream_CamSave_WxWidgetsDialog_T (wxWindow* = NULL); // parent window (if any)
   inline virtual ~Stream_CamSave_WxWidgetsDialog_T () {}
 
-  // implement Common_UI_wxWidgets_ITopLevel
-  virtual bool OnInit_2 (Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                                         struct Stream_CamSave_MediaFoundation_UI_CBData>::IAPPLICATION_T*);
-  virtual void OnExit_2 ();
+   // implement Common_UI_wxWidgets_ITopLevel
+  inline virtual const IAPPLICATION_T* const getP () const { ACE_ASSERT (application_); return application_; }
 
  private:
   // convenient types
   typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
                                            Stream_CamSave_MediaFoundation_Stream> OWN_TYPE_T;
+
+  // implement Common_UI_wxWidgets_ITopLevel
+  virtual bool OnInit_2 (IAPPLICATION_T*);
+  virtual void OnExit_2 ();
 
   // event handlers
   virtual void dialog_main_idle_cb (wxIdleEvent&);
@@ -187,8 +209,10 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
+  virtual void choice_adapter_selected_cb (wxCommandEvent&);
   virtual void choice_display_selected_cb (wxCommandEvent&);
   virtual void button_display_settings_click_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
   virtual void button_about_click_cb (wxCommandEvent&);
   virtual void button_quit_click_cb (wxCommandEvent&);
 

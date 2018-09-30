@@ -132,10 +132,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (filesource_EXE_SRCS
-     stdafx.cpp
-     stdafx.h
-     test_i_callbacks.cpp
-     test_i_callbacks.h
+#     stdafx.cpp
+#     stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
      test_i_filestream_common.h
@@ -157,10 +155,21 @@ set (filesource_EXE_SRCS
      test_i_source_signalhandler.h
      test_i_source_stream.cpp
      test_i_source_stream.h
-     test_i_source_stream.inl
-     test_i_target_stream.cpp
-     test_i_target_stream.h)
+     test_i_source_stream.inl)
+#     test_i_target_stream.cpp
+#     test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (filesource_EXE_SRCS
+       ${filesource_EXE_SRCS}
+       test_i_callbacks.cpp
+       test_i_callbacks.h)
+# elseif (WXWIDGETS_USE)
+#  set (filesource_EXE_SRCS
+#       ${filesource_EXE_SRCS})
+ endif ()
+endif (GUI_SUPPORT)
 
 set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
@@ -231,7 +240,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
                        COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 #set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
-#                       COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#                       COTIRE_ENABLE_PRECOMPILED_HEADER TRUE)
 cotire (${EXECUTABLE_SOURCE})
 
 set (RESOURCE_FILES
@@ -297,10 +306,8 @@ set_tests_properties (filestream_source
 
 ############## next target ################
 set (filetarget_EXE_SRCS
-     stdafx.cpp
-     stdafx.h
-     test_i_callbacks.cpp
-     test_i_callbacks.h
+#     stdafx.cpp
+#     stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
      test_i_filestream_common.h
@@ -314,9 +321,9 @@ set (filetarget_EXE_SRCS
      test_i_module_eventhandler.inl
      test_i_session_message.cpp
      test_i_session_message.h
-     test_i_source_stream.cpp
-     test_i_source_stream.h
-     test_i_source_stream.inl
+#     test_i_source_stream.cpp
+#     test_i_source_stream.h
+#     test_i_source_stream.inl
      test_i_target.cpp
      test_i_target_common.h
      test_i_target_eventhandler.cpp
@@ -327,6 +334,17 @@ set (filetarget_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (filetarget_EXE_SRCS
+       ${filetarget_EXE_SRCS}
+       test_i_callbacks.cpp
+       test_i_callbacks.h)
+# elseif (WXWIDGETS_USE)
+#  set (filetarget_EXE_SRCS
+#       ${filetarget_EXE_SRCS})
+ endif ()
+endif (GUI_SUPPORT)
 
 set (EXECUTABLE_TARGET filetarget)
 add_executable (${EXECUTABLE_TARGET}
@@ -372,11 +390,16 @@ target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Test_I)
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 
 # add PCH
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
+#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 #get_target_property (_prefixHeader ${EXECUTABLE_SOURCE} COTIRE_CXX_PREFIX_HEADER)
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${_prefixHeader}")
-set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-cotire (${EXECUTABLE_TARGET})
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
+#                       COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#cotire (${EXECUTABLE_TARGET})
+add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
+
+##########################################
 
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets

@@ -316,6 +316,7 @@ target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
+target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
 target_link_libraries (${EXECUTABLE} ACEStream)

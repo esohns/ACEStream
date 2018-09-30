@@ -1174,7 +1174,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
   display_device_s =
-    Common_UI_Tools::getDisplayDevice (inherited::configuration_->deviceIdentifier);
+    Common_UI_Tools::getDisplay (inherited::configuration_->deviceIdentifier);
   ACE_ASSERT (display_device_s.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
