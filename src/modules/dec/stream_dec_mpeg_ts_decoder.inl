@@ -190,7 +190,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   unsigned int total_length = buffer_->total_length ();
-  if (total_length < STREAM_DECODER_MPEG_TS_PACKET_SIZE)
+  if (total_length < STREAM_DEC_MPEG_TS_PACKET_SIZE)
     return; // done
 
   // *TODO*: this step is unnecessary --> implement a proper parser
@@ -223,7 +223,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     NULL;
   do
   { // done ?
-    if (buffer_->length () < STREAM_DECODER_MPEG_TS_PACKET_SIZE)
+    if (buffer_->length () < STREAM_DEC_MPEG_TS_PACKET_SIZE)
       break;
 
     packet_header_p =
@@ -242,11 +242,11 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
     // sanity check(s)
     //ACE_ASSERT (packet_header_p->payload_unit_start_indicator);
-    ACE_ASSERT (packet_header_p->synchronization == STREAM_DECODER_MPEG_TS_SYNCHRONIZATION_BYTE);
+    ACE_ASSERT (packet_header_p->synchronization == STREAM_DEC_MPEG_TS_SYNCHRONIZATION_BYTE);
 
     packet_identifier =
       (packet_header_p->packet_identifier_hi << 8 | packet_header_p->packet_identifier_lo);
-    if ((packet_identifier == STREAM_DECODER_MPEG_TS_PACKET_ID_PAT) ||
+    if ((packet_identifier == STREAM_DEC_MPEG_TS_PACKET_ID_PAT) ||
         (!streamPacketId_      &&
           programPMTPacketId_  &&
          (packet_identifier == programPMTPacketId_)))
@@ -274,8 +274,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       if (ACE_LITTLE_ENDIAN)
         missingPESBytes_ = ACE_SWAP_WORD (missingPESBytes_);
 
-      if ((pes_header_p->stream_id != STREAM_DECODER_MPEG_TS_STREAM_TYPE_PADDING) &&
-          (pes_header_p->stream_id != STREAM_DECODER_MPEG_TS_STREAM_TYPE_PRIVATE_2_NAVIGATION_DATA))
+      if ((pes_header_p->stream_id != STREAM_DEC_MPEG_TS_STREAM_TYPE_PADDING) &&
+          (pes_header_p->stream_id != STREAM_DEC_MPEG_TS_STREAM_TYPE_PRIVATE_2_NAVIGATION_DATA))
       {
         optional_pes_header_p =
           reinterpret_cast<struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader*> (buffer_->rd_ptr ());
@@ -287,7 +287,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       } // end IF
     } // end IF
     else if (missingPESBytes_)
-      missingPESBytes_ -= (STREAM_DECODER_MPEG_TS_PACKET_SIZE - skipped_bytes);
+      missingPESBytes_ -= (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
 
     // part of the specified program --> forward data
     message_block_p = buffer_->duplicate ();
@@ -299,7 +299,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       return;
     } // end IF
     message_block_p->wr_ptr (buffer_->rd_ptr () +
-                             (STREAM_DECODER_MPEG_TS_PACKET_SIZE - skipped_bytes));
+                             (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes));
 
     message_block_2 = message_block_p->cont ();
     if (message_block_2)
@@ -322,7 +322,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     } // end IF
 
 continue_:
-    buffer_->rd_ptr (STREAM_DECODER_MPEG_TS_PACKET_SIZE - skipped_bytes);
+    buffer_->rd_ptr (STREAM_DEC_MPEG_TS_PACKET_SIZE - skipped_bytes);
   } while (true);
 }
 
@@ -435,7 +435,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 //    reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection*> (messageBlock_in->rd_ptr () + offset);
   offset +=
     sizeof (struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection);
-  if (table_header_p->table_id == STREAM_DECODER_MPEG_TS_TABLE_ID_PAT)
+  if (table_header_p->table_id == STREAM_DEC_MPEG_TS_TABLE_ID_PAT)
   {
     struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramAssociationSpecificData* PAT_data_p =
       NULL;
@@ -463,7 +463,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
         programPMTPacketId_ = program_map_id;
     } while (true);
   } // end IF
-  else if (table_header_p->table_id == STREAM_DECODER_MPEG_TS_TABLE_ID_PMT)
+  else if (table_header_p->table_id == STREAM_DEC_MPEG_TS_TABLE_ID_PMT)
   {
     struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData* PMT_data_p =
       reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData*> (messageBlock_in->rd_ptr () + offset);

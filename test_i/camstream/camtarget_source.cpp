@@ -37,8 +37,8 @@
 #include <strmif.h>
 #include <Unknwn.h>
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
-#undef __WXDEBUG__
-#include <wxdebug.h>
+//#undef __WXDEBUG__
+//#include <wxdebug.h>
 #include <combase.h>
 #include <dllsetup.h>
 #include <uuids.h>

@@ -393,7 +393,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
    , builder (NULL)
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
-   , filterIdentifier (GUID_NULL)
+   , filterCLSID (GUID_NULL)
    , inputFormat (NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sourceFormat (NULL)
@@ -419,7 +419,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
     } // end IF
     direct3DConfiguration = rhs_in.direct3DConfiguration;
     filterConfiguration = rhs_in.filterConfiguration;
-    filterIdentifier = rhs_in.filterIdentifier;
+    filterCLSID = rhs_in.filterCLSID;
     if (inputFormat)
       Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
     if (rhs_in.inputFormat)
@@ -475,7 +475,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
   IGraphBuilder*                                        builder;
   struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
   struct Stream_CamSave_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                 filterIdentifier;
+  CLSID                                                 filterCLSID;
   struct _AMMediaType*                                  inputFormat;
   bool                                                  push;
   struct _AMMediaType*                                  sourceFormat;

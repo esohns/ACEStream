@@ -27,6 +27,7 @@
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 #endif // NUMELMS
 
+#include <strmif.h>
 #include <strsafe.h>
 #include <vfwmsgs.h>
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
@@ -35,7 +36,8 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_file_tools.h"
+#include "common_log_tools.h"
+
 #include "common_timer_manager_common.h"
 
 #include "stream_defines.h"
@@ -548,8 +550,8 @@ continue_:
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*session_data_r.inputFormat, true).c_str ())));
 
       log_file_name =
-        Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
-                                            0);
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+                                           0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (builder_p,

@@ -110,7 +110,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  , formatHeight_ (0)
  , frame_ (NULL)
  , frameSize_ (0)
- , outputFormat_ (STREAM_DECODER_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT)
+ , outputFormat_ (STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT)
  , outputFrameSize_ (0)
  , profile_ (FF_PROFILE_UNKNOWN)
  , transformContext_ (NULL)
@@ -214,7 +214,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_frame_free (&frame_); frame_ = NULL;
     } // end IF
     frameSize_ = 0;
-    outputFormat_ = STREAM_DECODER_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
+    outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
     outputFrameSize_ = 0;
     profile_ = FF_PROFILE_UNKNOWN;
     if (transformContext_)

@@ -236,7 +236,7 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${camsave_EXE_SRCS}
+                ${${EXECUTABLE}_EXE_SRCS}
                 etc/${ui_definition_file})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
@@ -280,7 +280,7 @@ elseif (WIN32)
 #  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
  else ()
 #  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
 # *TODO*: repair WIN32 pkgconfig support
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
@@ -376,18 +376,27 @@ elseif (WIN32)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 
+##########################################
+
+set (ARGS "-l")
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+ set (ARGS "${ARGS} -t")
+endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
-   set (ARGS "-g./etc/${ui_definition_file} -l -t")
+   set (ARGS "-g./etc/${ui_definition_file} ${ARGS}")
   endif (GTK_SUPPORT)
  else ()
-  set (ARGS "-g -l -t")
+  set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
+
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 # set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
  if (GUI_SUPPORT)
+  set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
+
   if (GTK3_SUPPORT)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                              G:/software/Development/dll
@@ -401,9 +410,8 @@ elseif (WIN32)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${wxWidgets_LIB_DIR})
   endif (WXWIDGETS_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\${ui_definition_file} -l -t")
  else ()
-  set (ARGS "-g -l -t")
+  set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
@@ -420,6 +428,8 @@ create_target_launcher (${EXECUTABLE}
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
                         ENVIRONMENT ${ENVIRONMENT})
+
+##########################################
 
 add_test (NAME ${EXECUTABLE}_test
           COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t

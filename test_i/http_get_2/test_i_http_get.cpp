@@ -29,7 +29,7 @@
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -42,12 +42,13 @@
 #endif // HAVE_CONFIG_H
 
 #include "common.h"
-#include "common_file_tools.h"
-#include "common_logger.h"
-#include "common_signal_tools.h"
+//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
+#include "common_logger.h"
+
+#include "common_signal_tools.h"
 
 #include "common_timer_tools.h"
 
@@ -60,11 +61,11 @@
 
 #include "stream_dec_common.h"
 
+#include "stream_net_http_defines.h"
+
 #if defined (HAVE_CONFIG_H)
 #include "libACENetwork_config.h"
 #endif // HAVE_CONFIG_H
-
-#include "stream_net_http_defines.h"
 
 #include "net_common_tools.h"
 #include "net_defines.h"
@@ -1244,8 +1245,8 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   if (log_to_file)
     log_file_name =
-      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                         ACE::basename (argv_in[0]));
+      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                        ACE::basename (argv_in[0]));
   if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
                                             log_file_name,                        // log file name
                                             false,                                // log to syslog ?

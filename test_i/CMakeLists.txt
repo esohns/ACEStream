@@ -89,10 +89,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src>)
  if (GUI_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui>)
   if (GTK_SUPPORT)
-   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src/ui/gtk>)
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
@@ -132,9 +132,13 @@ elseif (WIN32)
     target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/gtk-3.0>)
    endif ()
-  endif (GTK_SUPPORT)
 # libglade
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
+  endif (GTK_SUPPORT)
+  if (CURSES_SUPPORT)
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../pdcurses>)
+  endif (CURSES_SUPPORT)
  endif (GUI_SUPPORT)
 
  if (DEFINED ENV{ACE_ROOT})
@@ -206,13 +210,23 @@ if (WIN32)
     target_link_libraries (${PROJECT_NAME}_Test_I OpenGL32.lib)
     target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../libepoxy/cmake/${CMAKE_BUILD_TYPE}/epoxy1_static.lib)
     target_link_libraries (${PROJECT_NAME}_Test_I "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+
+    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
    endif (GTKGL_SUPPORT)
+
+   target_link_libraries (${PROJECT_NAME}_Test_I CommonUI_GTK)
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
    target_link_libraries (${PROJECT_NAME}_Test_I ${wxWidgets_LIBRARIES})
   endif (WXWIDGETS_SUPPORT)
+
+  target_link_libraries (${PROJECT_NAME}_Test_I CommonUI)
  endif (GUI_SUPPORT)
 endif (WIN32)
+
+target_link_libraries (${PROJECT_NAME}_Test_I Common)
+
+##########################################
 
 add_dependencies (${PROJECT_NAME}_Test_I Common)
 if (GUI_SUPPORT)
@@ -225,14 +239,7 @@ if (GUI_SUPPORT)
  endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
-target_link_libraries (${PROJECT_NAME}_Test_I Common)
-if (GTK_SUPPORT)
- if (GTKGL_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
- endif (GTKGL_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Test_I CommonUI)
- target_link_libraries (${PROJECT_NAME}_Test_I CommonUI_GTK)
-endif (GTK_SUPPORT)
+##########################################
 
 set (source_files
      test_i_configuration.h

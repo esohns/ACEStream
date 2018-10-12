@@ -18,16 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Guard_T.h"
-#include "ace/Synch_Traits.h"
-
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
+
+#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 

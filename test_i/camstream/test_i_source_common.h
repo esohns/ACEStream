@@ -306,7 +306,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , filterConfiguration (NULL)
-   , filterIdentifier (GUID_NULL)
+   , filterCLSID (GUID_NULL)
    , inputFormat (NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sourceFormat (NULL)
@@ -345,7 +345,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     connectionConfigurations = rhs_in.connectionConfigurations;
     connectionManager = rhs_in.connectionManager;
     filterConfiguration = rhs_in.filterConfiguration;
-    filterIdentifier = rhs_in.filterIdentifier;
+    filterCLSID = rhs_in.filterCLSID;
     if (inputFormat)
       Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
     if (rhs_in.inputFormat)
@@ -405,7 +405,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                                contextId;
   struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                filterIdentifier;
+  CLSID                                                filterCLSID;
   struct _AMMediaType*                                 inputFormat; // source module
   bool                                                 push;
   struct _AMMediaType*                                 sourceFormat;

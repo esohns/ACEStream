@@ -136,6 +136,8 @@ struct Stream_MediaFramework_Direct3D_Configuration
   UINT                           adapter;
   DWORD                          behaviorFlags; // see also: D3DCREATE
   enum _D3DDEVTYPE               deviceType;
+  // *NOTE*: "...If running in full-screen, the focus must be a top level
+  //         window. ..."
   HWND                           focusWindow;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*            handle;

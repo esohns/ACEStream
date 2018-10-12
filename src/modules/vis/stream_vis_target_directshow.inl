@@ -48,6 +48,8 @@
 
 #include "common_tools.h"
 
+#include "common_log_tools.h"
+
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
@@ -363,7 +365,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   // forward message to the directshow filter graph ?
-  if (likely (!InlineIsEqualGUID (inherited::configuration_->filterIdentifier, GUID_NULL)))
+  if (likely (!InlineIsEqualGUID (inherited::configuration_->filterCLSID, GUID_NULL)))
     inherited::handleDataMessage (message_inout,
                                   passMessageDownstream_out);
 }
@@ -501,7 +503,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
 
-        if (unlikely (!inherited::loadGraph (inherited::configuration_->filterIdentifier,
+        if (unlikely (!inherited::loadGraph (inherited::configuration_->filterCLSID,
                                              *inherited::configuration_->filterConfiguration,
                                              *media_type_p,
                                              window_,
@@ -518,8 +520,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::IGraphBuilder_);
 #if defined (_DEBUG)
       log_file_name =
-        Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
-                                            0);
+        Common_Log_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+                                           0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (inherited::IGraphBuilder_,

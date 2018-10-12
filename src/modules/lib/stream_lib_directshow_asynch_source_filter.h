@@ -36,13 +36,13 @@
 #else
 #define AM_NOVTABLE
 #endif
-//// *NOTE*: wxWidgets may have #defined __WXDEBUG__
+#include <strmif.h>
+// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
 #include <wxdebug.h>
 #include <combase.h>
 #include <Unknwn.h>
 #include <mmsystem.h>
-#include <strmif.h>     // Generated IDL header file for streams interfaces
 // *TODO*: currently, this compiles only as long as stdafx includes streams.h
 #include <reftime.h>
 #include <wxutil.h>

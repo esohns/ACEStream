@@ -311,7 +311,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , crunch (true)
    , deviceIdentifier ()
    , filterConfiguration (NULL)
-   , filterIdentifier (GUID_NULL)
+   , filterCLSID (GUID_NULL)
    , inputFormat (NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
@@ -333,7 +333,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
       ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 
     push = true; // *TODO*: support asynch directshow filter
-    filterIdentifier =
+    filterCLSID =
       (push ? CLSID_ACEStream_MediaFramework_Source_Filter
             : CLSID_ACEStream_MediaFramework_Asynch_Source_Filter);
   }
@@ -347,7 +347,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   bool                                                 crunch;            // splitter module
   std::string                                          deviceIdentifier;
   struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
-  CLSID                                                filterIdentifier;
+  CLSID                                                filterCLSID;
   struct _AMMediaType*                                 inputFormat;       // splitter module
   bool                                                 push; // media sample passing strategy
   ACE_Message_Queue_Base*                              queue; // (inbound) buffer queue handle

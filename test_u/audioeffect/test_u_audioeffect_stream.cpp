@@ -22,13 +22,17 @@
 #include "ace/Synch.h"
 #include "test_u_audioeffect_stream.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <dshow.h>
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
+
+#include "common_log_tools.h"
 
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <dshow.h>
-
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
@@ -270,8 +274,8 @@ continue_:
   //} // end IF
 #if defined (_DEBUG)
   log_file_name =
-    Common_File_Tools::getLogDirectory (std::string (),
-                                        0);
+    Common_Log_Tools::getLogDirectory (std::string (),
+                                       0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
   log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
   Stream_MediaFramework_DirectShow_Tools::debug (graphBuilder_,

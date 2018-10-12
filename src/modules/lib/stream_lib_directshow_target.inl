@@ -23,8 +23,9 @@
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
-#include "common_file_tools.h"
 #include "common_tools.h"
+
+#include "common_log_tools.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
@@ -419,7 +420,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
         ACE_ASSERT (inherited::configuration_->inputFormat);
 
-        if (!loadGraph (inherited::configuration_->filterIdentifier,
+        if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
                         *inherited::configuration_->inputFormat,
                         inherited::configuration_->window,
@@ -434,8 +435,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (IGraphBuilder_);
 #if defined (_DEBUG)
       log_file_name =
-        Common_File_Tools::getLogDirectory (std::string (),
-                                            0);
+        Common_Log_Tools::getLogDirectory (std::string (),
+                                           0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += STREAM_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_MediaFramework_DirectShow_Tools::debug (IGraphBuilder_,

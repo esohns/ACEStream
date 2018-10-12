@@ -614,7 +614,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       if (device_handle_p)
       {
         result_2 =
-          initialize_Direct3DDevice (direct3DConfiguration_->presentationParameters.hDeviceWindow,
+          initialize_Direct3DDevice ((direct3DConfiguration_->presentationParameters.Windowed ? window_handle_p
+                                                                                              : NULL),
                                      *session_data_r.inputFormat,
                                      direct3DConfiguration_->handle,
                                      direct3DConfiguration_->presentationParameters,
@@ -773,11 +774,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
     // *NOTE*: 0 --> use window format
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-    //  resolution_s.cx;
-      0;
+      resolution_s.cx;
+      //0;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-    //  resolution_s.cy;
-      0;
+      resolution_s.cy;
+      //0;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       D3DFMT_UNKNOWN;
     direct3DConfiguration_->presentationParameters.hDeviceWindow =
@@ -1237,20 +1238,23 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::updateDestinationRectangle"));
 
-  struct tagRECT destination_rectangle = destinationRectangle_;
-  if (windowHandle_in &&
-      IsRectEmpty (&destinationRectangle_out))
+  if (windowHandle_in)
   {
-    if (unlikely (!::GetClientRect (windowHandle_in,
-                                    &destinationRectangle_out)))
-    {
+    if (::IsRectEmpty (&destinationRectangle_out))
+      if (unlikely (!::GetClientRect (windowHandle_in,
+                                      &destinationRectangle_out)))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to GetClientRect(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+  } // end IF
+  else
+    if (unlikely (!::CopyRect (&destinationRectangle_out,
+                               &sourceRectangle_in)))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to GetClientRect(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to CopyRect(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
-      return;
-    } // end IF
-  } // end IF
   destinationRectangle_out = letterbox_rectangle (sourceRectangle_in,
                                                   destinationRectangle_out);
 }

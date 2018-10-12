@@ -29,13 +29,17 @@
 #include "linux/videodev2.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
 #include "ace/OS.h"
+#endif // GUI_SUPPORT
 
 #include "common_configuration.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
+#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
+#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -227,7 +231,6 @@ struct Test_U_UI_CBData
 {
   Test_U_UI_CBData ()
    : allowUserRuntimeStatistic (true)
-   //, configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -238,7 +241,6 @@ struct Test_U_UI_CBData
   }
 
   bool                            allowUserRuntimeStatistic;
-  //struct Test_U_Configuration*    configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64

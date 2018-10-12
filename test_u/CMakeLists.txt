@@ -172,11 +172,11 @@ if (GUI_SUPPORT)
 endif (GUI_SUPPORT)
 
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
+target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
-target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 
 if (WIN32)
  if (GUI_SUPPORT)
@@ -206,13 +206,23 @@ if (WIN32)
     target_link_libraries (${PROJECT_NAME}_Test_U OpenGL32.lib)
     target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../libepoxy/cmake/${CMAKE_BUILD_TYPE}/epoxy1_static.lib)
     target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+
+    target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
    endif (GTKGL_SUPPORT)
+
+   target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_GTK)
   endif (GTK_SUPPORT)
   if (WXWIDGETS_SUPPORT)
    target_link_libraries (${PROJECT_NAME}_Test_U ${wxWidgets_LIBRARIES})
   endif (WXWIDGETS_SUPPORT)
+
+  target_link_libraries (${PROJECT_NAME}_Test_U CommonUI)
  endif (GUI_SUPPORT)
 endif (WIN32)
+
+target_link_libraries (${PROJECT_NAME}_Test_U Common)
+
+##########################################
 
 add_dependencies (${PROJECT_NAME}_Test_U Common)
 if (GUI_SUPPORT)
@@ -225,14 +235,7 @@ if (GUI_SUPPORT)
  endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
-target_link_libraries (${PROJECT_NAME}_Test_U Common)
-if (GTK_SUPPORT)
- if (GTKGL_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
- endif (GTKGL_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_Test_U CommonUI)
- target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_GTK)
-endif (GTK_SUPPORT)
+##########################################
 
 set (source_files
      test_u_common.h

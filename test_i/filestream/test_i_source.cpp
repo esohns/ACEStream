@@ -34,19 +34,28 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
-#include "common_file_tools.h"
-#include "common_logger.h"
-#include "common_signal_tools.h"
+#if defined (HAVE_CONFIG_H)
+#include "libCommon_config.h"
+#endif // HAVE_CONFIG_H
+
+//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
+#include "common_logger.h"
+
+#include "common_signal_tools.h"
 
 #include "common_timer_tools.h"
 
+#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
+#if defined (GTK_USE)
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_allocatorheap.h"
 #include "stream_control_message.h"
@@ -54,9 +63,9 @@
 
 #include "stream_misc_defines.h"
 
-#ifdef HAVE_CONFIG_H
+#if defined (HAVE_CONFIG_H)
 #include "libACEStream_config.h"
-#endif
+#endif // HAVE_CONFIG_H
 
 #include "test_i_callbacks.h"
 #include "test_i_common.h"
@@ -1056,8 +1065,8 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                         ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
   if (!Common_Log_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                             log_file_name,                        // log file name
                                             false,                                // log to syslog ?

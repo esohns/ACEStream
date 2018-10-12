@@ -31,7 +31,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
-#undef __WXDEBUG__
+//#undef __WXDEBUG__
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 #else

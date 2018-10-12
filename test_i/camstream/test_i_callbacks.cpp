@@ -4431,7 +4431,7 @@ idle_update_log_display_cb (gpointer userData_in)
     g_free (string_p); string_p = NULL;
 
     state_r.logStack.pop_front ();
-  } // end FOR
+  } // end WHILE
 
   state_r.logStack.clear ();
 

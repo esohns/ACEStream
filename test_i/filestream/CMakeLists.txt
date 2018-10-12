@@ -132,8 +132,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (filesource_EXE_SRCS
-#     stdafx.cpp
-#     stdafx.h
+     stdafx.cpp
+     stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
      test_i_filestream_common.h

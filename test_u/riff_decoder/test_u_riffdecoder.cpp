@@ -37,11 +37,11 @@
 #include "libCommon_config.h"
 #endif // HAVE_CONFIG_H
 
-#include "common_file_tools.h"
-#include "common_logger.h"
+//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
+#include "common_logger.h"
 
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
@@ -423,8 +423,8 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-        Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                           ACE::basename (argv_in[0]));
+        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                          ACE::basename (argv_in[0]));
   if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]), // program name
                                             log_file_name,              // log file name
                                             false,                      // log to syslog ?
@@ -433,7 +433,7 @@ ACE_TMAIN (int argc_in,
                                             NULL))                      // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
+                ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
 
     // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

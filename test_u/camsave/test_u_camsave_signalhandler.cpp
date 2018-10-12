@@ -153,6 +153,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
     //} // end IF
 
     // step2: stop UI event processing ?
+    // *TODO*: triggering UI shutdown from a widget callback is more consistent,
+    //         compared to doing it here
     if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

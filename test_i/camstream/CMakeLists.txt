@@ -87,6 +87,11 @@ if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif ()
 
+if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ # *NOTE*: DirectShow uses 'DEBUG'
+ add_definitions (-DDEBUG) # activate DirectShow debug logging
+endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
@@ -104,8 +109,10 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 elseif (WIN32)
@@ -126,6 +133,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
@@ -140,8 +148,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
 set (camsource_EXE_SRCS
@@ -373,6 +381,8 @@ if (WIN32)
  set_property (TARGET ${LIBRARY_DS} PROPERTY FOLDER "test_i")
 
  add_dependencies (${LIBRARY_DS} Common)
+ add_dependencies (${LIBRARY_DS} CommonLog)
+
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
@@ -390,6 +400,7 @@ if (WIN32)
  target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
 
  target_link_libraries (${LIBRARY_DS} Common)
+ target_link_libraries (${LIBRARY_DS} CommonLog)
 
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME})
  target_link_libraries (${LIBRARY_DS} ${PROJECT_NAME}_Device)
@@ -441,6 +452,7 @@ if (WIN32)
  target_link_libraries (${LIBRARY_MF} ${ACE_LIBRARY})
 
  target_link_libraries (${LIBRARY_MF} Common)
+ target_link_libraries (${LIBRARY_MF} CommonLog)
 
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME})
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Device)
@@ -519,6 +531,7 @@ endif ()
 add_dependencies (${EXECUTABLE_TARGET} Common)
 add_dependencies (${EXECUTABLE_TARGET} CommonImage)
 add_dependencies (${EXECUTABLE_TARGET} CommonLog)
+add_dependencies (${EXECUTABLE_TARGET} CommonSignal)
 add_dependencies (${EXECUTABLE_TARGET} CommonTimer)
 
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME})

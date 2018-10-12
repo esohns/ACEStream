@@ -51,12 +51,13 @@
 #include "libCommon_config.h"
 #endif // HAVE_CONFIG_H
 
-#include "common_file_tools.h"
-#include "common_logger.h"
-#include "common_signal_tools.h"
+//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
+#include "common_logger.h"
+
+#include "common_signal_tools.h"
 
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
@@ -826,8 +827,8 @@ continue_:
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (!Stream_Device_MediaFoundation_Tools::getMediaSource (captureDeviceIdentifier_in,
-                                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                   media_source_p))
+                                                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                            media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
@@ -837,10 +838,10 @@ continue_:
   ACE_ASSERT (media_source_p);
 
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (captureDeviceIdentifier_in,
-                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                       media_source_p,
-                                                                       NULL,
-                                                                       topology_p))
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                media_source_p,
+                                                                NULL,
+                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(), aborting\n")));
@@ -1221,7 +1222,7 @@ do_work (const std::string& captureDeviceIdentifier_in,
 #if defined (GUI_SUPPORT)
   configuration_in.streamConfiguration.configuration_.module =
       (!UIDefinitionFilename_in.empty () ? &message_handler
-                                          : NULL);
+                                         : NULL);
 #endif // GUI_SUPPORT
    configuration_in.streamConfiguration.configuration_.renderer =
      renderer_in;
@@ -1372,9 +1373,11 @@ do_work (const std::string& captureDeviceIdentifier_in,
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   bool result = false;
 
   // step0e: initialize signal handling
@@ -1443,8 +1446,8 @@ do_work (const std::string& captureDeviceIdentifier_in,
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
   // [- signal timer expiration to perform server queries] (see above)
 
-  // step1a: start UI event loop ?
 #if defined (GUI_SUPPORT)
+  // step1a: start UI event loop ?
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (GTK_USE)
@@ -1503,12 +1506,12 @@ do_work (const std::string& captureDeviceIdentifier_in,
 #else
     CBData_in.stream = &stream;
 #if defined (GTK_USE)
-    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
     //CBData_in.UIState.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    CBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
+    CBData_in.UIState->eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.UIState->eventHooks.initHook = idle_initialize_UI_cb;
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -1843,8 +1846,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-  //if (run_stress_test)
-  //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
   // step1d: initialize logging and/or tracing
   Common_MessageStack_t* logstack_p = NULL;
@@ -1870,8 +1871,8 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-        Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                           ACE::basename (argv_in[0]));
+        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                          ACE::basename (argv_in[0]));
   if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
                                             log_file_name,                                // log file name
                                             false,                                        // log to syslog ?
@@ -1899,6 +1900,22 @@ ACE_TMAIN (int argc_in,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
+  } // end IF
+
+  // step1f: handle specific program modes
+  if (print_version_and_exit)
+  {
+    do_printVersion (ACE::basename (argv_in[0]));
+
+    Common_Log_Tools::finalizeLogging ();
+    // *PORTABILITY*: on Windows, finalize ACE...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    result = ACE::fini ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
+    return EXIT_SUCCESS;
   } // end IF
 
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT,
@@ -2070,7 +2087,9 @@ ACE_TMAIN (int argc_in,
   // step1e: pre-initialize signal handling
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);
-  do_initializeSignals (true, // allow SIGUSR1/SIGBREAK
+  do_initializeSignals ((statistic_reporting_interval == 0), // handle SIGUSR1/SIGBREAK
+                                                             // iff regular reporting
+                                                             // is off
                         signal_set,
                         ignored_signal_set);
   Common_SignalActions_t previous_signal_actions;
@@ -2092,7 +2111,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           true,
+                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -2117,26 +2136,6 @@ ACE_TMAIN (int argc_in,
 #endif // GUI_SUPPORT
   Stream_CamSave_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                                lock_2);
-
-  // step1f: handle specific program modes
-  if (print_version_and_exit)
-  {
-    do_printVersion (ACE::basename (argv_in[0]));
-
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                   signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
-    Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_SUCCESS;
-  } // end IF
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
@@ -2173,7 +2172,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
         result_2 = gtk_manager_p->initialize (argc_in,
                                               argv_in,
-                                              &directshow_ui_cb_data.UIState,
                                               &directshow_ui_definition);
 #endif // GTK_USE
         break;
@@ -2184,7 +2182,6 @@ ACE_TMAIN (int argc_in,
         result_2 =
           gtk_manager_p->initialize (argc_in,
                                      argv_in,
-                                     &mediafoundation_ui_cb_data.UIState,
                                      &mediafoundation_ui_definition);
 #endif // GTK_USE
         break;
@@ -2215,7 +2212,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
     result_2 = gtk_manager_p->initialize (argc_in,
                                           argv_in,
-                                          &ui_cb_data.UIState,
                                           &ui_definition);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
