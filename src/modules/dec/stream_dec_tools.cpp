@@ -30,17 +30,22 @@
 //#include <combaseapi.h>
 #include <dmodshow.h>
 #include <dmoreg.h>
-//#include <ks.h>
-//// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
-////            incompatible versions of the IKsPropertySet interface.
-////            Applications that require the KS proxy module should use the
-////            version defined in ksproxy.h.The DirectSound version of
-////            IKsPropertySet is described in the DirectSound reference pages in
-////            the Microsoft Windows SDK documentation.
-////            If an application must include both ksproxy.h and dsound.h,
-////            whichever header file the compiler scans first is the one whose
-////            definition of IKsPropertySet is used by the compiler. ..."
-//#include <ksproxy.h>
+// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
+//            incompatible versions of the IKsPropertySet interface.
+//            Applications that require the KS proxy module should use the
+//            version defined in ksproxy.h.The DirectSound version of
+//            IKsPropertySet is described in the DirectSound reference pages in
+//            the Microsoft Windows SDK documentation.
+//            If an application must include both ksproxy.h and dsound.h,
+//            whichever header file the compiler scans first is the one whose
+//            definition of IKsPropertySet is used by the compiler. ..."
+//#include <MMReg.h>
+#include <WinNT.h>
+#include <Guiddef.h>
+#include <Ks.h>
+#include <KsProxy.h>
+#include <MMSystem.h>
+#define INITGUID
 #include <dsound.h>
 #include <dvdmedia.h>
 #include <fourcc.h>
@@ -49,7 +54,12 @@
 #include <mfidl.h>
 #include <qedit.h>
 #include <strmif.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 #include <vfwmsgs.h>
 #include <wmcodecdsp.h>
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1842,8 +1852,8 @@ Stream_Module_Decoder_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_
   bool filter_is_dmo_wrapper = false;
   struct _AMMediaType* media_type_p = NULL;
   IDMOWrapperFilter* i_dmo_wrapper_filter_p = NULL;
-  //DMO_MEDIA_TYPE* dmo_media_type_p = NULL;
-  struct _DMOMediaType* dmo_media_type_p = NULL;
+  //struct _DMOMediaType* dmo_media_type_p = NULL;
+  DMO_MEDIA_TYPE* dmo_media_type_p = NULL;
   IMediaObject* i_media_object_p = NULL;
   IWMResizerProps* i_wmresizer_props_p = NULL;
   DWORD dwFlags = 0;

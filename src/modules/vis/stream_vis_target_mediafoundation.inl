@@ -292,7 +292,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //ACE_ASSERT (!streamSink_);
       //ACE_ASSERT (!videoDisplayControl_);
       // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_r.inputFormat);
+      ACE_ASSERT (!session_data_r.formats.empty ());
 
 //      if (!direct3DDevice_)
 //      {

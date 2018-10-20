@@ -231,87 +231,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   av_register_all ();
 //  avcodec_register_all ();
 
-  unsigned int decode_height, decode_width, width;
-  enum AVPixelFormat input_format_e = AV_PIX_FMT_NONE;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_in.inputFormat);
-
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-
-  input_format_e =
-      Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (configuration_in.inputFormat->subtype,
-                                                                configuration_in.mediaFramework);
-
-  if (InlineIsEqualGUID (configuration_in.inputFormat->formattype, FORMAT_VideoInfo))
-  { ACE_ASSERT (configuration_in.inputFormat->pbFormat);
-    video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (configuration_in.inputFormat->pbFormat);
-    ACE_ASSERT (video_info_header_p);
-
-    formatHeight_ =
-      static_cast<unsigned int> (std::abs (video_info_header_p->bmiHeader.biHeight));
-    width =
-      static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
-    decode_height = formatHeight_;
-    decode_width = width;
-  } // end IF
-  else if (InlineIsEqualGUID (configuration_in.inputFormat->formattype, FORMAT_VideoInfo2))
-  { ACE_ASSERT (configuration_in.inputFormat->pbFormat);
-    video_info_header2_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (configuration_in.inputFormat->pbFormat);
-    ACE_ASSERT (video_info_header2_p);
-
-    formatHeight_ =
-      static_cast<unsigned int> (std::abs (video_info_header2_p->bmiHeader.biHeight));
-    width =
-      static_cast<unsigned int> (video_info_header2_p->bmiHeader.biWidth);
-    decode_height = formatHeight_;
-    decode_width = width;
-  } // end ELSE IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (configuration_in.inputFormat->formattype).c_str ())));
-    return false;
-  } // end ELSE
-#else
-  input_format_e = getFormat (configuration_in.inputFormat);
-
-  formatHeight_ = configuration_in.sourceFormat.height;
-  decode_height = formatHeight_;
-  width = configuration_in.sourceFormat.width;
-  decode_width = width;
-#endif // ACE_WIN32 || ACE_WIN64
-
   // *TODO*: remove type inferences
   codecId_ = configuration_in.codecId;
-  if ((codecId_ == AV_CODEC_ID_NONE) &&
-      Stream_Module_Decoder_Tools::isCompressedVideo (input_format_e))
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (input_format_e).c_str ())));
-    codecId_ =
-        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (input_format_e);
-  } // end IF
-  if (codecId_ == AV_CODEC_ID_NONE)
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: invalid codec id, continuing\n"),
-                inherited::mod_->name ()));
-#if defined (_DEBUG)
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
-#endif // _DEBUG
-  //profile_ = configuration_in.codecProfile;
 
   frame_ = av_frame_alloc ();
   if (unlikely (!frame_))
@@ -321,37 +242,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-//  frame_->format = configuration_in.outputFormat;
-  frame_->height = formatHeight_;
-  frame_->width = width;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.outputFormat);
-
-  outputFormat_ =
-    Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (configuration_in.outputFormat->subtype,
-                                                              configuration_in.mediaFramework);
+  outputFormat_ = getFormat (configuration_in.outputFormat);
   if (unlikely (outputFormat_ == AV_PIX_FMT_NONE))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat(\"%s\"), aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (configuration_in.outputFormat->subtype, configuration_in.mediaFramework).c_str ())));
+                ACE_TEXT ("%s: invalid output format, aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
-#else
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.outputFormat != AV_PIX_FMT_NONE);
-
-  outputFormat_ = configuration_in.outputFormat;
-#endif // ACE_WIN32 || ACE_WIN64
-
-  outputFrameSize_ =
-    av_image_get_buffer_size (outputFormat_,
-                              static_cast<int> (decode_width),
-                              static_cast<int> (decode_height),
-                              1); // *TODO*: linesize alignment
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -719,6 +618,68 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      unsigned int decode_height, decode_width, width;
+      enum AVPixelFormat input_format_e = AV_PIX_FMT_NONE;
+      // sanity check(s)
+      // *TODO*: remove type inference
+      ACE_ASSERT (!session_data_r.formats.empty ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType& media_type_r =
+        session_data_r.formats.front ();
+      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+
+      input_format_e =
+          Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (media_type_r.subtype,
+                                                                    inherited::configuration_->mediaFramework);
+      Common_UI_Resolution_t resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_r);
+      formatHeight_ = static_cast<unsigned int> (std::abs (resolution_s.cy));
+      width = static_cast<unsigned int> (resolution_s.cx);
+      decode_height = formatHeight_;
+      decode_width = width;
+#else
+      input_format_e = getFormat (session_data_r.formats.front ());
+      ACE_ASSERT (false); // *TODO*
+      formatHeight_ = configuration_in.sourceFormat.height;
+      decode_height = formatHeight_;
+      width = configuration_in.sourceFormat.width;
+      decode_width = width;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      if ((codecId_ == AV_CODEC_ID_NONE) &&
+          Stream_Module_Decoder_Tools::isCompressedVideo (input_format_e))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (input_format_e).c_str ())));
+        codecId_ =
+            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (input_format_e);
+      } // end IF
+      if (codecId_ == AV_CODEC_ID_NONE)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid codec id, continuing\n"),
+                    inherited::mod_->name ()));
+#if defined (_DEBUG)
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: using codec \"%s\" (id: %d)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (avcodec_get_name (codecId_)), codecId_));
+#endif // _DEBUG
+      //profile_ = configuration_in.codecProfile;
+
+    //  frame_->format = configuration_in.outputFormat;
+      frame_->height = formatHeight_;
+      frame_->width = width;
+
+      outputFrameSize_ =
+        av_image_get_buffer_size (outputFormat_,
+                                  static_cast<int> (decode_width),
+                                  static_cast<int> (decode_height),
+                                  1); // *TODO*: linesize alignment
+
       int result = -1;
       struct AVCodec* codec_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
@@ -1070,41 +1031,11 @@ continue_:
       unsigned int width = 0;
       unsigned int buffer_size = frameSize_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (session_data_r.inputFormat);
-
-      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-
-      if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo))
-      { ACE_ASSERT (session_data_r.inputFormat->pbFormat);
-        video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
-        ACE_ASSERT (video_info_header_p);
-
-        formatHeight_ =
-          static_cast<unsigned int> (abs (video_info_header_p->bmiHeader.biHeight));
-        width =
-          static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
-      } // end IF
-      else if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo2))
-      { ACE_ASSERT (session_data_r.inputFormat->pbFormat);
-        video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
-        ACE_ASSERT (video_info_header2_p);
-
-        formatHeight_ =
-          static_cast<unsigned int> (abs (video_info_header2_p->bmiHeader.biHeight));
-        width =
-          static_cast<unsigned int> (video_info_header2_p->bmiHeader.biWidth);
-      } // end ELSE IF
-      else
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (session_data_r.inputFormat->formattype).c_str ())));
-        break;
-      } // end ELSE
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      Common_UI_Resolution_t resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
+      formatHeight_ = static_cast<unsigned int> (::abs (resolution_s.cy));
+      width = static_cast<unsigned int> (resolution_s.cx);
 #else
       ACE_ASSERT (false); // *TODO*
 //      formatHeight_ = session_data_r.inputFormat.height;

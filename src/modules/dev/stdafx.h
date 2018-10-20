@@ -2,7 +2,7 @@
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
-#if defined _MSC_VER
+#if defined (_MSC_VER)
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
@@ -12,7 +12,15 @@
 
 // Windows Header Files
 #include <windows.h>
-#endif
+
+#include <strmif.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include <uuids.h>
+#endif // UUIDS_H
+#endif // _MSC_VER
 
 // C RunTime Header Files
 //#include <sstream>

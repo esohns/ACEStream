@@ -24,19 +24,28 @@
 
 #include <sstream>
 
-#include <oleauto.h>
+#include <amvideo.h>
 #include <d3d9types.h>
 #include <dmoreg.h>
-#include <dshow.h>
+//#include <dshow.h>
 #include <dvdmedia.h>
 #include <Dmodshow.h>
 #include <evr.h>
-#include <ks.h>
-#include <ksmedia.h>
+//#include <Ks.h>
+//#include <ksmedia.h>
+#include <KsProxy.h>
 #include <mediaobj.h>
 #include <qedit.h>
 #include <mfapi.h>
 #include <mferror.h>
+#include <OleAuto.h>
+#include <strmif.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include <uuids.h>
+#endif // UUIDS_H
 #include <wmcodecdsp.h>
 
 #include "ace/Log_Msg.h"
@@ -1467,11 +1476,12 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
       }
     } // end SWITCH
     ACE_ASSERT (!property_set_p);
-    result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
+    result = pin_p->QueryInterface (IID_IKsPropertySet,
+                                    (void**)&property_set_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IPin::QueryInterface(IID_IKsPropertySet): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
       pin_p->Release (); pin_p = NULL;
       enumerator_2->Release (); enumerator_2 = NULL;

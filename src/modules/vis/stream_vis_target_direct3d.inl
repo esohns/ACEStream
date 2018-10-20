@@ -509,9 +509,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       COM_initialized = true;
 
       // sanity check(s)
-      ACE_ASSERT (session_data_r.inputFormat);
+      ACE_ASSERT (!session_data_r.formats.empty ());
       resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (*session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
       ACE_ASSERT ((resolution_s.cx == direct3DConfiguration_->presentationParameters.BackBufferWidth) && (resolution_s.cy == direct3DConfiguration_->presentationParameters.BackBufferHeight));
       HWND window_handle_p =
         (direct3DConfiguration_->presentationParameters.Windowed ? direct3DConfiguration_->presentationParameters.hDeviceWindow
@@ -616,7 +616,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         result_2 =
           initialize_Direct3DDevice ((direct3DConfiguration_->presentationParameters.Windowed ? window_handle_p
                                                                                               : NULL),
-                                     *session_data_r.inputFormat,
+                                     session_data_r.formats.front (),
                                      direct3DConfiguration_->handle,
                                      direct3DConfiguration_->presentationParameters,
                                      defaultStride_,
@@ -635,7 +635,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (!direct3DConfiguration_->handle);
         if (unlikely (!initialize_Direct3D (*direct3DConfiguration_,
-                                            *session_data_r.inputFormat,
+                                            session_data_r.formats.front (),
                                             direct3DConfiguration_->handle,
                                             direct3DConfiguration_->presentationParameters,
                                             defaultStride_,
@@ -757,12 +757,12 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  ACE_ASSERT (session_data_r.inputFormat);
+  ACE_ASSERT (!session_data_r.formats.empty ());
   ACE_ASSERT (direct3DConfiguration_);
   ACE_ASSERT (direct3DConfiguration_->handle);
 
   Common_UI_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (*session_data_r.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
 
   // *IMPORTANT NOTE*: the configuration has to be updated at this stage !
 
@@ -824,7 +824,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   } // end ELSE
 
   HRESULT result =
-    resetDevice (*session_data_r.inputFormat,
+    resetDevice (session_data_r.formats.front (),
                  *direct3DConfiguration_,
                  direct3DConfiguration_->handle,
                  direct3DConfiguration_->presentationParameters,

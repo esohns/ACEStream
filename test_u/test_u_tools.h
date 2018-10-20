@@ -29,13 +29,13 @@
 class Test_U_Tools
 {
  public:
-  template <typename ThreadDataType,
-            typename CallbackDataType>
-  static bool spawn (const std::string&,      // thread name
-                     ACE_THR_FUNC,            // thread function
-                     int,                     // group id
-                     const CallbackDataType&, // callback data
-                     ACE_Thread_ID&);         // return value: thread id
+  //template <typename ThreadDataType,
+  //          typename CallbackDataType>
+  //static bool spawn (const std::string&,      // thread name
+  //                   ACE_THR_FUNC,            // thread function
+  //                   int,                     // group id
+  //                   const CallbackDataType&, // callback data
+  //                   ACE_Thread_ID&);         // return value: thread id
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_Tools ())

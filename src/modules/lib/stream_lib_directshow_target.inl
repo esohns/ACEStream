@@ -418,11 +418,11 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         // sanity check(s)
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
-        ACE_ASSERT (inherited::configuration_->inputFormat);
+        ACE_ASSERT (!session_data_r.formats.empty ());
 
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
-                        *inherited::configuration_->inputFormat,
+                        session_data_r.formats.back (),
                         inherited::configuration_->window,
                         IGraphBuilder_))
         {

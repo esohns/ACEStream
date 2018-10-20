@@ -21,23 +21,26 @@
 #ifndef STREAM_LIB_DIRECTSHOW_COMMON_H
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
+#include <deque>
 #include <list>
 #include <string>
 
-//// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
-////            incompatible versions of the IKsPropertySet interface.
-////            Applications that require the KS proxy module should use the
-////            version defined in ksproxy.h.The DirectSound version of
-////            IKsPropertySet is described in the DirectSound reference pages in
-////            the Microsoft Windows SDK documentation.
-////            If an application must include both ksproxy.h and dsound.h,
-////            whichever header file the compiler scans first is the one whose
-////            definition of IKsPropertySet is used by the compiler. ..."
+// *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
+//            incompatible versions of the IKsPropertySet interface.
+//            Applications that require the KS proxy module should use the
+//            version defined in ksproxy.h.The DirectSound version of
+//            IKsPropertySet is described in the DirectSound reference pages in
+//            the Microsoft Windows SDK documentation.
+//            If an application must include both ksproxy.h and dsound.h,
+//            whichever header file the compiler scans first is the one whose
+//            definition of IKsPropertySet is used by the compiler. ..."
 //#include <MMReg.h>
 #include <WinNT.h>
+#include <Guiddef.h>
 #include <Ks.h>
 #include <KsProxy.h>
 #include <MMSystem.h>
+#define INITGUID
 #include <dsound.h>
 #include <strmif.h>
 
@@ -49,7 +52,7 @@
 class ACE_Message_Queue_Base;
 class Stream_IAllocator;
 
-typedef std::list<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
+typedef std::deque<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
 typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
 
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration

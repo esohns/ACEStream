@@ -346,7 +346,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 {
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , deviceIdentifier ()
+   , interfaceIdentifier ()
    , fullScreen (false)
 #if defined (GTK_USE)
    , area ()
@@ -360,7 +360,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
     hasHeader = true;
   }
 
-  std::string      deviceIdentifier;
+  std::string      interfaceIdentifier; // display-
   bool             fullScreen;
 #if defined (GTK_USE)
   GdkRectangle     area;
@@ -548,7 +548,7 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , v4l2Window (NULL)
   {
     // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
-    deviceIdentifier = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+    interfaceIdentifier = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
 
     ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
     ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));

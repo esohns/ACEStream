@@ -23,6 +23,18 @@
 
 #include <map>
 #include <string>
+#include <utility>
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <mfobjects.h>
+#else
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/pixfmt.h"
+}
+#endif /* __cplusplus */
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -93,6 +105,10 @@ struct Stream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , outputFormat (AV_PIX_FMT_NONE)
+#endif // ACE_WIN32 || ACE_WIN64
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
@@ -131,6 +147,10 @@ struct Stream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                    messageAllocator;
   Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  enum AVPixelFormat                    outputFormat;
+#endif
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
   bool                                  passive;                     // network/device/... module(s)
   bool                                  printFinalReport;            // statistic module(s)
@@ -142,6 +162,29 @@ struct Stream_ModuleHandlerConfiguration
   ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;             // message handler module
   Common_ITimer_t*                      timerManager;
 };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Stream_DirectShow_ModuleHandlerConfiguration
+ : Stream_ModuleHandlerConfiguration
+{
+   Stream_DirectShow_ModuleHandlerConfiguration ()
+   : Stream_ModuleHandlerConfiguration ()
+   , outputFormat (NULL)
+  {}
+
+  struct _AMMediaType* outputFormat;
+};
+
+struct Stream_MediaFoundation_ModuleHandlerConfiguration
+ : Stream_ModuleHandlerConfiguration
+{
+   Stream_MediaFoundation_ModuleHandlerConfiguration ()
+   : Stream_ModuleHandlerConfiguration ()
+   , outputFormat (NULL)
+  {}
+
+  IMFMediaType* outputFormat;
+};
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_Configuration;
 struct Stream_ModuleConfiguration

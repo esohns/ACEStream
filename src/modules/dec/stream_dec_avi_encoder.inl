@@ -845,7 +845,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType* format_p = &getFormat (*session_data_r.inputFormat);
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      struct _AMMediaType* format_p = &getFormat (session_data_r.formats.back ());
       format_ =
         Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (format_p->subtype,
                                                                   STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
@@ -856,7 +857,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                      width_, height_);
       Stream_MediaFramework_DirectShow_Tools::delete_ (format_p);
 #else
-      format_ = getFormat (session_data_r.inputFormat);
+      format_ = getFormat (session_data_r.formats.back ());
       frame_rate_s = getFrameRate (session_data_r,
                                    format_);
       getResolution (session_data_r,
@@ -1238,10 +1239,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // sanity check(s)
-  ACE_ASSERT (session_data_r.inputFormat);
+  ACE_ASSERT (!session_data_r.formats.empty ());
 
   // *NOTE*: need to reclaim this memory (see below)
-  struct _AMMediaType* media_type_p = &getFormat (*session_data_r.inputFormat);
+  struct _AMMediaType* media_type_p = &getFormat (session_data_r.formats.back ());
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;

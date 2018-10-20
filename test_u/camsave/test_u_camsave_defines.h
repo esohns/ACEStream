@@ -36,8 +36,7 @@
 #endif // WXWIDGETS_USE
 
 //---------------------------------------
-#if defined (GTK_SUPPORT)
-// gtk
+#if defined (GTK_USE)
 #define TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME                  "action_cut"
 #define TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME               "action_report"
 #define TEST_U_STREAM_UI_GTK_ACTION_SNAPSHOT_NAME             "action_snapshot"
@@ -83,14 +82,10 @@
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME           "toggleaction_save"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                    "textview"
 #define TEST_U_STREAM_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
-#endif // GTK_SUPPORT
-
-//---------------------------------------
-// wxWidgets
-#if defined (WXWIDGETS_SUPPORT)
+#elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"
 #define TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME "wxDialog"
-#endif // WXWIDGETS_SUPPORT
+#endif
 #endif // GUI_SUPPORT
 
 #endif

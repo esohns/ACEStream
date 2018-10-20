@@ -48,7 +48,12 @@
 #include <qedit.h>
 #include <strsafe.h>
 //#include <strmif.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 #include <vfwmsgs.h>
 #include <wmcodecdsp.h>
 
@@ -910,11 +915,8 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
     //  ACE_DEBUG ((LM_ERROR,
     //    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
     //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    //  // clean up
     //  pin_p->Release ();
     //  enumerator_p->Release ();
-
     //  goto error;
     //} // end IF
     //ACE_ASSERT (property_set_p);
@@ -926,18 +928,14 @@ Stream_MediaFramework_DirectShow_Tools::pin (IBaseFilter* filter_in,
     //  ACE_DEBUG ((LM_ERROR,
     //    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
     //    ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-    //  // clean up
     //  property_set_p->Release ();
     //  pin_p->Release ();
     //  enumerator_p->Release ();
-
     //  goto error;
     //} // end IF
     //ACE_ASSERT (returned_size == sizeof (struct _GUID));
     //if (GUID_s == PIN_CATEGORY_CAPTURE)
     //  break;
-
     //property_set_p->Release ();
     //pin_p->Release ();
     //pin_p = NULL;
@@ -3231,7 +3229,7 @@ Stream_MediaFramework_DirectShow_Tools::match (const struct tagVIDEOINFOHEADER& 
   if (videoInfo_in.dwBitRate != videoInfo2_in.dwBitRate)
     return false;
   if (!Stream_MediaFramework_DirectShow_Tools::match (videoInfo_in.bmiHeader,
-                                                                videoInfo2_in.bmiHeader))
+                                                      videoInfo2_in.bmiHeader))
     return false;
 
   return true;
@@ -3260,6 +3258,18 @@ Stream_MediaFramework_DirectShow_Tools::match (const struct tagVIDEOINFOHEADER2&
     return false;
   return Stream_MediaFramework_DirectShow_Tools::match (videoInfo_in.bmiHeader,
                                                         videoInfo2_in.bmiHeader);
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::free (Stream_MediaFramework_DirectShow_Formats_t& mediaTypes_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::free"));
+
+  while (!mediaTypes_in.empty ())
+  {
+    FreeMediaType (mediaTypes_in.front ());
+    mediaTypes_in.pop_front ();
+  } // end WHILE
 }
 
 bool
@@ -3337,6 +3347,48 @@ fallback:
 continue_:
 
   return true;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::resize (const Common_UI_Resolution_t& size_in,
+                                                struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::resize"));
+
+  if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+
+    video_info_header_p->bmiHeader.biWidth = size_in.cx;
+    video_info_header_p->bmiHeader.biHeight = size_in.cy;
+    video_info_header_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header_p->bmiHeader);
+
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+
+    video_info_header2_p->bmiHeader.biWidth = size_in.cx;
+    video_info_header2_p->bmiHeader.biHeight = size_in.cy;
+    video_info_header2_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header2_p->bmiHeader);
+
+    video_info_header2_p->dwBitRate =
+      (video_info_header2_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
+      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+  } // end ELSE
 }
 
 struct _AMMediaType*

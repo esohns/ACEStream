@@ -42,7 +42,12 @@
 #include <combase.h>
 #include <dllsetup.h>
 #include <strsafe.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 #include <WinReg.h>
 #else

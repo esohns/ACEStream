@@ -13,9 +13,16 @@
 // Windows Header Files
 #include <windows.h>
 
+#include <Guiddef.h>
 #include <strmif.h>
 #include <reftime.h>
 //#include <streams.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include <uuids.h>
+#endif // UUIDS_H
 #endif // _MSC_VER
 
 // C RunTime Header Files

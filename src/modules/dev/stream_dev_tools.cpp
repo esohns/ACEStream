@@ -32,7 +32,12 @@
 #include <dxva2api.h>
 //#include <minwindef.h>
 #include <strmif.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 #include <windef.h>
 #include <WinUser.h>
 #endif // ACE_WIN32 || ACE_WIN64

@@ -110,12 +110,12 @@
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
 #if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_SUPPORT)
+#if defined (WXWIDGETS_USE)
 const char toplevel_widget_classname_string_[] =
   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
 const char toplevel_widget_name_string_[] =
   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
-#endif // WXWIDGETS_SUPPORT
+#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 void
@@ -245,7 +245,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
-                     std::string& captureDeviceIdentifier_out,
+                     std::string& captureinterfaceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -274,7 +274,7 @@ do_processArguments (int argc_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      captureDeviceIdentifier_out =
+      captureinterfaceIdentifier_out =
         Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
       break;
     }
@@ -296,10 +296,10 @@ do_processArguments (int argc_in,
   } // end SWITCH
   showConsole_out = false;
 #else
-  captureDeviceIdentifier_out =
+  captureinterfaceIdentifier_out =
     ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  captureDeviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  captureDeviceIdentifier_out +=
+  captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  captureinterfaceIdentifier_out +=
     ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
@@ -369,7 +369,7 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
-        captureDeviceIdentifier_out =
+        captureinterfaceIdentifier_out =
             ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
@@ -755,7 +755,7 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
 }
 
 bool
-do_initialize_mediafoundation (const std::string& captureDeviceIdentifier_in,
+do_initialize_mediafoundation (const std::string& captureinterfaceIdentifier_in,
                                HWND windowHandle_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
@@ -826,18 +826,18 @@ continue_:
   //ACE_ASSERT (IAMStreamConfig_out);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (captureDeviceIdentifier_in,
+  if (!Stream_Device_MediaFoundation_Tools::getMediaSource (captureinterfaceIdentifier_in,
                                                             MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                             media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
-                ACE_TEXT (captureDeviceIdentifier_in.c_str ())));
+                ACE_TEXT (captureinterfaceIdentifier_in.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
 
-  if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (captureDeviceIdentifier_in,
+  if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (captureinterfaceIdentifier_in,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p,
                                                                 NULL,
@@ -955,7 +955,7 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (const std::string& captureDeviceIdentifier_in,
+do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1039,8 +1039,8 @@ do_work (const std::string& captureDeviceIdentifier_in,
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         &directShowConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      directshow_modulehandler_configuration.deviceIdentifier =
-        captureDeviceIdentifier_in;
+      directshow_modulehandler_configuration.interfaceIdentifier =
+        captureinterfaceIdentifier_in;
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       //directshow_modulehandler_configuration.pixelBufferLock =
@@ -1062,8 +1062,8 @@ do_work (const std::string& captureDeviceIdentifier_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      mediafoundation_modulehandler_configuration.deviceIdentifier =
-        captureDeviceIdentifier_in;
+      mediafoundation_modulehandler_configuration.interfaceIdentifier =
+        captureinterfaceIdentifier_in;
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
       //mediafoundation_modulehandler_configuration.pixelBufferLock =
@@ -1094,7 +1094,7 @@ do_work (const std::string& captureDeviceIdentifier_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.streamConfiguration.allocatorConfiguration_;
-  modulehandler_configuration.deviceIdentifier = captureDeviceIdentifier_in;
+  modulehandler_configuration.interfaceIdentifier = captureinterfaceIdentifier_in;
   modulehandler_configuration.pixelBufferLock =
     configuration_in.pixelBufferLock;
   // *TODO*: turn these into an option
@@ -1157,7 +1157,7 @@ do_work (const std::string& captureDeviceIdentifier_in,
                                                                  directshow_modulehandler_configuration,
                                                                  directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
                                                                  directShowConfiguration_in.streamConfiguration.configuration_);
-      directshow_modulehandler_configuration.deviceIdentifier =
+      directshow_modulehandler_configuration.interfaceIdentifier =
         displayDevice_in.device;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
                                                                              std::make_pair (module_configuration,
@@ -1262,7 +1262,7 @@ do_work (const std::string& captureDeviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (!do_initialize_directshow (captureDeviceIdentifier_in,
+      if (!do_initialize_directshow (captureinterfaceIdentifier_in,
                                      UIDefinitionFilename_in.empty (),  // initialize COM ?
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      (*directshow_stream_iterator).second.second.builder,
@@ -1287,7 +1287,7 @@ do_work (const std::string& captureDeviceIdentifier_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!do_initialize_mediafoundation (captureDeviceIdentifier_in,
+      if (!do_initialize_mediafoundation (captureinterfaceIdentifier_in,
                                           window_handle,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                           (*mediafoundation_stream_iterator).second.second.session,

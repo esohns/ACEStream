@@ -29,7 +29,12 @@
 #include <dvdmedia.h>
 #include <dxva.h>
 #include <fourcc.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 #include <mfapi.h>
 #include <wmcodecdsp.h>
 #endif // ACE_WIN32 || ACE_WIN64

@@ -25,13 +25,12 @@
 #endif // __WXDEBUG__
 #include <wxdebug.h>
 #endif // DEBUG
-// *NOTE*: uuids.h does not have double include protection (?) (and is therefore
-//         really a PITA to integrate consistently)
-// *NOTE*: M******** obviously relies on precompilation features to get this
-//         right; Note how this apparently precludes chances of meaningful
-//         compiler standardization at this stage; YMMV
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
 #define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 
 //#include <streams.h>
 #endif // _MSC_VER

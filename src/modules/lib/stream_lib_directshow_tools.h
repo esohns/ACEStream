@@ -31,7 +31,7 @@
 #include <windef.h>
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 //#include <winnt.h>
-#include <CGuid.h>
+#include <Ks.h>
 #include <Guiddef.h>
 #include <evr.h>
 #include <mtype.h>
@@ -167,8 +167,11 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType* copy (const struct _AMMediaType&);
   inline static void delete_ (struct _AMMediaType*& mediaType_inout) { DeleteMediaType (mediaType_inout); mediaType_inout = NULL; }
   inline static void free (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); }
+  static void free (Stream_MediaFramework_DirectShow_Formats_t&);
   static bool match (const struct _AMMediaType&,  // media type
                      const struct _AMMediaType&); // media type
+  static void resize (const Common_UI_Resolution_t&, // new size
+                      struct _AMMediaType&);         // in/out: media type
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }

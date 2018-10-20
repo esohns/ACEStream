@@ -119,11 +119,12 @@ class Stream_Decoder_LibAVDecoder_T
   // helper methods
   DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
                                     unsigned int);                       // requested size
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  template <typename FormatType> const enum AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
-
+  template <typename FormatType> const AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
   inline const enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat& format_in) { return format_in; }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  inline const enum AVPixelFormat& getFormat_impl (const struct _AMMediaType* mediaType_in) { ACE_ASSERT (mediaType_in); return Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (mediaType_in->subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW); }
+  inline const enum AVPixelFormat& getFormat_impl (const IMFMediaType* mediaType_in) { ACE_ASSERT (mediaType_in); struct _GUID subtype_s = GUID_NULL; HRESULT result = const_cast<IMFMediaType*> (mediaType_in)->GetGUID (MF_MT_SUBTYPE, &subtype_s); ACE_ASSERT (SUCCEEDED (result) && !InlineIsEqualGUID (subtype_s, GUID_NULL)); return Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (subtype_s, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION); }
+#else
   inline const enum AVPixelFormat& getFormat_impl (const struct v4l2_format& format_in) { return Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_in.fmt.pix.pixelformat); }
 #endif // ACE_WIN32 || ACE_WIN64
 

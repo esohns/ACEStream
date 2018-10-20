@@ -32,12 +32,6 @@
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else
-//#ifndef OUR_GUID_ENTRY
-//    #define OUR_GUID_ENTRY(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-//    DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8);
-//#endif
-//OUR_GUID_ENTRY(FORMAT_VideoInfo,
-//0x05589f80, 0xc356, 0x11ce, 0xbf, 0x01, 0x00, 0xaa, 0x00, 0x55, 0x59, 0x5a)
 #define UUIDS_H
 #include <uuids.h>
 #endif // UUIDS_H
@@ -443,9 +437,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         (inherited::configuration_->area.right -
          inherited::configuration_->area.left);
 
-      ACE_ASSERT (session_data_r.inputFormat);
+      ACE_ASSERT (!session_data_r.formats.empty ());
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (*session_data_r.inputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (session_data_r.formats.back ());
       if (unlikely (!media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -727,10 +721,8 @@ error:
       IBaseFilter* filter_p = NULL;
       IPin* pin_p = NULL;
       enum _FilterState filter_state = State_Stopped;
-      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-      unsigned int width, height;
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      Common_UI_Resolution_t resolution_s;
 
       result_2 =
         inherited::IMediaControl_->GetState (INFINITE,
@@ -822,58 +814,9 @@ error:
       } // end IF
 
       // update the source filter input media format and reconnect
-      ACE_ASSERT (session_data_r.inputFormat);
-      ACE_ASSERT (session_data_r.inputFormat->pbFormat);
-      if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo))
-      {
-        video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
-        width = video_info_header_p->bmiHeader.biWidth;
-        height = video_info_header_p->bmiHeader.biHeight;
-      } // end IF
-      else if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo2))
-      {
-        video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
-        width = video_info_header2_p->bmiHeader.biWidth;
-        height = video_info_header2_p->bmiHeader.biHeight;
-      } // end ELSE IF
-      else
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::GUIDToString (session_data_r.inputFormat->formattype).c_str ())));
-        goto error_2;
-      } // end ELSE
-      if (InlineIsEqualGUID (filter_graph_configuration.front ().mediaType->formattype, FORMAT_VideoInfo))
-      { 
-        video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (filter_graph_configuration.front ().mediaType->pbFormat);
-        video_info_header_p->bmiHeader.biWidth = width;
-        video_info_header_p->bmiHeader.biHeight =
-          ((video_info_header_p->bmiHeader.biHeight < 0) ? -static_cast<LONG> (height) : height);
-        video_info_header_p->bmiHeader.biSizeImage =
-          DIBSIZE (video_info_header_p->bmiHeader);
-      } // end IF
-      else if (InlineIsEqualGUID (filter_graph_configuration.front ().mediaType->formattype, FORMAT_VideoInfo2))
-      {
-        video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (filter_graph_configuration.front ().mediaType->pbFormat);
-        video_info_header2_p->bmiHeader.biWidth = width;
-        video_info_header2_p->bmiHeader.biHeight =
-          ((video_info_header2_p->bmiHeader.biHeight < 0) ? -static_cast<LONG> (height) : height);
-        video_info_header2_p->bmiHeader.biSizeImage =
-          DIBSIZE (video_info_header2_p->bmiHeader);
-      } // end ELSE IF
-      else
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::GUIDToString (filter_graph_configuration.front ().mediaType->formattype).c_str ())));
-        goto error_2;
-      } // end ELSE
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      Stream_MediaFramework_DirectShow_Tools::resize (Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ()),
+                                                      *filter_graph_configuration.front ().mediaType);
       if (unlikely (!Stream_MediaFramework_DirectShow_Tools::connect (inherited::IGraphBuilder_,
                                                                       filter_graph_configuration)))
       {
@@ -1176,7 +1119,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
   display_device_s =
-    Common_UI_Tools::getDisplay (inherited::configuration_->deviceIdentifier);
+    Common_UI_Tools::getDisplay (inherited::configuration_->interfaceIdentifier);
   ACE_ASSERT (display_device_s.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
@@ -1186,7 +1129,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ()),
+                ACE_TEXT (inherited::configuration_->interfaceIdentifier.c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
     goto error;
   } // end IF

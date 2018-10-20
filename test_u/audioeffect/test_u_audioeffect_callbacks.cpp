@@ -29,12 +29,17 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <Dmo.h>
-//#include <streams.h>
 #include <mfapi.h>
 #include <mferror.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
+#include <OleAuto.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
 #include <uuids.h>
+#endif // UUIDS_H
 
 #if defined (GTKGL_SUPPORT)
 #include <gl/GL.h>

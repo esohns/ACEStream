@@ -11,6 +11,8 @@
 
 // Windows Header Files
 #include <windows.h>
+
+#include <Guiddef.h>
 #endif
 
 // C RunTime Header Files
