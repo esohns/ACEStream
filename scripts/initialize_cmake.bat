@@ -51,7 +51,7 @@ if NOT exist "!CMAKE!" (
 
 @rem set CMakeParameters=-DCMAKE_SYSTEM_VERSION=10.0.10586.0 -G "Visual Studio 14 2015" -T v140 -Wdev
 set CMakeParameters=-G "Visual Studio 14 2015" -Wdev
-set Projects=libCommon libACEStream libACENetwork
+set Projects=Common ACEStream ACENetwork
 for %%a in (%Projects%) do (
  set ProjectPath=%ProjectsDirectory%\%%a
  if NOT exist "!ProjectPath!" (

@@ -12,7 +12,7 @@ Packager:     Erik Sohns <@MAINTAINER_EMAIL_ADDRESS@>
 Prefix:       /usr/local
 Provides:     %{name}
 Release:      1
-Requires:     libCommon
+Requires:     Common
 #Serial:       1
 Source:       %{name}-%{version}.tar.gz
 Summary:      @PACKAGE_DESCRIPTION_SUMMARY@
@@ -43,12 +43,12 @@ ATCD_ROOT=$PROJECT_ROOT_MODULES/ATCD
 ln -s  $ATCD_ROOT modules/ATCD
 [ $? -ne 0 ] && echo "ERROR: failed to link ATCD project, aborting" && exit 1
 
-#rm -rf modules/libCommon
-#[ $? -ne 0 ] && echo "ERROR: failed to rm modules/libCommon, aborting" && exit 1
-LIBCOMMON_ROOT=$PROJECT_ROOT_MODULES/libCommon
-[ ! -d $LIBCOMMON_ROOT ] && echo "ERROR: libCommon project not found, aborting" && exit 1
-ln -s  $LIBCOMMON_ROOT modules/libCommon
-[ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+#rm -rf modules/Common
+#[ $? -ne 0 ] && echo "ERROR: failed to rm modules/Common, aborting" && exit 1
+LIBCOMMON_ROOT=$PROJECT_ROOT_MODULES/Common
+[ ! -d $LIBCOMMON_ROOT ] && echo "ERROR: Common project not found, aborting" && exit 1
+ln -s  $LIBCOMMON_ROOT modules/Common
+[ $? -ne 0 ] && echo "ERROR: failed to link Common project, aborting" && exit 1
 
 MODULES_ROOT=src/modules
 [ ! -d $MODULES_ROOT ] && echo "ERROR: project modules directory not found, aborting" && exit 1
@@ -59,8 +59,8 @@ mkdir $MODULES_ROOT_NET_NETWORK_MODULES
 
 ln -s $ATCD_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/ATCD
 [ $? -ne 0 ] && echo "ERROR: failed to link ATCD project, aborting" && exit 1
-ln -s $LIBCOMMON_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/libCommon
-[ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+ln -s $LIBCOMMON_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/Common
+[ $? -ne 0 ] && echo "ERROR: failed to link Common project, aborting" && exit 1
 ln -s  $PROJECT_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/libACEStream
 [ $? -ne 0 ] && echo "ERROR: failed to link libACEStream project, aborting" && exit 1
 
@@ -71,8 +71,8 @@ mkdir $TEST_I_ROOT_NETWORK_MODULES
 
 ln -s $ATCD_ROOT $TEST_I_ROOT_NETWORK_MODULES/ATCD
 [ $? -ne 0 ] && echo "ERROR: failed to link ATCD project, aborting" && exit 1
-ln -s $LIBCOMMON_ROOT $TEST_I_ROOT_NETWORK_MODULES/libCommon
-[ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+ln -s $LIBCOMMON_ROOT $TEST_I_ROOT_NETWORK_MODULES/Common
+[ $? -ne 0 ] && echo "ERROR: failed to link Common project, aborting" && exit 1
 ln -s  $PROJECT_ROOT $TEST_I_ROOT_NETWORK_MODULES/libACEStream
 [ $? -ne 0 ] && echo "ERROR: failed to link libACEStream project, aborting" && exit 1
 

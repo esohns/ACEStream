@@ -43,7 +43,7 @@ endif (WIN32)
 include (FindPkgConfig)
 if (UNIX)
  #pkg_check_modules (PKG_ACE REQUIRED ACE)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
@@ -61,7 +61,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -107,10 +107,10 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
@@ -127,11 +127,11 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
@@ -358,8 +358,8 @@ add_test (NAME ${EXECUTABLE_SOURCE}_test
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 set_tests_properties (${EXECUTABLE_SOURCE}_test
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
-#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\ffmpeg\libavcodec;$(ProjectDir)..\..\..\..\ffmpeg\libavresample;$(ProjectDir)..\..\..\..\ffmpeg\libavutil;$(ProjectDir)..\..\..\..\libCommon\cmake\src\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\ui\Debug;$(ProjectDir)..\..\..\cmake\src\Debug;$(ProjectDir)..\..\..\cmake\src\modules\dev\Debug;$(ProjectDir)..\..\..\cmake\src\modules\vis\Debug;$(ProjectDir)..\..\..\..\libACENetwork\cmake\src\Debug
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\ffmpeg\libavcodec;$(ProjectDir)..\..\..\..\ffmpeg\libavresample;$(ProjectDir)..\..\..\..\ffmpeg\libavutil;$(ProjectDir)..\..\..\..\Common\cmake\src\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\ui\Debug;$(ProjectDir)..\..\..\cmake\src\Debug;$(ProjectDir)..\..\..\cmake\src\modules\dev\Debug;$(ProjectDir)..\..\..\cmake\src\modules\vis\Debug;$(ProjectDir)..\..\..\..\libACENetwork\cmake\src\Debug
 
 ############## next target ################
 
@@ -615,8 +615,8 @@ if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                            ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                            ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/${CMAKE_BUILD_TYPE}
@@ -630,9 +630,9 @@ elseif (WIN32)
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                            ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/${CMAKE_BUILD_TYPE}
@@ -664,5 +664,5 @@ add_test (NAME ${EXECUTABLE_TARGET}_test
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 set_tests_properties (${EXECUTABLE_TARGET}_test
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
-#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\ffmpeg\libavcodec;$(ProjectDir)..\..\..\..\ffmpeg\libavresample;$(ProjectDir)..\..\..\..\ffmpeg\libavutil;$(ProjectDir)..\..\..\..\libCommon\cmake\src\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\ui\Debug;$(ProjectDir)..\..\..\cmake\src\Debug;$(ProjectDir)..\..\..\cmake\src\modules\dev\Debug;$(ProjectDir)..\..\..\cmake\src\modules\vis\Debug;$(ProjectDir)..\..\..\..\libACENetwork\cmake\src\Debug
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\ffmpeg\libavcodec;$(ProjectDir)..\..\..\..\ffmpeg\libavresample;$(ProjectDir)..\..\..\..\ffmpeg\libavutil;$(ProjectDir)..\..\..\..\Common\cmake\src\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\ui\Debug;$(ProjectDir)..\..\..\cmake\src\Debug;$(ProjectDir)..\..\..\cmake\src\modules\dev\Debug;$(ProjectDir)..\..\..\cmake\src\modules\vis\Debug;$(ProjectDir)..\..\..\..\libACENetwork\cmake\src\Debug

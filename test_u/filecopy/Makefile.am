@@ -45,12 +45,12 @@ stream_filecopy_SOURCES = \
 #  stdafx.cpp \
 #  stdafx.h
 
-#  -I$(top_srcdir)/modules/libCommon/src \
-#  -I$(top_srcdir)/modules/libCommon/src/ui
+#  -I$(top_srcdir)/modules/Common/src \
+#  -I$(top_srcdir)/modules/Common/src/ui
 stream_filecopy_CPPFLAGS = \
   $(AM_CPPFLAGS) \
-  -I$(top_srcdir)/../libCommon/src \
-  -I$(top_srcdir)/../libCommon/src/ui \
+  -I$(top_srcdir)/../Common/src \
+  -I$(top_srcdir)/../Common/src/ui \
   -I$(top_srcdir)/src \
   -I$(top_srcdir)/src/modules/file \
   -I$(top_srcdir)/src/modules/misc \
@@ -58,8 +58,8 @@ stream_filecopy_CPPFLAGS = \
 stream_filecopy_LDFLAGS = \
   -L$(abs_top_srcdir)/modules/ATCD/ACE/build/linux/lib \
   $(PKGGTK_LDFLAGS) \
-  -L$(abs_builddir)/../../modules/libCommon/src/.libs \
-  -L$(abs_builddir)/../../modules/libCommon/src/ui/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/ui/.libs \
   -L$(abs_builddir)/../../src/.libs \
   -L$(abs_builddir)/../../src/modules/file/.libs \
   -L$(abs_builddir)/../../src/modules/misc/.libs

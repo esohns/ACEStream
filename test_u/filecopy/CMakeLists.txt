@@ -40,7 +40,7 @@ add_definitions (-DACE_HAS_DLL)
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
@@ -65,7 +65,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -101,11 +101,11 @@ if (UNIX)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
  endif (DEFINED ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/cmake)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  if (DEFINED ENV{ACE_ROOT})
@@ -114,11 +114,11 @@ elseif (WIN32)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
  endif (DEFINED ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/cmake)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
@@ -246,8 +246,8 @@ if (UNIX)
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
@@ -260,9 +260,9 @@ elseif (WIN32)
                           RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                                ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                                G:/software/Development/dll
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
@@ -276,9 +276,9 @@ elseif (WIN32)
                           RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                                ${PROJECT_SOURCE_DIR}/../gtk2/bin
                                                G:/software/Development/dll
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                                ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
@@ -294,5 +294,5 @@ add_test (NAME ${EXECUTABLE}_test
 
 set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
-#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\libav-11.7\libavcodec;$(ProjectDir)..\..\..\..\libav-11.7\libavresample;$(ProjectDir)..\..\..\..\libav-11.7\libavutil;$(ProjectDir)..\..\..\..\libCommon\cmake\src\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\ui\Debug;$(ProjectDir)..\..\src\Debug;$(ProjectDir)..\..\src\modules\dev\Debug;$(ProjectDir)..\..\src\modules\vis\Debug
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\libav-11.7\libavcodec;$(ProjectDir)..\..\..\..\libav-11.7\libavresample;$(ProjectDir)..\..\..\..\libav-11.7\libavutil;$(ProjectDir)..\..\..\..\Common\cmake\src\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\ui\Debug;$(ProjectDir)..\..\src\Debug;$(ProjectDir)..\..\src\modules\dev\Debug;$(ProjectDir)..\..\src\modules\vis\Debug

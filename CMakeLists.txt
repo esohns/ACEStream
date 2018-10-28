@@ -1,12 +1,12 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/PreToolChain.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/SetToolChain.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/ToolChain.cmake)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/PreToolChain.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/SetToolChain.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/ToolChain.cmake)
 # *NOTE*: or use the cmake.exe '-T' option instead
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/SetTargetPlatform.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/TargetPlatform.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/SetTargetPlatform.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/TargetPlatform.cmake)
 
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/Configuration.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../libCommon/scripts/Macros.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/Configuration.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Common/scripts/Macros.cmake)
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/scripts/VersionConfig.cmake)
 

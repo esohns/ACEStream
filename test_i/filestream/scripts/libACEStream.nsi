@@ -1,4 +1,4 @@
-; libACEStream.nsi
+; ACEStream.nsi
 ;--------------------------------
 
 ; Includes
@@ -6,16 +6,16 @@
 ;--------------------------------
 
 ; Metadata
-!searchparse /file "..\..\..\libCommon\src\common_defines.h" `#define COMMON_LOCATION_CONFIGURATION_DIRECTORY       "` CONFIGURATION_SUBDIR `"`
+!searchparse /file "..\..\..\Common\src\common_defines.h" `#define COMMON_LOCATION_CONFIGURATION_DIRECTORY       "` CONFIGURATION_SUBDIR `"`
 ;!define CONFIGURATION_SUBDIR "etc"
 !searchparse /file "..\..\configure.ac" `m4_define([M4_PACKAGE_NAME], [` PROGRAM `])`
-;!define PROGRAM "libACEStream"
-!searchparse /file "..\..\scripts\libACEStream.spec.in" `Summary:      ` SUMMARY `\n`
+;!define PROGRAM "ACEStream"
+!searchparse /file "..\..\scripts\ACEStream.spec.in" `Summary:      ` SUMMARY `\n`
 
-!searchparse /file "..\..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MAJOR], [` VER_MAJOR `])`
-!searchparse /file "..\..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MINOR], [` VER_MINOR `])`
-!searchparse /file "..\..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MICRO], [` VER_MICRO `])`
-!searchparse /file "..\..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_DEVEL], [` DEVEL `])`
+!searchparse /file "..\..\configure.ac" `m4_define([M4_ACEStream_VERSION_MAJOR], [` VER_MAJOR `])`
+!searchparse /file "..\..\configure.ac" `m4_define([M4_ACEStream_VERSION_MINOR], [` VER_MINOR `])`
+!searchparse /file "..\..\configure.ac" `m4_define([M4_ACEStream_VERSION_MICRO], [` VER_MICRO `])`
+!searchparse /file "..\..\configure.ac" `m4_define([M4_ACEStream_VERSION_DEVEL], [` DEVEL `])`
 !define PLATFORM "Win32"
 ;!define PROGRAM "stream filecopy|source/target"
 
@@ -138,15 +138,15 @@ File "D:\projects\libglade\bin\libglade-2.0-0.dll"
 File "F:\software\Development\libiconv-2.dll"
 File "F:\software\Development\libxml2-2.dll"
 
-File "..\..\prj\msvc\${release}\${PLATFORM}\libCommon.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libCommon_UI.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACEStream.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACEStream_File.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACEStream_Misc.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACEStream_Net.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACENetwork.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACENetwork_Client.dll"
-File "..\..\prj\msvc\${release}\${PLATFORM}\libACENetwork_Server.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\Common.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\Common_UI.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACEStream.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACEStream_File.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACEStream_Misc.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACEStream_Net.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACENetwork.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACENetwork_Client.dll"
+File "..\..\prj\msvc\${release}\${PLATFORM}\ACENetwork_Server.dll"
 File "..\..\prj\msvc\${release}\${PLATFORM}\test_u_filecopy.exe"
 File "..\..\prj\msvc\${release}\${PLATFORM}\test_i_streamsource.exe"
 File "..\..\prj\msvc\${release}\${PLATFORM}\test_i_streamtarget.exe"

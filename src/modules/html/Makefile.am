@@ -40,7 +40,7 @@ libACEStream_HTML_la_SOURCES = \
 
 libACEStream_HTML_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
-  -I$(top_srcdir)/modules/libCommon/src \
+  -I$(top_srcdir)/modules/Common/src \
   -I$(srcdir)/../..
 libACEStream_HTML_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@

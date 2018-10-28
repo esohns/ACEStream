@@ -39,7 +39,7 @@ add_definitions (-DACE_HAS_DLL)
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
@@ -57,7 +57,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -96,9 +96,9 @@ if (UNIX)
  else ()
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
@@ -109,11 +109,11 @@ elseif (WIN32)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
  include_directories ($ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/error)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/error)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
@@ -271,8 +271,8 @@ if (UNIX)
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
 #                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
 #                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -286,9 +286,9 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -302,7 +302,7 @@ add_test (NAME filestream_source
 
 set_tests_properties (filestream_source
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
 
 ############## next target ################
 set (filetarget_EXE_SRCS
@@ -420,8 +420,8 @@ if (UNIX)
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
 #                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
 #                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -435,9 +435,9 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -451,4 +451,4 @@ add_test (NAME ${EXECUTABLE_TARGET}_test
 
 set_tests_properties (${EXECUTABLE_TARGET}_test
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")

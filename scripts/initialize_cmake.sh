@@ -31,9 +31,9 @@ PROJECTS_DIRECTORY=${DEFAULT_PROJECTS_DIRECTORY}
 echo "set projects directory: \"${PROJECTS_DIRECTORY}\""
 
 CMAKE_PARAMETERS=$'-G \"Unix Makefiles\" -Wdev'
-PROJECTS="libCommon
-libACEStream
-libACENetwork"
+PROJECTS="Common
+ACEStream
+ACENetwork"
 for PROJECT in $PROJECTS
 do
  PROJECT_PATH="${PROJECTS_DIRECTORY}/${PROJECT}"

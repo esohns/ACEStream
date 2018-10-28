@@ -57,24 +57,24 @@ stream_source_SOURCES = \
 
 stream_source_CPPFLAGS = \
   $(AM_CPPFLAGS) \
-  -I$(top_srcdir)/modules/libCommon/src \
-  -I$(top_srcdir)/modules/libCommon/src/ui \
+  -I$(top_srcdir)/modules/Common/src \
+  -I$(top_srcdir)/modules/Common/src/ui \
   -I$(top_srcdir)/src \
   -I$(top_srcdir)/src/modules/file \
   -I$(top_srcdir)/src/modules/misc \
-  -I$(srcdir)/modules/libACENetwork/src \
-  -I$(srcdir)/modules/libACENetwork/src/client_server \
+  -I$(srcdir)/modules/ACENetwork/src \
+  -I$(srcdir)/modules/ACENetwork/src/client_server \
   -I$(top_srcdir)/src/modules/net
 stream_source_LDFLAGS = \
   -L$(abs_top_srcdir)/modules/ATCD/ACE/build/linux/lib \
   $(PKGGTK_LDFLAGS) \
-  -L$(abs_builddir)/../../modules/libCommon/src/.libs \
-  -L$(abs_builddir)/../../modules/libCommon/src/ui/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/ui/.libs \
   -L$(abs_builddir)/../../src/.libs \
   -L$(abs_builddir)/../../src/modules/file/.libs \
   -L$(abs_builddir)/../../src/modules/misc/.libs \
-  -L$(abs_builddir)/modules/libACENetwork/src/.libs \
-  -L$(abs_builddir)/modules/libACENetwork/src/client_server/.libs \
+  -L$(abs_builddir)/modules/ACENetwork/src/.libs \
+  -L$(abs_builddir)/modules/ACENetwork/src/client_server/.libs \
   -L$(abs_builddir)/../../src/modules/net/.libs
 stream_source_LDADD = \
   -lACE \
@@ -118,28 +118,28 @@ stream_target_SOURCES = \
 #  stdafx.cpp \
 #  stdafx.h
 
-#  -I$(top_srcdir)/modules/libCommon/src \
-#  -I$(top_srcdir)/modules/libCommon/src/ui
+#  -I$(top_srcdir)/modules/Common/src \
+#  -I$(top_srcdir)/modules/Common/src/ui
 stream_target_CPPFLAGS = \
   $(AM_CPPFLAGS) \
-  -I$(top_srcdir)/modules/libCommon/src \
-  -I$(top_srcdir)/modules/libCommon/src/ui \
+  -I$(top_srcdir)/modules/Common/src \
+  -I$(top_srcdir)/modules/Common/src/ui \
   -I$(top_srcdir)/src \
   -I$(top_srcdir)/src/modules/file \
   -I$(top_srcdir)/src/modules/misc \
-  -I$(srcdir)/modules/libACENetwork/src \
-  -I$(srcdir)/modules/libACENetwork/src/client_server \
+  -I$(srcdir)/modules/ACENetwork/src \
+  -I$(srcdir)/modules/ACENetwork/src/client_server \
   -I$(top_srcdir)/src/modules/net
 stream_target_LDFLAGS = \
   -L$(abs_top_srcdir)/modules/ATCD/ACE/build/linux/lib \
   $(PKGGTK_LDFLAGS) \
-  -L$(abs_builddir)/../../modules/libCommon/src/.libs \
-  -L$(abs_builddir)/../../modules/libCommon/src/ui/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/.libs \
+  -L$(abs_builddir)/../../modules/Common/src/ui/.libs \
   -L$(abs_builddir)/../../src/.libs \
   -L$(abs_builddir)/../../src/modules/file/.libs \
   -L$(abs_builddir)/../../src/modules/misc/.libs \
-  -L$(abs_builddir)/modules/libACENetwork/src/.libs \
-  -L$(abs_builddir)/modules/libACENetwork/src/client_server/.libs \
+  -L$(abs_builddir)/modules/ACENetwork/src/.libs \
+  -L$(abs_builddir)/modules/ACENetwork/src/client_server/.libs \
   -L$(abs_builddir)/../../src/modules/net/.libs
 stream_target_LDADD = \
   -lACE \

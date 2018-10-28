@@ -6,14 +6,14 @@ endif ()
 add_library (${PROJECT_NAME}_Network STATIC "")
 
 # *TODO*: add dependencies
-#find_package (libACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 #              REQUIRED
 #              CONFIG
 #              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../..
-#              PATH_SUFFIXES libACENetwork/cmake
+#              PATH_SUFFIXES ACENetwork/cmake
 #              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${libACENetwork_DIR})
-# message (FATAL_ERROR "could not find libACENetwork, aborting")
+#if (NOT EXISTS ${ACENetwork_DIR})
+# message (FATAL_ERROR "could not find ACENetwork, aborting")
 #endif ()
 
 if (UNIX)
@@ -24,14 +24,14 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server>)
 elseif (WIN32)
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Network PUBLIC
@@ -42,19 +42,19 @@ elseif (WIN32)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/error>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACENetwork/src/client_server>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Network PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)

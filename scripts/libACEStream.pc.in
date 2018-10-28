@@ -7,7 +7,7 @@ Name: @PACKAGE_NAME@
 Description: streams functionality (*NOTE*: uses ACE to for portability)
 URL: @PACKAGE_URL@
 Version: @VERSION@
-Requires: ACE libCommon
+Requires: ACE Common
 Libs: -L${libdir} -lCommon -lACEStream
 Cflags: -DCOMMON_HAS_DLL -DACESTREAM_HAS_DLL
 

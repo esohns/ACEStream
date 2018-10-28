@@ -66,7 +66,7 @@ endif ()
 
 include (FindPkgConfig)
 if (UNIX)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  if (SSL_SUPPORT)
   pkg_check_modules (PKG_SSL REQUIRED libssl)
@@ -120,7 +120,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -143,7 +143,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -167,16 +167,16 @@ if (UNIX)
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/cmake)
 else ()
  include_directories ($ENV{ACE_ROOT})
 
@@ -197,15 +197,15 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
@@ -363,7 +363,7 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 
-#set_tests_properties (${EXECUTABLE} PROPERTIES ENVIRONMENT "PATH=%PATH%;$(ACE_ROOT)\\lib;D:\\projects\\libiconv-1.9.2\\bin;D:\\projects\\libxml2-2.9.4\\win32\\bin;$(ProgramFiles)\\LibreOffice 5\\program;$(ProjectDir)..\\..\\..\\..\\libCommon\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libCommon\\cmake\\src\\err\\$(Configuration);$(ProjectDir)..\\..\\src\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\dec\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\html\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libACENetwork\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libACENetwork\\cmake\\src\\protocol\\http\\$(Configuration)")
+#set_tests_properties (${EXECUTABLE} PROPERTIES ENVIRONMENT "PATH=%PATH%;$(ACE_ROOT)\\lib;D:\\projects\\libiconv-1.9.2\\bin;D:\\projects\\libxml2-2.9.4\\win32\\bin;$(ProgramFiles)\\LibreOffice 5\\program;$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\err\\$(Configuration);$(ProjectDir)..\\..\\src\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\dec\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\html\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\protocol\\http\\$(Configuration)")
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
@@ -371,13 +371,13 @@ if (UNIX)
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
@@ -388,15 +388,15 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/win32/bin
                                               ${PROJECT_SOURCE_DIR}/../libmysql_2/cmake/libmysql/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 endif ()

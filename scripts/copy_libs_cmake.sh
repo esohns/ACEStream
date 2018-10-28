@@ -61,10 +61,10 @@ done
 VERSION="0.0.1"
 
 echo "copying external module libraries"
-SUB_DIRS="modules/libCommon/cmake/src
-modules/libCommon/cmake/src/ui
-src/modules/net/modules/libACENetwork/cmake/src
-src/modules/net/modules/libACENetwork/cmake/src/client_server"
+SUB_DIRS="modules/Common/cmake/src
+modules/Common/cmake/src/ui
+src/modules/net/modules/ACENetwork/cmake/src
+src/modules/net/modules/ACENetwork/cmake/src/client_server"
 #declare -a LIBS=("libCommon.so"
 LIBS="libCommon.so libCommonUI.so libACENetwork.so libACENetwork_Client.so"
 set -- $LIBS

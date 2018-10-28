@@ -37,7 +37,7 @@ add_definitions (-DACE_HAS_DLL)
 
 include (FindPkgConfig)
 if (UNIX)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavformat libavcodec)
@@ -60,7 +60,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -98,20 +98,20 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/image)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
  if (GUI_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui)
   if (GTK_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/gtk)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/gtk)
   elseif (WXWIDGETS_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui/wxwidgets)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui/wxwidgets)
   endif ()
  endif (GUI_SUPPORT)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/test_u)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/test_u)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "D:/projects/DShowBaseClasses")
@@ -132,21 +132,21 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  if (GUI_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
   if (GTK_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/gtk)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/gtk)
   elseif (WXWIDGETS_USE)
-   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui/wxwidgets)
+   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui/wxwidgets)
   endif ()
  endif (GUI_SUPPORT)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/test_u)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
@@ -440,5 +440,5 @@ add_test (NAME ${EXECUTABLE}_test
 
 set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES
-                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
-#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\libav-11.7\libavcodec;$(ProjectDir)..\..\..\..\libav-11.7\libavresample;$(ProjectDir)..\..\..\..\libav-11.7\libavutil;$(ProjectDir)..\..\..\..\libCommon\cmake\src\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\ui\Debug;$(ProjectDir)..\..\src\Debug;$(ProjectDir)..\..\src\modules\dev\Debug;$(ProjectDir)..\..\src\modules\vis\Debug
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\libav-11.7\libavcodec;$(ProjectDir)..\..\..\..\libav-11.7\libavresample;$(ProjectDir)..\..\..\..\libav-11.7\libavutil;$(ProjectDir)..\..\..\..\Common\cmake\src\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\Common\cmake\src\ui\Debug;$(ProjectDir)..\..\src\Debug;$(ProjectDir)..\..\src\modules\dev\Debug;$(ProjectDir)..\..\src\modules\vis\Debug

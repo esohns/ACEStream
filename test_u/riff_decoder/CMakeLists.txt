@@ -44,7 +44,7 @@ add_definitions (-DACE_HAS_DLL)
 include (FindPkgConfig)
 ##pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
-## *NOTE*: libCommon requires libcap
+## *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libswscale libavutil)
 endif ()
@@ -58,7 +58,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -89,18 +89,18 @@ if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 elseif (WIN32)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
  include_directories ($ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)

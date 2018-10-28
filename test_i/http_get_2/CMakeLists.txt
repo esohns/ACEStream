@@ -68,7 +68,7 @@ endif ()
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_Z REQUIRED zlib)
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  if (SSL_SUPPORT)
   pkg_check_modules (PKG_SSL REQUIRED libssl)
@@ -157,7 +157,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES Common/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -179,7 +179,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -201,16 +201,16 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/cmake)
 elseif (WIN32)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
@@ -237,17 +237,17 @@ elseif (WIN32)
 
  include_directories ($ENV{ACE_ROOT})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/timer)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
- #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/cmake)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
+ #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
@@ -346,7 +346,7 @@ if (SSL_SUPPORT)
 endif ()
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_Z_LIBRARIES})
-# *NOTE*: libCommon requires libcap
+# *NOTE*: Common requires libcap
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  if (SSL_SUPPORT)
   target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
@@ -423,12 +423,12 @@ if (UNIX)
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
@@ -437,15 +437,15 @@ elseif (WIN32)
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/doc/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
                                               \"${OO_APP_DIRECTORY}\"
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar;_NO_DEBUG_HEAP=1)
