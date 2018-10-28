@@ -309,7 +309,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , contextId (0)
    , crunch (true)
-   , deviceIdentifier ()
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
    , inputFormat (NULL)
@@ -345,7 +344,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
   guint                                                contextId;
   bool                                                 crunch;            // splitter module
-  std::string                                          deviceIdentifier;
   struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                filterCLSID;
   struct _AMMediaType*                                 inputFormat;       // splitter module

@@ -440,7 +440,7 @@ error_2:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
-      if (!initialize_DirectShow (inherited::configuration_->interfaceIdentifier,
+      if (!initialize_DirectShow (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string),
                                   inherited::configuration_->window,
                                   ICaptureGraphBuilder2_,
                                   IAMVideoControl_,
@@ -504,7 +504,7 @@ continue_:
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: device (was: \"%s\") cannot flip image vertically using IAMVideoControl, continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->interfaceIdentifier).c_str ())));
+                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
 
         result_2 = IAMVideoControl_->GetMode (pin_p,
                                               &flags_i);
@@ -522,7 +522,7 @@ continue_:
                       ACE_TEXT ("%s: failed to IAMVideoControl::SetMode(0x%x) (device was: \"%s\"), continuing\n"),
                       inherited::mod_->name (),
                       flags_i,
-                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (inherited::configuration_->interfaceIdentifier).c_str ())));
+                      ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);

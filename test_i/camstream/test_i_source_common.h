@@ -459,11 +459,11 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
-#if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx*                                         mediaSource;
 #else
   IMFMediaSource*                                           mediaSource;
-#endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
+#endif // _WIN32_WINNT_WIN8
   IMFMediaSession*                                          session;
   IMFMediaType*                                             sourceFormat;
   Test_I_Source_MediaFoundation_ISessionNotify_t*           subscriber;

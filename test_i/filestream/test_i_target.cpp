@@ -105,7 +105,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string gtk_rc_file = path;
   gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
@@ -199,7 +199,7 @@ do_processArguments (int argc_in,
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
   gtkRcFile_out = path;
   gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1058,7 +1058,7 @@ ACE_TMAIN (int argc_in,
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string gtk_rc_file = path;
   gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);

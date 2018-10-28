@@ -51,7 +51,9 @@ extern "C"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#elif defined (WXWIDGETS_USE)
+#include "wx/apptrait.h"
+#endif
 #endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
@@ -90,6 +92,7 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 
 #include "stream_vis_common.h"
@@ -102,13 +105,6 @@ extern "C"
 #elif defined (WXWIDGETS_USE)
 #include "test_u_wxwidgets_common.h"
 #endif
-#endif // GUI_SUPPORT
-
-//#include "test_u_camsave_eventhandler.h"
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
-//#include "test_u_camsave_ui.h"
-#endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 // forward declarations
@@ -346,7 +342,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 {
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , interfaceIdentifier ()
+   , deviceIdentifier ()
+#if defined (GUI_SUPPORT)
    , fullScreen (false)
 #if defined (GTK_USE)
    , area ()
@@ -354,27 +351,30 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , pixelBufferLock (NULL)
 #endif // GTK_USE
    , window (NULL)
+#endif // GUI_SUPPORT
    , targetFileName ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
     hasHeader = true;
   }
 
-  std::string      interfaceIdentifier; // display-
-  bool             fullScreen;
+  struct Stream_Device_Identifier deviceIdentifier; // display-
+#if defined (GUI_SUPPORT)
+  bool                            fullScreen;
 #if defined (GTK_USE)
-  GdkRectangle     area;
-  GdkPixbuf*       pixelBuffer;
-  ACE_SYNCH_MUTEX* pixelBufferLock;
-  GdkWindow*       window;
+  GdkRectangle                    area;
+  GdkPixbuf*                      pixelBuffer;
+  ACE_SYNCH_MUTEX*                pixelBufferLock;
+  GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND             window;
+  HWND                            window;
 #else
-  XID              window;
+  XID                             window;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
-  std::string      targetFileName;
+#endif
+#endif // GUI_SUPPORT
+  std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -894,20 +894,23 @@ typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApp
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_CamSave_DirectShow_UI_CBData,
-                                         Stream_CamSave_DirectShow_WxWidgetsDialog_t> Stream_CamSave_DirectShow_WxWidgetsApplication_t;
+                                         Stream_CamSave_DirectShow_WxWidgetsDialog_t,
+                                         wxGUIAppTraits> Stream_CamSave_DirectShow_WxWidgetsApplication_t;
 typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t,
                                          Stream_CamSave_MediaFoundation_Stream> Stream_CamSave_MediaFoundation_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_CamSave_MediaFoundation_UI_CBData,
-                                         Stream_CamSave_MediaFoundation_WxWidgetsDialog_t> Stream_CamSave_MediaFoundation_WxWidgetsApplication_t;
+                                         Stream_CamSave_MediaFoundation_WxWidgetsDialog_t,
+                                         wxGUIAppTraits> Stream_CamSave_MediaFoundation_WxWidgetsApplication_t;
 #else
 typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                          Stream_CamSave_Stream> Stream_CamSave_V4L_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_CamSave_V4L_UI_CBData,
-                                         Stream_CamSave_V4L_WxWidgetsDialog_t> Stream_CamSave_V4L_WxWidgetsApplication_t;
+                                         Stream_CamSave_V4L_WxWidgetsDialog_t,
+                                         wxGUIAppTraits> Stream_CamSave_V4L_WxWidgetsApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif
 #endif // GUI_SUPPORT

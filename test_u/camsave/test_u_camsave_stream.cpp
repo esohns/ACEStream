@@ -214,7 +214,8 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
     goto continue_;
   } // end IF
 
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second.interfaceIdentifier,
+  ACE_ASSERT ((*iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (ACE_TEXT_ALWAYS_CHAR ((*iterator).second.second.deviceIdentifier.identifier._string),
                                                         CLSID_VideoInputDeviceCategory,
                                                         (*iterator).second.second.builder,
                                                         buffer_negotiation_p,
@@ -224,7 +225,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second.interfaceIdentifier.c_str ())));
+                ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT ((*iterator).second.second.builder);
@@ -422,7 +423,7 @@ continue_:
   // ---------------------------------------------------------------------------
   // step2: update stream module configuration(s)
   (*iterator_2).second.second = (*iterator).second.second;
-  (*iterator_2).second.second.interfaceIdentifier.clear ();
+  (*iterator_2).second.second.deviceIdentifier.clear ();
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
@@ -1101,7 +1102,8 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (configuration_p->interfaceIdentifier,
+  ACE_ASSERT (configuration_p->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (configuration_p->deviceIdentifier.identifier._string),
                                                                configuration_p->inputFormat,
                                                                source_impl_p,
                                                                NULL,
@@ -1113,7 +1115,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT (configuration_p->interfaceIdentifier.c_str ())));
+                ACE_TEXT (configuration_p->deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

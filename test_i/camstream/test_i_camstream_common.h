@@ -44,16 +44,20 @@ extern "C"
 #endif // __cplusplus
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "common.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
 #include "common_time_common.h"
 
+#if defined (GUI_SUPPORT)
 #include "common_ui_common.h"
+#endif // GUI_SUPPORT
 
 #include "stream_base.h"
 #include "stream_common.h"
@@ -62,15 +66,11 @@ extern "C"
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
+#include "stream_dev_common.h"
 #include "stream_dev_defines.h"
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_dev_directshow_tools.h"
-//#endif // ACE_WIN32 || ACE_WIN64
-//#include "stream_dev_tools.h"
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
-//#include "stream_lib_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
@@ -86,9 +86,11 @@ extern "C"
 #include "test_i_connection_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_i_gtk_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 // forward declarations
 class Stream_IAllocator;
@@ -298,10 +300,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , fullScreen (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , interfaceIdentifier (GUID_NULL)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
-#else
-   , interfaceIdentifier (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE))
 #endif // ACE_WIN32 || ACE_WIN64
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
@@ -310,11 +309,19 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #else
    , window (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
-  {}
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    deviceIdentifier.identifier._guid = GUID_NULL;
+    deviceIdentifier.identifierDiscriminator = Stream_Device_Identifier::GUID;
+#else
+    deviceIdentifier.identifier =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif // ACE_WIN32 || ACE_WIN64
+  }
 
   struct Test_I_CamStream_Configuration*               configuration;
   guint                                                contextId;
-  std::string                                          deviceIdentifier;
+  struct Stream_Device_Identifier                      deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -322,11 +329,8 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   // *PORTABILITY*: UNIX: v4l2 device file (e.g. "/dev/video0" (Linux))
   //                Win32: interface GUID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID                                         interfaceIdentifier;
   enum Stream_MediaFramework_Type                      mediaFramework;
-#else
-  std::string                                          interfaceIdentifier;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   GdkPixbuf*                                           pixelBuffer;
   ACE_SYNCH_MUTEX*                                     pixelBufferLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -350,19 +354,20 @@ struct Test_I_CamStream_Configuration
 
 //////////////////////////////////////////
 
+#if defined (GUI_SUPPORT)
 struct Test_I_CamStream_UI_ProgressData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_ProgressData
 #else
  : Test_I_UI_ProgressData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_CamStream_UI_ProgressData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_ProgressData ()
 #else
    : Test_I_UI_ProgressData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , transferred (0)
   {}
 
@@ -370,18 +375,18 @@ struct Test_I_CamStream_UI_ProgressData
 };
 
 struct Test_I_CamStream_UI_CBData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_CBData
 #else
  : Test_I_UI_CBData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_CamStream_UI_CBData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_CBData ()
 #else
    : Test_I_UI_CBData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , configuration (NULL)
    , isFirst (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -401,18 +406,18 @@ struct Test_I_CamStream_UI_CBData
 };
 
 struct Test_I_CamStream_ThreadData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_ThreadData
 #else
  : Test_I_UI_ThreadData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_CamStream_ThreadData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_ThreadData ()
 #else
    : Test_I_UI_ThreadData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -424,5 +429,6 @@ struct Test_I_CamStream_ThreadData
   enum Stream_MediaFramework_Type    mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
 };
+#endif // GUI_SUPPORT
 
 #endif

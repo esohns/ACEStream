@@ -183,7 +183,7 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   if (likely (activate_source))
   {
     index_i =
-      (initializing_ ? choice_source->FindString ((*stream_iterator).second.second.interfaceIdentifier.c_str ())
+      (initializing_ ? choice_source->FindString ((*stream_iterator).second.second.deviceIdentifier.c_str ())
                      : 0);
     choice_source->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -679,8 +679,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   } // end FOR
   if (likely (!display_devices_a.empty ()))
   {
-    togglebutton_display->Enable (!(*stream_iterator_2).second.second.interfaceIdentifier.empty ());
-    togglebutton_display->SetValue (!(*stream_iterator_2).second.second.interfaceIdentifier.empty ());
+    togglebutton_display->Enable ((*stream_iterator_2).second.second.deviceIdentifier.identifierDiscriminator != Stream_Device_Identifier::INVALID);
+    togglebutton_display->SetValue ((*stream_iterator_2).second.second.deviceIdentifier.identifierDiscriminator != Stream_Device_Identifier::INVALID);
     togglebutton_fullscreen->Enable (togglebutton_display->GetValue ());
     togglebutton_fullscreen->SetValue ((*stream_iterator_2).second.second.fullScreen);
     panel_video->Show (togglebutton_display->GetValue () &&
@@ -692,9 +692,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
     choice_display->Enable (true);
 
   if (likely (activate_source_b))
-  {
+  { ACE_ASSERT ((*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
     index_i =
-      (initializing_ ? choice_source->FindString (Stream_Device_DirectShow_Tools::devicePathToString ((*stream_iterator).second.second.interfaceIdentifier),
+      (initializing_ ? choice_source->FindString (Stream_Device_DirectShow_Tools::devicePathToString ((*stream_iterator).second.second.deviceIdentifier.identifier._string),
                                                   false)
                      : 0);
     ACE_ASSERT (index_i != wxNOT_FOUND);
@@ -707,11 +707,12 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   } // end IF
   application_->wait ();
 
+  ACE_ASSERT ((*stream_iterator_2).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
   if (likely (activate_display_b))
   {
     index_i =
       (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_display,
-                                                                     (*stream_iterator_2).second.second.interfaceIdentifier)
+                                                                     ACE_TEXT_ALWAYS_CHAR ((*stream_iterator_2).second.second.deviceIdentifier.identifier._string))
                      : 0);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_display->Select (index_i);
@@ -722,8 +723,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
     this->AddPendingEvent (event_s);
     wxCommandEvent event_2 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_display"));
-    event_2.SetInt (!(*stream_iterator_2).second.second.interfaceIdentifier.empty () ? 1
-                                                                                  : 0);
+
+    event_2.SetInt (!ACE_OS::strlen ((*stream_iterator_2).second.second.deviceIdentifier.identifier._string) ? 1
+                                                                                                             : 0);
     //togglebutton_display->GetEventHandler ()->ProcessEvent (event_2);
     this->AddPendingEvent (event_2);
     wxCommandEvent event_3 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
@@ -930,7 +932,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   //wxStringClientData* client_data_p =
   //  dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (choice_source->GetSelection ()));
   //ACE_ASSERT (client_data_p);
-  //(*stream_iterator).second.second.interfaceIdentifier =
+  //(*stream_iterator).second.second.deviceIdentifier =
   //  client_data_p->GetData ().ToStdString ();
   //client_data_p =
   //  dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
@@ -1007,7 +1009,7 @@ continue_:
   //  client_data_p =
   //    dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
   //  ACE_ASSERT (client_data_p);
-  //  (*stream_iterator_2).second.second.interfaceIdentifier =
+  //  (*stream_iterator_2).second.second.deviceIdentifier =
   //    client_data_p->GetData ().ToStdString ();
 
     //ACE_ASSERT ((*stream_iterator_2).second.second.direct3DConfiguration);
@@ -1021,7 +1023,7 @@ continue_:
   //  ACE_OS::memset (&(*stream_iterator_2).second.second.area, 0, sizeof (struct tagRECT));
   //  (*stream_iterator).second.second.area =
   //    (*stream_iterator_2).second.second.area;
-  //  (*stream_iterator_2).second.second.interfaceIdentifier.clear ();
+  //  (*stream_iterator_2).second.second.deviceIdentifier.clear ();
   //  //ACE_ASSERT ((*stream_iterator_2).second.second.direct3DConfiguration);
 
     configuration_r.configuration->direct3DConfiguration.focusWindow =
@@ -1032,7 +1034,7 @@ continue_:
   if (togglebutton_fullscreen->GetValue ())
   {
   //  struct Common_UI_DisplayDevice display_device_s =
-  //    Common_UI_Tools::getDisplayDevice ((*stream_iterator).second.second.interfaceIdentifier);
+  //    Common_UI_Tools::getDisplayDevice ((*stream_iterator).second.second.deviceIdentifier);
   //  (*stream_iterator_2).second.second.area = display_device_s.clippingArea;
   //  (*stream_iterator_2).second.second.fullScreen = true;
 
@@ -1478,11 +1480,14 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (choice_source->GetSelection ()));
   ACE_ASSERT (client_data_p);
-  if (ACE_OS::strcmp ((*stream_iterator).second.second.interfaceIdentifier.c_str (),
+  ACE_ASSERT ((*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  if (ACE_OS::strcmp (ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string),
                       client_data_p->GetData ().ToStdString ().c_str ()))
     reset_ = true;
-  (*stream_iterator).second.second.interfaceIdentifier =
-    client_data_p->GetData ().ToStdString ();
+  (*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator =
+    Stream_Device_Identifier::STRING;
+  ACE_OS::strcpy ((*stream_iterator).second.second.deviceIdentifier.identifier._string,
+                  client_data_p->GetData ().ToStdString ().c_str ());
   client_data_p =
     dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (choice_format->GetSelection ()));
   ACE_ASSERT (client_data_p);
@@ -1683,13 +1688,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
     wxStringClientData* client_data_p =
       dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
     ACE_ASSERT (client_data_p);
-    (*stream_iterator).second.second.interfaceIdentifier =
-      client_data_p->GetData ().ToStdString ();
+    (*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator =
+      Stream_Device_Identifier::STRING;
+    ACE_OS::strcpy ((*stream_iterator).second.second.deviceIdentifier.identifier._string,
+                    client_data_p->GetData ().ToStdString ().c_str ());
   } // end IF
   else
   {
     ACE_OS::memset (&(*stream_iterator).second.second.area, 0, sizeof (struct tagRECT));
-    (*stream_iterator).second.second.interfaceIdentifier.clear ();
+    (*stream_iterator).second.second.deviceIdentifier.clear ();
   } // end ELSE
 
   switch (configuration_r.configuration->streamConfiguration.configuration_.renderer)
@@ -1756,7 +1763,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   if (event_in.IsChecked ())
   { // --> toggle to fullscreen
     struct Common_UI_DisplayDevice display_device_s =
-      Common_UI_Tools::getDisplay ((*stream_iterator).second.second.interfaceIdentifier);
+      Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string));
     (*stream_iterator).second.second.area = display_device_s.clippingArea;
     (*stream_iterator).second.second.fullScreen = true;
   } // end IF
@@ -1859,11 +1866,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   wxStringClientData* client_data_p =
     dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
-  (*stream_iterator).second.second.interfaceIdentifier =
-    client_data_p->GetData ().ToStdString ();
-  ACE_ASSERT (!(*stream_iterator).second.second.interfaceIdentifier.empty ());
+  (*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator =
+    Stream_Device_Identifier::STRING;
+  ACE_OS::strcpy ((*stream_iterator).second.second.deviceIdentifier.identifier._string,
+                  client_data_p->GetData ().ToStdString ().c_str ());
+  ACE_ASSERT (ACE_OS::strlen ((*stream_iterator).second.second.deviceIdentifier.identifier._string));
   static struct Common_UI_DisplayDevice display_device_s =
-    Common_UI_Tools::getDisplay ((*stream_iterator).second.second.interfaceIdentifier);
+    Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string));
   ACE_ASSERT (display_device_s.handle != NULL);
   static struct Common_UI_DisplayAdapter display_adapter_s =
     Common_UI_Tools::getAdapter (display_device_s);
@@ -1881,7 +1890,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   button_display_settings->Enable (togglebutton_display->IsEnabled ());
 
   Common_UI_Resolutions_t resolutions_a =
-    Common_UI_Tools::get ((*stream_iterator).second.second.interfaceIdentifier);
+    Common_UI_Tools::get (ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string));
   ACE_ASSERT (!resolutions_a.empty ());
   ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
   Common_UI_Resolution_t resolution_s =
@@ -2104,6 +2113,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
     Stream_Device_DirectShow_Tools::getCaptureDevices (CLSID_VideoInputDeviceCategory);
 
   int index_i = 0, index_source_i = -1;
+  ACE_ASSERT ((*stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
   for (Stream_Device_ListIterator_t iterator = devices_a.begin ();
        iterator != devices_a.end ();
        ++iterator)
@@ -2111,7 +2121,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
     index_i =
       choice_source->Append (Stream_Device_DirectShow_Tools::devicePathToString (*iterator).c_str ());
     if (!ACE_OS::strcmp ((*iterator).c_str (),
-                         (*stream_iterator).second.second.interfaceIdentifier.c_str ()))
+                         ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string)))
       index_source_i = index_i;
   } // end FOR
   if (unlikely (devices_a.empty ()))

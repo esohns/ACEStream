@@ -490,7 +490,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
-        if (unlikely (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (inherited::configuration_->interfaceIdentifier,
+        if (unlikely (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string),
                                                                                inherited::configuration_->inputFormat,
                                                                                //session_data_r.inputFormat,
                                                                                this,

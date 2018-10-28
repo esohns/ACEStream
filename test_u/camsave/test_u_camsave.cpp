@@ -1039,8 +1039,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
         &directShowConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      directshow_modulehandler_configuration.interfaceIdentifier =
-        captureinterfaceIdentifier_in;
+      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
+                      captureinterfaceIdentifier_in.c_str ());
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       //directshow_modulehandler_configuration.pixelBufferLock =
@@ -1062,8 +1064,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      mediafoundation_modulehandler_configuration.interfaceIdentifier =
-        captureinterfaceIdentifier_in;
+      mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
+                      captureinterfaceIdentifier_in.c_str ());
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
       //mediafoundation_modulehandler_configuration.pixelBufferLock =
@@ -1157,8 +1161,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                  directshow_modulehandler_configuration,
                                                                  directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
                                                                  directShowConfiguration_in.streamConfiguration.configuration_);
-      directshow_modulehandler_configuration.interfaceIdentifier =
-        displayDevice_in.device;
+      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
+                      displayDevice_in.device.c_str ());
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
                                                                              std::make_pair (module_configuration,
                                                                                              directshow_modulehandler_configuration)));
@@ -1699,7 +1705,8 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (false); // initialize random number generator ?
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
-  if (!Common_UI_WxWidgets_Tools::initialize ())
+  if (!Common_UI_WxWidgets_Tools::initialize (argc_in,
+                                              argv_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_WxWidgets_Tools::initialize(), aborting\n")));

@@ -103,7 +103,7 @@ do_printUsage (const std::string& programName_in)
   std::string configuration_directory = working_directory;
   configuration_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   configuration_directory +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -207,7 +207,7 @@ do_processArguments (int argc_in,
   std::string configuration_directory = working_directory;
   configuration_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   configuration_directory +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // initialize results
   bufferSize_out = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
@@ -1018,7 +1018,7 @@ ACE_TMAIN (int argc_in,
   configuration_directory = working_directory;
   configuration_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   configuration_directory +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a: set defaults
   buffer_size = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;

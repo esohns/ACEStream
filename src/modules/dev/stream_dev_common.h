@@ -26,12 +26,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
 #include <string>
-
-#include <d3d9.h>
-#include <d3d9types.h>
-#include <strmif.h>
-
-#include "ace/OS.h"
 #else
 #include <map>
 
@@ -85,11 +79,60 @@ enum Stream_Device_Mode
   STREAM_DEVICE_MODE_INVALID
 };
 
-//struct Stream_Device_CamOptions
-//{
-//  inline Stream_Device_CamOptions () {}
+struct Stream_Device_Identifier
+{
+  Stream_Device_Identifier ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   : identifier ()
+   , identifierDiscriminator (Stream_Device_Identifier::GUID)
+#else
+   : fileDescriptor (-1)
+   , identifier ()
+#endif // ACE_WIN32 || ACE_WIN64
+  {}
 
-//};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  union identifierType
+  {
+    struct _GUID _guid;
+    char         _string[255];
+
+    identifierType ()
+     : _guid (GUID_NULL)
+    {}
+  }                      identifier;
+  enum discriminatorType  {    GUID = 0,    STRING,    INVALID
+  };
+  enum discriminatorType identifierDiscriminator;
+
+  void clear ()
+  {
+    switch (identifierDiscriminator)
+    {
+      case GUID:
+      {
+        identifier._guid = GUID_NULL;
+        break;
+      }
+      case STRING:
+      {
+        ACE_OS::memset (identifier._string, 0, sizeof (char[255]));
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown type (was: %d), continuing\n"),
+                    identifierDiscriminator));
+        break;
+      }
+    } // end SWITCH
+  }
+#else
+  int                    fileDescriptor;
+  std::string            identifier;
+#endif // ACE_WIN32 || ACE_WIN64
+};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

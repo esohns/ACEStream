@@ -1118,19 +1118,28 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     goto continue_;
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
   display_device_s =
-    Common_UI_Tools::getDisplay (inherited::configuration_->interfaceIdentifier);
+    Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string));
   ACE_ASSERT (display_device_s.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
   if (unlikely (!GetMonitorInfo (display_device_s.handle,
                                  reinterpret_cast<struct tagMONITORINFO*> (&monitor_info_ex_s))))
   {
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->interfaceIdentifier.c_str ()),
+                ACE_TEXT (Net_Common_Tools::interfaceToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier._string),
+                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     goto error;
   } // end IF
   // *NOTE*: center new windows on the display device

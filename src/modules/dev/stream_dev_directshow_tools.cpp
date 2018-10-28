@@ -1187,11 +1187,11 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
 bool
 Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_in,
-                                                        REFGUID deviceCategory_in,
-                                                        IGraphBuilder*& IGraphBuilder_inout,
-                                                        IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                                                        IAMStreamConfig*& IAMStreamConfig_out,
-                                                        Stream_MediaFramework_DirectShow_Graph_t& graphLayout_out)
+                                                 REFGUID deviceCategory_in,
+                                                 IGraphBuilder*& IGraphBuilder_inout,
+                                                 IAMBufferNegotiation*& IAMBufferNegotiation_out,
+                                                 IAMStreamConfig*& IAMStreamConfig_out,
+                                                 Stream_MediaFramework_DirectShow_Graph_t& graphLayout_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::loadDeviceGraph"));
 
