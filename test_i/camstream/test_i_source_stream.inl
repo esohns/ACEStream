@@ -278,17 +278,17 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   else
     release_builder = true;
 
-  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second.deviceIdentifier,
-                                                               CLSID_VideoInputDeviceCategory,
-                                                               (*iterator).second.second.builder,
-                                                               buffer_negotiation_p,
-                                                               stream_config_p,
-                                                               graph_layout))
+  if (!Stream_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second.deviceIdentifier.identifier._string,
+                                                        CLSID_VideoInputDeviceCategory,
+                                                        (*iterator).second.second.builder,
+                                                        buffer_negotiation_p,
+                                                        stream_config_p,
+                                                        graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second.deviceIdentifier.c_str ())));
+                ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
     release_builder = false;
     goto error;
   } // end IF
@@ -989,7 +989,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
 
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second.deviceIdentifier,
+  if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second.deviceIdentifier.identifier._string,
                                                                media_type_p,
                                                                source_impl_p,
                                                                NULL,
@@ -1001,7 +1001,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.second.deviceIdentifier.c_str ())));
+                ACE_TEXT ((*iterator).second.second.deviceIdentifier.identifier._string)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);

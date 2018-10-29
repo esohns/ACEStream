@@ -240,6 +240,16 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_ASSERT (CBData_);
 #endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
   switch (sessionMessage_in.type ())
@@ -263,7 +273,7 @@ Test_I_Target_EventHandler_T<SessionIdType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState->lock);
 #endif // GTK_USE
         CBData_->progressData.statistic = sessionData_->statistic;
 #if defined (GTK_USE)

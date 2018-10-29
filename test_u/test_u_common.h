@@ -228,14 +228,15 @@ struct Test_U_UI_ProgressData
 };
 
 struct Test_U_UI_CBData
+ : Common_UI_CBData
 {
   Test_U_UI_CBData ()
-   : allowUserRuntimeStatistic (true)
+   : Common_UI_CBData ()
+   , allowUserRuntimeStatistic (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
    , progressData ()
-   , UIState ()
   {
     progressData.state = &UIState;
   }
@@ -245,7 +246,6 @@ struct Test_U_UI_CBData
   enum Stream_MediaFramework_Type mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_UI_ProgressData   progressData;
-  struct Common_UI_State          UIState;
 };
 
 struct Test_U_UI_ThreadData

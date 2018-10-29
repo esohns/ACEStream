@@ -34,7 +34,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -47,7 +47,7 @@
 #include "common_timer_tools.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"

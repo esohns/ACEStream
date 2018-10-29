@@ -1,3 +1,3 @@
 EXTRA_DIST = \
-  libacestream_config.h
+  ACEStream_config.h
 

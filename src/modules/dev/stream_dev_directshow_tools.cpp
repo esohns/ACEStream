@@ -870,11 +870,11 @@ Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
 
 bool
 Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in,
-                                                              REFGUID mediaSubType_in,
-                                                              LONG width_in,
-                                                              LONG height_in,
-                                                              unsigned int frameRate_in,
-                                                              struct _AMMediaType*& mediaType_out)
+                                                       REFGUID mediaSubType_in,
+                                                       LONG width_in,
+                                                       LONG height_in,
+                                                       unsigned int frameRate_in,
+                                                       struct _AMMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getVideoCaptureFormat"));
 

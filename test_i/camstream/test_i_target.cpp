@@ -45,7 +45,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -68,7 +68,7 @@
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
@@ -123,7 +123,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string gtk_rc_file = path;
   gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
@@ -232,7 +232,7 @@ do_processArguments (int argc_in,
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   bufferSize_out = CAMSTREAM_DEFAULT_BUFFER_SIZE;
   gtkRcFile_out = path;
   gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1205,7 +1205,7 @@ do_work (unsigned int bufferSize_in,
   bool result_2 = false;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
-  Common_ITaskControl_t* igtk_manager_p = NULL;
+  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
 #endif // GTK_SUPPORT
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1722,9 +1722,10 @@ do_work (unsigned int bufferSize_in,
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (GTK_USE)
-    igtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-    ACE_ASSERT (igtk_manager_p);
-    const Common_UI_GTK_State_t& state_r = igtk_manager_p->getR_2 ();
+    gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (gtk_manager_p);
+    Common_UI_GTK_State_t& state_r =
+      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
     state_r.eventHooks.finiHook = idle_finalize_target_UI_cb;
     state_r.eventHooks.initHook = idle_initialize_target_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1732,7 +1733,7 @@ do_work (unsigned int bufferSize_in,
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    igtk_manager_p->start ();
+    gtk_manager_p->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -1740,7 +1741,7 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &timeout));
-    if (!igtk_manager_p->isRunning ())
+    if (!gtk_manager_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -1758,7 +1759,7 @@ do_work (unsigned int bufferSize_in,
 
       // clean up
       timer_manager_p->stop ();
-      igtk_manager_p->stop (true);
+      gtk_manager_p->stop (true);
 
       goto clean;
     } // end IF
@@ -1786,7 +1787,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
     if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-      igtk_manager_p->stop ();
+      gtk_manager_p->stop ();
 #else
       ;
 #endif // GTK_USE
@@ -1878,7 +1879,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          igtk_manager_p->stop ();
+          gtk_manager_p->stop ();
 #else
           ;
 #endif // GTK_USE
@@ -1907,7 +1908,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          igtk_manager_p->stop ();
+          gtk_manager_p->stop ();
 #else
           ;
 #endif // GTK_USE
@@ -2150,7 +2151,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          igtk_manager_p->stop ();
+          gtk_manager_p->stop ();
 #else
           ;
 #endif // GTK_USE
@@ -2260,7 +2261,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          igtk_manager_p->stop ();
+          gtk_manager_p->stop ();
 #else
           ;
 #endif // GTK_USE
@@ -2318,7 +2319,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
         if (!UIDefinitionFilename_in.empty ())
 #if defined (GTK_USE)
-          igtk_manager_p->stop ();
+          gtk_manager_p->stop ();
 #else
           ;
 #endif // GTK_USE
@@ -2350,7 +2351,7 @@ clean:
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (GTK_USE)
-    igtk_manager_p->wait ();
+    gtk_manager_p->wait ();
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //    connection_manager_p->abort ();
@@ -2516,7 +2517,7 @@ ACE_TMAIN (int argc_in,
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string gtk_rc_file = path;
   gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);

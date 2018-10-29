@@ -36,7 +36,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "common.h"
@@ -54,7 +54,7 @@
 #include "stream_macros.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_dec_common.h"
@@ -64,7 +64,7 @@
 #include "stream_net_http_defines.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libACENetwork_config.h"
+#include "ACENetwork_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "net_common_tools.h"
@@ -110,7 +110,7 @@ do_printUsage (const std::string& programName_in)
 #endif
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
@@ -207,7 +207,7 @@ do_processArguments (int argc_in,
 #endif
   dataBaseOptionsFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   dataBaseOptionsFileName_out +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   dataBaseOptionsFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   dataBaseOptionsFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
@@ -923,7 +923,7 @@ ACE_TMAIN (int argc_in,
 #endif
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
@@ -932,7 +932,7 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string host_name;
   bool log_to_file = false;

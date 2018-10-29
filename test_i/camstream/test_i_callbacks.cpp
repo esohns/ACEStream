@@ -4788,12 +4788,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     switch (ui_cb_data_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-        (*directshow_modulehandler_iterator).second.second.deviceIdentifier =
-          g_value_get_string (&value);
+        ACE_OS::strcpy ((*directshow_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
+                        g_value_get_string (&value));
         break;
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        (*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier =
-          g_value_get_string (&value);
+        ACE_OS::strcpy ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
+                        g_value_get_string (&value));
         break;
       default:
       {
@@ -4804,7 +4804,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       }
     } // end SWITCH
 #else
-    (*modulehandler_iterator).second.second.interfaceIdentifier =
+    (*modulehandler_iterator).second.second.interfaceIdentifier.identifier =
         g_value_get_string (&value);
 #endif
     g_value_unset (&value);

@@ -210,7 +210,7 @@ set (source_files
      stream_tools.h)
 if (WIN32)
  set (source_files
-      ../include/lib${PROJECT_NAME}_config.h
+      ../include/${PROJECT_NAME}_config.h
       ${source_files})
 endif (WIN32)
 

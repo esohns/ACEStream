@@ -101,7 +101,11 @@ struct Stream_Device_Identifier
      : _guid (GUID_NULL)
     {}
   }                      identifier;
-  enum discriminatorType  {    GUID = 0,    STRING,    INVALID
+  enum discriminatorType
+  {
+    GUID = 0,
+    STRING,
+    INVALID
   };
   enum discriminatorType identifierDiscriminator;
 

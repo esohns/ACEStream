@@ -46,7 +46,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -72,7 +72,7 @@
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
@@ -137,7 +137,7 @@ do_printUsage (const std::string& programName_in)
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"\"] {\"\": no GUI}")
             << std::endl;
   // *TODO*: implement logic to query the hardware for potential formats and use
@@ -248,7 +248,7 @@ do_processArguments (int argc_in,
 #endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   //gtkRcFile_out = path;
   //gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   //gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
@@ -962,8 +962,10 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration.deviceIdentifier =
-        deviceIdentifier_in;
+      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
+                      deviceIdentifier_in.c_str ());
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
       struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
       directshow_stream_configuration_2.messageAllocator = allocator_p;
@@ -998,8 +1000,10 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-      mediafoundation_modulehandler_configuration.deviceIdentifier =
-        deviceIdentifier_in;
+      mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::STRING;
+      ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
+                      deviceIdentifier_in.c_str ());
 
       Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
       mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
@@ -2068,7 +2072,7 @@ ACE_TMAIN (int argc_in,
 #endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string gtk_rc_filename;
   //std::string gtk_rc_filename = path;
   //gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2372,7 +2376,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
   if (!gtk_rc_filename.empty ())
     state_r.RCFiles.push_back (gtk_rc_filename);
-  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
                                                                             argv_in,

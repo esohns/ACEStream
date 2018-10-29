@@ -38,13 +38,4 @@
 #cmakedefine VALGRIND_SUPPORT
 
 //#cmakedefine DEBUG_DEBUGGER
-// sub-options - src
-/* #undef SSL_SUPPORT */
-/* #undef NETLINK_SUPPORT */
-// sub-options - wlan
-/* #undef WEXT_SUPPORT */
-/* #undef NL80211_SUPPORT */
-/* #undef DBUS_SUPPORT */
-/* #undef DHCLIENT_SUPPORT */
-/* #undef WLANAPI_SUPPORT */
 /* #undef WINXP_SUPPORT */

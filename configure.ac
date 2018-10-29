@@ -74,8 +74,8 @@ AM_SANITY_CHECK
 LT_INIT
 
 # prefix config.h
-m4_define([LIBACESTREAM_CONFIG_H], [libacestream_config.h])
-AX_PREFIX_CONFIG_H([LIBACESTREAM_CONFIG_H], [M4_PACKAGE_NAME], [config.h])
+m4_define([ACEStream_config_H], [ACEStream_config.h])
+AX_PREFIX_CONFIG_H([ACEStream_config_H], [M4_PACKAGE_NAME], [config.h])
 
 #AC_LANG([C++])
 

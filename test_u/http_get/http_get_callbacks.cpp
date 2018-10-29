@@ -47,7 +47,7 @@
 #include "stream_dec_tools.h"
 
 #ifdef HAVE_CONFIG_H
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif
 
 #include "net_configuration.h"

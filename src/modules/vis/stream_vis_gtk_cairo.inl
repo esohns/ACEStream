@@ -453,6 +453,31 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
+void
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataType,
+                              SessionDataContainerType>::toggle ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::toggle"));
+
+  ACE_ASSERT (false); // *TODO*
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 bool
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,

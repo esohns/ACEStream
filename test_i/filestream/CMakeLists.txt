@@ -155,9 +155,9 @@ set (filesource_EXE_SRCS
      test_i_source_signalhandler.h
      test_i_source_stream.cpp
      test_i_source_stream.h
-     test_i_source_stream.inl)
-#     test_i_target_stream.cpp
-#     test_i_target_stream.h)
+     test_i_source_stream.inl
+     test_i_target_stream.cpp
+     test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
  if (GTK_USE)

@@ -43,7 +43,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -67,7 +67,7 @@
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
@@ -1641,7 +1641,8 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 #endif // GTK_USE
   struct Test_U_AudioEffect_UI_CBDataBase* cb_data_base_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

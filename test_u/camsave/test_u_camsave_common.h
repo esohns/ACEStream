@@ -365,14 +365,13 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   GdkRectangle                    area;
   GdkPixbuf*                      pixelBuffer;
   ACE_SYNCH_MUTEX*                pixelBufferLock;
-  GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
   XID                             window;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif
 #endif // GUI_SUPPORT
   std::string                     targetFileName;
 };

@@ -48,7 +48,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -74,7 +74,7 @@
 #endif // GUI_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
@@ -1467,11 +1467,11 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       {
         directShowCBData_in.stream = &directshow_stream;
 #if defined (GTK_USE)
-        directShowCBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
-        directShowCBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
-        //directShowCBData_in.UIState.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        directShowCBData_in.UIState->eventHooks.finiHook = idle_finalize_UI_cb;
+        directShowCBData_in.UIState->eventHooks.initHook = idle_initialize_UI_cb;
+        //directShowCBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        directShowCBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        directShowCBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
@@ -1485,13 +1485,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       {
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
 #if defined (GTK_USE)
-        mediaFoundationCBData_in.UIState.eventHooks.finiHook =
+        mediaFoundationCBData_in.UIState->eventHooks.finiHook =
           idle_finalize_UI_cb;
-        mediaFoundationCBData_in.UIState.eventHooks.initHook =
+        mediaFoundationCBData_in.UIState->eventHooks.initHook =
           idle_initialize_UI_cb;
-        //mediaFoundationCBData_in.UIState.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        //mediaFoundationCBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        mediaFoundationCBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+        mediaFoundationCBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
           std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
@@ -1512,7 +1512,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #else
     CBData_in.stream = &stream;
 #if defined (GTK_USE)
-    //CBData_in.UIState.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
@@ -1978,6 +1978,7 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize UI framework
 #if defined (GUI_SUPPORT)
+  struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
@@ -1993,7 +1994,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #elif defined (WXWIDGETS_USE)
   Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
-  struct Common_UI_State* ui_state_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (media_framework_e)
   {

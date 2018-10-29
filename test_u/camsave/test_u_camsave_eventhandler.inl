@@ -61,7 +61,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
                               SessionMessageType>::Stream_CamSave_EventHandler_T (struct Stream_CamSave_UI_CBData* CBData_in
 #if defined (GTK_USE)
-                                                                                 );
+                                                                                 )
 #elif defined (WXWIDGETS_USE)
                                                                                   ,InterfaceType* interface_in)
 #endif // GTK_USE
@@ -117,7 +117,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    CBData_->UIState;
+    *(CBData_->UIState);
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
@@ -201,7 +201,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    CBData_->UIState;
+    *(CBData_->UIState);
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
@@ -268,7 +268,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    CBData_->UIState;
+    *(CBData_->UIState);
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
@@ -278,7 +278,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
 #if defined (GTK_USE)
-    CBData_->UIState.eventStack.push (COMMON_UI_EVENT_DATA);
+    CBData_->UIState->eventStack.push (COMMON_UI_EVENT_DATA);
 #elif defined (WXWIDGETS_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
 #endif
@@ -337,7 +337,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    CBData_->UIState;
+    *(CBData_->UIState);
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE

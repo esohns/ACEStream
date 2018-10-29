@@ -34,7 +34,7 @@
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libCommon_config.h"
+#include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
 //#include "common_file_tools.h"
@@ -64,7 +64,7 @@
 #include "stream_misc_defines.h"
 
 #if defined (HAVE_CONFIG_H)
-#include "libACEStream_config.h"
+#include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
 
 #include "test_u_common.h"
@@ -486,7 +486,8 @@ do_work (unsigned int bufferSize_in,
     Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
-    const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+    Common_UI_GTK_State_t& state_r =
+      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
     state_r.eventHooks.finiHook = idle_finalize_UI_cb;
     state_r.eventHooks.initHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -704,7 +705,8 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   ui_cb_data.progressData.state = &state_r;
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
@@ -713,7 +715,7 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
 #if defined (GUI_SUPPORT)
  Common_Logger_t logger (logstack_p,
-                          lock_p);
+                         lock_p);
 #endif // GUI_SUPPORT
   std::string log_file_name;
   if (log_to_file)
