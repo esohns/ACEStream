@@ -22,8 +22,8 @@
 
 #include "ace/Date_Time.h"
 
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
+#include "libxml/xpath.h"
+#include "libxml/xpathInternals.h"
 
 #include "stream_macros.h"
 
@@ -46,27 +46,6 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::Stream_Module_XPathQuery_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType>
-Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType>::~Stream_Module_XPathQuery_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::~Stream_Module_XPathQuery_T"));
 
 }
 
@@ -177,10 +156,8 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to xmlXPathEvalExpression(\"%s\"); \"%m\", returning\n"),
                       ACE_TEXT (query_string_p)));
-
           // clean up
-          xmlXPathFreeContext (xpath_context_p);
-
+          xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
           return;
         } // end IF
         ACE_ASSERT (xpath_object_p->nodesetval);
@@ -197,8 +174,8 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
         } // end FOR
 
         // clean up
-        xmlXPathFreeObject (xpath_object_p);
-        xmlXPathFreeContext (xpath_context_p);
+        xmlXPathFreeObject (xpath_object_p); xpath_object_p = NULL;
+        xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
       } // end IF
 
       break;

@@ -31,8 +31,6 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-//#include "stream_html_exports.h"
-
 extern const char libacestream_default_html_parser_module_name_string[];
 
 // SAX callbacks
@@ -56,12 +54,12 @@ extern const char libacestream_default_html_parser_module_name_string[];
 //                      const xmlChar*); // name
 
 void
-SAXDefaultErrorCallback (void*,       // context
-                         const char*, // message
-                         ...);        // arguments
+stream_html_parser_sax_default_error_cb (void*,       // context
+                                         const char*, // message
+                                         ...);        // arguments
 void
-SAXDefaultStructuredErrorCallback (void*,        // user data
-                                   xmlErrorPtr); // error
+stream_html_parser_sax_default_structured_error_cb (void*,        // user data
+                                                    xmlErrorPtr); // error
 
 // definitions
 #define STREAM_MODULE_HTMLPARSER_DEFAULT_MODE STREAM_MODULE_HTMLPARSER_MODE_DOM
@@ -77,12 +75,12 @@ enum Stream_Module_HTMLParser_Mode
 
 struct Stream_Module_HTMLParser_SAXParserContextBase
 {
-  inline Stream_Module_HTMLParser_SAXParserContextBase ()
+  Stream_Module_HTMLParser_SAXParserContextBase ()
    : accumulate (false)
    , characters ()
    , parserContext (NULL)
    , sessionData (NULL)
-  {};
+  {}
 
   // *NOTE*: for some reason, libxml2 serves some 'characters' data in chunks
   //         --> buffer it in this member

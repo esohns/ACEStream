@@ -48,8 +48,7 @@ Test_I_Stream_Module_HTMLWriter::~Test_I_Stream_Module_HTMLWriter ()
   // clean up
   if (inherited::document_)
   {
-    xmlFreeDoc (inherited::document_);
-    inherited::document_ = NULL;
+    xmlFreeDoc (inherited::document_); inherited::document_ = NULL;
   } // end IF
 }
 
@@ -76,8 +75,7 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      ACE_ASSERT (!inherited::document_);
+    { ACE_ASSERT (!inherited::document_);
       inherited::document_ = htmlNewDocNoDtD (NULL,  // URI
                                               NULL); // external ID
       if (!inherited::document_)
@@ -85,10 +83,8 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to htmlNewDocNoDtD(), aborting\n"),
                     inherited::mod_->name ()));
-
         // *TODO*: remove type inference
         session_data_r.aborted = true;
-
         return;
       } // end IF
       fileWritten_ = false;
@@ -196,25 +192,24 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT ("%s: failed to htmlSaveFile(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
-
         // *TODO*: remove type inference
         session_data_r.aborted = true;
-
         return;
       } // end IF
+#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: wrote \"%s\" (%d byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     result));
+#endif // _DEBUG
       fileWritten_ = true;
 
       // clean up
       if (inherited::document_)
       {
-        xmlFreeDoc (inherited::document_);
-        inherited::document_ = NULL;
+        xmlFreeDoc (inherited::document_); inherited::document_ = NULL;
       } // end IF
 
       break;

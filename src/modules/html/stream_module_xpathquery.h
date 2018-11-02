@@ -54,18 +54,17 @@ class Stream_Module_XPathQuery_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_XPathQuery_T ();
-  virtual ~Stream_Module_XPathQuery_T ();
+  inline virtual ~Stream_Module_XPathQuery_T () {}
 
   //virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (MessageType*&, // data message handle
 //                                  bool&);        // return value: pass message downstream ?
-  // implement this so we can print overall statistics after session completes...
+  // implement this so we can print overall statistics after session completes
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

@@ -34,7 +34,6 @@
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_imessage.h"
-//#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
@@ -111,6 +110,7 @@ class Stream_MessageBase_T
                         ACE_Allocator*);    // message allocator
 
   Stream_MessageId_t id_;
+  bool               isInitialized_;
   Stream_SessionId_t sessionId_;
   MessageType        type_;
 
@@ -144,16 +144,9 @@ class Stream_MessageBase_2
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
-  //// grant access to specific ctors
-  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-  //                                               AllocatorConfigurationType,
-  //                                               ControlMessageType,
-  //                                               Stream_MessageBase_2<AllocatorConfigurationType,
-  //                                                                    ControlMessageType,
-  //                                                                    SessionMessageType,
-  //                                                                    HeaderType,
-  //                                                                    CommandType>,
-  //                                               SessionMessageType>;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               MessageType,
+                               CommandType> inherited;
 
  public:
   virtual ~Stream_MessageBase_2 ();
@@ -179,13 +172,7 @@ class Stream_MessageBase_2
                         ACE_Allocator*,     // message allocator
                         bool = true);       // increment running message counter ?
 
-  bool isInitialized_;
-
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               MessageType,
-                               CommandType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2& operator= (const Stream_MessageBase_2&))
 };

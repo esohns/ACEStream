@@ -123,39 +123,39 @@ const char libacestream_default_html_parser_module_name_string[] =
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-SAXDefaultErrorCallback (void* userData_in,
-                         const char* message_in,
-                         ...)
+stream_html_parser_sax_default_error_cb (void* userData_in,
+                                         const char* message_in,
+                                         ...)
 {
-  STREAM_TRACE (ACE_TEXT ("::SAXDefaultErrorCallback"));
+  STREAM_TRACE (ACE_TEXT ("::stream_html_parser_sax_default_error_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 
-  ACE_TCHAR buffer[BUFSIZ];
-  va_list arguments;
+  ACE_TCHAR buffer_a[BUFSIZ];
+  va_list arguments_a;
 
-  va_start (arguments, message_in);
-  int length = ACE_OS::vsnprintf (buffer,
-                                  sizeof (buffer),
+  va_start (arguments_a, message_in);
+  int length = ACE_OS::vsnprintf (buffer_a,
+                                  sizeof (ACE_TCHAR[BUFSIZ]),
 //                                  sizeof (buffer) / sizeof (buffer[0]),
-                                  message_in, arguments);
+                                  message_in, arguments_a);
   ACE_UNUSED_ARG (length);
-  va_end (arguments);
+  va_end (arguments_a);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("SAXDefaultErrorCallback: %s"),
-              buffer));
+              ACE_TEXT ("stream_html_parser_sax_default_error_cb: %s"),
+              buffer_a));
 }
 
 void
-SAXDefaultStructuredErrorCallback (void* userData_in,
-                                   xmlErrorPtr error_in)
+stream_html_parser_sax_default_structured_error_cb (void* userData_in,
+                                                    xmlErrorPtr error_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::SAXDefaultStructuredErrorCallback"));
+  STREAM_TRACE (ACE_TEXT ("::stream_html_parser_sax_default_structured_error_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("SAXDefaultStructuredErrorCallback: %s"),
+              ACE_TEXT ("stream_html_parser_sax_default_structured_error_cb: %s"),
               ACE_TEXT (error_in->message)));
 }

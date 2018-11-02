@@ -38,17 +38,17 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-//// SAX callbacks
-//void startDocument (void*); // user data
-//void endDocument (void*); // user data
-//void characters (void*,          // user data
-//                 const xmlChar*, // string
-//                 int);           // length
-//void startElement (void*,            // user data
-//                   const xmlChar*,   // name
-//                   const xmlChar**); // attributes
-//void endElement (void*,           // user data
-//                 const xmlChar*); // name
+// SAX callbacks
+void test_i_libxml2_sax_start_document_cb (void*); // user data
+void test_i_libxml2_sax_end_document_cb (void*); // user data
+void test_i_libxml2_sax_characters_cb (void*,          // user data
+                                       const xmlChar*, // string
+                                       int);           // length
+void test_i_libxml2_sax_start_element_cb (void*,            // user data
+                                          const xmlChar*,   // name
+                                          const xmlChar**); // attributes
+void test_i_libxml2_sax_end_element_cb (void*,           // user data
+                                        const xmlChar*); // name
 //xmlEntityPtr getEntity (void*,           // user data
 //                        const xmlChar*); // name
 
@@ -83,7 +83,7 @@ class Test_I_Stream_HTMLParser
 
  public:
   Test_I_Stream_HTMLParser (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_HTMLParser ();
+  inline virtual ~Test_I_Stream_HTMLParser () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const struct Test_I_HTTPGet_ModuleHandlerConfiguration&,

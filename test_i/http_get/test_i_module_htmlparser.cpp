@@ -84,12 +84,6 @@ Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser (ISTREAM_T* stream_in)
 
 }
 
-Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser"));
-
-}
-
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
                                                 bool& passMessageDownstream_out)
@@ -190,25 +184,27 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-startDocument (void* userData_in)
+test_i_libxml2_sax_start_document_cb (void* userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::startDocument"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_start_document_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 }
+
 void
-endDocument (void* userData_in)
+test_i_libxml2_sax_end_document_cb (void* userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::endDocument"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_end_document_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 }
+
 void
-characters (void* userData_in,
-            const xmlChar* string_in,
-            int length_in)
+test_i_libxml2_sax_characters_cb (void* userData_in,
+                                  const xmlChar* string_in,
+                                  int length_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::characters"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_characters_cb"));
 
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
@@ -287,12 +283,13 @@ characters (void* userData_in,
       break;
   } // end SWITCH
 }
+
 void
-startElement (void* userData_in,
-              const xmlChar* name_in,
-              const xmlChar** attributes_in)
+test_i_libxml2_sax_start_element_cb (void* userData_in,
+                                     const xmlChar* name_in,
+                                     const xmlChar** attributes_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::startElement"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_start_element_cb"));
 
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
@@ -425,11 +422,12 @@ startElement (void* userData_in,
       data_p->state = SAXPARSER_STATE_READ_ITEM;
   } // end ELSE IF
 }
+
 void
-endElement (void* userData_in,
-            const xmlChar* name_in)
+test_i_libxml2_sax_end_element_cb (void* userData_in,
+                                   const xmlChar* name_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::endElement"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_end_element_cb"));
 
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
@@ -512,14 +510,3 @@ endElement (void* userData_in,
     data_p->state = SAXPARSER_STATE_READ_ITEMS;
   } // end IF
 }
-//xmlEntityPtr
-//getEntity (void* userData_in,
-//           const xmlChar* name_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::getEntity"));
-
-//  ACE_UNUSED_ARG (userData_in);
-//  ACE_UNUSED_ARG (name_in);
-
-//  return NULL;
-//}

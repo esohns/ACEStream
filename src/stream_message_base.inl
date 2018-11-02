@@ -21,7 +21,6 @@
 #include <limits>
 
 #include "ace/Log_Msg.h"
-//#include "ace/OS.h"
 
 #include "stream_iallocator.h"
 #include "stream_macros.h"
@@ -54,6 +53,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               NULL,
               NULL)
  , id_ (++OWN_TYPE_T::currentId)
+ , isInitialized_ (false)
  , sessionId_ (sessionId_in)
  , type_ (messageType_in)
 {
@@ -81,6 +81,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               NULL,
               NULL)
  , id_ (++OWN_TYPE_T::currentId)
+ , isInitialized_ (false)
  , sessionId_ (0)
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
@@ -102,6 +103,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
  , id_ (message_in.id_)
+ , isInitialized_ (message_in.isInitialized_)
  , sessionId_ (message_in.sessionId_)
  , type_ (message_in.type_)
 {
@@ -125,6 +127,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , id_ (0)
+ , isInitialized_ (true)
  , sessionId_ (sessionId_in)
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
@@ -150,6 +153,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                                                          ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // re-use the same allocator
  , id_ (++OWN_TYPE_T::currentId)
+ , isInitialized_ (false)
  , sessionId_ (sessionId_in)
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
@@ -180,6 +184,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   //            id_));
 
   id_ = 0;
+  isInitialized_ = false;
   sessionId_ = 0;
   type_ = static_cast<MessageType> (STREAM_MESSAGE_INVALID);
 
@@ -203,6 +208,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   // sanity check(s)
 //  ACE_ASSERT (sessionId_in);
+  ACE_ASSERT (!isInitialized_);
 
   if (dataBlock_in)
   { ACE_ASSERT (!inherited::data_block_);
@@ -213,6 +219,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   sessionId_ = sessionId_in;
   type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
   //msg_execution_time ();
+
+  isInitialized_ = true;
 }
 
 template <typename AllocatorConfigurationType,
@@ -248,7 +256,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   // step1: shift head message data down to the base and adust the pointers
   result = inherited::crunch ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
@@ -273,7 +281,7 @@ fill:
                   free_space);
     result = message_block_3->copy (message_block_p->rd_ptr (),
                                     bytes_to_copy);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Block::copy(%u): \"%m\", returning\n"),
@@ -283,7 +291,8 @@ fill:
     message_block_p->rd_ptr (bytes_to_copy);
     free_space -= bytes_to_copy;
 
-    if (!message_block_3->space ()) break;
+    if (unlikely (!message_block_3->space ()))
+      break;
   } // end FOR
   if (message_block_2)
   {
@@ -291,7 +300,7 @@ fill:
     {
       message_block_3 = message_block_2;
       result = message_block_3->crunch ();
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
@@ -299,7 +308,8 @@ fill:
       } // end IF
     } // end IF
     message_block_2 = message_block_2->cont ();
-    if (message_block_2) goto fill;
+    if (message_block_2)
+      goto fill;
   } // end IF
 
   // step3: release any empty continuations
@@ -314,7 +324,7 @@ fill:
       message_block_2->cont (message_block_3);
 
       message_block_p->cont (NULL);
-      message_block_p->release ();
+      message_block_p->release (); message_block_p = NULL;
     } // end IF
     else
     {
@@ -355,7 +365,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
   } // end ELSE
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
@@ -370,14 +380,11 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   if (inherited::cont_)
   {
     message_p->cont_ = inherited::cont_->duplicate ();
-    if (!message_p->cont_)
+    if (unlikely (!message_p->cont_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
-      message_p->release ();
-
+      message_p->release (); message_p = NULL;
       return NULL;
     } // end IF
   } // end IF
@@ -449,8 +456,10 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   OWN_TYPE_T::currentId = 0;
 
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("reset message ids\n")));
+#endif // _DEBUG
 }
 
 //////////////////////////////////////////
@@ -466,7 +475,6 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                                                          MessageType messageType_in)
  : inherited (sessionId_in,
               messageType_in)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -481,7 +489,6 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -497,7 +504,6 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
  : inherited (message_in)
- , isInitialized_ (message_in.isInitialized_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -518,7 +524,6 @@ Stream_MessageBase_2<AllocatorConfigurationType,
               dataBlock_in,               // use (don't own !) this data block
               messageAllocator_in,        // allocator
               incrementMessageCounter_in) // increment the message ID ?
- , isInitialized_ (sessionId_in && dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -536,31 +541,6 @@ Stream_MessageBase_2<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::~Stream_MessageBase_2"));
 
   // *NOTE*: will be called just before (!) this is passed back to the allocator
-
-  isInitialized_ = false;
-}
-
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename HeaderType,
-          typename CommandType>
-void
-Stream_MessageBase_2<AllocatorConfigurationType,
-                     MessageType,
-                     HeaderType,
-                     CommandType>::initialize (Stream_SessionId_t sessionId_in,
-                                               ACE_Data_Block* dataBlock_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (!isInitialized_);
-
-  // initialize base class
-  inherited::initialize (sessionId_in,
-                         dataBlock_in);
-
-  isInitialized_ = true;
 }
 
 template <typename AllocatorConfigurationType,
@@ -581,7 +561,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::size () >= sizeof (HeaderType)); // enough space ?
-  if (inherited::total_length () < sizeof (HeaderType))
+  if (unlikely (inherited::total_length () < sizeof (HeaderType)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("not enough data (needed: %u, had: %u), aborting\n"),

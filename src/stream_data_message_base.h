@@ -63,10 +63,10 @@ class Stream_DataMessageBase_T
   void initialize (DataType&,               // data
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
-  inline bool isInitialized () const { return isInitialized_; };
+  inline bool isInitialized () const { return isInitialized_; }
 
   // implement Common_IGet_T
-  inline virtual const DataType& getR () const { return data_; };
+  inline virtual const DataType& getR () const { return data_; }
   // implement Common_ISetPP_T
   // *IMPORTANT NOTE*: fire-and-forget API
   virtual void setPR (DataType*&); // data
@@ -98,7 +98,6 @@ class Stream_DataMessageBase_T
   virtual ~Stream_DataMessageBase_T ();
 
   DataType data_;
-  bool     isInitialized_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
@@ -141,7 +140,7 @@ class Stream_DataMessageBase_2
   void initialize (DataType*&,              // data handle
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
-  inline bool isInitialized () const { return isInitialized_; };
+  inline bool isInitialized () const { return isInitialized_; }
 
   // implement Common_IGetR_T
   virtual const DataType& getR () const;
@@ -178,7 +177,6 @@ class Stream_DataMessageBase_2
   virtual ~Stream_DataMessageBase_2 ();
 
   DataType* data_;
-  bool      isInitialized_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2 ())

@@ -324,25 +324,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   } // end SWITCH
 }
 
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataContainerType,
-//          typename ParserContextType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_HTMLParser_T<SessionMessageType,
-//                           MessageType,
-//                           ModuleHandlerConfigurationType,
-//                           SessionDataContainerType,
-//                           ParserContextType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -384,12 +365,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     {
       if (parserContext_.parserContext->myDoc)
       {
-        xmlFreeDoc (parserContext_.parserContext->myDoc);
-        parserContext_.parserContext->myDoc = NULL;
+        xmlFreeDoc (parserContext_.parserContext->myDoc); parserContext_.parserContext->myDoc = NULL;
       } // end IF
 
-      htmlFreeParserCtxt (parserContext_.parserContext);
-      parserContext_.parserContext = NULL;
+      htmlFreeParserCtxt (parserContext_.parserContext); parserContext_.parserContext = NULL;
     } // end IF
 
     xmlCleanupParser ();
@@ -420,7 +399,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::SAXDefaultErrorCallback);
+  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::stream_html_parser_sax_default_error_cb);
 
   if (!resetParser ())
   {
@@ -524,9 +503,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                 parser_options, result));
 
   xmlSetGenericErrorFunc (parserContext_.parserContext,
-                          &::SAXDefaultErrorCallback);
+                          &::stream_html_parser_sax_default_error_cb);
   xmlSetStructuredErrorFunc (parserContext_.parserContext,
-                             &::SAXDefaultStructuredErrorCallback);
+                             &::stream_html_parser_sax_default_structured_error_cb);
 
   return true;
 }
