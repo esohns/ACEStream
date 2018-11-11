@@ -13,12 +13,14 @@ if (GUI_SUPPORT)
   message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
   message (STATUS "wxWidgets_CXX_FLAGS: ${wxWidgets_CXX_FLAGS}")
   message (STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
-  # *NOTE*: re-enable ANSI mode
-#  add_definitions (-DwxUSE_UNICODE=0)
+# # *NOTE*: re-enable ANSI mode, iff available
+# add_definitions (-DwxUSE_UNICODE=0)
+  foreach (DEFINITION ${wxWidgets_DEFINITIONS})
+   add_definitions (-D${DEFINITION})
+  endforeach ()
   if (WIN32)
-#   add_definitions(-DUNICODE -D_UNICODE)
-   add_definitions (-D__WXMSW__)
-   add_definitions (-DWXUSINGDLL)
+#  add_definitions (-D__WXMSW__)
+#  add_definitions (-DWXUSINGDLL)
    if (MSVC)
     add_definitions (-DwxMSVC_VERSION_AUTO)
    endif (MSVC)
@@ -73,14 +75,13 @@ if (UNIX)
    elseif (GTK3_SUPPORT)
     pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
    endif ()
-  endif (GTK_SUPPORT)
- endif (GUI_SUPPORT)
-
- if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
   endif (GTK_SUPPORT)
+  if (WXWIDGETS_SUPPORT)
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                               $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
+  endif (WXWIDGETS_SUPPORT)
  endif (GUI_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
@@ -177,6 +178,10 @@ endif (GUI_SUPPORT)
 
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src>)
+if (UNIX)
+ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/dev>)
+endif (UNIX)
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
 target_include_directories (${PROJECT_NAME}_Test_I PUBLIC

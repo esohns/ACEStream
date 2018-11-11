@@ -142,11 +142,11 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionId_in)
   ACE_ASSERT (CBData_);
 #endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_BuildersIterator_t iterator;
   GtkTable* table_p = NULL;
   GtkAction* action_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);

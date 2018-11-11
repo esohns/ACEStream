@@ -75,22 +75,6 @@
 
 extern const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
-enum Stream_Visualization_SpectrumAnalyzer2DMode
-{ // *TODO*: implement discrete modes of operation
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM,
-  ////////////////////////////////////////
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_MAX,
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID
-};
-enum Stream_Visualization_SpectrumAnalyzer3DMode
-{
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
-  ////////////////////////////////////////
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX,
-  STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID
-};
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -189,63 +173,63 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif // ACE_WIN32 || ACE_WIN64
 
-  cairo_t*                                          cairoContext_;
-  ACE_SYNCH_MUTEX_T*                                surfaceLock_;
+  cairo_t*                                           cairoContext_;
+  ACE_SYNCH_MUTEX_T*                                 surfaceLock_;
 #if GTK_CHECK_VERSION (3,10,0)
-  cairo_surface_t*                                  cairoSurface_;
+  cairo_surface_t*                                   cairoSurface_;
 #else
-  GdkPixbuf*                                        pixelBuffer_;
+  GdkPixbuf*                                         pixelBuffer_;
 #endif
 #if defined (GTKGL_SUPPORT)
-  Stream_Visualization_OpenGL_Instructions_t*       OpenGLInstructions_;
-  ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock_;
-  //GLuint                                                   OpenGLTextureId_;
+  Stream_Visualization_OpenGL_Instructions_t*        OpenGLInstructions_;
+  ACE_SYNCH_MUTEX*                                   OpenGLInstructionsLock_;
+  //GLuint                                             OpenGLTextureId_;
 #if GTK_CHECK_VERSION(3,0,0)
-  GdkRGBA                                           backgroundColor_;
-  GdkRGBA                                           foregroundColor_;
+  GdkRGBA                                            backgroundColor_;
+  GdkRGBA                                            foregroundColor_;
 #else
-  GdkColor                                          backgroundColor_;
-  GdkColor                                          foregroundColor_;
+  GdkColor                                           backgroundColor_;
+  GdkColor                                           foregroundColor_;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 //#if GTK_CHECK_VERSION(3,0,0)
 //#if GTK_CHECK_VERSION(3,16,0)
-//  GtkGLArea*                                               OpenGLWindow_;
+//  GtkGLArea*                                         OpenGLWindow_;
 //#else
 //#if defined (GTKGLAREA_SUPPORT)
-//  GglaArea*                                                OpenGLWindow_;
+//  GglaArea*                                          OpenGLWindow_;
 //#else
-//  GdkWindow*                                               OpenGLWindow_;
+//  GdkWindow*                                         OpenGLWindow_;
 //#endif // GTKGLAREA_SUPPORT
 //#endif /* GTK_CHECK_VERSION (3,16,0) */
 //#else /* GTK_CHECK_VERSION (3,0,0) */
 //#if defined (GTKGLAREA_SUPPORT)
-//  GtkGLArea*                                               OpenGLWindow_;
+//  GtkGLArea*                                         OpenGLWindow_;
 //#else
-//  GdkGLContext*                                            OpenGLContext_;
-//  GdkGLDrawable*                                           OpenGLWindow_;
+//  GdkGLContext*                                      OpenGLContext_;
+//  GdkGLDrawable*                                     OpenGLWindow_;
 //#endif // GTKGLAREA_SUPPORT
 //#endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
-  double                                            channelFactor_;
-  double                                            scaleFactorX_;
-  double                                            scaleFactorY_;
-  int                                               height_;
-  int                                               width_;
+  double                                             channelFactor_;
+  double                                             scaleFactorX_;
+  double                                             scaleFactorY_;
+  int                                                height_;
+  int                                                width_;
 
-  enum Stream_Visualization_SpectrumAnalyzer2DMode* mode2D_;
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode* mode2D_;
 #if defined (GTKGL_SUPPORT)
-  enum Stream_Visualization_SpectrumAnalyzer3DMode* mode3D_;
+  enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
 #endif // GTKGL_SUPPORT
 
-  Stream_ResetCounterHandler                        renderHandler_;
-  long                                              renderHandlerTimerId_;
+  Stream_ResetCounterHandler                         renderHandler_;
+  long                                               renderHandlerTimerId_;
 
-  Common_Math_FFT_SampleIterator                    sampleIterator_;
+  Common_Math_FFT_SampleIterator                     sampleIterator_;
 
   // random number generator
-  std::uniform_int_distribution<int>                randomDistribution_;
-  std::default_random_engine                        randomEngine_;
-  std::function<int ()>                             randomGenerator_;
+  std::uniform_int_distribution<int>                 randomDistribution_;
+  std::default_random_engine                         randomEngine_;
+  std::function<int ()>                              randomGenerator_;
 };
 
 // include template definition

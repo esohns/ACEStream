@@ -24,6 +24,17 @@
 #include <deque>
 #include <map>
 
+#include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavutil/pixfmt.h"
+//}
+//#endif /* __cplusplus */
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -40,6 +51,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
+#else
+#include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
@@ -233,19 +246,11 @@ struct Net_ConnectionState;
 typedef std::map<ACE_HANDLE, struct Net_ConnectionState*> Stream_ConnectionStates_t;
 typedef Stream_ConnectionStates_t::iterator Stream_ConnectionStatesIterator_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_MediaFramework_DirectShow_Formats_t Stream_MediaFormats_t;
-#else
-typedef std::deque<enum AVPixelFormat> Stream_MediaFormats_t;
-#endif // ACE_WIN32 || ACE_WIN64
-typedef Stream_MediaFormats_t::iterator Stream_MediaFormatsIterator_t;
-
 struct Stream_SessionData
 {
   Stream_SessionData ()
    : aborted (false)
    , connectionStates ()
-   , formats ()
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
    , sessionId (0)
@@ -285,7 +290,6 @@ struct Stream_SessionData
   //           reset, ...)
   bool                      aborted;
   Stream_ConnectionStates_t connectionStates;
-  Stream_MediaFormats_t     formats;
   ACE_Time_Value            lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX*          lock;
   Stream_SessionId_t        sessionId;

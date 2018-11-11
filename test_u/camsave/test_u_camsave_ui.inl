@@ -16,6 +16,7 @@
 
 #include "common_file_tools.h"
 
+#include "common_ui_ifullscreen.h"
 #include "common_ui_tools.h"
 
 #include "common_ui_wxwidgets_tools.h"
@@ -30,6 +31,8 @@
 
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
 #include "stream_dev_directshow_tools.h"
+#else
+#include "stream_lib_tools.h"
 #endif // ACE_WIN64 || ACE_WIN32
 
 #include "stream_vis_tools.h"
@@ -41,7 +44,6 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
  : inherited (parent_in)
  , application_ (NULL)
  , initializing_ (true)
- , reset_ (false)
  , untoggling_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::Stream_CamSave_WxWidgetsDialog_T"));
@@ -81,7 +83,7 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   choice_format = XRCCTRL (*this, "choice_format", wxChoice);
   choice_resolution = XRCCTRL (*this, "choice_resolution", wxChoice);
   choice_framerate = XRCCTRL (*this, "choice_framerate", wxChoice);
-  button_reset = XRCCTRL (*this, "button_reset", wxBitmapButton);
+  button_reset_format = XRCCTRL (*this, "button_reset", wxBitmapButton);
   togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
   textcontrol_filename = XRCCTRL (*this, "textcontrol_filename", wxTextCtrl);
   directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
@@ -102,10 +104,10 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   button_report->Show (false);
 #endif // _DEBUG
   bool activate_source = true;
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
-  StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
+  typename StreamType::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
 
@@ -183,14 +185,14 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   if (likely (activate_source))
   {
     index_i =
-      (initializing_ ? choice_source->FindString ((*stream_iterator).second.second.deviceIdentifier.c_str ())
+      (initializing_ ? choice_source->FindString ((*stream_iterator).second.second.deviceIdentifier.identifier.c_str ())
                      : 0);
     choice_source->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
                             XRCID ("choice_source"));
     event_s.SetInt (index_i);
     //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-    this->AddPendingEvent (&event_s);
+    this->AddPendingEvent (event_s);
   } // end IF
 
   return true;
@@ -220,11 +222,11 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.stream);
 
-  if (configuration_r.stream->IsRunning ())
+  if (configuration_r.stream->isRunning ())
     gauge_progress->Pulse ();
 }
 
@@ -239,8 +241,8 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.stream);
 }
 
@@ -266,8 +268,8 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.stream);
 
   configuration_r.stream->control (STREAM_CONTROL_STEP_2);
@@ -303,8 +305,8 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
@@ -317,7 +319,7 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 #endif // ACE_WIN64 || ACE_WIN32
 
   std::string device_identifier;
-  int index_i = -1;
+//  int index_i = -1;
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
   ACE_NOTSUP;
@@ -459,8 +461,8 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.configuration);
 #if defined (ACE_WIN64) || defined (ACE_WIN32)
   ACE_ASSERT (false);
@@ -495,8 +497,8 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
   // step1: make sure the stream has stopped
   StreamType* stream_p = NULL;
-  InterfaceType::CONFIGURATION_T& configuration_r =
-    const_cast<InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
+  typename InterfaceType::CONFIGURATION_T& configuration_r =
+    const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   stream_p = configuration_r.stream;
   ACE_ASSERT (stream_p);
   const enum Stream_StateMachine_ControlState& status_r =
@@ -2494,4 +2496,5 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 SIGINT));
 }
+#else
 #endif // ACE_WIN32 || ACE_WIN64

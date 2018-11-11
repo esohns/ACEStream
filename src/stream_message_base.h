@@ -76,6 +76,7 @@ class Stream_MessageBase_T
   void initialize (Stream_SessionId_t,         // session id
                    ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
+  inline bool isInitialized () const { return isInitialized_; }
 
   // debug tools
   // *NOTE*: these specializations cover the library testcase applications only

@@ -127,7 +127,7 @@ if (NOT EXISTS ${Common_DIR})
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
 
-find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
@@ -154,18 +154,19 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
-
  include_directories (${PKG_CAP_INCLUDE_DIRS})
- if (SSL_SUPPORT)
-  include_directories (${PKG_SSL_INCLUDE_DIRS})
- endif ()
  if (DBUS_SUPPORT)
   include_directories (${PKG_DBUS_INCLUDE_DIRS})
  endif ()
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+
+ if (SSL_SUPPORT)
+  include_directories (${PKG_SSL_INCLUDE_DIRS})
+ endif ()
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
@@ -178,14 +179,10 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/cmake)
 else ()
- include_directories ($ENV{ACE_ROOT})
-
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql/include)
@@ -193,6 +190,14 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+
+ if (DEFINED ENV{ACE_ROOT})
+  include_directories ($ENV{ACE_ROOT})
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
@@ -209,6 +214,8 @@ else ()
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db)
@@ -223,7 +230,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (EXECUTABLE HTTP_get_1)
@@ -319,40 +325,25 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_Database)
-target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
-target_link_libraries (${EXECUTABLE} ACEStream_Device)
-target_link_libraries (${EXECUTABLE} ACEStream_File)
-target_link_libraries (${EXECUTABLE} ACEStream_HTML)
-target_link_libraries (${EXECUTABLE} ACEStream_MediaFramework)
-target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ACEStream_Network)
-target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Database)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_HTML)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
-target_link_libraries (${EXECUTABLE} ACENetwork_WLAN)
+#target_link_libraries (${EXECUTABLE} ACENetwork_WLAN)
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} iw)
-
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${JSON_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${DHCPCTL_LIBRARY})
-# target_link_libraries (${EXECUTABLE} ${DHCP_LIBRARY})
-# target_link_libraries (${EXECUTABLE} -Wl,--start-group ${OMAPI_LIBRARY} ${ISC_LIBRARY} ${DNS_LIBRARY} -Wl,--end-group)
- target_link_libraries (${EXECUTABLE} ${OMAPI_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${IRS_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${DNS_LIBRARY})
- target_link_libraries (${EXECUTABLE} -Wl,--start-group ${DNS_LIBRARY} ${GSS_KRB5_LIBRARY} ${KRB5_LIBRARY} -Wl,--end-group)
- target_link_libraries (${EXECUTABLE} ${KRB5_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${ISC_CFG_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${ISC_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${GEOIP_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${GSS_LIBRARY})
 endif (UNIX)
 
 # add PCH

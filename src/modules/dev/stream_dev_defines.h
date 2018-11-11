@@ -18,7 +18,7 @@
 
 #define MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING            "ALSAMicSource"
 #define MODULE_DEV_TARGET_ALSA_DEFAULT_NAME_STRING                "ALSAPlayback"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
@@ -70,9 +70,8 @@
 // V4L
 // *NOTE*: (on Linux,) a Lenovo (TM) ThinkPad T410 integrated camera buffers 32
 //         frames
-#define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS                 60
+#define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS                 32
 #define MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_USERPTR
-
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

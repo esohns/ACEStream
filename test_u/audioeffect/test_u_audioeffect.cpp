@@ -35,6 +35,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "ace/High_Res_Timer.h"
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -46,7 +47,7 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_error_tools.h"
@@ -109,8 +110,7 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -148,18 +148,24 @@ do_printUsage (const std::string& programName_in)
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+#if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file +=
+#if defined (GTK_USE)
 #if GTK_CHECK_VERSION (3,0,0)
-    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
-    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
+#endif // GTK_CHECK_VERSION (3,0,0)
+#elif defined (WXWIDGETS_USE)
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
 #endif
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
+#if defined (GTK_USE)
   std::string UI_style_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file +=
@@ -168,6 +174,8 @@ do_printUsage (const std::string& programName_in)
             << UI_style_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -211,8 +219,12 @@ do_processArguments (int argc_in,
                      std::string& effect_out,
 #endif
                      std::string& targetFileName_out,
+#if defined (GUI_SUPPORT)
                      std::string& UIFile_out,
+#if defined (GTK_USE)
                      std::string& UICSSFile_out,
+#endif // GTK_USE
+#endif // GUI_SUPPORT
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -247,22 +259,30 @@ do_processArguments (int argc_in,
   targetFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   targetFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
+#if defined (GUI_SUPPORT)
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out +=
+#if defined (GTK_USE)
 #if GTK_CHECK_VERSION (3,0,0)
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
 #endif
+#elif defined (WXWIDGETS_USE)
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
+#endif
+#if defined (GTK_USE)
   UICSSFile_out = configuration_path;
   UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UICSSFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UICSSFile_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -276,14 +296,30 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:cf::g::i::lms:tuvx"),
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                               ACE_TEXT ("b:cf::g::i:lms:tuvx"),
 #else
-                              ACE_TEXT ("b:d:e::f::g::hi:ls:tuvx"),
+                               ACE_TEXT ("b:cf::g::lms:tuvx"),
+#endif // GTK_USE
+#else
+                               ACE_TEXT ("b:cf::lms:tuvx"),
+#endif // GUI_SUPPORT
+#else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+                               ACE_TEXT ("b:d:e::f::g::i:ls:tuvx"),
+#else
+                               ACE_TEXT ("b:d:e::f::g::ls:tuvx"),
+#endif // GTK_USE
+#else
+                               ACE_TEXT ("b:d:e::f::ls:tuvx"),
+#endif // GUI_SUPPORT
 #endif
-                              1,                          // skip command name
-                              1,                          // report parsing errors
-                              ACE_Get_Opt::PERMUTE_ARGS,  // ordering
-                              0);                         // for now, don't use long options
+                               1,                          // skip command name
+                               1,                          // report parsing errors
+                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
+                               0);                         // for now, don't use long options
   int result = argument_parser.long_option (ACE_TEXT ("sync"),
                                             'x',
                                             ACE_Get_Opt::NO_ARG);
@@ -331,7 +367,7 @@ do_processArguments (int argc_in,
 
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 'f':
       {
         ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
@@ -341,6 +377,7 @@ do_processArguments (int argc_in,
           targetFileName_out.clear ();
         break;
       }
+#if defined (GUI_SUPPORT)
       case 'g':
       {
         ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
@@ -350,6 +387,7 @@ do_processArguments (int argc_in,
           UIFile_out.clear ();
         break;
       }
+#if defined (GTK_USE)
       case 'i':
       {
         ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
@@ -359,6 +397,8 @@ do_processArguments (int argc_in,
           UICSSFile_out.clear ();
         break;
       }
+#endif // GTK_USE
+#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -370,7 +410,7 @@ do_processArguments (int argc_in,
         mediaFramework_out = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
         break;
       }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       case 's':
       {
         converter.clear ();
@@ -807,17 +847,27 @@ do_work (unsigned int bufferSize_in,
          const std::string& effectName_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
+#if defined (GUI_SUPPORT)
          const std::string& UIDefinitionFile_in,
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
          unsigned int statisticReportingInterval_in,
          bool mute_in,
+#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_AudioEffect_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_U_AudioEffect_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
          struct Test_U_AudioEffect_UI_CBData& CBData_in,
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // GUI_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+         struct Test_U_AudioEffect_DirectShow_Configuration& directShowConfiguration_in,
+         struct Test_U_AudioEffect_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
+#else
+         struct Test_U_AudioEffect_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -878,9 +928,9 @@ do_work (unsigned int bufferSize_in,
   istream_control_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
-  int result_2 = -1;
-  const Stream_Module_t* module_p = NULL;
-  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
+//  int result_2 = -1;
+//  const Stream_Module_t* module_p = NULL;
+//  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
   struct Stream_ModuleConfiguration module_configuration;
 
   // step0a: initialize configuration
@@ -890,13 +940,13 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       allocator_configuration_p =
-        &directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_;
+        &directShowConfiguration_in.streamConfiguration.allocatorConfiguration_;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       allocator_configuration_p =
-        &mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_;
+        &mediaFoundationConfiguration.streamConfiguration.allocatorConfiguration_;
       break;
     }
     default:
@@ -909,21 +959,33 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   allocator_configuration_p =
-    &CBData_in.configuration->streamConfiguration.allocatorConfiguration_;
+    &configuration_in.streamConfiguration.allocatorConfiguration_;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_configuration_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (&directShowCBData_in);
+  Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (
+#if defined (GUI_SUPPORT)
+                                                                          &directShowCBData_in
+#endif // GUI_SUPPORT
+                                                                         );
   Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (istream_p,
                                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
+  Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (
+#if defined (GUI_SUPPORT)
+                                                                                    &mediaFoundationCBData_in
+#endif // GUI_SUPPORT
+                                                                                   );
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (istream_p,
                                                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
-  Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
+  Test_U_AudioEffect_EventHandler ui_event_handler (
+#if defined (GUI_SUPPORT)
+                                                    &CBData_in
+#endif // GUI_SUPPORT
+                                                   );
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
@@ -949,12 +1011,12 @@ do_work (unsigned int bufferSize_in,
         allocator_configuration_p;
       directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                          directshow_modulehandler_configuration,
-                                                                         directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_,
-                                                                         directShowCBData_in.configuration->streamConfiguration.configuration_);
+                                                                         directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
+                                                                         directShowConfiguration_in.streamConfiguration.configuration_);
 
       directshow_modulehandler_iterator =
-        directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
+        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
       (*directshow_modulehandler_iterator).second.second.audioOutput = 1;
       (*directshow_modulehandler_iterator).second.second.surfaceLock =
@@ -977,6 +1039,8 @@ do_work (unsigned int bufferSize_in,
       //                        TRUE);
       //ACE_ASSERT (SUCCEEDED (result));
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
       Common_UI_GTK_Manager_t* gtk_manager_p =
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -987,6 +1051,8 @@ do_work (unsigned int bufferSize_in,
       (*directshow_modulehandler_iterator).second.second.OpenGLInstructionsLock =
         &state_r.lock;
 #endif // GTKGL_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
       (*directshow_modulehandler_iterator).second.second.printProgressDot =
         UIDefinitionFile_in.empty ();
@@ -1006,17 +1072,25 @@ do_work (unsigned int bufferSize_in,
         allocator_configuration_p;
       mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                               mediafoundation_modulehandler_configuration,
-                                                                              mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_,
-                                                                              mediaFoundationCBData_in.configuration->streamConfiguration.configuration_);
+                                                                              mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_,
+                                                                              mediaFoundationConfiguration_in.streamConfiguration.configuration_);
 
       mediafoundation_modulehandler_iterator =
-        mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
+        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
 
       (*mediafoundation_modulehandler_iterator).second.second.audioOutput = 1;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#if defined (GTKGL_SUPPORT)
       (*mediafoundation_modulehandler_iterator).second.second.surfaceLock =
         &mediaFoundationCBData_in.surfaceLock;
+#endif // GTKGL_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
       Common_UI_GTK_Manager_t* gtk_manager_p =
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -1027,6 +1101,8 @@ do_work (unsigned int bufferSize_in,
       (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructionsLock =
         &state_r.lock;
 #endif // GTKGL_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
       (*mediafoundation_modulehandler_iterator).second.second.printProgressDot =
         UIDefinitionFile_in.empty ();
@@ -1050,23 +1126,26 @@ do_work (unsigned int bufferSize_in,
 #else
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
-  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
-                                                           modulehandler_configuration,
-                                                           CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
-                                                           CBData_in.configuration->streamConfiguration.configuration_);
+  configuration_in.streamConfiguration.initialize (module_configuration,
+                                                   modulehandler_configuration,
+                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
+                                                   configuration_in.streamConfiguration.configuration_);
 
   modulehandler_iterator =
-      CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != CBData_in.configuration->streamConfiguration.end ());
+      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end ());
 
 //  (*modulehandler_iterator).second.device = device_in;
   (*modulehandler_iterator).second.second.effect = effectName_in;
-  (*modulehandler_iterator).second.second.format =
-    &CBData_in.configuration->ALSAConfiguration;
   (*modulehandler_iterator).second.second.messageAllocator = &message_allocator;
   (*modulehandler_iterator).second.second.mute = mute_in;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
-
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
@@ -1075,7 +1154,8 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
     &state_r.lock;
 #endif // GTKGL_SUPPORT
-
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   (*modulehandler_iterator).second.second.printProgressDot =
       UIDefinitionFile_in.empty ();
   (*modulehandler_iterator).second.second.statisticReportingInterval =
@@ -1096,29 +1176,29 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       if (bufferSize_in)
-        directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        directShowConfiguration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
           bufferSize_in;
-      directShowCBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
+      directShowConfiguration_in.streamConfiguration.configuration_.messageAllocator =
         &directshow_message_allocator;
-      directShowCBData_in.configuration->streamConfiguration.configuration_.module =
+      directShowConfiguration_in.streamConfiguration.configuration_.module =
         (!UIDefinitionFile_in.empty () ? &directshow_event_handler
                                        : NULL);
-      directShowCBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      directShowConfiguration_in.streamConfiguration.configuration_.printFinalReport =
         true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       if (bufferSize_in)
-        mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
           bufferSize_in;
 
-      mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
+      mediaFoundationConfiguration_in.streamConfiguration.configuration_.messageAllocator =
         &mediafoundation_message_allocator;
-      mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.module =
+      mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
         (!UIDefinitionFile_in.empty () ? &mediafoundation_event_handler
                                        : NULL);
-      mediaFoundationCBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      mediaFoundationConfiguration_in.streamConfiguration.configuration_.printFinalReport =
         true;
       break;
     }
@@ -1132,16 +1212,18 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    configuration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       bufferSize_in;
 
-  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
+  configuration_in.streamConfiguration.configuration_.messageAllocator =
     &message_allocator;
-  CBData_in.configuration->streamConfiguration.configuration_.module =
+  configuration_in.streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
-  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+  configuration_in.streamConfiguration.configuration_.printFinalReport =
     true;
+  configuration_in.streamConfiguration.configuration_.format =
+    &configuration_in.ALSAConfiguration.format;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -1160,7 +1242,7 @@ do_work (unsigned int bufferSize_in,
       result =
         do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier,
                                   (*directshow_modulehandler_iterator).second.second.builder,
-                                  directShowCBData_in.streamConfiguration,
+                                  directShowConfiguration_in.streamConfiguration,
                                   (*directshow_modulehandler_iterator).second.second.inputFormat,
                                   true); // initialize COM ?
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
@@ -1196,20 +1278,20 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directShowCBData_in.configuration->signalHandlerConfiguration.hasUI =
+      directShowConfiguration_in.signalHandlerConfiguration.hasUI =
         !UIDefinitionFile_in.empty ();
-      directShowCBData_in.configuration->signalHandlerConfiguration.messageAllocator =
+      directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &directshow_message_allocator;
-      signalHandler_in.initialize (directShowCBData_in.configuration->signalHandlerConfiguration);
+      signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediaFoundationCBData_in.configuration->signalHandlerConfiguration.hasUI =
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.hasUI =
         !UIDefinitionFile_in.empty ();
-      mediaFoundationCBData_in.configuration->signalHandlerConfiguration.messageAllocator =
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
-      signalHandler_in.initialize (mediaFoundationCBData_in.configuration->signalHandlerConfiguration);
+      signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
     default:
@@ -1221,11 +1303,11 @@ do_work (unsigned int bufferSize_in,
     }
   } // end SWITCH
 #else
-  CBData_in.configuration->signalHandlerConfiguration.hasUI =
+  configuration_in.signalHandlerConfiguration.hasUI =
     !UIDefinitionFile_in.empty ();
-  CBData_in.configuration->signalHandlerConfiguration.messageAllocator =
+  configuration_in.signalHandlerConfiguration.messageAllocator =
     &message_allocator;
-  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
+  signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!Common_Signal_Tools::initialize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                           : COMMON_SIGNAL_DISPATCH_PROACTOR),
@@ -1247,13 +1329,13 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       success_b =
-        directshow_stream.initialize (directShowCBData_in.configuration->streamConfiguration);
+        directshow_stream.initialize (directShowConfiguration_in.streamConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       success_b =
-        mediafoundation_stream.initialize (mediaFoundationCBData_in.configuration->streamConfiguration);
+        mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration);
       break;
     }
     default:
@@ -1266,7 +1348,7 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
   if (!success_b)
 #else
-  if (!stream.initialize (CBData_in.configuration->streamConfiguration))
+  if (!stream.initialize (configuration_in.streamConfiguration))
 #endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1542,17 +1624,23 @@ ACE_TMAIN (int argc_in,
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+#if defined (GUI_SUPPORT)
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
+#if defined (GTK_USE)
 #if GTK_CHECK_VERSION(3,0,0)
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
 #endif // GTK_CHECK_VERSION(3,0,0)
+#elif defined (WXWIDGETS_USE)
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
+#endif
+#if defined (GTK_USE)
   std::string UI_CSS_file = path;
   UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_CSS_file +=
@@ -1560,6 +1648,8 @@ ACE_TMAIN (int argc_in,
   UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_CSS_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1583,8 +1673,12 @@ ACE_TMAIN (int argc_in,
                             effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
                             target_filename,
+#if defined (GUI_SUPPORT)
                             UI_definition_file,
+#if defined (GTK_USE)
                             UI_CSS_file,
+#endif // GTK_USE
+#endif // GUI_SUPPORT
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -1615,10 +1709,16 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
+#if defined (GUI_SUPPORT)
   if ((!UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file)) ||
-      (!UI_CSS_file.empty () &&
-       !Common_File_Tools::isReadable (UI_CSS_file)))
+       !Common_File_Tools::isReadable (UI_definition_file))
+#if defined (GTK_USE)
+      || (!UI_CSS_file.empty () &&
+          !Common_File_Tools::isReadable (UI_CSS_file)))
+#else
+     )
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1835,7 +1935,9 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
+#if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
+#if defined (GTK_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
                                                                                  argv_in,
@@ -1848,9 +1950,10 @@ ACE_TMAIN (int argc_in,
                                                            argv_in,
                                                            &ui_cb_data);
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE
   if (!UI_definition_file.empty ())
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (media_framework_e)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1874,21 +1977,22 @@ ACE_TMAIN (int argc_in,
                     media_framework_e));
 
         // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
         result = ACE::fini ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
         return EXIT_FAILURE;
       }
     } // end SWITCH
-  } // end IF
 #else
+#if defined (GTK_USE)
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                             argv_in,
                                                             &ui_definition);
+#endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
+  } // end IF
+#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1901,17 +2005,27 @@ ACE_TMAIN (int argc_in,
            effect_name,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
+#if defined (GUI_SUPPORT)
            UI_definition_file,
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
            statistic_reporting_interval,
            mute,
+#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,
 #else
            ui_cb_data,
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // GUI_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+           directshow_configuration,
+           mediafoundation_configuration,
+#else
+           configuration,
 #endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,
@@ -1926,7 +2040,7 @@ ACE_TMAIN (int argc_in,
   working_time_string = Common_Timer_Tools::periodToString (working_time);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
+              ACE_TEXT ("total working time (h:m:s.us): \"%s\"\n"),
               ACE_TEXT (working_time_string.c_str ())));
 
   // stop profile timer...

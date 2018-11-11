@@ -21,7 +21,7 @@
 #ifndef STREAM_LIB_DIRECTSHOW_COMMON_H
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
-#include <deque>
+//#include <deque>
 #include <list>
 #include <string>
 
@@ -52,8 +52,8 @@
 class ACE_Message_Queue_Base;
 class Stream_IAllocator;
 
-typedef std::deque<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
-typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
+//typedef std::deque<struct _AMMediaType> Stream_MediaFramework_DirectShow_Formats_t;
+//typedef Stream_MediaFramework_DirectShow_Formats_t::iterator Stream_MediaFramework_DirectShow_FormatsIterator_t;
 
 struct Stream_MediaFramework_DirectShow_FilterPinConfiguration
 {

@@ -29,8 +29,14 @@
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS              false
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY    440.0 // Hz
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #define TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE            "audioeffect.gtk2"
 #define TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE            "audioeffect.gtk3"
+#elif defined (WXWIDGETS_USE)
+#define TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE         "audioeffect.xrc"
+#endif
+#endif // GUI_SUPPORT
 
 // defaults
 #define TEST_U_STREAM_AUDIOEFFECT_OPENGL_CAMERA_DEFAULT_ZOOM 5.0F
@@ -45,13 +51,7 @@
 #else
 #define TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME    "echo"
 #define TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND     "sox -h"
-#endif
-
-//----------------------------------------
-
-// GTK progress/status-bar
-//#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)
-//#define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
+#endif // ACE_WIN32 || ACE_WIN64
 
 //----------------------------------------
 

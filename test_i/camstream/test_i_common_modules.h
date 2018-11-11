@@ -51,7 +51,11 @@
 #else
 #include "stream_dev_cam_source_v4l.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //#include "stream_dec_avi_decoder.h"
@@ -379,6 +383,8 @@ typedef Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_MT_SYNCH,
                                                      struct Test_I_Source_MediaFoundation_SessionData,
                                                      Test_I_Source_MediaFoundation_SessionData_t> Test_I_Source_MediaFoundation_Display;
 #else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
@@ -386,6 +392,8 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Source_V4L2_Stream_Message,
                                        Test_I_Source_V4L2_Stream_SessionMessage,
                                        Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Display;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -540,6 +548,8 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
 //                                            Test_I_Target_MediaFoundation_SessionData,
 //                                            Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_Stream_DisplayNull;
 #else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_ModuleHandlerConfiguration,
@@ -547,6 +557,8 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Target_Stream_Message,
                                        Test_I_Target_Stream_SessionMessage,
                                        Test_I_Target_SessionData_t> Test_I_Target_Display;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -693,12 +705,16 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Source_MediaFoundation_Display);                          // writer type
 #else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Source_V4L2_Display);                            // writer type
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -771,12 +787,16 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_MediaFoundation_SessionData, 
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_I_Target_MediaFoundation_Display);                          // writer type
 #else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Target_Display);                                 // writer type
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

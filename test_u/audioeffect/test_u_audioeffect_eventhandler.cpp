@@ -22,29 +22,48 @@
 #include "ace/Synch.h"
 #include "test_u_audioeffect_eventhandler.h"
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "gtk/gtk.h"
 #endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
-#include "test_u_audioeffect_callbacks.h"
-#include "test_u_audioeffect_common.h"
-#include "test_u_audioeffect_defines.h"
-
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "test_u_gtk_common.h"
 #endif // GTK_USE
+#endif // GUI_SUPPORT
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_u_audioeffect_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+#include "test_u_audioeffect_common.h"
+#include "test_u_audioeffect_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventHandler (struct Test_U_AudioEffect_DirectShow_UI_CBData* CBData_in)
+Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventHandler (
+#if defined (GUI_SUPPORT)
+                                                                                        struct Test_U_AudioEffect_DirectShow_UI_CBData* CBData_in
+#endif // GUI_SUPPORT
+                                                                                       )
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
- , sessionData_ (NULL)
+ ,
+#else
+ :
+#endif // GUI_SUPPORT
+   sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventHandler"));
 
@@ -64,6 +83,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_
   sessionData_ =
     &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (sessionData_in);
 
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -74,6 +94,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 
 void
@@ -83,6 +104,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
@@ -105,10 +127,13 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionId_in
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 continue_:
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   if (sessionData_)
     sessionData_ = NULL;
 }
@@ -124,6 +149,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   // sanity check(s)
   ACE_ASSERT (sessionData_);
 
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -144,6 +170,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 void
 Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId_in,
@@ -156,6 +183,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
   enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -166,13 +194,23 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionId
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 
 //////////////////////////////////////////
 
-Test_U_AudioEffect_MediaFoundation_EventHandler::Test_U_AudioEffect_MediaFoundation_EventHandler (struct Test_U_AudioEffect_MediaFoundation_UI_CBData* CBData_in)
+Test_U_AudioEffect_MediaFoundation_EventHandler::Test_U_AudioEffect_MediaFoundation_EventHandler (
+#if defined (GUI_SUPPORT)
+                                                                                                  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* CBData_in
+#endif // GUI_SUPPORT
+                                                                                                 )
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
- , sessionData_ (NULL)
+ ,
+#else
+ :
+#endif // GUI_SUPPORT
+   sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::Test_U_AudioEffect_MediaFoundation_EventHandler"));
 
@@ -192,6 +230,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
   sessionData_ =
     &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (sessionData_in);
 
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -202,6 +241,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 
 void
@@ -211,6 +251,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t session
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
@@ -233,10 +274,13 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t session
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 continue_:
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   if (sessionData_)
     sessionData_ = NULL;
 }
@@ -249,6 +293,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
@@ -272,6 +317,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 void
 Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionId_in,
@@ -284,6 +330,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   enum Common_UI_EventType event_e =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
                                                                      : COMMON_UI_EVENT_INVALID);
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -294,11 +341,21 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 #else
-Test_U_AudioEffect_EventHandler::Test_U_AudioEffect_EventHandler (struct Test_U_AudioEffect_UI_CBData* CBData_in)
+Test_U_AudioEffect_EventHandler::Test_U_AudioEffect_EventHandler (
+#if defined (GUI_SUPPORT)
+                                                                  struct Test_U_AudioEffect_UI_CBData* CBData_in
+#endif // GUI_SUPPORT
+                                                                 )
+#if defined (GUI_SUPPORT)
  : CBData_ (CBData_in)
- , sessionData_ (NULL)
+ ,
+#else
+ :
+#endif // GUI_SUPPORT
+   sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_EventHandler::Test_U_AudioEffect_EventHandler"));
 
@@ -318,6 +375,7 @@ Test_U_AudioEffect_EventHandler::start (Stream_SessionId_t sessionId_in,
   sessionData_ =
     &const_cast<struct Test_U_AudioEffect_SessionData&> (sessionData_in);
 
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -328,6 +386,7 @@ Test_U_AudioEffect_EventHandler::start (Stream_SessionId_t sessionId_in,
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 
 void
@@ -352,6 +411,7 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
@@ -374,8 +434,13 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionId_in)
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 continue_:
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   if (sessionData_)
     sessionData_ = NULL;
 }
@@ -388,6 +453,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
@@ -411,6 +477,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 void
 Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
@@ -425,6 +492,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     { ACE_ASSERT (sessionData_);
+#if defined (GUI_SUPPORT)
       if (CBData_)
       {
 #if defined (GTK_USE)
@@ -435,6 +503,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
         } // end lock scope
 #endif // GTK_USE
       } // end IF
+#endif // GUI_SUPPORT
 
       event_e = COMMON_UI_EVENT_STATISTIC;
 
@@ -444,6 +513,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
       return;
   } // end SWITCH
 
+#if defined (GUI_SUPPORT)
   if (CBData_)
   {
 #if defined (GTK_USE)
@@ -454,5 +524,6 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
     } // end lock scope
 #endif // GTK_USE
   } // end IF
+#endif // GUI_SUPPORT
 }
 #endif

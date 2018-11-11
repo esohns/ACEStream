@@ -21,9 +21,9 @@
 #ifndef TEST_I_CALLBACKS_H
 #define TEST_I_CALLBACKS_H
 
-#include "ace/config-lite.h"
+#include "gtk/gtk.h"
 
-#include <gtk/gtk.h>
+#include "ace/config-lite.h"
 
 // thread functions
 ACE_THR_FUNC_RETURN stream_processing_function (void*);

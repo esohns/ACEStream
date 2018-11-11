@@ -21,13 +21,61 @@
 #ifndef STREAM_SESSION_DATA_H
 #define STREAM_SESSION_DATA_H
 
+#include <deque>
+
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 #include "common_idumpstate.h"
 #include "common_iget.h"
 #include "common_referencecounter_base.h"
 
-template <typename DataType>
+#include "stream_common.h"
+
+template <typename MediaFormatType,
+          typename StreamStateType, // inherits Stream_State
+          typename StatisticType, // inherits Stream_Statistic
+          typename UserDataType>
+class Stream_SessionDataMediaBase_T
+ : public Stream_SessionData
+{
+  typedef Stream_SessionData inherited;
+
+ public:
+  // convenient types
+  typedef MediaFormatType MEDIAFORMAT_T;
+  typedef std::deque<MEDIAFORMAT_T> MEDIAFORMATS_T;
+  typedef typename MEDIAFORMATS_T::iterator MEDIAFORMATS_ITERATOR_T;
+  typedef Stream_SessionDataMediaBase_T<MediaFormatType,
+                                        StreamStateType,
+                                        StatisticType,
+                                        UserDataType> OWN_TYPE_T;
+
+  Stream_SessionDataMediaBase_T ();
+  inline virtual ~Stream_SessionDataMediaBase_T () {}
+
+  // *NOTE*: the idea is to 'merge' the data
+  //         --> this ought (!) to be overriden by derived classes
+  OWN_TYPE_T& operator+= (const OWN_TYPE_T&);
+
+  MEDIAFORMATS_T                  formats;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_MediaFramework_Type mediaFramework;
+#endif // ACE_WIN32 || ACE_WIN64
+  StreamStateType*                state;
+  StatisticType                   statistic;
+
+  UserDataType*                   userData;
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataMediaBase_T (const Stream_SessionDataMediaBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataMediaBase_T& operator= (const Stream_SessionDataMediaBase_T&))
+};
+
+//////////////////////////////////////////
+
+template <typename DataType> // inherits Stream_SessionData
 class Stream_SessionData_T
  : public Common_ReferenceCounterBase
  , public Common_IGetSetR_T<DataType>

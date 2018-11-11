@@ -37,6 +37,13 @@
 #endif // UUIDS_H
 #include <mfapi.h>
 #include <wmcodecdsp.h>
+#else
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/imgutils.h"
+}
+#endif /* __cplusplus */
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -50,6 +57,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_mediafoundation_tools.h"
+#else
+#include "stream_dev_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // initialize statics
@@ -478,6 +487,12 @@ Stream_MediaFramework_Tools::initialize ()
 #endif // ACE_WIN32 || ACE_WIN64
 
   return true;
+}
+void
+Stream_MediaFramework_Tools::finalize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::finalize"));
+
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -964,5 +979,26 @@ video:
 
 continue_:
   return result;
+}
+#else
+unsigned int
+Stream_MediaFramework_Tools::frameSize (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::frameSize"));
+
+  int result =
+      av_image_get_buffer_size (Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat),
+                                mediaType_in.format.width, mediaType_in.format.height,
+                                1); // *TODO*: linesize alignment
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to av_image_get_buffer_size(%d,%u,%u), aborting\n"),
+                ACE_TEXT (Stream_Device_Tools::formatToString (mediaType_in.format.pixelformat).c_str ()),
+                mediaType_in.format.width, mediaType_in.format.height));
+    return 0;
+  } // end IF
+
+  return static_cast<unsigned int> (result);
 }
 #endif // ACE_WIN32 || ACE_WIN64

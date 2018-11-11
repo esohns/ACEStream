@@ -49,7 +49,7 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -85,11 +85,16 @@
 
 #include "stream_misc_defines.h"
 
-#include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #include "test_i_common_modules.h"
+
 #include "test_i_source_common.h"
 #include "test_i_source_eventhandler.h"
 #include "test_i_source_message.h"
@@ -1046,7 +1051,7 @@ do_work (const std::string& deviceIdentifier_in,
                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
+  modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
 
   Test_I_Source_V4L2_StreamConfiguration_t stream_configuration;
   stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
@@ -1626,23 +1631,30 @@ do_work (const std::string& deviceIdentifier_in,
   //                                                             : v4l2CBData_in.UDPStream);
 //  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
-  (*modulehandler_iterator).second.second.interfaceIdentifier =
+  (*modulehandler_iterator).second.second.deviceIdentifier.identifier =
       interfaceIdentifier_in;
   // *TODO*: turn these into an option
   (*modulehandler_iterator).second.second.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   (*modulehandler_iterator).second.second.pixelBufferLock = &v4l2CBData_in.lock;
   (*modulehandler_iterator).second.second.sourceFormat.height = 240;
   (*modulehandler_iterator).second.second.sourceFormat.width = 320;
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat =
-      V4L2_PIX_FMT_RGB24;
-  (*modulehandler_iterator).second.second.frameRate.numerator = 30;
-  (*modulehandler_iterator).second.second.frameRate.denominator = 1;
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.height = 240;
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.width = 320;
-  (*modulehandler_iterator).second.second.v4l2Method = V4L2_MEMORY_MMAP;
-  (*modulehandler_iterator).second.second.format =
-      Stream_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  (*modulehandler_iterator).second.second.outputFormat.format =
+      Stream_Device_Tools::ffmpegFormatToV4L2Format (STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT);
+  (*modulehandler_iterator).second.second.outputFormat.format.height =
+      CAMSTREAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+  (*modulehandler_iterator).second.second.outputFormat.format.width =
+      CAMSTREAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+  (*modulehandler_iterator).second.second.outputFormat.frameRate.numerator =
+      CAMSTREAM_DEFAULT_CAPTURE_RATE;
+//  (*modulehandler_iterator).second.second.outputFormat.frameRate.denominator =
+//      1;
+//  (*modulehandler_iterator).second.second.method =
+//      MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   (*modulehandler_iterator).second.second.streamConfiguration =
       &(*stream_iterator).second;
 #endif
@@ -2054,8 +2066,7 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -2099,7 +2110,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
-  bool result_2 = false;
+//  bool result_2 = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2239,7 +2250,7 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_GTK_CBData v4l2_ui_cb_data;
+  struct Test_I_Source_V4L2_UI_CBData v4l2_ui_cb_data;
   //v4l2_ui_cb_data.progressData.state = &v4l2_ui_cb_data;
 #if defined (GTK_USE)
   ui_cb_data_p = &v4l2_ui_cb_data;

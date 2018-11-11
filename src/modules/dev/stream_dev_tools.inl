@@ -33,7 +33,7 @@ bool
 Stream_Device_Tools::initializeBuffers (int fd_in,
                                         v4l2_memory method_in,
                                         __u32 numberOfBuffers_in,
-                                        Stream_Module_Device_BufferMap_t& bufferMap_out,
+                                        Stream_Device_BufferMap_t& bufferMap_out,
                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeBuffers"));
@@ -301,8 +301,8 @@ error:
 template <typename MessageType>
 void
 Stream_Device_Tools::finalizeBuffers (int fd_in,
-                                             v4l2_memory method_in,
-                                             Stream_Module_Device_BufferMap_t& bufferMap_inout)
+                                      v4l2_memory method_in,
+                                      Stream_Device_BufferMap_t& bufferMap_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::finalizeBuffers"));
 
@@ -313,7 +313,7 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
   ACE_Message_Block* message_block_p = NULL;
   MessageType* message_p = NULL;
   unsigned int counter = 0;
-  Stream_Module_Device_BufferMapIterator_t iterator;
+  Stream_Device_BufferMapIterator_t iterator;
   do
   {
     ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));

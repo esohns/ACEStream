@@ -105,10 +105,6 @@ struct Stream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , outputFormat (AV_PIX_FMT_NONE)
-#endif // ACE_WIN32 || ACE_WIN64
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
@@ -123,15 +119,15 @@ struct Stream_ModuleHandlerConfiguration
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
   unsigned int                          bufferSize;
-  enum Stream_HeadModuleConcurrency     concurrency;                 // head module(s)
+  enum Stream_HeadModuleConcurrency     concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                                  crunchMessages;
 #if defined (_DEBUG)
   bool                                  debug;
 #endif // _DEBUG
-  bool                                  demultiplex;                 // message handler module
-  bool                                  finishOnDisconnect;          // header module(s)
+  bool                                  demultiplex;                          // message handler module
+  bool                                  finishOnDisconnect;                   // header module(s)
   bool                                  hasHeader;
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
@@ -141,25 +137,21 @@ struct Stream_ModuleHandlerConfiguration
   //            this overhead is not negligible
   //            --> disable only if absolutely necessary
   bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
-  bool                                  inbound;                     // statistic[/IO] module(s)
+  bool                                  inbound;                              // statistic[/IO] module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type       mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                    messageAllocator;
-  Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  enum AVPixelFormat                    outputFormat;
-#endif
-  struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
-  bool                                  passive;                     // network/device/... module(s)
-  bool                                  printFinalReport;            // statistic module(s)
-  bool                                  pushStatisticMessages;       // source/statistic/... module(s)
-  unsigned int                          reportingInterval;           // (statistic) reporting interval (second(s)) [0: off]
-  ACE_HANDLE                            socketHandle;                // network module(s)
-  ACE_Time_Value                        statisticCollectionInterval; // source/statistic/... module(s)
-  ACE_Time_Value                        statisticReportingInterval;  // [ACE_Time_Value::zero: off]
-  ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;             // message handler module
+  Stream_IOutboundDataNotify*           outboundNotificationHandle;           // IO module(s)
+  struct Common_ParserConfiguration*    parserConfiguration;                  // parser module(s)
+  bool                                  passive;                              // network/device/... module(s)
+  bool                                  printFinalReport;                     // statistic module(s)
+  bool                                  pushStatisticMessages;                // source/statistic/... module(s)
+  unsigned int                          reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
+  ACE_HANDLE                            socketHandle;                         // network module(s)
+  ACE_Time_Value                        statisticCollectionInterval;          // source/statistic/... module(s)
+  ACE_Time_Value                        statisticReportingInterval;           // [ACE_Time_Value::zero: off]
+  ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;                      // message handler module
   Common_ITimer_t*                      timerManager;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -183,6 +175,17 @@ struct Stream_MediaFoundation_ModuleHandlerConfiguration
   {}
 
   IMFMediaType* outputFormat;
+};
+#else
+struct Stream_V4L_ModuleHandlerConfiguration
+ : Stream_ModuleHandlerConfiguration
+{
+   Stream_V4L_ModuleHandlerConfiguration ()
+   : Stream_ModuleHandlerConfiguration ()
+   , outputFormat (AV_PIX_FMT_NONE)
+  {}
+
+  enum AVPixelFormat outputFormat;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -272,8 +275,8 @@ class Stream_Configuration_T
   Stream_Configuration_T ();
   inline virtual ~Stream_Configuration_T () {}
 
-  bool initialize (const ModuleConfigurationType&,             // 'default' module configuration
-                   const ModuleHandlerConfigurationType&,      // 'default' module handler configuration
+  bool initialize (const ModuleConfigurationType&,        // 'default' module configuration
+                   const ModuleHandlerConfigurationType&, // 'default' module handler configuration
                    const AllocatorConfigurationType&,
                    const ConfigurationType&);
 

@@ -63,7 +63,6 @@ class Stream_DataMessageBase_T
   void initialize (DataType&,               // data
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
-  inline bool isInitialized () const { return isInitialized_; }
 
   // implement Common_IGet_T
   inline virtual const DataType& getR () const { return data_; }
@@ -140,7 +139,6 @@ class Stream_DataMessageBase_2
   void initialize (DataType*&,              // data handle
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
-  inline bool isInitialized () const { return isInitialized_; }
 
   // implement Common_IGetR_T
   virtual const DataType& getR () const;

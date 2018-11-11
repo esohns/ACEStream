@@ -116,7 +116,8 @@ typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
                                         Test_U_ControlMessage_t,
                                         Stream_CamSave_Message_t,
                                         Stream_CamSave_SessionMessage_t,
-                                        Stream_CamSave_SessionData_t> Stream_CamSave_LibAVConverter;
+                                        Stream_CamSave_SessionData_t,
+                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_LibAVConverter;
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -248,7 +249,7 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_SessionMessage_t,
                                                Stream_CamSave_SessionData_t,
                                                struct Stream_CamSave_SessionData,
-                                               struct v4l2_format,
+                                               struct Stream_MediaFramework_V4L_MediaType,
                                                struct Stream_CamSave_UserData> Stream_CamSave_AVIEncoder_ReaderTask_t;
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
@@ -258,7 +259,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_SessionMessage_t,
                                                Stream_CamSave_SessionData_t,
                                                struct Stream_CamSave_SessionData,
-                                               struct v4l2_format,
+                                               struct Stream_MediaFramework_V4L_MediaType,
                                                struct Stream_CamSave_UserData> Stream_CamSave_V4L2_AVIEncoder_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 

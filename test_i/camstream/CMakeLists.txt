@@ -47,12 +47,6 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
- if (GTK3_SUPPORT)
-  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
 endif ()
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
@@ -67,14 +61,14 @@ if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
 
-find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
               PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
+ message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
 endif ()
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -99,11 +93,6 @@ if (UNIX)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
- if (GTK3_SUPPORT)
-  include_directories (${PKG_GTK3_INCLUDE_DIRS})
- else ()
-  include_directories (${PKG_GTK2_INCLUDE_DIRS})
- endif ()
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
@@ -116,14 +105,18 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
-
 # *TODO*: repair pkgconfig support
 # include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 # libav
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
- include_directories ($ENV{ACE_ROOT})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+
+ if (DEFINED ENV{ACE_ROOT})
+  include_directories ($ENV{ACE_ROOT})
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -137,6 +130,8 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
 endif ()
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
@@ -148,15 +143,13 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (camsource_EXE_SRCS
+set (EXECUTABLE_SOURCE camsource)
+set (${EXECUTABLE_SOURCE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     test_i_callbacks.cpp
-     test_i_callbacks.h
      test_i_camstream_common.h
      test_i_camstream_defines.h
      test_i_camstream_network.h
@@ -188,6 +181,17 @@ set (camsource_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (${EXECUTABLE_SOURCE}_EXE_SRCS
+       ${${EXECUTABLE_SOURCE}_EXE_SRCS}
+       test_i_callbacks.cpp
+       test_i_callbacks.h)
+# elseif (WXWIDGETS_USE)
+#  set (${EXECUTABLE_TARGET}_EXE_SRCS
+#       ${${EXECUTABLE_TARGET}_EXE_SRCS})
+ endif (GTK_USE)
+endif (GUI_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -203,10 +207,9 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE_SOURCE camsource)
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
-                ${camsource_EXE_SRCS}
+                ${${EXECUTABLE_SOURCE}_EXE_SRCS}
                 etc/resources.rc
                 etc/source.glade)
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
@@ -241,16 +244,9 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} rt)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
- #target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_DBUS_LIBRARIES})
- #target_link_libraries (${EXECUTABLE_SOURCE} iw)
- target_link_libraries (${EXECUTABLE_SOURCE} X11)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_FFMPEG_LIBRARIES})
- if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK3_LIBRARIES})
- else ()
-  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_GTK2_LIBRARIES})
- endif ()
+# target_link_libraries (${EXECUTABLE_SOURCE} X11)
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
@@ -300,7 +296,8 @@ source_group (resources FILES ${RESOURCE_FILES})
 
 install (TARGETS ${EXECUTABLE_SOURCE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+         COMPONENT test_i)
 if (UNIX)
  install (FILES etc/source.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
@@ -332,7 +329,7 @@ elseif (WIN32)
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                            G:/software/Development/dll
-                           ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                          # ${PROJECT_SOURCE_DIR}/../libxml2/bin
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)
@@ -366,18 +363,18 @@ set_tests_properties (${EXECUTABLE_SOURCE}_test
 if (WIN32)
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 
- set (camtarget_source_LIB_SRCS
+ set (LIBRARY_DS camtarget_source)
+ set (${LIBRARY_DS}_LIB_SRCS
       stdafx.cpp
       stdafx.h
       camtarget_source.cpp
       test_i_target_message.cpp
       test_i_target_message.h)
 
- set (LIBRARY_DS camtarget_source)
  add_library (${LIBRARY_DS} MODULE
               EXCLUDE_FROM_ALL
-              ${camtarget_source_LIB_SRCS}
-              etc/camtarget_source.def)
+              ${${LIBRARY_DS}_LIB_SRCS}
+              etc/${LIBRARY_DS}.def)
  set_property (TARGET ${LIBRARY_DS} PROPERTY FOLDER "test_i")
 
  add_dependencies (${LIBRARY_DS} Common)
@@ -434,16 +431,16 @@ if (WIN32)
 
 #-----------------------------------------
 
- set (camtarget_source_mf_LIB_SRCS
+ set (LIBRARY_MF camtarget_source_mf)
+ set (${LIBRARY_MF}_LIB_SRCS
       stdafx.cpp
       stdafx.h
       camtarget_source_mf.cpp)
 
- set (LIBRARY_MF camtarget_source_mf)
  add_library (${LIBRARY_MF} MODULE
               EXCLUDE_FROM_ALL
-              ${camtarget_source_mf_LIB_SRCS}
-              etc/camtarget_source_mf.def)
+              ${${LIBRARY_MF}_LIB_SRCS}
+              etc/${LIBRARY_MF}.def)
  set_property (TARGET ${LIBRARY_MF} PROPERTY FOLDER "test_i")
 
  add_dependencies (${LIBRARY_MF} Common)
@@ -479,12 +476,10 @@ if (WIN32)
 endif (WIN32)
 
 ############## next target ################
-
-set (camtarget_EXE_SRCS
+set (EXECUTABLE_TARGET camtarget)
+set (${EXECUTABLE_TARGET}_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     test_i_callbacks.cpp
-     test_i_callbacks.h
      test_i_camstream_common.h
      test_i_camstream_defines.h
      test_i_camstream_network.h
@@ -509,11 +504,21 @@ set (camtarget_EXE_SRCS
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (${EXECUTABLE_TARGET}_EXE_SRCS
+       ${${EXECUTABLE_TARGET}_EXE_SRCS}
+       test_i_callbacks.cpp
+       test_i_callbacks.h)
+# elseif (WXWIDGETS_USE)
+#  set (${EXECUTABLE_TARGET}_EXE_SRCS
+#       ${${EXECUTABLE_TARGET}_EXE_SRCS})
+ endif (GTK_USE)
+endif (GUI_SUPPORT)
 
-set (EXECUTABLE_TARGET camtarget)
 add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
-                ${camtarget_EXE_SRCS}
+                ${${EXECUTABLE_TARGET}_EXE_SRCS}
                 etc/resources.rc
                 etc/target.glade)
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")

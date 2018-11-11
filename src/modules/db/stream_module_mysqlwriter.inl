@@ -24,12 +24,11 @@
 
 #include "common_file_tools.h"
 
-#include "net_common_tools.h"
-#include "net_configuration.h"
-
 #include "stream_macros.h"
 
 #include "stream_module_db_defines.h"
+
+#include "net_common_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

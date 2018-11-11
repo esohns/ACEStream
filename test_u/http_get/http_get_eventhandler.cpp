@@ -37,7 +37,11 @@
 #include "stream_dec_common.h"
 
 #include "http_get_common.h"
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "http_get_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 HTTPGet_EventHandler::HTTPGet_EventHandler (
 #if defined (GUI_SUPPORT)
@@ -118,6 +122,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -126,6 +131,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 }
 

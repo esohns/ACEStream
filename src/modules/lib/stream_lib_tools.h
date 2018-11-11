@@ -70,6 +70,8 @@ class Stream_MediaFramework_Tools
 #else
   static bool initialize ();
   static void finalize ();
+
+  static unsigned int frameSize (const struct Stream_MediaFramework_V4L_MediaType&);
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:

@@ -96,10 +96,10 @@ class Stream_Decoder_SoXEffect_T
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+//  // *IMPORTANT NOTE*: callers must Stream_MediaFramework_DirectShow_Tools::free_() the return value
+//  template <typename MediaType2> AM_MEDIA_TYPE& getMediaType (const MediaType2 mediaType_in) { return getMediaType_impl (mediaType_in); }
 #else
-  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  template <typename MediaType> struct Stream_MediaFramework_ALSA_MediaType& getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:
@@ -107,11 +107,11 @@ class Stream_Decoder_SoXEffect_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T& operator= (const Stream_Decoder_SoXEffect_T&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+//  AM_MEDIA_TYPE& getMediaType_impl (const struct _AMMediaType*&);
+//  AM_MEDIA_TYPE& getMediaType_impl (const IMFMediaType*);
 #else
-  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
-  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
+  inline struct Stream_MediaFramework_ALSA_MediaType& getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in); }
+//  inline struct Stream_MediaFramework_ALSA_MediaType& getMediaType_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Message_Block*          buffer_;

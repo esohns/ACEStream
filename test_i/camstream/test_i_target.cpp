@@ -48,7 +48,7 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -81,12 +81,17 @@
 #include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
-#include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+#include "test_i_common_modules.h"
 #include "test_i_module_eventhandler.h"
 
-#include "test_i_common_modules.h"
 #include "test_i_target_common.h"
 #include "test_i_target_eventhandler.h"
 #include "test_i_target_listener_common.h"
@@ -2021,7 +2026,7 @@ do_work (unsigned int bufferSize_in,
         typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
             NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-        bool done = false;
+//        bool done = false;
         do
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2883,7 +2888,7 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-continue_:
+//continue_:
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work

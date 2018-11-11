@@ -65,7 +65,11 @@
 
 #include "stream_misc_defines.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #include "test_i_common.h"
 #include "test_i_defines.h"
 

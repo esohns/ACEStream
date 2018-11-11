@@ -26,19 +26,19 @@
 #include <guiddef.h>
 #include <mfidl.h>
 #else
-#include <linux/videodev2.h>
-#endif
+#include "linux/videodev2.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "gtk/gtk.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IAMStreamConfig;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // helper functions
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -46,7 +46,7 @@ bool load_capture_devices (enum Stream_MediaFramework_Type,
                            GtkListStore*);
 #else
 bool load_capture_devices (GtkListStore*);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool load_formats (IAMStreamConfig*, // device configuration handle
                    GtkListStore*);   // return value: supported media subtypes
@@ -83,7 +83,7 @@ bool load_rates (int,            // (capture) device file descriptor
                  unsigned int,   // resolution (width)
                  unsigned int,   // resolution (height)
                  GtkListStore*); // return value: supported rates
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // thread functions
 ACE_THR_FUNC_RETURN stream_processing_function (void*);

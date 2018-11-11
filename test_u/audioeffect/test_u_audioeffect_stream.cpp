@@ -1248,12 +1248,16 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   if (!configuration_p->mute)
   {
     ACE_NEW_RETURN (module_p,

@@ -114,9 +114,9 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-    return; // nothing to do
-  ACE_ASSERT (context_);
+//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
+//    return; // nothing to do
+//  ACE_ASSERT (context_);
 
   // initialize return value(s)
   passMessageDownstream_out = false;

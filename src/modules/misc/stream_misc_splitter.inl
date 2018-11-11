@@ -18,12 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavutil/imgutils.h"
-//}
-//#endif
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (__cplusplus)
+extern "C"
+{
+#include "libavutil/imgutils.h"
+}
+#endif // __cplusplus
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
@@ -46,7 +49,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          SessionDataType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
 #else
                          SessionDataType>::Stream_Module_Splitter_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , buffer_ (NULL)
  , defragment_ (false)
@@ -165,10 +168,7 @@ continue_:
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IDataMessage_T*>(0x%@), returning\n"),
                   inherited::mod_->name (),
                   message_block_p));
-
-      // clean up
-      message_block_p->release ();
-
+      message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
     try {
@@ -177,10 +177,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
                   inherited::mod_->name ()));
-
-      // clean up
-      message_block_p->release ();
-
+      message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
   } // end IF
@@ -192,10 +189,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    message_block_p->release ();
-
+    message_block_p->release (); message_block_p = NULL;
     return;
   } // end IF
 
@@ -266,8 +260,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   {
     if (buffer_)
     {
-      buffer_->release ();
-      buffer_ = NULL;
+      buffer_->release (); buffer_ = NULL;
     } // end IF
     defragment_ = false;
   } // end IF
@@ -296,7 +289,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                                 configuration_in.width,
                                 configuration_in.height,
                                 1); // *TODO*: linesize alignment
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -399,7 +392,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   ACE_NOTSUP_RETURN (NULL);
   ACE_NOTREACHED (return NULL;)
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -430,7 +423,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StatisticHandlerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
 #else
                           StatisticHandlerType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                                                             ACE_SYNCH_MUTEX_T* lock_in,
                                                                             bool autoStart_in,
                                                                             enum Stream_HeadModuleConcurrency concurrency_in,
@@ -551,7 +544,7 @@ continue_:
   } // end IF
 #else
   frame_size = inherited::configuration_->format.fmt.pix.sizeimage;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (total_length < frame_size)
     return; // done
 
@@ -591,10 +584,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    message_block_p->release ();
-
+    message_block_p->release (); message_block_p = NULL;
     return;
   } // end IF
 
@@ -647,83 +637,6 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
       break;
   } // end SWITCH
 }
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType>
-bool
-Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          ConfigurationType,
-                          StreamControlType,
-                          StreamNotificationType,
-                          StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
-                          StatisticContainerType,
-                          StatisticHandlerType>::collect (StatisticContainerType& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::collect"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-
-  // step0: initialize container
-//  data_out.dataMessages = 0;
-//  data_out.droppedMessages = 0;
-//  data_out.bytes = 0.0;
-  data_out.timeStamp = COMMON_TIME_NOW;
-
-  // *TODO*: collect socket statistics information
-  //         (and propagate it downstream ?)
-
-  // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to putStatisticMessage(), aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
-  return true;
-}
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-//                          SessionMessageType,
-//                          ProtocolMessageType,
-//                          ConfigurationType,
-//                          StreamStateType,
-//                          SessionDataType,
-//                          SessionDataContainerType,
-//                          StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,

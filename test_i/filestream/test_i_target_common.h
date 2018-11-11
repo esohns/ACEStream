@@ -21,24 +21,27 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
-#include <list>
-#include <string>
+//#include <list>
+//#include <string>
 
-#include "ace/INET_Addr.h"
-#include "ace/os_include/sys/os_socket.h"
-#include "ace/Singleton.h"
+//#include "ace/os_include/sys/os_socket.h"
+//#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "common_isubscribe.h"
 
@@ -51,12 +54,13 @@
 #include "net_ilistener.h"
 
 #include "test_i_configuration.h"
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_i_gtk_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "test_i_connection_manager_common.h"
-//#include "test_i_filestream_common.h"
 #include "test_i_filestream_defines.h"
 #include "test_i_filestream_network.h"
 #include "test_i_message.h"
@@ -64,19 +68,12 @@
 // forward declarations
 class Stream_IAllocator;
 
-//struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_UserData
  : Test_I_UserData
 {
   Test_I_Target_UserData ()
    : Test_I_UserData ()
-//   , connectionConfiguration (NULL)
   {}
-
-  // *TODO*: currently required by the connection handler (see:
-  //         netsocketconnectionbase.inl:437)
-  //         --> add to the socket handler configuration ASAP
-//  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
 };
 
 struct Test_I_Target_SessionData
@@ -123,7 +120,6 @@ struct Test_I_Target_StreamState
   struct Test_I_Target_UserData*    userData;
 };
 
-//struct Test_I_Target_SocketHandlerConfiguration;
 struct Test_I_Target_ListenerConfiguration
  : Net_ListenerConfiguration
 {
@@ -183,14 +179,12 @@ struct Test_I_Target_ModuleHandlerConfiguration
 {
   Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-   //, contextId (0)
    , connectionConfigurations (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {}
 
-  //guint                                     contextId;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_StreamConfiguration_t*      streamConfiguration;
   Test_I_Target_ISessionNotify_t*           subscriber;
@@ -244,6 +238,7 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 
 //////////////////////////////////////////
 
+#if defined (GUI_SUPPORT)
 //struct Test_I_Target_GTK_ProgressData
 // : Test_I_GTK_ProgressData
 //{
@@ -256,18 +251,18 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 //};
 
 struct Test_I_Target_UI_CBData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_CBData
 #else
  : Test_I_UI_CBData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_Target_UI_CBData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_CBData ()
 #else
    : Test_I_UI_CBData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , configuration (NULL)
    , subscribers ()
   {}
@@ -276,9 +271,10 @@ struct Test_I_Target_UI_CBData
   Test_I_Target_Subscribers_t         subscribers;
 };
 
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct Test_I_Target_UI_CBData> Test_I_Target_GtkBuilderDefinition_t;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #endif

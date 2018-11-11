@@ -30,14 +30,21 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // forward declarations
+#if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_DirectShow_UI_CBData;
+#endif // GUI_SUPPORT
 struct Test_U_AudioEffect_DirectShow_SessionData;
 
 class Test_U_AudioEffect_DirectShow_EventHandler
  : public Test_U_AudioEffect_DirectShow_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_DirectShow_EventHandler (struct Test_U_AudioEffect_DirectShow_UI_CBData*);
+  Test_U_AudioEffect_DirectShow_EventHandler (
+#if defined (GUI_SUPPORT)
+                                              struct Test_U_AudioEffect_DirectShow_UI_CBData*);
+#else
+                                             );
+#endif // GUI_SUPPORT
   inline virtual ~Test_U_AudioEffect_DirectShow_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -55,21 +62,30 @@ class Test_U_AudioEffect_DirectShow_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_EventHandler (const Test_U_AudioEffect_DirectShow_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_EventHandler& operator= (const Test_U_AudioEffect_DirectShow_EventHandler&))
 
+#if defined (GUI_SUPPORT)
   struct Test_U_AudioEffect_DirectShow_UI_CBData*   CBData_;
+#endif // GUI_SUPPORT
   struct Test_U_AudioEffect_DirectShow_SessionData* sessionData_;
 };
 
 //////////////////////////////////////////
 
 // forward declarations
+#if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_MediaFoundation_UI_CBData;
+#endif // GUI_SUPPORT
 struct Test_U_AudioEffect_MediaFoundation_SessionData;
 
 class Test_U_AudioEffect_MediaFoundation_EventHandler
  : public Test_U_AudioEffect_MediaFoundation_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_MediaFoundation_EventHandler (struct Test_U_AudioEffect_MediaFoundation_UI_CBData*);
+  Test_U_AudioEffect_MediaFoundation_EventHandler (
+#if defined (GUI_SUPPORT)
+                                                   struct Test_U_AudioEffect_MediaFoundation_UI_CBData*);
+#else
+                                                  );
+#endif // GUI_SUPPORT
   inline virtual ~Test_U_AudioEffect_MediaFoundation_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -87,19 +103,28 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_EventHandler (const Test_U_AudioEffect_MediaFoundation_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_EventHandler& operator= (const Test_U_AudioEffect_MediaFoundation_EventHandler&))
 
+#if defined (GUI_SUPPORT)
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData*   CBData_;
+#endif // GUI_SUPPORT
   struct Test_U_AudioEffect_MediaFoundation_SessionData* sessionData_;
 };
 #else
 // forward declarations
+#if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_UI_CBData;
+#endif // GUI_SUPPORT
 struct Test_U_AudioEffect_SessionData;
 
 class Test_U_AudioEffect_EventHandler
  : public Test_U_AudioEffect_ISessionNotify_t
 {
  public:
-  Test_U_AudioEffect_EventHandler (struct Test_U_AudioEffect_UI_CBData*);
+  Test_U_AudioEffect_EventHandler (
+#if defined (GUI_SUPPORT)
+                                   struct Test_U_AudioEffect_UI_CBData*);
+#else
+                                  );
+#endif // GUI_SUPPORT
   inline virtual ~Test_U_AudioEffect_EventHandler () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -118,7 +143,9 @@ class Test_U_AudioEffect_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_EventHandler (const Test_U_AudioEffect_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_EventHandler& operator= (const Test_U_AudioEffect_EventHandler&))
 
+#if defined (GUI_SUPPORT)
   struct Test_U_AudioEffect_UI_CBData*   CBData_;
+#endif // GUI_SUPPORT
   struct Test_U_AudioEffect_SessionData* sessionData_;
 };
 #endif

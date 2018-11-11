@@ -60,8 +60,8 @@ class Stream_Device_DirectShow_Tools
   static Common_UI_Resolutions_t getCaptureResolutions (IAMStreamConfig*,
                                                         REFGUID = GUID_NULL); // media subtype {GUID_NULL: all}
   static Common_UI_Framerates_t getCaptureFramerates (IAMStreamConfig*,
-                                                      REFGUID,                 // media subtype
-                                                      Common_UI_Resolution_t); // resolution
+                                                      REFGUID,                        // media subtype
+                                                      const Common_UI_Resolution_t&); // resolution
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static bool getCaptureFormat (IGraphBuilder*,         // graph builder handle
                                 REFGUID,                // device category

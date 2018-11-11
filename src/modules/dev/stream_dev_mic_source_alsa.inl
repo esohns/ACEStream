@@ -48,8 +48,8 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
   // sanity check(s)
   ACE_ASSERT (handler_in);
 
-  Stream_Module_Device_ALSA_Capture_AsynchCBData* data_p =
-      reinterpret_cast<Stream_Module_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
+  struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
+      reinterpret_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
   snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
 
   // sanity check(s)
@@ -410,6 +410,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      const struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
+          getMediaType (session_data_r.formats.back ());
 
       bool stop_device = false;
       int signal = 0;
@@ -443,12 +445,11 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->deviceIdentifier.c_str ())));
 
         // *TODO*: remove type inference
-        ACE_ASSERT (inherited::configuration_->format);
-        if (!Stream_Module_Device_Tools::setFormat (deviceHandle_,
-                                                    *inherited::configuration_->format))
+        if (!Stream_Device_Tools::setFormat (deviceHandle_,
+                                             media_type_r))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::setFormat(): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
@@ -493,13 +494,13 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.statistic = &session_data_r.statistic;
       //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
-      asynchCBData_.channels = inherited::configuration_->format->channels;
-      asynchCBData_.format = inherited::configuration_->format->format;
+      asynchCBData_.channels = media_type_r.channels;
+      asynchCBData_.format = media_type_r.format;
       asynchCBData_.queue = inherited::msg_queue ();
-      asynchCBData_.sampleRate = inherited::configuration_->format->rate;
+      asynchCBData_.sampleRate = media_type_r.rate;
       asynchCBData_.sampleSize =
-          (snd_pcm_format_width (inherited::configuration_->format->format) / 8) *
-          inherited::configuration_->format->channels;
+          (snd_pcm_format_width (media_type_r.format) / 8) *
+          media_type_r.channels;
       asynchCBData_.frequency = &inherited::configuration_->sinusFrequency;
       asynchCBData_.sinus = inherited::configuration_->sinus;
       asynchCBData_.phase = 0.0;
@@ -527,14 +528,12 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
 //      if (inherited::configuration_->format)
 //        if (!Stream_Module_Device_Tools::setCaptureFormat (deviceHandle_,
-//                                                           *inherited::configuration_->format))
+//                                                           media_type_r))
 //        {
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(): \"%m\", aborting\n")));
 //          goto error;
 //        } // end IF
-
-      session_data_r.inputFormat = *inherited::configuration_->format;
 
 //      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
 //      {

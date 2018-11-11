@@ -434,37 +434,65 @@ struct Test_I_Target_ModuleHandlerConfiguration
 {
   Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , area ()
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , contextId (0)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , crunch (false)
    , format (AV_PIX_FMT_RGB24)
    , height (0)
    , inputFormat ()
    , queue (NULL)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , sourceFormat ()
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , streamConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
    , v4l2Window ()
    , width (0)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , window (NULL)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   {
     inbound = true;
   }
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   GdkRectangle                              area;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_InetConnectionManager_t*    connectionManager; // net IO module
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   guint                                     contextId;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   bool                                      crunch;            // splitter module
   enum AVPixelFormat                        format;
   unsigned int                              height;
   struct v4l2_format                        inputFormat;       // splitter module
   ACE_Message_Queue_Base*                   queue;  // (inbound) buffer queue handle
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   GdkRectangle                              sourceFormat; // gtk pixbuf module
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   // *TODO*: remove this ASAP
   Test_I_Target_StreamConfiguration_t*      streamConfiguration;
   std::string                               targetFileName;    // file writer module
@@ -472,7 +500,11 @@ struct Test_I_Target_ModuleHandlerConfiguration
   Test_I_Target_Subscribers_t*              subscribers;
   struct v4l2_window                        v4l2Window;
   unsigned int                              width;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   GdkWindow*                                window;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -615,13 +647,23 @@ struct Test_I_Target_StreamConfiguration
 {
   Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , format ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , window (NULL)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , userData (NULL)
   {}
 
-  GdkWindow*                     window;
+  struct Stream_MediaFramework_V4L_MediaType format;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  GdkWindow*                                 window;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
-  struct Test_I_Target_UserData* userData;
+  struct Test_I_Target_UserData*             userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

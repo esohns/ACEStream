@@ -44,28 +44,28 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../lib>)
-
- target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src/protocol/http>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../../../..>)
+target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../..>)
 target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../dec>)
 target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../lib>)
+target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../stat>)
-#include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
 set (source_files
      stream_module_source_http_get.cpp
      stream_module_source_http_get.h
      stream_module_source_http_get.inl
-     stream_net_http_defines.h
-     stream_net_http_exports.h)
+     stream_net_http_defines.h)
+#     stream_net_http_exports.h)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -111,7 +111,7 @@ install (FILES
          stream_module_source_http_get.h
          stream_module_source_http_get.inl
          stream_net_http_defines.h
-         stream_net_http_exports.h
+#         stream_net_http_exports.h
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Network_Protocol_HTTPGet

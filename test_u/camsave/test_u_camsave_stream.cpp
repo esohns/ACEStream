@@ -1266,7 +1266,7 @@ error:
   return false;
 }
 #else
-Stream_CamSave_Stream::Stream_CamSave_Stream ()
+Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
@@ -1285,23 +1285,23 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , fileWriter_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::Stream_CamSave_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream"));
 
 }
 
-Stream_CamSave_Stream::~Stream_CamSave_Stream ()
+Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::~Stream_CamSave_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
-                             bool& delete_out)
+Stream_CamSave_V4L_Stream::load (Stream_ModuleList_t& modules_out,
+                                 bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -1323,9 +1323,9 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -1371,15 +1371,18 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   ACE_ASSERT (configuration_p);
 
   // *TODO*: remove type inferences
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   session_data_p->sourceFormat.height =
       configuration_p->inputFormat.fmt.pix.height;
   session_data_p->sourceFormat.width =
       configuration_p->inputFormat.fmt.pix.width;
-  session_data_p->frameRate = configuration_p->frameRate;
-  session_data_p->inputFormat =
-      Stream_Device_Tools::v4l2FormatToffmpegFormat (configuration_p->inputFormat.fmt.pix.pixelformat);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  ACE_ASSERT (session_data_p->formats.empty ());
+  session_data_p->formats.push_back (configuration_in.configuration_.format);
 //  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                              session_data_r.v4l2Format))
+//                                       session_data_r.v4l2Format))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
@@ -1387,7 +1390,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 //    return false;
 //  } // end IF
 //  if (!Stream_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                                 session_data_r.v4l2FrameRate))
+//                                          session_data_r.v4l2FrameRate))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),

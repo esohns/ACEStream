@@ -35,7 +35,7 @@
 #include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
 #include "net_common_tools.h"
-#include "net_configuration.h"
+//#include "net_configuration.h"
 
 #include "stream_macros.h"
 

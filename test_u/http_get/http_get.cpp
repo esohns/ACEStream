@@ -963,10 +963,10 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   lock_p = &state_r.subscribersLock;
-#endif // GTK_USE
   HTTPGet_GtkBuilderDefinition_t ui_definition (argc_in,
                                                 argv_in,
                                                 &ui_cb_data);
+#endif // GTK_USE
 #endif // GUI_SUPPORT
   struct HTTPGet_Configuration configuration;
   HTTPGet_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
@@ -994,13 +994,13 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#if defined (VALGRIND_SUPPORT)
   if (RUNNING_ON_VALGRIND)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("running on valgrind...\n")));
-#endif
+#endif // VALGRIND_SUPPORT
 
   // step0: process profile
   result = process_profile.start ();

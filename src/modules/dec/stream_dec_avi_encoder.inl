@@ -60,6 +60,8 @@ extern "C"
 
 #include "common_file_tools.h"
 
+#include "common_ui_common.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
@@ -79,7 +81,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -89,7 +91,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::Stream_Decoder_AVIEncoder_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
 {
@@ -106,7 +108,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 int
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
@@ -117,7 +119,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::put (ACE_Message_Block* messageBlock_in,
                                                            ACE_Time_Value* timeout_in)
 {
@@ -177,7 +179,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
@@ -188,7 +190,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::postProcessHeader (const std::string& targetFilename_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader"));
@@ -398,7 +400,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -408,7 +410,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
 #else
@@ -443,7 +445,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -453,7 +455,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::~Stream_Decoder_AVIEncoder_WriterTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::~Stream_Decoder_AVIEncoder_WriterTask_T"));
@@ -490,7 +492,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -501,7 +503,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                                   Stream_IAllocator* allocator_in)
 {
@@ -627,7 +629,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -638,7 +640,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                          bool& passMessageDownstream_out)
 {
@@ -803,7 +805,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -814,7 +816,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                             bool& passMessageDownstream_out)
 {
@@ -834,6 +836,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      const MediaType& media_type_r = session_data_r.formats.front ();
       struct AVRational frame_rate_s;
       unsigned int bits_per_sample = 24;
       int result = -1;
@@ -844,25 +847,30 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
       //                 SWS_LANCZOS | SWS_ACCURATE_RND);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType* format_p = &getFormat (session_data_r.formats.back ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_2 =
+          getMediaType (media_type_r);
       format_ =
-        Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (format_p->subtype,
+        Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (media_type_2.subtype,
                                                                   STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
+      Common_UI_Resolution_t resolution_s =
+          getResolution (session_data_r,
+                         media_type_2);
+      width_ = resolution_s.cx;
+      height_ = resolution_s.cy;
       frame_rate_s = getFrameRate (session_data_r,
-                                   *format_p);
-      getResolution (session_data_r,
-                     *format_p,
-                     width_, height_);
-      Stream_MediaFramework_DirectShow_Tools::delete_ (format_p);
+                                   media_type_2);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #else
-      format_ = getFormat (session_data_r.formats.back ());
+      format_ = getMediaType (media_type_r);
+      Common_UI_Resolution_t resolution_s =
+        getResolution (session_data_r,
+                       media_type_r);
+      width_ = resolution_s.width;
+      height_ = resolution_s.height;
       frame_rate_s = getFrameRate (session_data_r,
-                                   format_);
-      getResolution (session_data_r,
-                     format_,
-                     width_, height_);
+                                   media_type_r);
 #endif // ACE_WIN32 || ACE_WIN64
       frameSize_ = av_image_get_buffer_size (AV_PIX_FMT_RGB24,
                                              width_, height_,
@@ -882,8 +890,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         case AV_PIX_FMT_RGB24:
         case AV_PIX_FMT_BGR32:
         case AV_PIX_FMT_RGB32:
-        case AV_PIX_FMT_BGRA:
-        case AV_PIX_FMT_RGBA:
+//        case AV_PIX_FMT_BGRA:
+//        case AV_PIX_FMT_RGBA:
           break;
         // luminance-chrominance formats
         case AV_PIX_FMT_YUV420P: // 'YU12'
@@ -1212,7 +1220,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1223,7 +1231,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader"));
@@ -1254,10 +1262,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   unsigned int value_i = 0;
   short int value_2 = 0;
 
-  if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
+  if (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo))
     video_info_header_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
-  else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo2))
     video_info_header2_p =
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
   else
@@ -1265,7 +1273,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (media_type_p->formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (media_type_p->MediaType).c_str ())));
     goto error;
   } // end ELSE
 
@@ -1379,13 +1387,13 @@ continue_:
                                            : value_i);
   // *NOTE*: tagVIDEOINFOHEADER.AvgTimePerFrame gives 100ns units
   value_i = 
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame / 10)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame / 10)
                                                                     : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame / 10));
   AVI_header_avih.dwMicroSecPerFrame =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
                                                                     : video_info_header2_p->dwBitRate) / 8;
   AVI_header_avih.dwMaxBytesPerSec =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
@@ -1410,13 +1418,13 @@ continue_:
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i = 
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
                                                                     : video_info_header2_p->bmiHeader.biWidth);
   AVI_header_avih.dwWidth =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
                                                                     : video_info_header2_p->bmiHeader.biHeight);
   AVI_header_avih.dwHeight =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
@@ -1483,7 +1491,7 @@ continue_:
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
                                                                     : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
   AVI_header_strh.dwRate =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
@@ -1503,25 +1511,25 @@ continue_:
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_2 =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.left)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.left)
                                                                     : static_cast<short int> (video_info_header2_p->rcTarget.left));
   AVI_header_strh.rcFrame.left =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
                                            : value_2);
   value_2 =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.right)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.right)
                                                                     : static_cast<short int> (video_info_header2_p->rcTarget.right));
   AVI_header_strh.rcFrame.right =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
                                            : value_2);
   value_2 =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.top)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.top)
                                                                     : static_cast<short int> (video_info_header2_p->rcTarget.top));
   AVI_header_strh.rcFrame.top =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
                                            : value_2);
   value_2 =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.bottom)
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? static_cast<short int> (video_info_header_p->rcTarget.bottom)
                                                                     : static_cast<short int> (video_info_header2_p->rcTarget.bottom));
   AVI_header_strh.rcFrame.bottom =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_WORD (value_2)
@@ -1550,7 +1558,7 @@ continue_:
                                      sizeof (struct _riffchunk));
   ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
   AVI_header_strf =
-    (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
+    (InlineIsEqualGUID (media_type_p->MediaType, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
                                                                     : video_info_header2_p->bmiHeader);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf),
@@ -1629,7 +1637,7 @@ continue_2:
                         1,                                                                // write flag
                         messageBlock_inout,                                               // act
                         NULL,                                                             // read callback
-                        STREAM_DEC_aviencoder_libav_write_cb,                         // write callback
+                        stream_decoder_aviencoder_libav_write_cb,                         // write callback
                         NULL);                                                            // seek callback
   if (!formatContext_->pb)
   {
@@ -1670,7 +1678,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 AM_MEDIA_TYPE&
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1681,7 +1689,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::getFormat_impl (const struct _AMMediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
@@ -1707,7 +1715,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 AM_MEDIA_TYPE&
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1718,7 +1726,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::getFormat_impl (const IMFMediaType& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
@@ -1752,7 +1760,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 AVRational&
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1763,7 +1771,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::getFrameRate_impl (const SessionDataType& sessionData_in,
                                                                          const struct _AMMediaType& format_in)
 {
@@ -1775,14 +1783,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo))
+  if (InlineIsEqualGUID (format_in.MediaType, FORMAT_VideoInfo))
   {
     video_info_header_p =
       (struct tagVIDEOINFOHEADER*)format_in.pbFormat;
     result.den =
       10000000 / static_cast<int> (video_info_header_p->AvgTimePerFrame);
   } // end IF
-  else if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (format_in.MediaType, FORMAT_VideoInfo2))
   {
     video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)format_in.pbFormat;
@@ -1793,7 +1801,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media type format (was: %d), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (format_in.formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (format_in.MediaType).c_str ())));
 
   return result;
 }
@@ -1805,7 +1813,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1816,7 +1824,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::getResolution_impl (const SessionDataType& sessionData_in,
                                                                           const struct _AMMediaType& format_in,
                                                                           unsigned int& width_out,
@@ -1830,14 +1838,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo))
+  if (InlineIsEqualGUID (format_in.MediaType, FORMAT_VideoInfo))
   {
     video_info_header_p =
       (struct tagVIDEOINFOHEADER*)format_in.pbFormat;
     width_out = video_info_header_p->bmiHeader.biWidth;
     height_out = abs (video_info_header_p->bmiHeader.biHeight);
   } // end IF
-  else if (InlineIsEqualGUID (format_in.formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (format_in.MediaType, FORMAT_VideoInfo2))
   {
     video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)format_in.pbFormat;
@@ -1848,7 +1856,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media type format (was: %d), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (format_in.formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (format_in.MediaType).c_str ())));
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1860,7 +1868,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
@@ -1871,7 +1879,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       FormatType,
+                                       MediaType,
                                        UserDataType>::generateIndex (enum Stream_Decoder_AVIIndexType indexType_in,
                                                                      ACE_Message_Block* messageBlock_inout)
 {
@@ -2017,7 +2025,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , isFirst_ (true)
@@ -2044,7 +2052,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::~Stream_Decoder_AVIEncoder_WriterTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::~Stream_Decoder_AVIEncoder_WriterTask_T"));
@@ -2086,7 +2094,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                                   Stream_IAllocator* allocator_in)
 {
@@ -2111,9 +2119,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                         ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
         } // end IF
 
-
-      avformat_free_context (formatContext_);
-      formatContext_ = NULL;
+      avformat_free_context (formatContext_); formatContext_ = NULL;
     } // end IF
   } // end IF
 
@@ -2198,7 +2204,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                          bool& passMessageDownstream_out)
 {
@@ -2245,7 +2251,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (isFirst_)
   {
     isFirst_ = false;
-
     if (!generateHeader (message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2313,7 +2318,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                             bool& passMessageDownstream_out)
 {
@@ -2323,10 +2328,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::configuration_);
   if (!inherited::sessionData_)
     return;
-
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
@@ -2334,35 +2338,32 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      struct v4l2_fract frame_rate_s =
-          getFrameRate (session_data_r,
-                        session_data_r.inputFormat);
+      struct Stream_MediaFramework_V4L_MediaType& media_type_r =
+        session_data_r.formats.front ();
 
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       struct AVCodec* codec_p = NULL;
       struct AVCodecContext* codec_context_p = NULL;
       struct AVStream* stream_p = NULL;
+      enum AVPixelFormat pixel_format_e =
+          Stream_Device_Tools::v4l2FormatToffmpegFormat (media_type_r.format.pixelformat);
 
       ACE_ASSERT (formatContext_);
       ACE_ASSERT (formatContext_->oformat);
 
       formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (session_data_r.inputFormat)
+      switch (media_type_r.format.pixelformat)
       {
         // RGB formats
-        case AV_PIX_FMT_BGR24:
-        case AV_PIX_FMT_RGB24:
-//        case V4L2_PIX_FMT_BGR24:
-//        case V4L2_PIX_FMT_RGB24:
+        case V4L2_PIX_FMT_BGR24:
+        case V4L2_PIX_FMT_RGB24:
 //          codec_id = AV_CODEC_ID_RAWVIDEO;
           break;
         // luminance-chrominance formats
-        case AV_PIX_FMT_YUV420P: // 'YU12'
-        case AV_PIX_FMT_YUYV422:
-//        case V4L2_PIX_FMT_YUV420: // 'YU12'
-//        case V4L2_PIX_FMT_YVU420: // 'YV12'
-//        case V4L2_PIX_FMT_YUYV:
+        case V4L2_PIX_FMT_YUV420: // 'YU12'
+        case V4L2_PIX_FMT_YVU420: // 'YV12'
+        case V4L2_PIX_FMT_YUYV:
           codec_id = AV_CODEC_ID_CYUV; // AV_CODEC_ID_YUV4 ?
           break;
         // compressed formats
@@ -2375,16 +2376,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         //         prepend the DHT segment to them, or else the decoder won't
         //         have any idea how to decompress the data. The exact table
         //         necessary is given in the OpenDML spec. ..."
-        case AV_PIX_FMT_YUVJ422P:
         case V4L2_PIX_FMT_MJPEG:
           codec_id = AV_CODEC_ID_MJPEG;
           break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %s), returning\n"),
+                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %s [%d]), returning\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (session_data_r.inputFormat).c_str ())));
+                      ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixel_format_e).c_str ()),
+                      media_type_r.format.pixelformat));
           goto error;
         }
       } // end SWITCH
@@ -2420,62 +2421,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
 
       codec_context_p->bit_rate =
-          (av_image_get_buffer_size (session_data_r.inputFormat,
-                                     session_data_r.sourceFormat.width,
-                                     session_data_r.sourceFormat.height,
-                                     1) * // *TODO*: linesize alignment
-           frame_rate_s.numerator       *
+          (av_image_get_buffer_size (pixel_format_e,
+                                     media_type_r.format.width,
+                                     media_type_r.format.height,
+                                     1)     * // *TODO*: linesize alignment
+           media_type_r.frameRate.numerator *
            8);
       codec_context_p->codec_id = codec_id;
-      codec_context_p->width = session_data_r.sourceFormat.width;
-      codec_context_p->height = session_data_r.sourceFormat.height;
-      codec_context_p->time_base.num = frame_rate_s.denominator;
-      codec_context_p->time_base.den = frame_rate_s.numerator;
+      codec_context_p->width = media_type_r.format.width;
+      codec_context_p->height = media_type_r.format.height;
+      codec_context_p->time_base.num = media_type_r.frameRate.denominator;
+      codec_context_p->time_base.den = media_type_r.frameRate.numerator;
 //      codec_context_p->gop_size = 10;
 //      codec_context_p->max_b_frames = 1;
-      codec_context_p->pix_fmt = session_data_r.inputFormat;
-
-      // transform v4l format to libavformat type (AVPixelFormat)
-//      switch (format_p->fmt.pix.pixelformat)
-//      {
-//        // RGB formats
-//        case V4L2_PIX_FMT_BGR24:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
-//          break;
-//        case V4L2_PIX_FMT_RGB24:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
-//          break;
-//        // luminance-chrominance formats
-//        case V4L2_PIX_FMT_YUV420: // 'YU12'
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUV420P;
-//          break;
-//        case V4L2_PIX_FMT_YUYV:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUYV422;
-//          break;
-//        // compressed formats
-//        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
-//        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
-//        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
-//        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
-//        //         or progressive. . . . You can indeed extract the MJPEG frames
-//        //         and decode them with a regular JPEG decoder, but you have to
-//        //         prepend the DHT segment to them, or else the decoder won't
-//        //         have any idea how to decompress the data. The exact table
-//        //         necessary is given in the OpenDML spec. ..."
-//        case V4L2_PIX_FMT_MJPEG:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUVJ422P;
-//          break;
-//        // *TODO*: ATM, libav cannot handle YVU formats
-//        case V4L2_PIX_FMT_YVU420: // 'YV12'
-//        default:
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-//                      format_p->fmt.pix.pixelformat));
-//          break;
-//        }
-//      } // end SWITCH
-//      codec_context_p->pix_fmt = codec_->pix_fmts[0];
+      codec_context_p->pix_fmt = pixel_format_e;
 
       result = avcodec_open2 (codec_context_p,
                               codec_p,
@@ -2505,22 +2464,22 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
-          (av_image_get_buffer_size (session_data_r.inputFormat,
-                                     session_data_r.sourceFormat.width,
-                                     session_data_r.sourceFormat.height,
-                                     1) * // *TODO*: linesize alignment
-           frame_rate_s.numerator       *
+          (av_image_get_buffer_size (pixel_format_e,
+                                     media_type_r.format.width,
+                                     media_type_r.format.height,
+                                     1)     * // *TODO*: linesize alignment
+           media_type_r.frameRate.numerator *
            8);
       stream_p->codec->codec_id = codec_id;
       // stream_p->codec->codec_tag = 0;
     //  stream_p->codec->codec_type = codec_->type;
 
-      stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
-      stream_p->codec->width = session_data_r.sourceFormat.width;
-      stream_p->codec->height = session_data_r.sourceFormat.height;
+      stream_p->codec->pix_fmt = pixel_format_e;
+      stream_p->codec->width = media_type_r.format.width;
+      stream_p->codec->height = media_type_r.format.height;
 
-      stream_p->time_base.num = frame_rate_s.denominator;
-      stream_p->time_base.den = frame_rate_s.numerator;
+      stream_p->time_base.num = media_type_r.frameRate.denominator;
+      stream_p->time_base.den = media_type_r.frameRate.numerator;
 //      stream_p->codec->time_base.num =
 //          session_data_r.frameRate.numerator;
 //      stream_p->codec->time_base.den =
@@ -2530,7 +2489,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 error:
       if (codec_context_p)
-        avcodec_free_context (&codec_context_p);
+      {
+        avcodec_free_context (&codec_context_p); codec_context_p = NULL;
+      } // end IF
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -2548,7 +2509,6 @@ continue_:
         goto continue_2; // nothing to do
 
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
@@ -2570,10 +2530,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-
-        // clean up
-        message_block_p->release ();
-
+        message_block_p->release (); message_block_p = NULL;
         goto continue_2;
       } // end IF
 
@@ -2583,16 +2540,13 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-
-        // clean up
-        message_block_p->release ();
-
+        message_block_p->release (); message_block_p = NULL;
         goto continue_2;
       } // end IF
+      message_block_p = NULL;
 
 continue_2:
-      avformat_free_context (formatContext_);
-      formatContext_ = NULL;
+      avformat_free_context (formatContext_); formatContext_ = NULL;
 
       break;
     }
@@ -2619,7 +2573,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader"));
@@ -2635,7 +2589,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                         1,                                        // write flag
                         messageBlock_inout,                       // act
                         NULL,                                     // read callback
-                        STREAM_DEC_aviencoder_libav_write_cb, // write callback
+                        stream_decoder_aviencoder_libav_write_cb, // write callback
                         NULL);                                    // seek callback
   if (!formatContext_->pb)
   {
@@ -2684,7 +2638,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType,
-                                       struct v4l2_format,
+                                       struct Stream_MediaFramework_V4L_MediaType,
                                        UserDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex"));
@@ -2727,7 +2681,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -2737,7 +2691,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             UserDataType>::Stream_Decoder_WAVEncoder_T (ISTREAM_T* stream_in)
 #else
@@ -2768,7 +2722,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -2778,7 +2732,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
                             UserDataType>::~Stream_Decoder_WAVEncoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::~Stream_Decoder_WAVEncoder_T"));
@@ -2813,7 +2767,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
@@ -2824,7 +2778,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -2873,7 +2827,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
@@ -2884,7 +2838,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
                             UserDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {
@@ -3031,7 +2985,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 void
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
@@ -3042,7 +2996,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
@@ -3058,7 +3012,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #else
-  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
 #endif // ACE_WIN32 || ACE_WIN64
 
   int result = -1;
@@ -3070,9 +3024,14 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
       if (inherited::configuration_->targetFileName.empty ())
         return;
-      ACE_ASSERT (inherited::configuration_->format);
+
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
+          session_data_r.formats.front ();
 
 //      sox_comments_t comments = ;
       struct sox_oob_t oob_data;
@@ -3080,9 +3039,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_Module_Decoder_Tools::ALSAToSoX (inherited::configuration_->format->format,
-                                              inherited::configuration_->format->rate,
-                                              inherited::configuration_->format->channels,
+      Stream_Module_Decoder_Tools::ALSAToSoX (media_type_r.format,
+                                              media_type_r.rate,
+                                              media_type_r.channels,
                                               encodingInfo_,
                                               signalInfo_);
       ACE_ASSERT (!outputFile_);
@@ -3090,7 +3049,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
           sox_open_write (inherited::configuration_->targetFileName.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
-                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_FORMATTYPE_STRING),
+                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_WAV_MediaType_STRING),
                           NULL,
                           &oob_data,
                           sox_overwrite_permitted);
@@ -3163,7 +3122,7 @@ continue_:
 
       struct _AMMediaType& media_type_r =
         inherited::getFormat (*session_data_r.inputFormat);
-      ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (InlineIsEqualGUID (media_type_r.MediaType, FORMAT_WaveFormatEx));
 
       wave_header_size =
         (sizeof (struct _rifflist)  +
@@ -3276,7 +3235,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename FormatType,
+          typename MediaType,
           typename UserDataType>
 bool
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
@@ -3287,7 +3246,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionMessageType,
                             SessionDataContainerType,
                             SessionDataType,
-                            FormatType,
+                            MediaType,
                             UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::generateHeader"));
@@ -3303,7 +3262,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   struct _AMMediaType& media_type_r =
     inherited::getFormat (*session_data_r.inputFormat);
-  ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (InlineIsEqualGUID (media_type_r.MediaType, FORMAT_WaveFormatEx));
 
   //ACE_ASSERT (media_type_p->pbFormat);
   //struct tWAVEFORMATEX* waveformatex_p =

@@ -35,8 +35,13 @@
 #include "stream_session_message_base.h"
 
 #include "test_i_common.h"
-#include "test_i_callbacks.h"
 #include "test_i_defines.h"
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
 Test_I_Target_EventHandler::Test_I_Target_EventHandler (struct Test_I_Target_UI_CBData* CBData_in)
@@ -213,7 +218,9 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #endif // GUI_SUPPORT
 
   int result = -1;
+#if defined (GUI_SUPPORT)
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_SESSION;
+#endif // GUI_SUPPORT
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_DISCONNECT:
@@ -253,7 +260,9 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
       } // end IF
 
 continue_:
+#if defined (GUI_SUPPORT)
       event_e = COMMON_UI_EVENT_STATISTIC;
+#endif // GUI_SUPPORT
       break;
     }
     default:

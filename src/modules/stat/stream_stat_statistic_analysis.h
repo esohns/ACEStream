@@ -26,7 +26,7 @@
 #include <mfapi.h>
 #include <mfobjects.h>
 #include <strmif.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -37,8 +37,12 @@
 
 #include "stream_task_base_synch.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_stat_common.h"
-//#include "stream_stat_exports.h"
 
 extern const char libacestream_default_stat_analysis_module_name_string[];
 
@@ -55,6 +59,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           ////////////////////////////////
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 class Stream_Statistic_StatisticAnalysis_T
@@ -112,12 +117,14 @@ class Stream_Statistic_StatisticAnalysis_T
 
   //virtual int svc (void);
 
+  template <typename MediaType2> MediaType& getMediaType (const MediaType2& mediaType_in) { return getMediaType_impl (mediaType_in); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
-#endif
+  inline AM_MEDIA_TYPE& getMediaType_impl (const struct _AMMediaType& mediaType_in) { return const_cast<struct _AMMediaType&> (mediaType_in); }
+  // *IMPORTANT NOTE*: callers must Stream_MediaFramework_DirectShow_Tools::free_() the return value
+  AM_MEDIA_TYPE& getMediaType_impl (const IMFMediaType*&);
+#else
+  inline Stream_MediaFramework_ALSA_MediaType& getMediaType_impl (const Stream_MediaFramework_ALSA_MediaType& mediaType_in) { /*ACE_ASSERT (mediaType_in);*/ return const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in); }
+#endif // ACE_WIN32 || ACE_WIN64
 
   virtual void Process (unsigned int,  // starting slot index
                         unsigned int); // ending slot index

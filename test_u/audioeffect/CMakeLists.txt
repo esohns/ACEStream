@@ -204,6 +204,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
  if (GUI_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/ui)
@@ -293,12 +294,11 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (audioeffect_EXE_SRCS
+set (EXECUTABLE audioeffect)
+set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_u_audioeffect.cpp
-     test_u_audioeffect_callbacks.cpp
-     test_u_audioeffect_callbacks.h
      test_u_audioeffect_common.h
      test_u_audioeffect_common_modules.h
      test_u_audioeffect_defines.h
@@ -314,6 +314,22 @@ set (audioeffect_EXE_SRCS
      test_u_audioeffect_signalhandler.h
      test_u_audioeffect_stream.cpp
      test_u_audioeffect_stream.h)
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_u_audioeffect_callbacks.cpp
+       test_u_audioeffect_callbacks.h)
+ elseif (WXWIDGETS_USE)
+#  set (${EXECUTABLE}_EXE_SRCS
+#       ${${EXECUTABLE}_EXE_SRCS}
+#       test_u_audioeffect_ui.cpp
+#       test_u_audioeffect_ui.h
+#       test_u_audioeffect_ui.inl
+#       test_u_audioeffect_ui_base.cpp
+#       test_u_audioeffect_ui_base.h)
+ endif ()
+endif (GUI_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -329,10 +345,9 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE audioeffect)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${audioeffect_EXE_SRCS}
+                ${${EXECUTABLE}_EXE_SRCS}
                 etc/${EXECUTABLE}.gtk2
                 etc/${EXECUTABLE}.gtk3)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
@@ -364,34 +379,10 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} X11)
 # target_link_libraries (${EXECUTABLE} ${PKG_LIBALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBAV_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBPNG_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_SOX_LIBRARIES})
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   target_link_libraries (${EXECUTABLE} ${PKG_GTK3_LIBRARIES})
-  else ()
-   target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
-  endif ()
-  if (GTKGL_SUPPORT)
-   target_link_libraries (${EXECUTABLE} ${PKG_OPENGL_LIBRARIES})
-   if (GTK3_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea/gtkgl/.libs/libgtkgl-3.0.so)
-    else ()
-     target_link_libraries (${EXECUTABLE} ${PKG_GTKGL_LIBRARIES})
-    endif (GTKGLAREA_SUPPORT)
-   else ()
-    if (GTKGLAREA_SUPPORT)
-     target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea/gtkgl/.libs/libgtkgl-2.0.so)
-    else ()
-     target_link_libraries (${EXECUTABLE} ${PKG_GTKGL_LIBRARIES})
-    endif (GTKGLAREA_SUPPORT)
-   endif ()
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
 elseif (WIN32)
  if (MSVC)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
@@ -428,15 +419,15 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonMath)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
-if (GUI_SUPPORT)
+#if (GUI_SUPPORT)
 # target_link_libraries (${EXECUTABLE} CommonUI)
- if (GTK_SUPPORT)
-  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
-  if (GTKGL_SUPPORT)
-   target_link_libraries (${EXECUTABLE} CommonOpenGL)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
+# if (GTK_SUPPORT)
+#  target_link_libraries (${EXECUTABLE} CommonUI_GTK)
+#  if (GTKGL_SUPPORT)
+#   target_link_libraries (${EXECUTABLE} CommonOpenGL)
+#  endif (GTKGL_SUPPORT)
+# endif (GTK_SUPPORT)
+#endif (GUI_SUPPORT)
 
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""

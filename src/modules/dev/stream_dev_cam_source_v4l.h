@@ -21,16 +21,13 @@
 #ifndef STREAM_MODULE_CAMSOURCE_V4L_H
 #define STREAM_MODULE_CAMSOURCE_V4L_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 #ifdef __cplusplus
 extern "C"
 {
 #include "libavutil/pixfmt.h"
 }
 #endif /* __cplusplus */
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -40,15 +37,9 @@ extern "C"
 #include "stream_headmoduletask_base.h"
 
 #include "stream_dev_common.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #include "stream_dev_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 extern const char libacestream_default_dev_cam_source_v4l_module_name_string[];
-
-// forward declarations
-enum AVPixelFormat;
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -140,20 +131,20 @@ class Stream_Module_CamSource_V4L_T
   bool putStatisticMessage (const StatisticContainerType&) const; // statistic
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  template <typename FormatType> const struct v4l2_format& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
-
-  inline const struct v4l2_format& getFormat_impl (const enum AVPixelFormat& format_in) { return Stream_Module_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
-  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return format_in; }
+  template <typename MediaType> struct Stream_MediaFramework_V4L_MediaType getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
+  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_V4L_MediaType&> (mediaType_in); }
+  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const enum AVPixelFormat& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); return return_value; }
+//  inline struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct v4l2_format& format_in) { struct Stream_MediaFramework_V4L_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
 #endif // ACE_WIN32 || ACE_WIN64
 
-  int                              captureFileDescriptor_; // capture
-  int                              overlayFileDescriptor_; // preview
+  int                       captureFileDescriptor_; // capture
+  int                       overlayFileDescriptor_; // preview
 
-  Stream_Module_Device_BufferMap_t bufferMap_;
+  Stream_Device_BufferMap_t bufferMap_;
 #if defined (_DEBUG)
-  bool                             debug_; // log device status (to kernel log)
+  bool                      debug_; // log device status (to kernel log)
 #endif // _DEBUG
-  bool                             isPassive_; // foreign device descriptor ?
+  bool                      isPassive_; // foreign device descriptor(s) ?
 };
 
 // include template definition

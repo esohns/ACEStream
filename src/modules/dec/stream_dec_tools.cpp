@@ -113,20 +113,47 @@ stream_decoder_libav_log_cb (void* AVClassStruct_in,
 
   ACE_UNUSED_ARG (AVClassStruct_in);
 
-  char buffer[BUFSIZ];
+  char buffer_a[BUFSIZ];
   int print_prefix = 1;
 
   av_log_format_line (AVClassStruct_in,
                       level_in,
                       formatString_in,
                       arguments_in,
-                      buffer,
-                      sizeof (buffer),
+                      buffer_a,
+                      sizeof (char[BUFSIZ]),
                       &print_prefix);
 
-  ACE_DEBUG ((LM_DEBUG,
+
+  enum ACE_Log_Priority log_priority_e = LM_DEBUG;
+  switch (level_in)
+  {
+    case AV_LOG_PANIC:
+      log_priority_e = LM_EMERGENCY; break;
+    case AV_LOG_FATAL:
+      log_priority_e = LM_CRITICAL; break;
+    case AV_LOG_ERROR:
+      log_priority_e = LM_ERROR; break;
+    case AV_LOG_WARNING:
+      log_priority_e = LM_WARNING; break;
+    case AV_LOG_INFO:
+    case AV_LOG_VERBOSE:
+      log_priority_e = LM_INFO; break;
+    case AV_LOG_DEBUG:
+      log_priority_e = LM_DEBUG; break;
+    case AV_LOG_TRACE:
+      log_priority_e = LM_TRACE; break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ffmpeg loglevel (was: %d), continuing\n"),
+                  level_in));
+      break;
+    }
+  } // end SWITCH
+  ACE_DEBUG ((log_priority_e,
               ACE_TEXT ("%s"),
-              buffer));
+              ACE_TEXT (buffer_a)));
 }
 
 //void

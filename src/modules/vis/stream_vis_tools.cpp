@@ -43,7 +43,11 @@
 #include "stream_macros.h"
 
 #include "stream_lib_common.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_vis_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
@@ -117,6 +121,7 @@ Stream_Visualization_Tools::finalize (enum Stream_Visualization_Framework framew
     }
   } // end SWITCH
 }
+#endif // ACE_WIN32 || ACE_WIN64
 
 std::string
 Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_AudioRenderer renderer_in)
@@ -185,6 +190,7 @@ Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_Vide
   return result;
 }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum AVPixelFormat
 Stream_Visualization_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_in)
 {

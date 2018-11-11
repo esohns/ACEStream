@@ -33,6 +33,8 @@ extern "C"
 
 #include "common_time_common.h"
 
+#include "common_ui_common.h"
+
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
@@ -58,7 +60,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType> // session data-
 class Stream_Decoder_LibAVConverter_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -104,12 +107,13 @@ class Stream_Decoder_LibAVConverter_T
  private:
   // convenient types
   typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                        TimePolicyType,
-                                        ConfigurationType,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        SessionDataContainerType> OWN_TYPE_T;
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          SessionDataContainerType,
+                                          MediaType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T (const Stream_Decoder_LibAVConverter_T&))
@@ -118,11 +122,27 @@ class Stream_Decoder_LibAVConverter_T
   // helper methods
   DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
                                     unsigned int);                       // requested size
+  inline enum AVPixelFormat getFormat (const MediaType& mediaType_in) { return getFormat_impl (mediaType_in); }
+  inline void setFormat (enum AVPixelFormat format_in, MediaType& mediaType_inout) { setFormat_impl (format_in, mediaType_inout); }
+  inline enum AVPixelFormat getFormat_impl (enum AVPixelFormat mediaType_in) { return mediaType_in; }
+  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
+  inline Common_UI_Resolution_t getResolution (const MediaType& mediaType_in) { return getResolution_impl (mediaType_in); }
+  inline void setResolution (const Common_UI_Resolution_t& resolution_in, MediaType& mediaType_inout) { setResolution_impl (resolution_in, mediaType_inout); }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  inline enum AVPixelFormat getFormat_impl (const struct _AMMediaType* mediaType_in) { ACE_ASSERT (mediaType_in); return Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (mediaType_in->subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW); }
+  inline enum AVPixelFormat getFormat_impl (const IMFMediaType* mediaType_in) { ACE_ASSERT (mediaType_in); struct _GUID subtype_s = GUID_NULL; HRESULT result = const_cast<IMFMediaType*> (mediaType_in)->GetGUID (MF_MT_SUBTYPE, &subtype_s); ACE_ASSERT (SUCCEEDED (result) && !InlineIsEqualGUID (subtype_s, GUID_NULL)); return Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (subtype_s, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION); }
+  void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
+  void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
+  inline Common_UI_Resolution_t getResolution_impl (const struct _AMMediaType*& mediaType_in) { ACE_ASSERT (mediaType_in); return Stream_MediaFramework_DirectShow_Tools::toResolution (*mediaType_in); }
+  inline Common_UI_Resolution_t getResolution_impl (const IMFMediaType*& mediaType_in) { ACE_ASSERT (mediaType_in); return Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in); }
 #else
-  template <typename FormatType> const enum AVPixelFormat& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
-
-  inline const enum AVPixelFormat& getFormat_impl (const struct v4l2_format& format_in) { return Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (format_in.fmt.pix.pixelformat); }
+  inline enum AVPixelFormat getFormat_impl (const enum AVPixelFormat& mediaType_in) { return mediaType_in; }
+//  inline enum AVPixelFormat getFormat_impl (const struct v4l2_pix_format& mediaType_in) { return Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.pixelformat); }
+  inline enum AVPixelFormat getFormat_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat); }
+//  inline void setFormat_impl (enum AVPixelFormat format_in, struct v4l2_pix_format& mediaType_inout) { mediaType_inout.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+//  inline Common_UI_Resolution_t getResolution_impl (const struct v4l2_pix_format& mediaType_in) { Common_UI_Resolution_t return_value; return_value.width = mediaType_in.width; return_value.height = mediaType_in.height; return return_value; }
+  inline Common_UI_Resolution_t getResolution_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_UI_Resolution_t return_value; return_value.width = mediaType_in.format.width; return_value.height = mediaType_in.format.height; return return_value; }
 #endif // ACE_WIN32 || ACE_WIN64
 
   DataMessageType*   buffer_;

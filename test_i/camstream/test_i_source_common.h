@@ -192,8 +192,6 @@ struct Test_I_Source_V4L2_SessionData
 {
   Test_I_Source_V4L2_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
-   , height (0)
-   , width (0)
    , userData (NULL)
   {}
 
@@ -206,9 +204,6 @@ struct Test_I_Source_V4L2_SessionData
 
     return *this;
   }
-
-  unsigned int height;
-  unsigned int width;
 
   struct Test_I_Source_V4L2_UserData* userData;
 };
@@ -484,48 +479,48 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
 {
   Test_I_Source_V4L2_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    , area ()
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , fileDescriptor (-1)
-   , format (AV_PIX_FMT_RGB24)
-   , sourceFormat ()
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , outputFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , inputFormat ()
-   , frameRate ()
-   , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
-   , v4l2Window (NULL)
+   , window ()
    , userData (NULL)
   {
     finishOnDisconnect = true;
 
-    ACE_OS::memset (&frameRate, 0, sizeof (struct v4l2_fract));
-    ACE_OS::memset (&inputFormat, 0, sizeof (struct v4l2_format));
-    inputFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ACE_OS::memset (&window, 0, sizeof (struct v4l2_window));
   }
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   GdkRectangle                                   area;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   __u32                                          buffers; // v4l device buffers
   Test_I_Source_V4L2_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_V4L2_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_V4L2_InetConnectionManager_t*    connectionManager; // TCP IO module
   int                                            fileDescriptor;
-  enum AVPixelFormat                             format; // output-
-  GdkRectangle                                   sourceFormat; // gtk pixbuf module
+  enum v4l2_memory                               method; // v4l2 camera source
+  struct Stream_MediaFramework_V4L_MediaType     outputFormat;
   ACE_Time_Value                                 statisticCollectionInterval;
   // *TODO*: remove this ASAP
   Test_I_Source_V4L2_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_V4L2_ISessionNotify_t*           subscriber;
   Test_I_Source_V4L2_Subscribers_t*              subscribers;
-  struct v4l2_format                             inputFormat; // v4l2 camera source
-  struct v4l2_fract                              frameRate; // v4l2 camera source
-  enum v4l2_memory                               v4l2Method; // v4l2 camera source
-  struct v4l2_window*                            v4l2Window; // v4l2 camera source
+  struct v4l2_window                             window; // v4l2 camera source
 
   struct Test_I_Source_V4L2_UserData*            userData;
 };
@@ -667,11 +662,14 @@ struct Test_I_Source_V4L2_StreamConfiguration
 {
   Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , format ()
    , userData (NULL)
   {}
 
   // **************************** stream data **********************************
-  struct Test_I_Source_V4L2_UserData* userData;
+  struct Stream_MediaFramework_V4L_MediaType format;
+
+  struct Test_I_Source_V4L2_UserData*        userData;
 };
 
 //extern const char stream_name_string_[];

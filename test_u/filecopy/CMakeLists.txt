@@ -1,6 +1,4 @@
-﻿option (GTK3_SUPPORT "compile Gtk3 support" ON)
-
-if (UNIX)
+﻿if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -42,23 +40,11 @@ include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: Common requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
- if (GTK3_SUPPORT)
-  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
 elseif (WIN32)
- if (GTK3_SUPPORT)
-# *TODO*: repair pkg-config support
-#  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-#  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
+add_definitions (-DHAVE_CONFIG_H)
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -72,34 +58,22 @@ if (NOT EXISTS ${Common_DIR})
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
 
-find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
               PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
+if (NOT EXISTS ${${PROJECT_NAME}_DIR})
+ message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
 endif ()
 add_definitions (-DSTREAM_HAS_DLL)
-
-add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
 
- if (GTK3_SUPPORT)
-  include_directories (${PKG_GTK3_INCLUDE_DIRS})
- else ()
-  include_directories (${PKG_GTK2_INCLUDE_DIRS})
- endif (GTK3_SUPPORT)
-
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
@@ -131,14 +105,13 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (filecopy_EXE_SRCS
+set (EXECUTABLE filecopy)
+set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      ../test_u_common.h
      ../test_u_defines.h
      test_u_filecopy.cpp
-     test_u_filecopy_callbacks.cpp
-     test_u_filecopy_callbacks.h
      test_u_filecopy_common.h
      test_u_filecopy_common_modules.h
      test_u_filecopy_defines.h
@@ -154,6 +127,23 @@ set (filecopy_EXE_SRCS
      test_u_filecopy_signalhandler.h
      test_u_filecopy_stream.cpp
      test_u_filecopy_stream.h)
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+       test_u_filecopy_callbacks.cpp
+       test_u_filecopy_callbacks.h)
+ elseif (WXWIDGETS_USE)
+  set (${EXECUTABLE}_EXE_SRCS
+       ${${EXECUTABLE}_EXE_SRCS}
+#       test_u_filecopy_ui.cpp
+#       test_u_filecopy_ui.h
+#       test_u_filecopy_ui.inl
+#       test_u_filecopy_ui_base.cpp
+#       test_u_filecopy_ui_base.h)
+      )
+ endif ()
+endif (GUI_SUPPORT)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -169,7 +159,6 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE filecopy)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${filecopy_EXE_SRCS}
@@ -181,7 +170,8 @@ if (WIN32 AND NOT BUILD_TEST_U)
 endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${PROJECT_NAME} Common)
+add_dependencies (${PROJECT_NAME} Common)
+add_dependencies (${PROJECT_NAME} ACEStream_Test_U)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -213,12 +203,12 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_File)
-target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE} ACEStream_Test_U)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})

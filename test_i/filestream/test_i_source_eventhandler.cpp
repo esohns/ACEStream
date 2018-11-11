@@ -34,9 +34,14 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
 Test_I_Source_EventHandler::Test_I_Source_EventHandler (struct Test_I_Source_UI_CBData* CBData_in)

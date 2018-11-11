@@ -3791,10 +3791,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                 !ACE_OS::strcmp (head_p->name (),
                                  ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)))) &&
               (tail_p &&
-               !ACE_OS::strcmp (tail_p->name (),
-                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) ||
-               !ACE_OS::strcmp (tail_p->name (),
-                                ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_TAIL_NAME))));
+               (!ACE_OS::strcmp (tail_p->name (),
+                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) ||
+                !ACE_OS::strcmp (tail_p->name (),
+                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_TAIL_NAME)))));
   if (unlikely (!ACE_OS::strcmp (head_p->name (),
                                  module_in->name ()) ||
                 !ACE_OS::strcmp (tail_p->name (),

@@ -94,7 +94,7 @@ class Stream_Dev_Target_ALSA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_ALSA_T (const Stream_Dev_Target_ALSA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_ALSA_T& operator= (const Stream_Dev_Target_ALSA_T&))
 
-  Stream_Module_Device_ALSA_Playback_AsynchCBData asynchCBData_;
+  struct Stream_Device_ALSA_Playback_AsynchCBData asynchCBData_;
   struct _snd_async_handler*                      asynchHandler_;
   struct _snd_output*                             debugOutput_;
   struct _snd_pcm*                                deviceHandle_;

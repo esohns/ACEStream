@@ -140,11 +140,16 @@ class Stream_Dev_Mic_Source_ALSA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T (const Stream_Dev_Mic_Source_ALSA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T& operator= (const Stream_Dev_Mic_Source_ALSA_T&))
 
-  struct Stream_Module_Device_ALSA_Capture_AsynchCBData asynchCBData_;
-  struct _snd_async_handler*                            asynchHandler_;
-  struct _snd_output*                                   debugOutput_;
-  struct _snd_pcm*                                      deviceHandle_;
-  bool                                                  isPassive_;
+  // helper methods
+  template <typename MediaType> struct Stream_MediaFramework_ALSA_MediaType getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
+  inline struct Stream_MediaFramework_ALSA_MediaType getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in); }
+//  inline struct Stream_MediaFramework_ALSA_MediaType getMediaType_impl (const struct _snd_pcm& format_in) { struct Stream_MediaFramework_ALSA_MediaType return_value; return_value.format = format_in.fmt.pix; return return_value; }
+
+  struct Stream_Device_ALSA_Capture_AsynchCBData asynchCBData_;
+  struct _snd_async_handler*                     asynchHandler_;
+  struct _snd_output*                            debugOutput_;
+  struct _snd_pcm*                               deviceHandle_;
+  bool                                           isPassive_;
 };
 
 // include template definition

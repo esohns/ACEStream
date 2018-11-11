@@ -60,7 +60,7 @@ class Stream_CamSave_DirectShow_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -78,7 +78,7 @@ class Stream_CamSave_DirectShow_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -124,7 +124,7 @@ class Stream_CamSave_MediaFoundation_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -143,7 +143,7 @@ class Stream_CamSave_MediaFoundation_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -204,7 +204,7 @@ class Stream_CamSave_MediaFoundation_Stream
   ULONG                                                            referenceCount_;
 };
 #else
-class Stream_CamSave_Stream
+class Stream_CamSave_V4L_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         stream_name_string_,
@@ -212,7 +212,7 @@ class Stream_CamSave_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -230,7 +230,7 @@ class Stream_CamSave_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -242,8 +242,8 @@ class Stream_CamSave_Stream
                         Stream_CamSave_SessionMessage_t> inherited;
 
  public:
-  Stream_CamSave_Stream ();
-  virtual ~Stream_CamSave_Stream ();
+  Stream_CamSave_V4L_Stream ();
+  virtual ~Stream_CamSave_V4L_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -253,8 +253,8 @@ class Stream_CamSave_Stream
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream (const Stream_CamSave_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_Stream (const Stream_CamSave_V4L_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_Stream& operator= (const Stream_CamSave_V4L_Stream&))
 
   // modules
   Stream_CamSave_V4L_Source_Module      source_;

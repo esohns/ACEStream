@@ -66,7 +66,7 @@ elseif (WIN32)
 endif ()
 
 if (UNIX)
- add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  add_definitions (-D__STDC_CONSTANT_MACROS)
 
@@ -232,6 +232,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
 endif ()
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>)
+target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
@@ -249,19 +251,21 @@ set (source_files
      stream_vis_exports.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
-if (GTK_SUPPORT)
- set (source_files
-      ${source_files}
-      stream_vis_gtk_cairo.cpp
-      stream_vis_gtk_cairo.h
-      stream_vis_gtk_cairo.inl
-      stream_vis_gtk_cairo_spectrum_analyzer.cpp
-      stream_vis_gtk_cairo_spectrum_analyzer.h
-      stream_vis_gtk_cairo_spectrum_analyzer.inl
-      stream_vis_gtk_pixbuf.cpp
-      stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl)
-endif (GTK_SUPPORT)
+if (GUI_SUPPORT)
+ if (GTK_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_vis_gtk_cairo.cpp
+       stream_vis_gtk_cairo.h
+       stream_vis_gtk_cairo.inl
+       stream_vis_gtk_cairo_spectrum_analyzer.cpp
+       stream_vis_gtk_cairo_spectrum_analyzer.h
+       stream_vis_gtk_cairo_spectrum_analyzer.inl
+       stream_vis_gtk_pixbuf.cpp
+       stream_vis_gtk_pixbuf.h
+       stream_vis_gtk_pixbuf.inl)
+ endif (GTK_SUPPORT)
+endif (GUI_SUPPORT)
 if (WIN32)
  set (source_files
       ${source_files}

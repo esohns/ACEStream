@@ -227,7 +227,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   //av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
   // *NOTE*: this level logs all messages
   //av_log_set_level (std::numeric_limits<int>::max ());
-#endif // _DEBUG
+#endif // _DEBUG^^^
   av_register_all ();
 //  avcodec_register_all ();
 
@@ -605,46 +605,36 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (message_inout);
   if (unlikely (codecId_ == AV_CODEC_ID_NONE))
     return; // nothing to do
-  ACE_ASSERT (inherited::isInitialized_);
-
-  const SessionDataContainerType& session_data_container_r =
-    message_inout->getR ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      unsigned int decode_height, decode_width, width;
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->getR ();
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+
       enum AVPixelFormat input_format_e = AV_PIX_FMT_NONE;
+      Common_UI_Resolution_t resolution_s;
+      unsigned int decode_height, decode_width;
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType& media_type_r =
-        session_data_r.formats.front ();
-      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-
-      input_format_e =
-          Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (media_type_r.subtype,
-                                                                    inherited::configuration_->mediaFramework);
-      Common_UI_Resolution_t resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_r);
-      formatHeight_ = static_cast<unsigned int> (std::abs (resolution_s.cy));
-      width = static_cast<unsigned int> (resolution_s.cx);
-      decode_height = formatHeight_;
-      decode_width = width;
-#else
       input_format_e = getFormat (session_data_r.formats.front ());
-      ACE_ASSERT (false); // *TODO*
-      formatHeight_ = configuration_in.sourceFormat.height;
+      resolution_s = getResolution (session_data_r.formats.front ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      formatHeight_ = static_cast<unsigned int> (std::abs (resolution_s.cy));
       decode_height = formatHeight_;
-      width = configuration_in.sourceFormat.width;
-      decode_width = width;
+      decode_width = static_cast<unsigned int> (resolution_s.cx);
+#else
+      formatHeight_ = resolution_s.height;
+      decode_height = formatHeight_;
+      decode_width = resolution_s.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
       if ((codecId_ == AV_CODEC_ID_NONE) &&
@@ -672,12 +662,12 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
     //  frame_->format = configuration_in.outputFormat;
       frame_->height = formatHeight_;
-      frame_->width = width;
+      frame_->width = decode_width;
 
       outputFrameSize_ =
         av_image_get_buffer_size (outputFormat_,
-                                  static_cast<int> (decode_width),
-                                  static_cast<int> (decode_height),
+                                  static_cast<int> (frame_->width),
+                                  static_cast<int> (frame_->height),
                                   1); // *TODO*: linesize alignment
 
       int result = -1;

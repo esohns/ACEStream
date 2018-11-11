@@ -23,6 +23,10 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/error>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
@@ -79,11 +83,13 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
 endif ()
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dev>)
 target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 ############## next target ################
 set (source_files
@@ -92,7 +98,12 @@ set (source_files
 #     stream_lib_exports.h
      stream_lib_tools.cpp
      stream_lib_tools.h)
-if (WIN32)
+if (UNIX)
+ set (source_files
+      ${source_files}
+      stream_lib_alsa_common.h
+      stream_lib_v4l_common.h)
+elseif (WIN32)
  set (source_files
       ${source_files}
       stream_lib_directdraw_common.h
@@ -137,7 +148,7 @@ if (WIN32)
       stream_lib_mediafoundation_target.inl
       stream_lib_mediafoundation_tools.cpp
       stream_lib_mediafoundation_tools.h)
-endif (WIN32)
+endif ()
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -196,49 +207,53 @@ export (TARGETS ${PROJECT_NAME}_MediaFramework
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-if (WIN32)
- install (FILES
-          stream_lib_common.h
-          stream_lib_defines.h
-          stream_lib_directdraw_common.h
-          stream_lib_directdraw_tools.h
-          stream_lib_directshow_allocator.h
-          stream_lib_directshow_allocator.inl
-          stream_lib_directshow_asynch_source_filter.h
-          stream_lib_directshow_asynch_source_filter.inl
-          stream_lib_directshow_common.h
-          stream_lib_directshow_source_filter.h
-          stream_lib_directshow_source_filter.inl
-          stream_lib_directshow_message_base.h
-          stream_lib_directshow_message_base.inl
-          stream_lib_directshow_target.h
-          stream_lib_directshow_target.inl
-          stream_lib_directshow_tools.h
-#          stream_lib_exports.h
-          stream_lib_guids.h
-          stream_lib_mediafoundation_callback.h
-          stream_lib_mediafoundation_callback.inl
-          stream_lib_mediafoundation_mediasource.h
-          stream_lib_mediafoundation_mediasource.inl
-          stream_lib_mediafoundation_message_base.h
-          stream_lib_mediafoundation_message_base.inl
-          stream_lib_mediafoundation_source.h
-          stream_lib_mediafoundation_source.inl
-          stream_lib_mediafoundation_target.h
-          stream_lib_mediafoundation_target.inl
-          stream_lib_mediafoundation_tools.h
-          stream_lib_tools.h
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-elseif (UNIX)
- install (FILES
-          stream_lib_common.h
-          stream_lib_defines.h
-#          stream_lib_exports.h
-          stream_lib_tools.h
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
+unset (source_files)
+set (source_files
+     stream_lib_common.h
+     stream_lib_defines.h
+#     stream_lib_exports.h
+     stream_lib_tools.h)
+if (UNIX)
+ set (source_files
+      ${source_files}
+      stream_lib_alsa_common.h
+      stream_lib_v4l_common.h)
+elseif (WIN32)
+ set (source_files
+      ${source_files}
+      stream_lib_directdraw_common.h
+      stream_lib_directdraw_tools.h
+      stream_lib_directshow_allocator.h
+      stream_lib_directshow_allocator.inl
+      stream_lib_directshow_asynch_source_filter.h
+      stream_lib_directshow_asynch_source_filter.inl
+      stream_lib_directshow_common.h
+      stream_lib_directshow_message_base.h
+      stream_lib_directshow_message_base.inl
+      stream_lib_directshow_source_filter.h
+      stream_lib_directshow_source_filter.inl
+      stream_lib_directshow_target.h
+      stream_lib_directshow_target.inl
+      stream_lib_directshow_tools.h
+      stream_lib_guids.h
+      stream_lib_mediafoundation_callback.h
+      stream_lib_mediafoundation_callback.inl
+      stream_lib_mediafoundation_mediasource.h
+      stream_lib_mediafoundation_mediasource.inl
+      stream_lib_mediafoundation_message_base.h
+      stream_lib_mediafoundation_message_base.inl
+      stream_lib_mediafoundation_source.h
+      stream_lib_mediafoundation_source.inl
+      #      stream_lib_mediafoundation_source_stream.h
+      #      stream_lib_mediafoundation_source_stream.inl
+      stream_lib_mediafoundation_target.h
+      stream_lib_mediafoundation_target.inl
+      stream_lib_mediafoundation_tools.h)
 endif ()
+install (FILES
+         ${source_files}
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 
 install (TARGETS ${PROJECT_NAME}_MediaFramework
          EXPORT ${PROJECT_NAME}Targets

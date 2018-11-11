@@ -23,28 +23,30 @@
 
 #include "ace/config-lite.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
 #include <string>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include <map>
+#endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 extern "C"
 {
-#include <alsa/asoundlib.h>
+#include "alsa/asoundlib.h"
 }
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
+#else
+#include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_defines.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_lib_common.h"
-#include "stream_lib_directdraw_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
-#include "stream_vis_common.h"
-#include "stream_vis_defines.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -55,9 +57,9 @@ class Stream_IAllocator;
 struct Stream_Statistic;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef std::list<std::string> Stream_Device_List_t;
 typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef std::map<__u32, ACE_Message_Block*> Stream_Device_BufferMap_t;
 typedef Stream_Device_BufferMap_t::const_iterator Stream_Device_BufferMapIterator_t;
@@ -142,29 +144,7 @@ struct Stream_Device_Identifier
 #else
 struct Stream_Device_ALSAConfiguration
 {
-  Stream_Device_ALSAConfiguration ()
-   : access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
-   , bufferSize (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
-   , bufferTime (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
-   , format (MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT)
-   , subFormat (SND_PCM_SUBFORMAT_STD)
-   , channels (MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS)
-   , periods (MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS)
-   , periodSize (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
-   , periodTime (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
-   , rate (MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE)
-  {}
-
-  enum _snd_pcm_access    access;
-  snd_pcm_uframes_t       bufferSize;
-  unsigned int            bufferTime;
-  enum _snd_pcm_format    format;
-  enum _snd_pcm_subformat subFormat;
-  unsigned int            channels;
-  unsigned int            periods;
-  snd_pcm_uframes_t       periodSize;
-  unsigned int            periodTime;
-  unsigned int            rate;
+  struct Stream_MediaFramework_ALSA_MediaType format;
 };
 
 struct Stream_Device_ALSA_Capture_AsynchCBData

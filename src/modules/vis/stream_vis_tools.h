@@ -21,22 +21,24 @@
 #ifndef STREAM_VIS_TOOLS_H
 #define STREAM_VIS_TOOLS_H
 
+#include <string>
+
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <guiddef.h>
+
 #if defined (__cplusplus)
 extern "C"
 {
-#include <libavformat/avformat.h>
+#include "libavformat/avformat.h"
 }
 #endif /* __cplusplus */
-
-#include <guiddef.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_common.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 

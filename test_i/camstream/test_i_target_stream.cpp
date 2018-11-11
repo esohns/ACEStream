@@ -962,17 +962,16 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 //  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Display_Module (this,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
-//  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_DisplayNull_Module (this,
-//                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)),
-//                  false);
-//  modules_out.push_back (module_p);
   module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_StatisticReport_Module (this,
                                                         ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
@@ -1044,12 +1043,9 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  session_data_r.inputFormat = configuration_p->inputFormat;
-#else
-  session_data_r.inputFormat =
-      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (configuration_p->inputFormat.fmt.pix.pixelformat);
-#endif
+
+  ACE_ASSERT (session_data_r.formats.empty ());
+  session_data_r.formats.push_front (configuration_in.configuration_.format);
   //  session_data_r.sessionId = configuration_p->sessionId;
   session_data_r.targetFileName = configuration_p->targetFileName;
 

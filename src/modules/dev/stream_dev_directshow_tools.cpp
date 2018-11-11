@@ -617,7 +617,7 @@ Common_UI_Resolutions_t
 Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
                                                        REFGUID mediaSubType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureResolutions"));
 
   // initialize return value(s)
   Common_UI_Resolutions_t result;
@@ -696,9 +696,9 @@ Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStrea
 Common_UI_Framerates_t
 Stream_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamConfig_in,
                                                       REFGUID mediaSubType_in,
-                                                      Common_UI_Resolution_t resolution_in)
+                                                      const Common_UI_Resolution_t& resolution_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureSubFormats"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureFramerates"));
 
   // initialize return value(s)
   Common_UI_Framerates_t result;

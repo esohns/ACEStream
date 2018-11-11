@@ -24,18 +24,22 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "common.h"
 #include "common_istatistic.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -47,9 +51,11 @@
 #include "http_get_stream_common.h"
 
 #include "test_u_common.h"
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_u_gtk_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 // forward declarations
 class HTTPGet_Message;
@@ -104,19 +110,20 @@ struct HTTPGet_Configuration
 
 //////////////////////////////////////////
 
+#if defined (GUI_SUPPORT)
 struct HTTPGet_ProgressData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_ProgressData
 #else
  : Test_U_UI_ProgressData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   HTTPGet_ProgressData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_ProgressData ()
 #else
    : Test_U_UI_ProgressData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , statistic ()
   {}
 
@@ -143,18 +150,18 @@ struct HTTPGet_ProgressData
 //                      HTTPGet_Message,
 //                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_UI_CBData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_CBData
 #else
  : Test_U_UI_CBData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   HTTPGet_UI_CBData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_CBData ()
 #else
    : Test_U_UI_CBData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , configuration (NULL)
    , dispatchState ()
    , messageAllocator (NULL)
@@ -173,27 +180,28 @@ struct HTTPGet_UI_CBData
 };
 
 struct HTTPGet_UI_ThreadData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_ThreadData
 #else
  : Test_U_UI_ThreadData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   HTTPGet_UI_ThreadData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_ThreadData ()
 #else
    : Test_U_UI_ThreadData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , CBData (NULL)
   {}
 
   struct HTTPGet_UI_CBData* CBData;
 };
 
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct HTTPGet_UI_CBData> HTTPGet_GtkBuilderDefinition_t;
+#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #endif

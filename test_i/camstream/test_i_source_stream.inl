@@ -1314,27 +1314,16 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   Stream_Module_t* module_p = NULL;
   // *TODO*: remove type inference
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->end ());
-  if ((*iterator).second.second.window)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_I_Source_V4L2_Display_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
-                    false);
-    modules_out.push_back (module_p);
-  } // end IF
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  //else
-//  //{
-//  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)),
-//  //                  false);
-//  //  modules_out.push_back (module_p);
-//  //} // end ELSE
-//#endif
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_V4L2_Display_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  false);
+  modules_out.push_back (module_p);
   module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
@@ -1409,28 +1398,8 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   typename ConfigurationType::ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.inputFormat =
-      Stream_Device_Tools::v4l2FormatToffmpegFormat ((*iterator).second.second.inputFormat.fmt.pix.pixelformat);
-  session_data_r.frameRate = (*iterator).second.second.frameRate;
-//  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                              session_data_r.v4l2Format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  if (!Stream_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                                 session_data_r.v4l2FrameRate))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  session_data_r.inputFormat = (*iterator).second.second.inputFormat;
-  session_data_r.height = (*iterator).second.second.inputFormat.fmt.pix.height;
-  session_data_r.width = (*iterator).second.second.inputFormat.fmt.pix.width;
+  ACE_ASSERT (session_data_r.formats.empty ());
+  session_data_r.formats.push_front (configuration_in.configuration_.format);
 
   // ---------------------------------------------------------------------------
   // sanity check(s)

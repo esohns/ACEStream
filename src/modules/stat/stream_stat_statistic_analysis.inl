@@ -39,6 +39,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
@@ -50,6 +51,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                      Aggregation>::Stream_Statistic_StatisticAnalysis_T (ISTREAM_T* stream_in)
@@ -88,6 +90,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 bool
@@ -100,6 +103,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
                                      Aggregation>::initialize (const ConfigurationType& configuration_in,
                                                                Stream_IAllocator* allocator_in)
@@ -134,56 +138,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   eventDispatcher_ = configuration_in.dispatch;
 
-  if (unlikely (!inherited::initialize (configuration_in,
-                                        allocator_in)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize(), aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
-    // *TODO*: remove type inferences
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // sanity check(s)
-  ACE_ASSERT (configuration_in.inputFormat);
-
-  struct _AMMediaType* media_type_p = getFormat (configuration_in.inputFormat);
-  if (unlikely (!media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
-
-  ACE_ASSERT (media_type_p->pbFormat);
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
-  ACE_ASSERT (waveformatex_p);
-#endif
-
-  bool result_2 = false;
-  unsigned int sample_rate;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  sample_rate = waveformatex_p->nSamplesPerSec;
-#else
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.format);
-
-  sample_rate = configuration_in.format->rate;
-#endif
-  result_2 =
-    inherited2::Initialize (configuration_in.spectrumAnalyzerResolution,
-                            sample_rate);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (media_type_p)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
-#endif
-
-  return result_2;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -195,6 +151,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 void
@@ -207,6 +164,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
                                      Aggregation>::handleDataMessage (DataMessageType*& message_inout,
                                                                       bool& passMessageDownstream_out)
@@ -268,6 +226,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 void
@@ -280,6 +239,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
                                      Aggregation>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                          bool& passMessageDownstream_out)
@@ -302,6 +262,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      MediaType& media_type_r = getMediaType (session_data_r.formats.front ());
 
       bool result_2 = false;
 //      bool shutdown = false;
@@ -311,17 +272,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       unsigned int sample_rate;
       int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType* media_type_p = NULL;
-      media_type_p = getFormat (session_data_r.inputFormat);
-      if (unlikely (!media_type_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
-      ACE_ASSERT (media_type_p->pbFormat);
+      // sanity check(s)
+      ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (media_type_r.pbFormat);
 
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
@@ -336,18 +289,18 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 //      channels = waveformatex_p->nChannels;
       sample_rate = waveformatex_p->nSamplesPerSec;
 
-      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+      Stream_MediaFramework_DirectShow_Tools::free_ (media_type_r);
 #else
       sample_size =
-        ((snd_pcm_format_width (session_data_r.inputFormat.format) / 8) *
-          session_data_r.inputFormat.channels);
-      sub_sample_size = sample_size / session_data_r.inputFormat.channels;
+        ((snd_pcm_format_width (media_type_r.format) / 8) *
+         media_type_r.channels);
+      sub_sample_size = sample_size / media_type_r.channels;
       sample_byte_order =
-          ((snd_pcm_format_little_endian (session_data_r.inputFormat.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                                   : -1);
+          ((snd_pcm_format_little_endian (media_type_r.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                     : -1);
 
 //      channels = session_data_r.inputFormat.channels;
-      sample_rate = session_data_r.inputFormat.rate;
+      sample_rate = media_type_r.rate;
 #endif
       result_2 = iterator_.initialize (sample_size,
                                        sub_sample_size,
@@ -554,9 +507,10 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
-AM_MEDIA_TYPE*
+AM_MEDIA_TYPE&
 Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
@@ -566,60 +520,19 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
-                                     Aggregation>::getFormat_impl (const struct _AMMediaType* format_in)
+                                     Aggregation>::getMediaType_impl (const IMFMediaType*& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getFormat_impl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getMediaType_impl"));
 
   // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (*format_in);
-  if (unlikely (!result_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
-                inherited::mod_->name ()));
-    return NULL;
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return result_p;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ValueType,
-          unsigned int Aggregation>
-AM_MEDIA_TYPE*
-Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     StatisticContainerType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     ValueType,
-                                     Aggregation>::getFormat_impl (const IMFMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
+  ACE_ASSERT (mediaType_in);
 
   struct _AMMediaType* result_p = NULL;
 
   HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
                                         GUID_NULL,
                                         &result_p);
   if (unlikely (FAILED (result)))
@@ -628,13 +541,13 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return NULL;
+    return struct _AMMediaType ();
   } // end IF
   ACE_ASSERT (result_p);
 
-  return result_p;
+  return *result_p;
 }
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -645,6 +558,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename MediaType,
           typename ValueType,
           unsigned int Aggregation>
 void
@@ -657,6 +571,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      StatisticContainerType,
                                      SessionDataType,
                                      SessionDataContainerType,
+                                     MediaType,
                                      ValueType,
                                      Aggregation>::Process (unsigned int startIndex_in,
                                                             unsigned int endIndex_in)

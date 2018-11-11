@@ -18,13 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
-}
-#endif /* __cplusplus */
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/pixfmt.h"
+//}
+//#endif /* __cplusplus */
 
 #include "ace/Log_Msg.h"
 
@@ -130,14 +130,12 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   {
     if (buffer_)
     {
-      buffer_->release ();
-      buffer_ = NULL;
+      buffer_->release (); buffer_ = NULL;
     } // end IF
 
     if (chain_)
     {
-      sox_delete_effects_chain (chain_);
-      chain_ = NULL;
+      sox_delete_effects_chain (chain_); chain_ = NULL;
     } // end IF
     input_ = NULL;
     output_ = NULL;
@@ -173,7 +171,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   struct sox_globals_t* sox_globals_p = sox_get_globals ();
   ACE_ASSERT (sox_globals_p);
   sox_globals_p->bufsiz = sox_globals_p->input_bufsiz =
-      STREAM_DECODER_SOX_BUFFER_SIZE;
+      STREAM_DEC_SOX_BUFFER_SIZE;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -218,7 +216,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                          message_inout->length (),
                          &signalInfo_,
                          &encodingInfo_,
-                         ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_FORMAT_RAW_STRING));
+                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING));
   if (!input_buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -240,7 +238,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (!buffer_)
   {
     buffer_ =
-        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
     if (!buffer_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -256,7 +254,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                           inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize,
                           &signalInfo_,
                           &encodingInfo_,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_FORMAT_RAW_STRING),
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
                           NULL);
   if (!output_buffer_p)
   {
@@ -300,7 +298,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     message_block_2 = NULL;
     message_block_2 =
-        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
     if (!message_block_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -324,7 +322,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                             inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize,
                             &signalInfo_,
                             &encodingInfo_,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_FORMAT_RAW_STRING),
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
                             NULL);
     if (!output_buffer_p)
     {
@@ -399,13 +397,11 @@ error:
 
   if (buffer_)
   {
-    buffer_->release ();
-    buffer_ = NULL;
+    buffer_->release (); buffer_ = NULL;
   } // end IF
 
   // clean up
-  message_inout->release ();
-  message_inout = NULL;
+  message_inout->release (); message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -434,7 +430,6 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->format);
 
   int result = -1;
 
@@ -443,11 +438,16 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->format);
+      ACE_ASSERT (inherited::sessionData_);
 
-      Stream_Module_Decoder_Tools::ALSAToSoX (inherited::configuration_->format->format,
-                                              inherited::configuration_->format->rate,
-                                              inherited::configuration_->format->channels,
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
+          getMediaType (session_data_r.formats.front ());
+
+      Stream_Module_Decoder_Tools::ALSAToSoX (media_type_r.format,
+                                              media_type_r.rate,
+                                              media_type_r.channels,
                                               encodingInfo_,
                                               signalInfo_);
 
@@ -609,14 +609,12 @@ continue_:
     {
       if (buffer_)
       {
-        buffer_->release ();
-        buffer_ = NULL;
+        buffer_->release (); buffer_ = NULL;
       } // end IF
 
       if (chain_)
       {
-        sox_delete_effects_chain (chain_);
-        chain_ = NULL;
+        sox_delete_effects_chain (chain_); chain_ = NULL;
       } // end IF
 
       break;
@@ -626,90 +624,27 @@ continue_:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType>
-DataMessageType*
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::allocateMessage"));
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType>
+//struct v4l2_format*
+//Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
+//                           TimePolicyType,
+//                           ConfigurationType,
+//                           ControlMessageType,
+//                           DataMessageType,
+//                           SessionMessageType,
+//                           SessionDataContainerType,
+//                           SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::getFormat_impl"));
 
-  // initialize return value(s)
-  DataMessageType* message_block_p = NULL;
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-  if (inherited::configuration_->messageAllocator)
-  {
-allocate:
-    try {
-      message_block_p =
-        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-                  requestedSize_in));
-      return NULL;
-    }
-
-    // keep retrying ?
-    if (!message_block_p &&
-        !inherited::configuration_->messageAllocator->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_block_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_block_p)
-  {
-    if (inherited::configuration_->messageAllocator)
-    {
-      if (inherited::configuration_->messageAllocator->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-  } // end IF
-
-  return message_block_p;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType>
-struct v4l2_format*
-Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::getFormat_impl"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-  ACE_NOTREACHED (return NULL;)
-}
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (NULL);
+//  ACE_NOTREACHED (return NULL;)
+//}

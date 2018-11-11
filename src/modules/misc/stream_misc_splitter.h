@@ -25,7 +25,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>
 #include <strmif.h>
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -37,8 +37,6 @@
 #include "stream_imessage.h"
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_misc_exports.h"
 
 // forward declarations
 class ACE_Message_Block;
@@ -85,7 +83,7 @@ class Stream_Module_Splitter_T
   Stream_Module_Splitter_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Module_Splitter_T (typename inherited::ISTREAM_T*); // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   virtual ~Stream_Module_Splitter_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -120,7 +118,7 @@ class Stream_Module_Splitter_T
   template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
   struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
   inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 //////////////////////////////////////////
@@ -179,7 +177,7 @@ class Stream_Module_SplitterH_T
   Stream_Module_SplitterH_T (ISTREAM_T*,                      // stream handle
 #else
   Stream_Module_SplitterH_T (typename inherited::ISTREAM_T*,                                           // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                              ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
                              bool = false,                                                             // auto-start ?
                              enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
@@ -213,11 +211,6 @@ class Stream_Module_SplitterH_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))
@@ -235,8 +228,8 @@ class Stream_Module_SplitterH_T
 #else
   template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
   struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
-  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-#endif
+  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); }
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Message_Block* buffer_;
   unsigned int       PDUSize_;

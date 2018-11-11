@@ -50,6 +50,9 @@ if (UNIX)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
+add_definitions (-DHAVE_CONFIG_H)
+#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
+
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 #message (STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
@@ -65,37 +68,38 @@ if (NOT EXISTS ${Common_DIR})
 endif ()
 add_definitions (-DCOMMON_HAS_DLL)
 
-find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
               PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
+if (NOT EXISTS ${${PROJECT_NAME}_DIR})
+ message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
 endif ()
 add_definitions (-DSTREAM_HAS_DLL)
 
-add_definitions (-DHAVE_CONFIG_H)
-#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-if (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DDEBUG_DEBUGGER)
- endif ()
-endif ()
+#if (WIN32)
+# if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#  add_definitions (-DDEBUG_DEBUGGER)
+# endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+#endif (WIN32)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
+# include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 elseif (WIN32)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- include_directories ($ENV{ACE_ROOT})
+ if (DEFINED ENV{ACE_ROOT})
+  include_directories ($ENV{ACE_ROOT})
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -147,7 +151,7 @@ endif ()
 
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${RIFF_decoder_EXE_SRCS})
+                ${${EXECUTABLE}_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_U)
@@ -155,7 +159,7 @@ if (WIN32 AND NOT BUILD_TEST_U)
 endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${PROJECT_NAME} Common)
+add_dependencies (${PROJECT_NAME} Common)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -169,10 +173,12 @@ target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonTimer)
 
-target_link_libraries (${EXECUTABLE} ACEStream)
-target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
-target_link_libraries (${EXECUTABLE} ACEStream_File)
-target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
+
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
@@ -184,4 +190,5 @@ cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+         COMPONENT test_u)

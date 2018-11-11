@@ -26,7 +26,7 @@
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Log_Msg.h"
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
@@ -38,7 +38,6 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -51,11 +50,14 @@
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
 #if defined (GTK_USE)
-//#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+
+#if defined (HAVE_CONFIG_H)
+#include "ACEStream_config.h"
+#endif // HAVE_CONFIG_H
 
 #include "stream_allocatorheap.h"
 #include "stream_control_message.h"
@@ -63,11 +65,11 @@
 
 #include "stream_misc_defines.h"
 
-#if defined (HAVE_CONFIG_H)
-#include "ACEStream_config.h"
-#endif // HAVE_CONFIG_H
-
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_i_callbacks.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #include "test_i_common.h"
 
 #include "test_i_filestream_defines.h"

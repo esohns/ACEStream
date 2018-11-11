@@ -18,25 +18,45 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_DEFINES_H
-#define TEST_I_DEFINES_H
+#ifndef STREAM_LIB_ALSA_COMMON_H
+#define STREAM_LIB_ALSA_COMMON_H
 
-#include "ace/config-lite.h"
+#include <deque>
 
-// stream
-#define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
-#else
-// *IMPORTANT NOTE*: on Linux, specifying 1 will not work correctly for proactor
-//                   scenarios with the default (rt signal) proactor. The thread
-//                   blocked in sigwaitinfo (see man pages) will not awaken when
-//                   the dispatch set is changed (*TODO*: to be verified)
-#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
-#endif // ACE_WIN32 || ACE_WIN64
+#include "stream_dev_defines.h"
 
-#define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
-#define TEST_I_THREAD_NAME                           "stream processor"
+struct Stream_MediaFramework_ALSA_MediaType
+{
+  Stream_MediaFramework_ALSA_MediaType ()
+   : access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
+   , bufferSize (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
+   , bufferTime (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
+   , format (MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT)
+   , subFormat (SND_PCM_SUBFORMAT_STD)
+   , channels (MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS)
+   , periods (MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS)
+   , periodSize (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
+   , periodTime (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
+   , rate (MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE)
+  {}
+
+  enum _snd_pcm_access    access;
+  snd_pcm_uframes_t       bufferSize;
+  unsigned int            bufferTime;
+  enum _snd_pcm_format    format;
+  enum _snd_pcm_subformat subFormat;
+  unsigned int            channels;
+  unsigned int            periods;
+  snd_pcm_uframes_t       periodSize;
+  unsigned int            periodTime;
+  unsigned int            rate;
+};
+typedef std::deque<struct Stream_MediaFramework_ALSA_MediaType> Stream_MediaFramework_ALSA_Formats_t;
+typedef Stream_MediaFramework_ALSA_Formats_t::iterator Stream_MediaFramework_ALSA_FormatsIterator_t;
 
 #endif

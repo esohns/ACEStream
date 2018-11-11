@@ -982,8 +982,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
          enum Stream_Visualization_VideoRenderer renderer_in,
+#endif // GUI_SUPPORT
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -1098,13 +1098,18 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.streamConfiguration.allocatorConfiguration_;
-  modulehandler_configuration.interfaceIdentifier = captureinterfaceIdentifier_in;
-  modulehandler_configuration.pixelBufferLock =
-    configuration_in.pixelBufferLock;
-  // *TODO*: turn these into an option
   modulehandler_configuration.buffers =
     MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  modulehandler_configuration.v4l2Method = V4L2_MEMORY_MMAP;
+  modulehandler_configuration.deviceIdentifier.identifier =
+      captureinterfaceIdentifier_in;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  modulehandler_configuration.pixelBufferLock =
+    configuration_in.pixelBufferLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+//  // *TODO*: turn these into an option
+//  modulehandler_configuration.method = MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD;
 
   if (statisticReportingInterval_in)
   {
@@ -1216,7 +1221,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,     // heap allocator handle
                                                        true);               // block ?
-  Stream_CamSave_Stream stream;
+  Stream_CamSave_V4L_Stream stream;
   Stream_CamSave_MessageHandler_Module message_handler (&stream,
                                                         ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
@@ -1320,6 +1325,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
   switch (renderer_in)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1364,10 +1370,12 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
 #endif // ACE_WIN32 || ACE_WIN64
       break;
+#if defined (GTK_USE)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
       break;
+#endif // GTK_USE
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1376,6 +1384,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       return;
     }
   } // end SWITCH
+#endif // GUI_SUPPORT
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -1789,7 +1798,7 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool print_version_and_exit = false;
   //bool run_stress_test = false;
-  bool result_2 = false;
+//  bool result_2 = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1855,10 +1864,10 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1d: initialize logging and/or tracing
-  Common_MessageStack_t* logstack_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  Common_MessageStack_t* logstack_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -1925,8 +1934,10 @@ ACE_TMAIN (int argc_in,
     return EXIT_SUCCESS;
   } // end IF
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT,
                                           true);
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
   struct Stream_CamSave_UI_CBData* ui_cb_data_p = NULL;
@@ -2060,7 +2071,8 @@ ACE_TMAIN (int argc_in,
   ACE_NEW_NORETURN (iapplication_p,
                     Stream_CamSave_V4L_WxWidgetsApplication_t (toplevel_widget_name_string_,
                                                                argc_in,
-                                                               argv_in,
+                                                               Common_UI_WxWidgets_Tools::convertArgV (argc_in,
+                                                                                                       argv_in),
                                                                COMMON_UI_WXWIDGETS_APP_CMDLINE_DEFAULT_PARSE));
   Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T* iinitialize_p =
     dynamic_cast<Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T*> (iapplication_p);
@@ -2080,11 +2092,13 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to allocate memory: %m, aborting\n")));
 
     Common_Log_Tools::finalizeLogging ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 #endif
@@ -2264,7 +2278,7 @@ ACE_TMAIN (int argc_in,
            directshow_configuration,
            mediafoundation_configuration,
 #else
-           ui_configuration,
+           configuration,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
            UI_definition_filename,
@@ -2277,8 +2291,8 @@ ACE_TMAIN (int argc_in,
 #if defined (WXWIDGETS_USE)
            iapplication_p,
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
            video_renderer_e,
+#endif // GUI_SUPPORT
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

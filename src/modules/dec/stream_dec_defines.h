@@ -108,13 +108,6 @@
 
 // useful macros
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <sdkddkver.h>
-#include "common_defines.h"
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0603) // _WIN32_WINNT_WINBLUE
-#include <mmsyscom.h>
-#else
-#include <MMSystem.h>
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0603)
 #else
 #include <cstdint>
 

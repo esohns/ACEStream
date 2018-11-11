@@ -143,7 +143,178 @@ struct Test_I_SessionData
 
   struct Test_I_UserData*        userData;
 };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_DirectShow_SessionData
+ : public Stream_SessionDataMediaBase_T<struct _AMMediaType,
+                                        struct Stream_State,
+                                        struct Stream_Statistic,
+                                        struct Test_I_UserData>
+{
+ public:
+  Test_I_DirectShow_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct _AMMediaType,
+                                   struct Stream_State,
+                                   struct Stream_Statistic,
+                                   struct Test_I_UserData> ()
+   , connectionState (NULL)
+   , targetFileName ()
+   , userData (NULL)
+  {}
+
+  Test_I_DirectShow_SessionData& operator+= (const Test_I_DirectShow_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct _AMMediaType,
+                                  struct Stream_State,
+                                  struct Stream_Statistic,
+                                  struct Test_I_UserData>::operator+= (rhs_in);
+
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_ConnectionState* connectionState;
+  std::string                    targetFileName;
+
+  struct Test_I_UserData*        userData;
+};
+class Test_I_MediaFoundation_SessionData
+ : public Stream_SessionDataMediaBase_T<IMFMediaType*,
+                                        struct Stream_State,
+                                        struct Stream_Statistic,
+                                        struct Test_I_UserData>
+{
+ public:
+  Test_I_MediaFoundation_SessionData ()
+   : Stream_SessionDataMediaBase_T<IMFMediaType*,
+                                   struct Stream_State,
+                                   struct Stream_Statistic,
+                                   struct Test_I_UserData> ()
+   , connectionState (NULL)
+   , targetFileName ()
+   , userData (NULL)
+  {}
+
+  Test_I_MediaFoundation_SessionData& operator+= (const Test_I_MediaFoundation_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<IMFMediaType*,
+                                  struct Stream_State,
+                                  struct Stream_Statistic,
+                                  struct Test_I_UserData>::operator+= (rhs_in);
+
+    connectionState =
+        (connectionState ? connectionState : rhs_in.connectionState);
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_ConnectionState* connectionState;
+  std::string                    targetFileName;
+
+  struct Test_I_UserData*        userData;
+};
+#else
+//class Test_I_ALSA_SessionData
+// : public Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_ALSA_MediaType,
+//                                        struct Stream_State,
+//                                        struct Stream_Statistic,
+//                                        struct Test_I_UserData>
+//{
+// public:
+//  Test_I_ALSA_SessionData ()
+//   : Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_ALSA_MediaType,
+//                                   struct Stream_State,
+//                                   struct Stream_Statistic,
+//                                   struct Test_I_UserData> ()
+//   , connectionState (NULL)
+//   , targetFileName ()
+//   , userData (NULL)
+//  {}
+
+//  Test_I_ALSA_SessionData& operator+= (const Test_I_ALSA_SessionData& rhs_in)
+//  {
+//    // *NOTE*: the idea is to 'merge' the data
+//    Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_ALSA_MediaType,
+//                                  struct Stream_State,
+//                                  struct Stream_Statistic,
+//                                  struct Test_I_UserData>::operator+= (rhs_in);
+
+//    connectionState =
+//      (connectionState ? connectionState : rhs_in.connectionState);
+//    targetFileName =
+//      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
+//    userData = (userData ? userData : rhs_in.userData);
+
+//    return *this;
+//  }
+
+//  struct Test_I_ConnectionState* connectionState;
+//  std::string                    targetFileName;
+
+//  struct Test_I_UserData*        userData;
+//};
+
+class Test_I_V4L_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_V4L_MediaType,
+                                        struct Stream_State,
+                                        struct Stream_Statistic,
+                                        struct Test_I_UserData>
+{
+ public:
+  Test_I_V4L_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_V4L_MediaType,
+                                   struct Stream_State,
+                                   struct Stream_Statistic,
+                                   struct Test_I_UserData> ()
+   , connectionState (NULL)
+   , targetFileName ()
+   , userData (NULL)
+  {}
+
+  Test_I_V4L_SessionData& operator+= (const Test_I_V4L_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionDataMediaBase_T<struct Stream_MediaFramework_V4L_MediaType,
+                                  struct Stream_State,
+                                  struct Stream_Statistic,
+                                  struct Test_I_UserData>::operator+= (rhs_in);
+
+    connectionState =
+        (connectionState ? connectionState : rhs_in.connectionState);
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_ConnectionState* connectionState;
+  std::string                    targetFileName;
+
+  struct Test_I_UserData*        userData;
+};
+#endif // ACE_WIN32 || ACE_WIN64
 typedef Stream_SessionData_T<struct Test_I_SessionData> Test_I_SessionData_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_SessionData_T<Test_I_DirectShow_SessionData> Test_I_DirectShow_SessionData_t;
+typedef Stream_SessionData_T<Test_I_MediaFoundation_SessionData> Test_I_MediaFoundation_SessionData_t;
+#else
+//typedef Stream_SessionData_T<Test_I_ALSA_SessionData> Test_I_ALSA_SessionData_t;
+typedef Stream_SessionData_T<Test_I_V4L_SessionData> Test_I_V4L_SessionData_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_StreamState
  : Stream_State
@@ -191,7 +362,7 @@ struct Test_I_UI_CBData
   }
 
   bool                            allowUserRuntimeStatistic;
-  //struct Test_U_Configuration*    configuration;
+  //struct Test_I_Configuration*    configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64

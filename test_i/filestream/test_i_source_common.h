@@ -28,17 +28,21 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "common_isubscribe.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -49,32 +53,23 @@
 #include "net_configuration.h"
 
 #include "test_i_configuration.h"
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_i_gtk_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "test_i_connection_manager_common.h"
-//#include "test_i_filestream_common.h"
 #include "test_i_filestream_defines.h"
 #include "test_i_filestream_network.h"
 #include "test_i_message.h"
 
-//struct Test_I_Source_ConnectionConfiguration;
-//struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_UserData
  : Stream_UserData
 {
   Test_I_Source_UserData ()
    : Stream_UserData ()
-//   , connectionConfiguration (NULL)
-//   , streamConfiguration (NULL)
   {}
-
-  // *TODO*: currently required by the connection handler (see:
-  //         netsocketconnectionbase.inl:437)
-  //         --> add to the socket handler configuration ASAP
-//  struct Test_I_Source_ConnectionConfiguration* connectionConfiguration;
-//  struct Test_I_Source_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_Source_SessionData
@@ -124,21 +119,10 @@ struct Test_I_Source_StreamState
   struct Test_I_Source_UserData*    userData;
 };
 
-//struct Test_I_Source_ConnectionConfiguration;
-//struct Test_I_Source_ConnectionState;
 typedef Net_IConnection_T<ACE_INET_Addr,
                           Test_I_Source_ConnectionConfiguration_t,
                           struct Test_I_Source_ConnectionState,
                           Test_I_Statistic_t> Test_I_Source_IConnection_t;
-//struct Test_I_Source_StreamConfiguration;
-//struct Test_I_Source_ModuleHandlerConfiguration;
-//static constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
-//typedef Stream_Configuration_T<stream_name_string_,
-//                               struct Test_I_AllocatorConfiguration,
-//                               struct Test_I_Source_StreamConfiguration,
-//                               struct Stream_ModuleConfiguration,
-//                               struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_StreamConfiguration_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       stream_name_string_,
@@ -171,7 +155,6 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   //, contextId (0)
    , fileName ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -181,16 +164,11 @@ struct Test_I_Source_ModuleHandlerConfiguration
   Test_I_Source_IConnection_t*              connection; // TCP target module
   Test_I_Source_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP target module
-  //guint                                     contextId;
   std::string                               fileName; // file reader module
   Test_I_Source_StreamConfiguration_t*      streamConfiguration; // net source module
   Test_I_Source_ISessionNotify_t*           subscriber;
   Test_I_Source_Subscribers_t*              subscribers;
 };
-//typedef std::map<std::string,
-//                 struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_ModuleHandlerConfigurations_t;
-//typedef Test_I_Source_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_ModuleHandlerConfigurationsConstIterator_t;
-//typedef Test_I_Source_ModuleHandlerConfigurations_t::iterator Test_I_Source_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_I_Source_StreamConfiguration
  : Test_I_StreamConfiguration
@@ -216,7 +194,6 @@ struct Test_I_Source_SignalHandlerConfiguration
   Test_I_StreamBase_t* stream;
 };
 
-//struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_Configuration
  : Test_I_Configuration
 {
@@ -251,19 +228,20 @@ typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubsc
 
 //////////////////////////////////////////
 
+#if defined (GUI_SUPPORT)
 struct Test_I_Source_ProgressData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_ProgressData
 #else
  : Test_I_UI_ProgressData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_Source_ProgressData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_ProgressData ()
 #else
    : Test_I_UI_ProgressData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , size (0)
    , transferred (0)
   {}
@@ -273,18 +251,18 @@ struct Test_I_Source_ProgressData
 };
 
 struct Test_I_Source_UI_CBData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_CBData
 #else
  : Test_I_UI_CBData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_Source_UI_CBData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_CBData ()
 #else
    : Test_I_UI_CBData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , configuration (NULL)
    , loop(0)
    , progressData ()
@@ -302,27 +280,28 @@ struct Test_I_Source_UI_CBData
 };
 
 struct Test_I_Source_UI_ThreadData
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  : Test_I_GTK_ThreadData
 #else
  : Test_I_UI_ThreadData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 {
   Test_I_Source_UI_ThreadData ()
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
    : Test_I_GTK_ThreadData ()
 #else
    : Test_I_UI_ThreadData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , CBData (NULL)
   {}
 
   struct Test_I_Source_UI_CBData* CBData;
 };
 
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct Test_I_Source_UI_CBData> Test_I_Source_GtkBuilderDefinition_t;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #endif

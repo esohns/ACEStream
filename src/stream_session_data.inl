@@ -23,6 +23,60 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
+template <typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+Stream_SessionDataMediaBase_T<MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>::Stream_SessionDataMediaBase_T ()
+ : inherited ()
+ , formats ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
+#endif // ACE_WIN32 || ACE_WIN64
+ , state (NULL)
+ , statistic ()
+ , userData (NULL)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::Stream_SessionDataMediaBase_T"));
+
+}
+
+template <typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+Stream_SessionDataMediaBase_T<MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>&
+Stream_SessionDataMediaBase_T<MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
+                              UserDataType>::operator+= (const Stream_SessionDataMediaBase_T<MediaFormatType,
+                                                                                             StreamStateType,
+                                                                                             StatisticType,
+                                                                                             UserDataType>& rhs_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::operator+="));
+
+  // *NOTE*: the idea is to 'merge' the data
+  inherited::operator+= (rhs_in);
+//  ACE_ASSERT (formats.size () == rhs_in.formats.size ());
+//  state = (state ? state : rhs_in.state);
+  statistic =
+      ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
+                                                           : rhs_in.statistic);
+
+  userData = (userData ? userData : rhs_in.userData);
+
+  return *this;
+}
+
+//////////////////////////////////////////
+
 template <typename DataType>
 Stream_SessionData_T<DataType>::Stream_SessionData_T ()
  : inherited (1,    // initial count

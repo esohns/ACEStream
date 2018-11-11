@@ -65,21 +65,21 @@ endif ()
 add_definitions (-DCOMMON_HAS_DLL)
 add_definitions (-DCOMMON_UI_HAS_DLL)
 
-find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
               PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACEStream_DIR})
- message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
+if (NOT EXISTS ${${PROJECT_NAME}_DIR})
+ message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
 endif ()
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
+              PATH_SUFFIXES ACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -89,25 +89,31 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
- if (GTK3_SUPPORT)
-  include_directories (${PKG_GTK3_INCLUDE_DIRS})
- else ()
-  include_directories (${PKG_GTK2_INCLUDE_DIRS})
- endif ()
+# if (GTK3_SUPPORT)
+#  include_directories (${PKG_GTK3_INCLUDE_DIRS})
+# else ()
+#  include_directories (${PKG_GTK2_INCLUDE_DIRS})
+# endif ()
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
- include_directories ($ENV{ACE_ROOT})
+ if (DEFINED ENV{ACE_ROOT})
+  include_directories ($ENV{ACE_ROOT})
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/error)
@@ -115,10 +121,13 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
 endif ()
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
@@ -127,11 +136,12 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
-set (filesource_EXE_SRCS
+set (EXECUTABLE_SOURCE filesource)
+set (${EXECUTABLE_SOURCE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_i_common_modules.h
@@ -161,13 +171,13 @@ set (filesource_EXE_SRCS
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
  if (GTK_USE)
-  set (filesource_EXE_SRCS
-       ${filesource_EXE_SRCS}
+  set (${EXECUTABLE_SOURCE}_EXE_SRCS
+       ${${EXECUTABLE_SOURCE}_EXE_SRCS}
        test_i_callbacks.cpp
        test_i_callbacks.h)
 # elseif (WXWIDGETS_USE)
-#  set (filesource_EXE_SRCS
-#       ${filesource_EXE_SRCS})
+#  set (${EXECUTABLE_SOURCE}_EXE_SRCS
+#       ${${EXECUTABLE_SOURCE}_EXE_SRCS})
  endif ()
 endif (GUI_SUPPORT)
 
@@ -175,7 +185,7 @@ set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
+endif (UNIX)
 
 set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
@@ -187,10 +197,9 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-set (EXECUTABLE_SOURCE filesource)
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
-                ${filesource_EXE_SRCS}
+                ${${EXECUTABLE_SOURCE}_EXE_SRCS}
                 etc/resources.rc
                 etc/source.glade)
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
@@ -214,7 +223,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} iw)
  target_link_libraries (${EXECUTABLE_SOURCE} X11)
-endif ()
+endif (UNIX)
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)
@@ -222,15 +231,15 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
+endif (WIN32)
 
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream)
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_File)
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Network)
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE_SOURCE} ACEStream_Test_I)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
@@ -305,7 +314,8 @@ set_tests_properties (filestream_source
                       ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\Common\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
 
 ############## next target ################
-set (filetarget_EXE_SRCS
+set (EXECUTABLE_TARGET filetarget)
+set (${EXECUTABLE_TARGET}_EXE_SRCS
 #     stdafx.cpp
 #     stdafx.h
      test_i_common_modules.h
@@ -336,20 +346,19 @@ set (filetarget_EXE_SRCS
 #  test_i_template_instantiations.cpp
 if (GUI_SUPPORT)
  if (GTK_USE)
-  set (filetarget_EXE_SRCS
-       ${filetarget_EXE_SRCS}
+  set (${EXECUTABLE_TARGET}_EXE_SRCS
+       ${${EXECUTABLE_TARGET}_EXE_SRCS}
        test_i_callbacks.cpp
        test_i_callbacks.h)
 # elseif (WXWIDGETS_USE)
-#  set (filetarget_EXE_SRCS
-#       ${filetarget_EXE_SRCS})
- endif ()
+#  set (${EXECUTABLE_TARGET}_EXE_SRCS
+#       ${${EXECUTABLE_TARGET}_EXE_SRCS})
+ endif (GTK_USE)
 endif (GUI_SUPPORT)
 
-set (EXECUTABLE_TARGET filetarget)
 add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
-                ${filetarget_EXE_SRCS}
+                ${${EXECUTABLE_TARGET}_EXE_SRCS}
                 etc/resources.rc
                 etc/target.glade)
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
@@ -379,13 +388,13 @@ if (WIN32)
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
                         LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream)
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream_File)
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Miscellaneous)
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Network)
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Statistic)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE_TARGET} ACEStream_Test_I)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 

@@ -50,13 +50,15 @@ extern "C"
 }
 #endif /* __cplusplus */
 
+#include "ace/Dirent_Selector.h"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
-#include "common_time_common.h"
-#include "common_tools.h"
+#include "common_file_tools.h"
 
 #include "common_error_tools.h"
+
+#include "common_time_common.h"
 
 #include "stream_macros.h"
 
@@ -73,6 +75,35 @@ extern "C"
 #include "stream_lib_directdraw_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_tools.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+int
+v4l_device_dirent_selector_cb (const dirent* dirEntry_in)
+{
+  // *IMPORTANT NOTE*: select all files
+
+  // sanity check --> ignore dot/double-dot
+  if (ACE_OS::strncmp (dirEntry_in->d_name,
+                       ACE_TEXT_ALWAYS_CHAR ("video"),
+                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("video"))) != 0)
+  {
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("ignoring \"%s\"...\n"),
+//                 ACE_TEXT (dirEntry_in->d_name)));
+    return 0;
+  } // end IF
+
+  return 1;
+}
+int
+v4l_device_dirent_comparator_cb (const dirent** d1,
+                                 const dirent** d2)
+{
+  return ACE_OS::strcmp ((*d1)->d_name,
+                         (*d2)->d_name);
+}
+#endif // ACE_WIN32 || ACE_WIN64
 
 void
 Stream_Device_Tools::initialize (bool initializeFrameworks_in)
@@ -197,7 +228,7 @@ error:
 }
 
 bool
-Stream_Device_Tools::canOverlay (int fd_in)
+Stream_Device_Tools::canOverlay (int fileDescriptor_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::canOverlay"));
 
@@ -205,21 +236,21 @@ Stream_Device_Tools::canOverlay (int fd_in)
 
   struct v4l2_capability device_capabilities;
   ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_QUERYCAP,
                        &device_capabilities);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
     return false;
   } // end IF
 
   return (device_capabilities.device_caps & V4L2_CAP_VIDEO_OVERLAY);
 }
 bool
-Stream_Device_Tools::canStream (int fd_in)
+Stream_Device_Tools::canStream (int fileDescriptor_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::canStream"));
 
@@ -227,21 +258,323 @@ Stream_Device_Tools::canStream (int fd_in)
 
   struct v4l2_capability device_capabilities;
   ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_QUERYCAP,
                        &device_capabilities);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
     return false;
   } // end IF
 
   return (device_capabilities.device_caps & V4L2_CAP_STREAMING);
 }
+
+Stream_Device_List_t
+Stream_Device_Tools::getVideoCaptureDevices ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getVideoCaptureDevices"));
+
+  // initialize return value(s)
+  Stream_Device_List_t return_value;
+
+  std::string directory_string (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY));
+  ACE_Dirent_Selector entries;
+  int result = entries.open (ACE_TEXT (directory_string.c_str ()),
+                             &v4l_device_dirent_selector_cb,
+                             &v4l_device_dirent_comparator_cb);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Dirent_Selector::open(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (directory_string.c_str ())));
+    return return_value;
+  } // end IF
+#if defined (_DEBUG)
+  if (!entries.length ())
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no video capture devices found, continuing\n")));
+#endif // _DEBUG
+
+  struct v4l2_capability device_capabilities;
+  std::string device_file_path;
+  ACE_DIRENT* dirent_p = NULL;
+  int file_descriptor = -1;
+  int open_mode = O_RDONLY;
+  for (unsigned int i = 0;
+       i < static_cast<unsigned int> (entries.length ());
+       ++i, dirent_p = entries[i])
+  { ACE_ASSERT (dirent_p);
+    device_file_path = directory_string;
+    device_file_path += ACE_DIRECTORY_SEPARATOR_CHAR;
+    device_file_path += dirent_p->d_name;
+    ACE_ASSERT (Common_File_Tools::isValidFilename (device_file_path));
+//    ACE_ASSERT (Common_File_Tools::isReadable (device_file_path));
+
+    file_descriptor = v4l2_open (device_file_path.c_str (),
+                                 open_mode);
+    if (unlikely (file_descriptor == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", continuing\n"),
+                  ACE_TEXT (device_file_path.c_str ()), open_mode));
+      goto close;
+    } // end IF
+
+    ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
+    result = v4l2_ioctl (file_descriptor,
+                         VIDIOC_QUERYCAP,
+                         &device_capabilities);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  file_descriptor, ACE_TEXT ("VIDIOC_QUERYCAP")));
+      goto close;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found video capture device \"%s\" (driver: \"%s\") on bus \"%s\"\n"),
+                ACE_TEXT (reinterpret_cast<char*> (device_capabilities.card)),
+                ACE_TEXT (reinterpret_cast<char*> (device_capabilities.driver)),
+                ACE_TEXT (reinterpret_cast<char*> (device_capabilities.bus_info))));
+#endif // _DEBUG
+
+    return_value.push_back (reinterpret_cast<char*> (device_capabilities.card));
+
+close:
+    result = v4l2_close (file_descriptor);
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  file_descriptor));
+    file_descriptor = -1;
+  } // end FOR
+
+  result = entries.close ();
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Dirent_Selector::close(\"%s\"): \"%m\", continuing\n"),
+                ACE_TEXT (directory_string.c_str ())));
+
+  return return_value;
+}
+
+Stream_MediaFramework_V4L_CaptureFormats_t
+Stream_Device_Tools::getCaptureSubFormats (int fileDescriptor_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureSubFormats"));
+
+  // initialize return value(s)
+  Stream_MediaFramework_V4L_CaptureFormats_t return_value;
+
+  // sanity check(s)
+  ACE_ASSERT (fileDescriptor_in != -1);
+
+  int result = -1;
+  struct v4l2_fmtdesc fmtdesc_s;
+  for (__u32 i = 0;
+       ;
+       ++i)
+  {
+    ACE_OS::memset (&fmtdesc_s, 0, sizeof (struct v4l2_fmtdesc));
+    fmtdesc_s.index = i;
+    fmtdesc_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    result = v4l2_ioctl (fileDescriptor_in,
+                         VIDIOC_ENUM_FMT,
+                         &fmtdesc_s);
+    if (unlikely (result == -1))
+    {
+      if (ACE_OS::last_error () == EINVAL) // 22
+        break; // --> done
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_ENUM_FMT")));
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("video capture device (fd: %d) has format \"%s\"\n"),
+                fileDescriptor_in,
+                ACE_TEXT (reinterpret_cast<char*> (fmtdesc_s.description))));
+#endif // _DEBUG
+
+    return_value.push_back (std::make_pair (fmtdesc_s.pixelformat,
+                                            reinterpret_cast<char*> (fmtdesc_s.description)));
+  } // end FOR
+
+  return return_value;
+}
+
+Common_UI_Resolutions_t
+Stream_Device_Tools::getCaptureResolutions (int fileDescriptor_in,
+                                            __u32 format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureResolutions"));
+
+  // initialize return value(s)
+  Common_UI_Resolutions_t return_value;
+
+  // sanity check(s)
+  ACE_ASSERT (fileDescriptor_in != -1);
+
+  int result = -1;
+  struct v4l2_frmsizeenum frmsizeenum_s;
+  Common_UI_Resolution_t resolution_s;
+  for (__u32 i = 0;
+       ;
+       ++i)
+  {
+    ACE_OS::memset (&frmsizeenum_s, 0, sizeof (struct v4l2_frmsizeenum));
+    frmsizeenum_s.index = i;
+    frmsizeenum_s.pixel_format = format_in;
+    result = v4l2_ioctl (fileDescriptor_in,
+                         VIDIOC_ENUM_FRAMESIZES,
+                         &frmsizeenum_s);
+    if (unlikely (result == -1))
+    {
+      if (ACE_OS::last_error () == EINVAL) // 22
+        break; // --> done
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_ENUM_FRAMESIZES")));
+    } // end IF
+    ACE_ASSERT (frmsizeenum_s.pixel_format == format_in);
+    ACE_ASSERT (frmsizeenum_s.type == V4L2_FRMSIZE_TYPE_DISCRETE);
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("video capture device (fd: %d, format: %u) has resolution %dx%d\n"),
+                fileDescriptor_in,
+                format_in,
+                frmsizeenum_s.discrete.width, frmsizeenum_s.discrete.height));
+#endif // _DEBUG
+
+    resolution_s.width = frmsizeenum_s.discrete.width;
+    resolution_s.height = frmsizeenum_s.discrete.height;
+    return_value.push_back (resolution_s);
+  } // end FOR
+
+  return return_value;
+}
+
+Common_UI_Framerates_t
+Stream_Device_Tools::getCaptureFramerates (int fileDescriptor_in,
+                                           __u32 format_in,
+                                           const Common_UI_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureResolutions"));
+
+  // initialize return value(s)
+  Common_UI_Framerates_t return_value;
+
+  // sanity check(s)
+  ACE_ASSERT (fileDescriptor_in != -1);
+  ACE_ASSERT (format_in);
+
+  int result = -1;
+  struct v4l2_frmivalenum frmivalenum_s;
+  for (__u32 i = 0;
+       ;
+       ++i)
+  {
+    ACE_OS::memset (&frmivalenum_s, 0, sizeof (struct v4l2_frmivalenum));
+    frmivalenum_s.index = i;
+    frmivalenum_s.pixel_format = format_in;
+    frmivalenum_s.width = resolution_in.width;
+    frmivalenum_s.height = resolution_in.height;
+    result = v4l2_ioctl (fileDescriptor_in,
+                         VIDIOC_ENUM_FRAMEINTERVALS,
+                         &frmivalenum_s);
+    if (unlikely (result == -1))
+    {
+      if (ACE_OS::last_error () == EINVAL) // 22
+        break; // --> done
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_ENUM_FRAMEINTERVALS")));
+    } // end IF
+    ACE_ASSERT (frmivalenum_s.pixel_format == format_in);
+    ACE_ASSERT (frmivalenum_s.width == resolution_in.width);
+    ACE_ASSERT (frmivalenum_s.height == resolution_in.height);
+    ACE_ASSERT (frmivalenum_s.type == V4L2_FRMIVAL_TYPE_DISCRETE);
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("video capture device (fd: %d, format: %u, resolution: %dx%d) has framerate %d/%d\n"),
+                fileDescriptor_in,
+                format_in,
+                resolution_in.width, resolution_in.height,
+                frmivalenum_s.discrete.numerator, frmivalenum_s.discrete.denominator));
+#endif // _DEBUG
+
+    return_value.push_back (frmivalenum_s.discrete.numerator);
+  } // end FOR
+
+  return return_value;
+}
+
+struct Stream_MediaFramework_V4L_MediaType
+Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::defaultCaptureFormat"));
+
+  // initialize return value(s)
+  struct Stream_MediaFramework_V4L_MediaType return_value;
+
+  // sanity check(s)
+  ACE_ASSERT (!deviceIdentifier_in.empty ());
+
+  // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
+  //         (v4l2_poll()) for asynchronous operation
+  // *TODO*: support O_NONBLOCK
+  int open_mode = O_RDONLY;
+  int result = -1;
+  int file_descriptor =
+      v4l2_open (deviceIdentifier_in.c_str (),
+                 open_mode);
+  if (unlikely (file_descriptor == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ()),
+                open_mode));
+    return return_value;
+  } // end IF
+
+  struct v4l2_format format_s;
+  ACE_OS::memset (&format_s, 0, sizeof (struct v4l2_format));
+  if (unlikely (!Stream_Device_Tools::getFormat (file_descriptor,
+                                                 format_s)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
+                file_descriptor));
+    goto close;
+  } // end IF
+  ACE_ASSERT (format_s.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  return_value.format = format_s.fmt.pix;
+  if (unlikely (!Stream_Device_Tools::getFrameRate (file_descriptor,
+                                                    return_value.frameRate)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
+                file_descriptor));
+    ACE_OS::memset (&return_value, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+    goto close;
+  } // end IF
+
+close:
+  result = v4l2_close (file_descriptor);
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                file_descriptor));
+
+  return return_value;
+}
+
 void
-Stream_Device_Tools::dump (int fd_in)
+Stream_Device_Tools::dump (int fileDescriptor_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::dump"));
 
@@ -250,14 +583,14 @@ Stream_Device_Tools::dump (int fd_in)
   // sanity check(s)
   struct v4l2_capability device_capabilities;
   ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_QUERYCAP,
                        &device_capabilities);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", returning\n"),
-                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
     return;
   } // end IF
   std::ostringstream converter;
@@ -268,7 +601,7 @@ Stream_Device_Tools::dump (int fd_in)
             << (device_capabilities.version & 0xFF);
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("device file descriptor: %d\n---------------------------\ndriver: \"%s\"\ncard: \"%s\"\nbus: \"%s\"\nversion: \"%s\"\ncapabilities: %u\ndevice capabilities: %u\nreserved: %u|%u|%u\n"),
-              fd_in,
+              fileDescriptor_in,
               ACE_TEXT (device_capabilities.driver),
               ACE_TEXT (device_capabilities.card),
               ACE_TEXT (device_capabilities.bus_info),
@@ -279,9 +612,9 @@ Stream_Device_Tools::dump (int fd_in)
 }
 
 std::string
-Stream_Device_Tools::getALSADeviceName (enum _snd_pcm_stream direction_in)
+Stream_Device_Tools::getDeviceName (enum _snd_pcm_stream direction_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getALSADeviceName"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getDeviceName"));
 
   std::string result_string;
 
@@ -372,23 +705,23 @@ clean:
 }
 
 bool
-Stream_Device_Tools::initializeCapture (int fd_in,
-                                               v4l2_memory method_in,
-                                               __u32& numberOfBuffers_inout)
+Stream_Device_Tools::initializeCapture (int fileDescriptor_in,
+                                        v4l2_memory method_in,
+                                        __u32& numberOfBuffers_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeCapture"));
 
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (Stream_Device_Tools::canStream (fd_in));
+  ACE_ASSERT (Stream_Device_Tools::canStream (fileDescriptor_in));
 
   struct v4l2_requestbuffers request_buffers;
   ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
   request_buffers.count = numberOfBuffers_inout;
   request_buffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   request_buffers.memory = method_in;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_REQBUFS,
                        &request_buffers);
   if (result == -1)
@@ -398,7 +731,7 @@ Stream_Device_Tools::initializeCapture (int fd_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                  fd_in, ACE_TEXT ("VIDIOC_REQBUFS")));
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_REQBUFS")));
       return false;
     } // end IF
     goto no_support;
@@ -413,25 +746,25 @@ Stream_Device_Tools::initializeCapture (int fd_in,
 no_support:
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("device (fd was: %d) does not support streaming method (was: %d), aborting\n"),
-              fd_in, method_in));
+              fileDescriptor_in, method_in));
 
   return false;
 }
 bool
-Stream_Device_Tools::initializeOverlay (int fd_in,
-                                               const struct v4l2_window& window_in)
+Stream_Device_Tools::initializeOverlay (int fileDescriptor_in,
+                                        const struct v4l2_window& window_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeOverlay"));
 
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (Stream_Device_Tools::canOverlay (fd_in));
+  ACE_ASSERT (Stream_Device_Tools::canOverlay (fileDescriptor_in));
 
   // step1: set up frame-buffer (if necessary)
   struct v4l2_framebuffer framebuffer;
   ACE_OS::memset (&framebuffer, 0, sizeof (struct v4l2_framebuffer));
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_G_FBUF,
                        &framebuffer);
   if (result == -1)
@@ -441,7 +774,7 @@ Stream_Device_Tools::initializeOverlay (int fd_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                  fd_in, ACE_TEXT ("VIDIOC_G_FBUF")));
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FBUF")));
       return false;
     } // end IF
     goto no_support;
@@ -449,14 +782,14 @@ Stream_Device_Tools::initializeOverlay (int fd_in,
 
   // *TODO*: configure frame-buffer options
 
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_S_FBUF,
                        &framebuffer);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_S_FBUF")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FBUF")));
     goto error;
   } //
 
@@ -468,14 +801,14 @@ Stream_Device_Tools::initializeOverlay (int fd_in,
   format.fmt.win = window_in;
   // *TODO*: configure format options
 
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_S_FMT,
                        &format);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FMT")));
     goto error;
   } //
   // *TODO*: verify that format now contains the requested configuration
@@ -485,15 +818,15 @@ Stream_Device_Tools::initializeOverlay (int fd_in,
 no_support:
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("device (was: %d) does not support overlays, aborting\n"),
-              fd_in));
+              fileDescriptor_in));
 error:
   return false;
 }
 
 unsigned int
-Stream_Device_Tools::queued (int fd_in,
-                                    unsigned int numberOfBuffers_in,
-                                    unsigned int& done_out)
+Stream_Device_Tools::queued (int fileDescriptor_in,
+                             unsigned int numberOfBuffers_in,
+                             unsigned int& done_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::queued"));
 
@@ -511,13 +844,13 @@ Stream_Device_Tools::queued (int fd_in,
        ++i)
   {
     buffer.index = i;
-    result_2 = v4l2_ioctl (fd_in,
+    result_2 = v4l2_ioctl (fileDescriptor_in,
                            VIDIOC_QUERYBUF,
                            &buffer);
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                  fd_in, ACE_TEXT ("VIDIOC_QUERYBUF")));
+                  fileDescriptor_in, ACE_TEXT ("VIDIOC_QUERYBUF")));
 
     if (buffer.flags & V4L2_BUF_FLAG_DONE)
       ++done_out;
@@ -530,7 +863,7 @@ Stream_Device_Tools::queued (int fd_in,
 
 bool
 Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
-                                       const Stream_Device_ALSAConfiguration& format_in)
+                                const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::setFormat"));
 
@@ -539,20 +872,20 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   // sanity check(s)
   ACE_ASSERT (deviceHandle_in);
 
-  struct _snd_pcm_hw_params* format_p = NULL;
-  Stream_Device_ALSAConfiguration& format_s =
-      const_cast<Stream_Device_ALSAConfiguration&> (format_in);
+  struct _snd_pcm_hw_params* snd_pcm_hw_params_p = NULL;
+//  struct Stream_MediaFramework_ALSA_MediaType& media_type_s =
+//      const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in);
   int subunit_direction = 0;
 
-  snd_pcm_hw_params_malloc (&format_p);
-  if (!format_p)
+  snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
+  if (unlikely (!snd_pcm_hw_params_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
     return false;
   } // end IF
-  result = snd_pcm_hw_params_any (deviceHandle_in, format_p);
-  if (result < 0)
+  result = snd_pcm_hw_params_any (deviceHandle_in, snd_pcm_hw_params_p);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
@@ -560,9 +893,9 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_access (deviceHandle_in, format_p,
-                                         format_in.access);
-  if (result < 0)
+  result = snd_pcm_hw_params_set_access (deviceHandle_in, snd_pcm_hw_params_p,
+                                         mediaType_in.access);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
@@ -571,9 +904,9 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_format (deviceHandle_in, format_p,
-                                         format_in.format);
-  if (result < 0)
+  result = snd_pcm_hw_params_set_format (deviceHandle_in, snd_pcm_hw_params_p,
+                                         mediaType_in.format);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_format(): \"%s\", aborting\n"),
@@ -583,9 +916,9 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   } // end IF
 
   result =
-      snd_pcm_hw_params_set_channels (deviceHandle_in, format_p,
-                                      format_in.channels);
-  if (result < 0)
+      snd_pcm_hw_params_set_channels (deviceHandle_in, snd_pcm_hw_params_p,
+                                      mediaType_in.channels);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_channels(): \"%s\", aborting\n"),
@@ -594,9 +927,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_set_rate_resample (deviceHandle_in, format_p,
-                                                0);
-  if (result < 0)
+  result =
+      snd_pcm_hw_params_set_rate_resample (deviceHandle_in, snd_pcm_hw_params_p,
+                                           0);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate_resample(0): \"%s\", aborting\n"),
@@ -605,10 +939,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_rate_near (deviceHandle_in, format_p,
-                                       &format_s.rate,
+      snd_pcm_hw_params_set_rate_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
                                        &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
@@ -618,10 +952,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   } // end IF
 
   result =
-      snd_pcm_hw_params_set_period_time_near (deviceHandle_in, format_p,
-                                              &format_s.periodTime,
+      snd_pcm_hw_params_set_period_time_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                              &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).periodTime,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_time_near(): \"%s\", aborting\n"),
@@ -630,10 +964,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_period_size_near (deviceHandle_in, format_p,
-                                              &format_s.periodSize,
+      snd_pcm_hw_params_set_period_size_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                              &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).periodSize,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_size_near(): \"%s\", aborting\n"),
@@ -642,10 +976,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_periods_near (deviceHandle_in, format_p,
-                                          &format_s.periods,
+      snd_pcm_hw_params_set_periods_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                          &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).periods,
                                           &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_near(): \"%s\", aborting\n"),
@@ -655,10 +989,10 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   } // end IF
 
   result =
-      snd_pcm_hw_params_set_buffer_time_near (deviceHandle_in, format_p,
-                                              &format_s.bufferTime,
+      snd_pcm_hw_params_set_buffer_time_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                              &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).bufferTime,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_near(): \"%s\", aborting\n"),
@@ -667,9 +1001,9 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
   result =
-      snd_pcm_hw_params_set_buffer_size_near (deviceHandle_in, format_p,
-                                              &format_s.bufferSize);
-  if (result < 0)
+      snd_pcm_hw_params_set_buffer_size_near (deviceHandle_in, snd_pcm_hw_params_p,
+                                              &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).bufferSize);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_size_near(): \"%s\", aborting\n"),
@@ -679,7 +1013,7 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
   } // end IF
 
   result = snd_pcm_hw_params (deviceHandle_in,
-                              format_p);
+                              snd_pcm_hw_params_p);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -688,19 +1022,19 @@ Stream_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (snd_pcm_hw_params_p); snd_pcm_hw_params_p = NULL;
 
   return true;
 
 error:
-  if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  if (snd_pcm_hw_params_p)
+    snd_pcm_hw_params_free (snd_pcm_hw_params_p);
 
   return false;
 }
 bool
 Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
-                                       Stream_Device_ALSAConfiguration& format_out)
+                                struct Stream_MediaFramework_ALSA_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getFormat"));
 
@@ -708,21 +1042,21 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
 //  bool free_format = false;
 
   // initialize return value(s)
-  ACE_OS::memset (&format_out,
+  ACE_OS::memset (&mediaType_out,
                   0,
-                  sizeof (Stream_Device_ALSAConfiguration));
+                  sizeof (struct Stream_MediaFramework_ALSA_MediaType));
 
   // sanity check(s)
   ACE_ASSERT (deviceHandle_in);
 
-  struct _snd_pcm_hw_params* format_p = NULL;
+  struct _snd_pcm_hw_params* snd_pcm_hw_params_p = NULL;
   unsigned int sample_rate_numerator, sample_rate_denominator;
   int subunit_direction = 0;
 //  unsigned int rate_resample;
 
 //    snd_pcm_hw_params_alloca (&format_p);
-  snd_pcm_hw_params_malloc (&format_p);
-  if (!format_p)
+  snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
+  if (unlikely (!snd_pcm_hw_params_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
@@ -738,19 +1072,19 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
 //  } // end IF
 
   result = snd_pcm_hw_params_current (deviceHandle_in,
-                                      format_p);
-  if (result < 0)
+                                      snd_pcm_hw_params_p);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_current(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  ACE_ASSERT (format_p);
+  ACE_ASSERT (snd_pcm_hw_params_p);
 
-  result = snd_pcm_hw_params_get_access (format_p,
-                                         &format_out.access);
-  if (result < 0)
+  result = snd_pcm_hw_params_get_access (snd_pcm_hw_params_p,
+                                         &mediaType_out.access);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_access(): \"%s\", aborting\n"),
@@ -758,9 +1092,9 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_format (format_p,
-                                         &format_out.format);
-  if (result < 0)
+  result = snd_pcm_hw_params_get_format (snd_pcm_hw_params_p,
+                                         &mediaType_out.format);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", aborting\n"),
@@ -768,9 +1102,9 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_subformat (format_p,
-                                            &format_out.subFormat);
-  if (result < 0)
+  result = snd_pcm_hw_params_get_subformat (snd_pcm_hw_params_p,
+                                            &mediaType_out.subFormat);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_subformat(): \"%s\", aborting\n"),
@@ -778,9 +1112,9 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_channels (format_p,
-                                           &format_out.channels);
-  if (result < 0)
+  result = snd_pcm_hw_params_get_channels (snd_pcm_hw_params_p,
+                                           &mediaType_out.channels);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", aborting\n"),
@@ -788,17 +1122,17 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_rate_numden (format_p,
+  result = snd_pcm_hw_params_get_rate_numden (snd_pcm_hw_params_p,
                                               &sample_rate_numerator,
                                               &sample_rate_denominator);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_rate_numden(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  format_out.rate = sample_rate_numerator;
+  mediaType_out.rate = sample_rate_numerator;
   ACE_ASSERT (sample_rate_denominator == 1);
 //  result = snd_pcm_hw_params_get_rate_resample (deviceHandle_in, format_in,
 //                                                  &rate_resample);
@@ -814,30 +1148,30 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
 //                           : ACE_TEXT_ALWAYS_CHAR ("no"));
 //  result += ACE_TEXT_ALWAYS_CHAR ("\n");
 
-  result = snd_pcm_hw_params_get_period_time (format_p,
-                                              &format_out.periodTime,
+  result = snd_pcm_hw_params_get_period_time (snd_pcm_hw_params_p,
+                                              &mediaType_out.periodTime,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_period_time(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  result = snd_pcm_hw_params_get_period_size (format_p,
-                                              &format_out.periodSize,
+  result = snd_pcm_hw_params_get_period_size (snd_pcm_hw_params_p,
+                                              &mediaType_out.periodSize,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_period_size(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  result = snd_pcm_hw_params_get_periods (format_p,
-                                          &format_out.periods,
+  result = snd_pcm_hw_params_get_periods (snd_pcm_hw_params_p,
+                                          &mediaType_out.periods,
                                           &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_periods(): \"%s\", aborting\n"),
@@ -845,99 +1179,97 @@ Stream_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
     goto error;
   } // end IF
 
-  result = snd_pcm_hw_params_get_buffer_time (format_p,
-                                              &format_out.bufferTime,
+  result = snd_pcm_hw_params_get_buffer_time (snd_pcm_hw_params_p,
+                                              &mediaType_out.bufferTime,
                                               &subunit_direction);
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_buffer_time(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  result = snd_pcm_hw_params_get_buffer_size (format_p,
-                                              &format_out.bufferSize);
-  if (result < 0)
+  result = snd_pcm_hw_params_get_buffer_size (snd_pcm_hw_params_p,
+                                              &mediaType_out.bufferSize);
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_hw_params_get_buffer_size(): \"%s\", aborting\n"),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (snd_pcm_hw_params_p); snd_pcm_hw_params_p = NULL;
 
   return true;
 
 error:
-  if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  if (snd_pcm_hw_params_p)
+    snd_pcm_hw_params_free (snd_pcm_hw_params_p);
 
   return false;
 }
 
 bool
-Stream_Device_Tools::setFormat (int fd_in,
-                                       const struct v4l2_format& format_in)
+Stream_Device_Tools::setFormat (int fileDescriptor_in,
+                                const struct v4l2_pix_format& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::setFormat"));
 
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
-  ACE_ASSERT (format_in.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  ACE_ASSERT (fileDescriptor_in != -1);
 
   struct v4l2_format format_s;
-  ACE_OS::memset (&format_s, 0, sizeof (format_s));
+  ACE_OS::memset (&format_s, 0, sizeof (struct v4l2_format));
   format_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_G_FMT,
                        &format_s);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FMT")));
     return false;
   } // end IF
-  format_s.fmt.pix.pixelformat = format_in.fmt.pix.pixelformat;
-  format_s.fmt.pix.width = format_in.fmt.pix.width;
-  format_s.fmt.pix.height = format_in.fmt.pix.height;
+  format_s.fmt.pix.pixelformat = format_in.pixelformat;
+  format_s.fmt.pix.width = format_in.width;
+  format_s.fmt.pix.height = format_in.height;
 
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_S_FMT,
                        &format_s);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FMT")));
     return false;
   } // end IF
 
   return true;
 }
 bool
-Stream_Device_Tools::getFormat (int fd_in,
-                                       struct v4l2_format& format_out)
+Stream_Device_Tools::getFormat (int fileDescriptor_in,
+                                struct v4l2_format& format_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getFormat"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (fileDescriptor_in != -1);
 
   int result = -1;
   ACE_OS::memset (&format_out, 0, sizeof (struct v4l2_format));
   format_out.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_G_FMT,
                        &format_out);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_G_FMT")));
     return false;
   } // end IF
 //  ACE_ASSERT (format_out.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
@@ -945,13 +1277,13 @@ Stream_Device_Tools::getFormat (int fd_in,
   return true;
 }
 bool
-Stream_Device_Tools::getFrameRate (int fd_in,
-                                          struct v4l2_fract& frameRate_out)
+Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
+                                   struct v4l2_fract& frameRate_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getFrameRate"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (fileDescriptor_in != -1);
 
   // initialize return value(s)
   ACE_OS::memset (&frameRate_out, 0, sizeof (struct v4l2_fract));
@@ -960,14 +1292,14 @@ Stream_Device_Tools::getFrameRate (int fd_in,
   struct v4l2_streamparm stream_parameters;
   ACE_OS::memset (&stream_parameters, 0, sizeof (struct v4l2_streamparm));
   stream_parameters.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_G_PARM,
                        &stream_parameters);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_PARM")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_G_PARM")));
     return false;
   } // end IF
   if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
@@ -986,26 +1318,26 @@ Stream_Device_Tools::getFrameRate (int fd_in,
   return true;
 }
 bool
-Stream_Device_Tools::setFrameRate (int fd_in,
-                                          const struct v4l2_fract& frameRate_in)
+Stream_Device_Tools::setFrameRate (int fileDescriptor_in,
+                                   const struct v4l2_fract& frameRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::setFrameRate"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (fileDescriptor_in != -1);
 
   int result = -1;
   struct v4l2_streamparm stream_parameters;
   ACE_OS::memset (&stream_parameters, 0, sizeof (struct v4l2_streamparm));
   stream_parameters.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_G_PARM,
                        &stream_parameters);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_PARM")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_G_PARM")));
     return false;
   } // end IF
 //  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
@@ -1021,14 +1353,14 @@ Stream_Device_Tools::setFrameRate (int fd_in,
       frameRate_in.denominator;
   stream_parameters.parm.capture.timeperframe.denominator =
       frameRate_in.numerator;
-  result = v4l2_ioctl (fd_in,
+  result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_S_PARM,
                        &stream_parameters);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_S_PARM")));
+                fileDescriptor_in, ACE_TEXT ("VIDIOC_S_PARM")));
     return false;
   } // end IF
 
@@ -1332,48 +1664,48 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   return result;
 }
 
-struct v4l2_format
+struct v4l2_pix_format
 Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::v4l2FormatToffmpegFormat"));
 
-  struct v4l2_format result;
-  ACE_OS::memset (&result, 0, sizeof (struct v4l2_format));
+  struct v4l2_pix_format result;
+  ACE_OS::memset (&result, 0, sizeof (struct v4l2_pix_format));
 
   switch (format_in)
   {
     case AV_PIX_FMT_YUV420P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV420; break;
     case AV_PIX_FMT_YUYV422:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; break;
+      result.pixelformat = V4L2_PIX_FMT_YUYV; break;
     case AV_PIX_FMT_RGB24:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24; break;
+      result.pixelformat = V4L2_PIX_FMT_RGB24; break;
     case AV_PIX_FMT_BGR24:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24; break;
+      result.pixelformat = V4L2_PIX_FMT_BGR24; break;
     case AV_PIX_FMT_YUV422P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV422P; break;
     case AV_PIX_FMT_YUV444P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV444; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV444; break;
     case AV_PIX_FMT_YUV410P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV410; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV410; break;
     case AV_PIX_FMT_YUV411P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV411P; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV411P; break;
     case AV_PIX_FMT_GRAY8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY; break;
+      result.pixelformat = V4L2_PIX_FMT_GREY; break;
 //    case AV_PIX_FMT_MONOWHITE:
 //    case AV_PIX_FMT_MONOBLACK:
     case AV_PIX_FMT_PAL8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_PAL8; break;
+      result.pixelformat = V4L2_PIX_FMT_PAL8; break;
 //    case AV_PIX_FMT_YUVJ420P:
     case AV_PIX_FMT_YUVJ422P:
       // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; break;
+      result.pixelformat = V4L2_PIX_FMT_MJPEG; break;
 //    case AV_PIX_FMT_YUVJ444P:
 //    case AV_PIX_FMT_XVMC_MPEG2_MC:
 //    case AV_PIX_FMT_XVMC_MPEG2_IDCT:
 //    case AV_PIX_FMT_XVMC:
     case AV_PIX_FMT_UYVY422:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY; break;
+      result.pixelformat = V4L2_PIX_FMT_UYVY; break;
 //    case AV_PIX_FMT_UYYVYY411:
 //    case AV_PIX_FMT_BGR8:
 //    case AV_PIX_FMT_BGR4:
@@ -1382,25 +1714,25 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_RGB4:
 //    case AV_PIX_FMT_RGB4_BYTE:
     case AV_PIX_FMT_NV12:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12; break;
+      result.pixelformat = V4L2_PIX_FMT_NV12; break;
     case AV_PIX_FMT_NV21:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV21; break;
+      result.pixelformat = V4L2_PIX_FMT_NV21; break;
     case AV_PIX_FMT_ARGB:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_ARGB32; break;
+      result.pixelformat = V4L2_PIX_FMT_ARGB32; break;
     case AV_PIX_FMT_RGBA:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32; break;
+      result.pixelformat = V4L2_PIX_FMT_RGB32; break;
     case AV_PIX_FMT_ABGR:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_ABGR32; break;
+      result.pixelformat = V4L2_PIX_FMT_ABGR32; break;
     case AV_PIX_FMT_BGRA:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32; break;
+      result.pixelformat = V4L2_PIX_FMT_BGR32; break;
     case AV_PIX_FMT_GRAY16BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16_BE; break;
+      result.pixelformat = V4L2_PIX_FMT_Y16_BE; break;
     case AV_PIX_FMT_GRAY16LE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_Y16; break;
+      result.pixelformat = V4L2_PIX_FMT_Y16; break;
 //    case AV_PIX_FMT_YUV440P:
 //    case AV_PIX_FMT_YUVJ440P:
     case AV_PIX_FMT_YUVA420P:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; break;
+      result.pixelformat = V4L2_PIX_FMT_YUV420; break;
 //    case AV_PIX_FMT_VDPAU_H264:
 //    case AV_PIX_FMT_VDPAU_MPEG1:
 //    case AV_PIX_FMT_VDPAU_MPEG2:
@@ -1409,13 +1741,13 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //     case AV_PIX_FMT_RGB48BE:
 //     case AV_PIX_FMT_RGB48LE:
      case AV_PIX_FMT_RGB565BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X; break;
+      result.pixelformat = V4L2_PIX_FMT_RGB565X; break;
     case AV_PIX_FMT_RGB565LE:
-     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565; break;
+     result.pixelformat = V4L2_PIX_FMT_RGB565; break;
     case AV_PIX_FMT_RGB555BE:
-     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB555X; break;
+     result.pixelformat = V4L2_PIX_FMT_RGB555X; break;
     case AV_PIX_FMT_RGB555LE:
-     result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB555; break;
+     result.pixelformat = V4L2_PIX_FMT_RGB555; break;
 //    case AV_PIX_FMT_BGR565BE:
 //    case AV_PIX_FMT_BGR565LE:
 //    case AV_PIX_FMT_BGR555BE:
@@ -1434,7 +1766,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_DXVA2_VLD:
     case AV_PIX_FMT_RGB444LE:
     case AV_PIX_FMT_RGB444BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB444; break;
+      result.pixelformat = V4L2_PIX_FMT_RGB444; break;
 //    case AV_PIX_FMT_BGR444LE:
 //    case AV_PIX_FMT_BGR444BE:
 //    case AV_PIX_FMT_YA8:
@@ -1487,7 +1819,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_XYZ12LE:
 //    case AV_PIX_FMT_XYZ12BE:
     case AV_PIX_FMT_NV16:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_NV16; break;
+      result.pixelformat = V4L2_PIX_FMT_NV16; break;
 //    case AV_PIX_FMT_NV20LE:
 //    case AV_PIX_FMT_NV20BE:
 //    case AV_PIX_FMT_RGBA64BE:
@@ -1495,7 +1827,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_BGRA64BE:
 //    case AV_PIX_FMT_BGRA64LE:
     case AV_PIX_FMT_YVYU422:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_YVYU; break;
+      result.pixelformat = V4L2_PIX_FMT_YVYU; break;
 //    case AV_PIX_FMT_VDA:
 //    case AV_PIX_FMT_YA16BE:
 //    case AV_PIX_FMT_YA16LE:
@@ -1528,25 +1860,25 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_GBRP14LE:
 //    case AV_PIX_FMT_YUVJ411P:
     case AV_PIX_FMT_BAYER_BGGR8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8; break;
+      result.pixelformat = V4L2_PIX_FMT_SBGGR8; break;
     case AV_PIX_FMT_BAYER_RGGB8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8; break;
+      result.pixelformat = V4L2_PIX_FMT_SRGGB8; break;
     case AV_PIX_FMT_BAYER_GBRG8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGBRG8; break;
+      result.pixelformat = V4L2_PIX_FMT_SGBRG8; break;
     case AV_PIX_FMT_BAYER_GRBG8:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGRBG8; break;
+      result.pixelformat = V4L2_PIX_FMT_SGRBG8; break;
     case AV_PIX_FMT_BAYER_BGGR16LE:
     case AV_PIX_FMT_BAYER_BGGR16BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR16; break;
+      result.pixelformat = V4L2_PIX_FMT_SBGGR16; break;
     case AV_PIX_FMT_BAYER_RGGB16LE:
     case AV_PIX_FMT_BAYER_RGGB16BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB16; break;
+      result.pixelformat = V4L2_PIX_FMT_SRGGB16; break;
     case AV_PIX_FMT_BAYER_GBRG16LE:
     case AV_PIX_FMT_BAYER_GBRG16BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGBRG16; break;
+      result.pixelformat = V4L2_PIX_FMT_SGBRG16; break;
     case AV_PIX_FMT_BAYER_GRBG16LE:
     case AV_PIX_FMT_BAYER_GRBG16BE:
-      result.fmt.pix.pixelformat = V4L2_PIX_FMT_SGRBG16; break;
+      result.pixelformat = V4L2_PIX_FMT_SGRBG16; break;
 ////     case AV_PIX_FMT_XVMC:
 //    case AV_PIX_FMT_YUV440P10LE:
 //    case AV_PIX_FMT_YUV440P10BE:
@@ -1704,6 +2036,15 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     case V4L2_PIX_FMT_SBGGR16:
       result = AV_PIX_FMT_BAYER_BGGR16; break;
     case V4L2_PIX_FMT_MJPEG:
+      // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
+      //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
+      //         Huffman table. The JPEG must be YCbCr colorspace, it must be
+      //         4:2:2, and it must use basic Huffman encoding, not arithmetic
+      //         or progressive. . . . You can indeed extract the MJPEG frames
+      //         and decode them with a regular JPEG decoder, but you have to
+      //         prepend the DHT segment to them, or else the decoder won't
+      //         have any idea how to decompress the data. The exact table
+      //         necessary is given in the OpenDML spec. ..."
       // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
       result = AV_PIX_FMT_YUVJ422P; break;
 //    case V4L2_PIX_FMT_JPEG:
