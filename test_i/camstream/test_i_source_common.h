@@ -38,7 +38,7 @@
 #include <windef.h>
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #else
-//#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -47,9 +47,13 @@ extern "C"
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
-#endif // GTK_SUPPORT
+#elif defined (WXWIDGETS_USE)
+#include "wx/window.h"
+#endif
+#endif // GUI_SUPPORT
 
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -57,11 +61,13 @@ extern "C"
 
 #include "common_statistic_handler.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
@@ -480,33 +486,33 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
    , area ()
-#endif // GTK_USE
 #endif // GUI_SUPPORT
-   , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , fileDescriptor (-1)
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
-   , window ()
+#if defined (GUI_SUPPORT)
+   , window (NULL)
+#endif // GUI_SUPPORT
    , userData (NULL)
   {
-    finishOnDisconnect = true;
+#if defined (GUI_SUPPORT)
+    ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
+#endif // GUI_SUPPORT
 
-    ACE_OS::memset (&window, 0, sizeof (struct v4l2_window));
+    finishOnDisconnect = true;
   }
 
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  GdkRectangle                                   area;
-#endif // GTK_USE
+  struct v4l2_rect                               area;
 #endif // GUI_SUPPORT
   __u32                                          buffers; // v4l device buffers
   Test_I_Source_V4L2_IConnection_t*              connection; // TCP target/IO module
@@ -520,7 +526,13 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_V4L2_ISessionNotify_t*           subscriber;
   Test_I_Source_V4L2_Subscribers_t*              subscribers;
-  struct v4l2_window                             window; // v4l2 camera source
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  GdkWindow*                                     window;
+#elif defined (WXWIDGETS_USE)
+  wxWindow*                                      window;
+#endif
+#endif // GUI_SUPPORT
 
   struct Test_I_Source_V4L2_UserData*            userData;
 };

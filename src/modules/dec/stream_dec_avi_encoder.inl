@@ -224,8 +224,8 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         [- insert version 2 (super-)index]     (5)
   // *NOTE*: how (4) implies correction of cb values for LISTs RIFF, hdrl, strl
   //         and movi
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int value_i;
-  char buffer_a[BUFSIZ];
   std::ios::streamoff list_movi_offset = STREAM_DEC_AVI_JUNK_CHUNK_ALIGN;
   //std::ios::streamoff chunk_idx1_offset = 0;
   // *NOTE*: "...A joint file position is maintained for both the input sequence
@@ -233,6 +233,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   //         modify both seekg/seekp
   //        --> maintain offsets separately
   std::ios::streamoff read_offset = 0, write_offset = 0;
+#endif // ACE_WIN32 || ACE_WIN64
   std::fstream stream (targetFilename_in.c_str (),
                        //ios_base::in | ios_base::out//,
                        std::ios::in | std::ios::out | std::ios::binary
@@ -246,6 +247,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   ACE_ASSERT (stream.is_open ());
+  char buffer_a[BUFSIZ];
   ACE_OS::memset (buffer_a, 0, sizeof (char[BUFSIZ]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _rifflist* RIFF_list_p = NULL;
@@ -379,7 +381,9 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
   result = true;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 error:
+#endif // ACE_WIN32 || ACE_WIN64
   stream.close ();
   if (stream.fail ())
     ACE_DEBUG ((LM_ERROR,

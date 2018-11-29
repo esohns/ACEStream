@@ -180,10 +180,10 @@ do_printUsage (const std::string& programName_in)
   } // end SWITCH
 #else
   capture_device_identifier =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   capture_device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR;
   capture_device_identifier +=
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
             << capture_device_identifier
@@ -297,10 +297,10 @@ do_processArguments (int argc_in,
   showConsole_out = false;
 #else
   captureinterfaceIdentifier_out =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   captureinterfaceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   captureinterfaceIdentifier_out +=
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1051,7 +1051,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (statisticReportingInterval_in)
       {
         directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+                                                                                STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
         directshow_modulehandler_configuration.statisticReportingInterval =
           statisticReportingInterval_in;
       } // end IF
@@ -1076,7 +1076,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       if (statisticReportingInterval_in)
       {
         mediafoundation_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                     MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+                                                                                     STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
         mediafoundation_modulehandler_configuration.statisticReportingInterval =
           statisticReportingInterval_in;
       } // end IF
@@ -1099,7 +1099,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.buffers =
-    MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+    STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier.identifier =
       captureinterfaceIdentifier_in;
 #if defined (GUI_SUPPORT)
@@ -1109,12 +1109,12 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
-//  modulehandler_configuration.method = MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD;
+//  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
 
   if (statisticReportingInterval_in)
   {
     modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                 MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+                                                                 STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
     modulehandler_configuration.statisticReportingInterval =
       statisticReportingInterval_in;
   } // end IF
@@ -1228,6 +1228,40 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
+  int file_descriptor = v4l2_open (captureinterfaceIdentifier_in.c_str (),
+                                   O_RDONLY);
+  if (unlikely (file_descriptor == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
+                ACE_TEXT (captureinterfaceIdentifier_in.c_str ()),
+                O_RDONLY));
+    return;
+  } // end IF
+  Common_UI_Resolution_t resolution_s;
+  resolution_s.width = COMMON_UI_WINDOW_DEFAULT_WIDTH;
+  resolution_s.height = COMMON_UI_WINDOW_DEFAULT_HEIGHT;
+  configuration_in.streamConfiguration.configuration_.format.frameRate.numerator =
+      STREAM_DEV_CAM_V4L_DEFAULT_FRAMERATE;
+  configuration_in.streamConfiguration.configuration_.format.frameRate.denominator =
+      1;
+  configuration_in.streamConfiguration.configuration_.format.format =
+      Stream_Device_Tools::getVideoCaptureFormat (file_descriptor,
+                                                  STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT,
+                                                  resolution_s,
+                                                  configuration_in.streamConfiguration.configuration_.format.frameRate);
+  if (!configuration_in.streamConfiguration.configuration_.format.format.pixelformat)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("video capture device \"%s\" does not support the default format (was: %d,%ux%u,%u/%u), continuing\n"),
+                ACE_TEXT (captureinterfaceIdentifier_in.c_str ()),
+                STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT,
+                resolution_s.width, resolution_s.height,
+                configuration_in.streamConfiguration.configuration_.format.frameRate.numerator, configuration_in.streamConfiguration.configuration_.format.frameRate.denominator));
+  int result = v4l2_close (file_descriptor);
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                file_descriptor));
   configuration_in.streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
 #if defined (GUI_SUPPORT)
@@ -1242,6 +1276,11 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                    modulehandler_configuration,
                                                    configuration_in.streamConfiguration.allocatorConfiguration_,
                                                    configuration_in.streamConfiguration.configuration_);
+  modulehandler_configuration.deviceIdentifier.identifier =
+      displayDevice_in.device;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+                                                               std::make_pair (module_configuration,
+                                                                               modulehandler_configuration)));
   v4l_stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
@@ -1393,7 +1432,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  bool result = false;
 
   // step0e: initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1477,7 +1515,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         directShowCBData_in.stream = &directshow_stream;
 #if defined (GTK_USE)
         directShowCBData_in.UIState->eventHooks.finiHook = idle_finalize_UI_cb;
-        directShowCBData_in.UIState->eventHooks.initHook = idle_initialize_UI_cb;
+        directShowCBData_in.UIState->eventHooks.initHook =
+            idle_initialize_UI_cb;
         //directShowCBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
         directShowCBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1554,7 +1593,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     gtk_manager_p->start ();
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
-    int result = ACE_OS::sleep (timeout);
+    result = ACE_OS::sleep (timeout);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
@@ -1567,8 +1606,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     } // end IF
     gtk_manager_p->wait ();
 #elif (WXWIDGETS_USE)
-    result = iapplication_in->run ();
-    if (unlikely (!result))
+    if (unlikely (!iapplication_in->run ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_wxWidgets_IApplicationBase_T::run(), returning\n")));
@@ -1766,10 +1804,10 @@ ACE_TMAIN (int argc_in,
   bool show_console = false;
 #else
   capture_device_identifier =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   capture_device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   capture_device_identifier +=
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -2076,6 +2114,7 @@ ACE_TMAIN (int argc_in,
                                                                COMMON_UI_WXWIDGETS_APP_CMDLINE_DEFAULT_PARSE));
   Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T* iinitialize_p =
     dynamic_cast<Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T*> (iapplication_p);
+  // *NOTE*: this sets ui_cb_data.UIState
   iinitialize_p->initialize (ui_cb_data);
   Stream_CamSave_V4L_WxWidgetsIApplication_t* iapplication_2 =
     dynamic_cast<Stream_CamSave_V4L_WxWidgetsIApplication_t*> (iapplication_p);

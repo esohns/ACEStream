@@ -22,6 +22,7 @@
 #define STREAM_SESSION_DATA_H
 
 #include <deque>
+#include <string>
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -45,7 +46,7 @@ class Stream_SessionDataMediaBase_T
  public:
   // convenient types
   typedef MediaFormatType MEDIAFORMAT_T;
-  typedef std::deque<MEDIAFORMAT_T> MEDIAFORMATS_T;
+  typedef std::deque<MediaFormatType> MEDIAFORMATS_T;
   typedef typename MEDIAFORMATS_T::iterator MEDIAFORMATS_ITERATOR_T;
   typedef Stream_SessionDataMediaBase_T<MediaFormatType,
                                         StreamStateType,
@@ -65,6 +66,7 @@ class Stream_SessionDataMediaBase_T
 #endif // ACE_WIN32 || ACE_WIN64
   StreamStateType*                state;
   StatisticType                   statistic;
+  std::string                     targetFileName;
 
   UserDataType*                   userData;
 

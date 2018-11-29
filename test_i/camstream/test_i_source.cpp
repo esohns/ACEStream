@@ -132,9 +132,9 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  std::string device_file = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
-  device_file += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+  device_file += ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
             << device_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -246,10 +246,10 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
-  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   deviceIdentifier_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceIdentifier_out +=
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1635,7 +1635,7 @@ do_work (const std::string& deviceIdentifier_in,
       interfaceIdentifier_in;
   // *TODO*: turn these into an option
   (*modulehandler_iterator).second.second.buffers =
-      MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+      STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   (*modulehandler_iterator).second.second.pixelBufferLock = &v4l2CBData_in.lock;
@@ -1654,7 +1654,7 @@ do_work (const std::string& deviceIdentifier_in,
 //  (*modulehandler_iterator).second.second.outputFormat.frameRate.denominator =
 //      1;
 //  (*modulehandler_iterator).second.second.method =
-//      MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD;
+//      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   (*modulehandler_iterator).second.second.streamConfiguration =
       &(*stream_iterator).second;
 #endif
@@ -2076,9 +2076,9 @@ ACE_TMAIN (int argc_in,
   struct _GUID interface_identifier = GUID_NULL;
 #else
   std::string device_identifier =
-      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
   device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  device_identifier += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+  device_identifier += ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
   std::string interface_identifier;
 #endif
   std::string path = configuration_path;

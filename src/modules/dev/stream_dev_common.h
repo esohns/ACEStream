@@ -57,8 +57,6 @@ class Stream_IAllocator;
 struct Stream_Statistic;
 #endif // ACE_WIN32 || ACE_WIN64
 
-typedef std::list<std::string> Stream_Device_List_t;
-typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef std::map<__u32, ACE_Message_Block*> Stream_Device_BufferMap_t;
@@ -88,7 +86,8 @@ struct Stream_Device_Identifier
    : identifier ()
    , identifierDiscriminator (Stream_Device_Identifier::GUID)
 #else
-   : fileDescriptor (-1)
+   : description ()
+   , fileDescriptor (-1)
    , identifier ()
 #endif // ACE_WIN32 || ACE_WIN64
   {}
@@ -135,10 +134,22 @@ struct Stream_Device_Identifier
     } // end SWITCH
   }
 #else
+  std::string            description;
   int                    fileDescriptor;
   std::string            identifier;
 #endif // ACE_WIN32 || ACE_WIN64
 };
+typedef std::list<struct Stream_Device_Identifier> Stream_Device_List_t;
+typedef Stream_Device_List_t::const_iterator Stream_Device_ListIterator_t;
+
+//struct Stream_Device_V4LConfiguration
+//{
+//  Stream_Device_V4LConfiguration ()
+//   : identifier ()
+//  {}
+
+//  std::string identifier;
+//};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

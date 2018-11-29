@@ -375,7 +375,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //  Common_File_Tools::getLogDirectory (std::string (),
   //                                      0);
   //log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-  //log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  //log_file_name += STREAM_DEV_DIRECTSHOW_LOGFILE_NAME;
   //Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
   //                                              log_file_name);
 #endif
@@ -408,7 +408,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //allocator_properties.cbPrefix = 0;
   ////allocator_properties.cbPrefix = -1; // <-- use default
   //allocator_properties.cBuffers =
-  //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  //  STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
   //result =
   //    buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
   //if (FAILED (result))
@@ -500,12 +500,12 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   //// ******************* Camera Source ************************
   //Stream_Module_t* module_p =
-  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   //if (!module_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
+  //              ACE_TEXT (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   //  return false;
   //} // end IF
   //source_impl_p =

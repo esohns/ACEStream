@@ -30,6 +30,7 @@
 #define STREAM_VIS_GDI_DEFAULT_NAME_STRING                                "GDI"
 #define STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING                    "MediaFoundation"
 #endif // ACE_WIN32 || ACE_WIN64
+#define STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING                         "X11"
 #define STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING                          "GTKCairo"
 #define STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING                         "GTKPixbuf"
 #define STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING              "GTKSpectrumAnalyzer"
@@ -50,11 +51,14 @@
 #endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
+// renderers
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#define STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_DEFAULT_FORMAT       D3DFMT_X8R8G8B8
 //#define STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_DEFAULT_BACK_BUFFERS D3DPRESENT_BACK_BUFFERS_MAX
 #define STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_SCREENSHOT_DEFAULT_FORMAT D3DXIFF_JPG
 
 #define STREAM_VIS_RENDERER_VIDEO_DIRECTSHOW_DEFAULT_SAMPLES              60
+#endif // ACE_WIN32 || ACE_WIN64
 
 // *NOTE*: "...each pixel is a 32-bit quantity, with the upper 8 bits unused.
 //         Red, Green, and Blue are stored in the remaining 24 bits in that
@@ -65,6 +69,11 @@
 ////          native-endian. Pre-multiplied alpha is used. (That is, 50%
 ////          transparent red is 0x80800000, not 0x80ff0000.) ..."
 //#define STREAM_VIS_DEFAULT_CAIRO_FORMAT      CAIRO_FORMAT_ARGB32
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE                       "DISPLAY"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_STRING                     "screenshot"
 

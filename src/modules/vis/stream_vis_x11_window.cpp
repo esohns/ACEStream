@@ -20,9 +20,20 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_dev_cam_source_v4l.h"
+#include "stream_vis_x11_window.h"
 
-#include "stream_dev_defines.h"
+#include "stream_vis_defines.h"
 
-const char libacestream_default_dev_cam_source_v4l_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING);
+const char libacestream_default_vis_x11_window_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING);
+
+int
+libacestream_vis_x11_error_handler_cb (Display* display_in,
+                                       XErrorEvent* event_in)
+{
+  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_error_handler_cb"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (-1);
+  ACE_NOTREACHED (return -1;)
+}

@@ -100,7 +100,7 @@ struct Test_U_V4L2_MessageData
   Test_U_V4L2_MessageData ()
    : fileDescriptor (-1)
    , index (0)
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 

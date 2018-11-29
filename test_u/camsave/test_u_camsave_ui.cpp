@@ -793,10 +793,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     ACE_NEW_NORETURN (client_data_p,
                       wxStringClientData ());
     ACE_ASSERT (client_data_p);
-    client_data_p->SetData ((*iterator));
+    client_data_p->SetData ((*iterator).identifier);
 
     index_i =
-      choice_source->Append ((*iterator).c_str (),
+      choice_source->Append ((*iterator).description.c_str (),
                              client_data_p);
   } // end FOR
   if (unlikely (devices_a.empty ()))
@@ -1080,12 +1080,6 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   } // end IF
 
   // --> user pressed record
-
-  struct Stream_CamSave_UI_ThreadData* thread_data_p = NULL;
-  ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
-  ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
-  const char* thread_name_2 = NULL;
-  ACE_Thread_Manager* thread_manager_p = NULL;
 
   // step1: reset progress reporting
   ACE_OS::memset (&configuration_r.progressData.statistic,
@@ -1394,14 +1388,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   Stream_CamSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
+  int index_i = event_in.GetSelection ();
+  ACE_ASSERT (index_i != wxNOT_FOUND);
   wxStringClientData* client_data_p =
-    dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (event_in.GetSelection ()));
+    dynamic_cast<wxStringClientData*> (choice_format->GetClientObject (index_i));
   ACE_ASSERT (client_data_p);
   std::stringstream converter;
   converter.str (client_data_p->GetData ().ToStdString ());
   __u32 format_i = 0;
   converter >> format_i;
-  int index_i = wxNOT_FOUND;
+  index_i = wxNOT_FOUND;
   Common_UI_Resolutions_t resolutions_a =
     Stream_Device_Tools::getCaptureResolutions ((*stream_iterator).second.second.fileDescriptor,
                                                 format_i);
@@ -1556,7 +1552,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   // update controls
   if (initializing_)
     togglebutton_record->Enable (true);
-  spincontrol_buffer->SetValue (Stream_MediaFramework_Tools::frameSize (configuration_r.configuration->streamConfiguration.configuration_.format));
+  spincontrol_buffer->SetValue (Stream_MediaFramework_Tools::toFrameSize (configuration_r.configuration->streamConfiguration.configuration_.format));
   struct Stream_MediaFramework_V4L_MediaType media_type_s =
       Stream_Device_Tools::defaultCaptureFormat ((*stream_iterator).second.second.deviceIdentifier.identifier);
   button_reset_format->Enable (!(configuration_r.configuration->streamConfiguration.configuration_.format == media_type_s));
@@ -1662,10 +1658,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   togglebutton_fullscreen->Enable (is_checked_b);
   choice_display->Enable (is_checked_b);
   button_display_settings->Enable (is_checked_b);
-
+  wxRect area_s;
   if (is_checked_b)
   {
-    (*stream_iterator).second.second.area = panel_video->GetClientRect ();
+    area_s = panel_video->GetClientRect ();
+    (*stream_iterator).second.second.area.left = area_s.GetLeft ();
+    (*stream_iterator).second.second.area.top = area_s.GetTop ();
+    (*stream_iterator).second.second.area.width = area_s.GetWidth ();
+    (*stream_iterator).second.second.area.height = area_s.GetHeight ();
+    (*stream_iterator).second.second.window = panel_video;
     wxStringClientData* client_data_p =
       dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
     ACE_ASSERT (client_data_p);
@@ -1674,7 +1675,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   } // end IF
   else
   {
-    (*stream_iterator).second.second.area = wxRect ();
+    ACE_OS::memset (&(*stream_iterator).second.second.area, 0,sizeof (struct v4l2_rect));
+    (*stream_iterator).second.second.window = NULL;
     (*stream_iterator).second.second.deviceIdentifier.identifier.clear ();
   } // end ELSE
 
@@ -1722,15 +1724,21 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   { // --> toggle to fullscreen
     struct Common_UI_DisplayDevice display_device_s =
       Common_UI_Tools::getDisplay ((*stream_iterator).second.second.deviceIdentifier.identifier);
-    (*stream_iterator).second.second.area.SetX (display_device_s.clippingArea.x);
-    (*stream_iterator).second.second.area.SetY (display_device_s.clippingArea.y);
-    (*stream_iterator).second.second.area.SetWidth (display_device_s.clippingArea.width);
-    (*stream_iterator).second.second.area.SetHeight (display_device_s.clippingArea.height);
+    (*stream_iterator).second.second.area.left = display_device_s.clippingArea.x;
+    (*stream_iterator).second.second.area.top = display_device_s.clippingArea.y;
+    (*stream_iterator).second.second.area.width =
+        display_device_s.clippingArea.width;
+    (*stream_iterator).second.second.area.height =
+        display_device_s.clippingArea.height;
     (*stream_iterator).second.second.fullScreen = true;
   } // end IF
   else
   { // toggle to windowed
-    (*stream_iterator).second.second.area = panel_video->GetClientRect ();
+    wxRect area_s = panel_video->GetClientRect ();
+    (*stream_iterator).second.second.area.left = area_s.GetLeft ();
+    (*stream_iterator).second.second.area.top = area_s.GetTop ();
+    (*stream_iterator).second.second.area.width = area_s.GetWidth ();
+    (*stream_iterator).second.second.area.height = area_s.GetHeight ();
     (*stream_iterator).second.second.fullScreen = false;
   } // end ELSE
 
@@ -1826,9 +1834,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   ACE_ASSERT (!resolutions_a.empty ());
   Common_UI_Resolution_t resolution_s;
   resolution_s.width =
-      configuration_r.configuration->streamConfiguration.configuration_.format.format.width;
+      (*stream_iterator).second.second.outputFormat.format.width;
   resolution_s.height =
-      configuration_r.configuration->streamConfiguration.configuration_.format.format.height;
+      (*stream_iterator).second.second.outputFormat.format.height;
   choice_resolution_2->SetSelection (wxNOT_FOUND);
   choice_resolution_2->Clear ();
   index_i = wxNOT_FOUND;
@@ -1859,15 +1867,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                            client_data_p);
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("\"%s\": supports: %dx%d...\n"),
-                ACE_TEXT (choice_display->GetString (choice_display->GetSelection ()).ToStdString ().c_str ()),
+                ACE_TEXT ("\"%s\": supports: %ux%u\n"),
+                ACE_TEXT ((*stream_iterator).second.second.deviceIdentifier.identifier.c_str ()),
                 (*iterator).width, (*iterator).height));
 #endif // _DEBUG
     if ((resolution_s.width == (*iterator).width) &&
         (resolution_s.height == (*iterator).height))
       resolution_string = converter.str ();
   } // end FOR
-  ACE_ASSERT (!resolution_string.empty ());
+//  ACE_ASSERT (!resolution_string.empty ());
   choice_resolution_2->Enable (!resolutions_a.empty () &&
                                togglebutton_fullscreen->GetValue ());
   index_i =

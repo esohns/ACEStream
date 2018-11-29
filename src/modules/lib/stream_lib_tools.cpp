@@ -981,10 +981,37 @@ continue_:
   return result;
 }
 #else
-unsigned int
-Stream_MediaFramework_Tools::frameSize (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in)
+
+Common_UI_Resolution_t
+Stream_MediaFramework_Tools::toResolution (const Display& display_in,
+                                           Window window_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::frameSize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toResolution"));
+
+  Common_UI_Resolution_t return_value;
+
+  XWindowAttributes attributes_s;
+//  ACE_OS::memset (&attributes_s, 0, sizeof (XWindowAttributes));
+  Status result = XGetWindowAttributes (&const_cast<Display&> (display_in),
+                                        window_in,
+                                        &attributes_s);
+  if (unlikely (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to XGetWindowAttributes(0x%@,%u): \"%m\", aborting\n"),
+                &display_in, window_in));
+    return return_value;
+  } // end IF
+  return_value.width = attributes_s.width;
+  return_value.height = attributes_s.height;
+
+  return return_value;
+}
+
+unsigned int
+Stream_MediaFramework_Tools::toFrameSize (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toFrameSize"));
 
   int result =
       av_image_get_buffer_size (Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat),
@@ -993,8 +1020,8 @@ Stream_MediaFramework_Tools::frameSize (const struct Stream_MediaFramework_V4L_M
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to av_image_get_buffer_size(%d,%u,%u), aborting\n"),
-                ACE_TEXT (Stream_Device_Tools::formatToString (mediaType_in.format.pixelformat).c_str ()),
+                ACE_TEXT ("failed to av_image_get_buffer_size(%u,%u,%u), aborting\n"),
+                mediaType_in.format.pixelformat,
                 mediaType_in.format.width, mediaType_in.format.height));
     return 0;
   } // end IF

@@ -896,6 +896,7 @@ do_work (unsigned int bufferSize_in,
   serialize_output =
     configuration.streamConfiguration.configuration_.serializeOutput;
 #endif // ACE_WIN32 || ACE_WIN64
+  ACE_UNUSED_ARG (serialize_output);
   event_dispatch_configuration_s.numberOfProactorThreads =
           (!useReactor_in ? numberOfDispatchThreads_in : 0);
   event_dispatch_configuration_s.numberOfReactorThreads =

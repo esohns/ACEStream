@@ -123,9 +123,13 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/log>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/math>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -251,22 +255,26 @@ set (source_files
      stream_vis_exports.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
-if (GUI_SUPPORT)
- if (GTK_SUPPORT)
-  set (source_files
-       ${source_files}
-       stream_vis_gtk_cairo.cpp
-       stream_vis_gtk_cairo.h
-       stream_vis_gtk_cairo.inl
-       stream_vis_gtk_cairo_spectrum_analyzer.cpp
-       stream_vis_gtk_cairo_spectrum_analyzer.h
-       stream_vis_gtk_cairo_spectrum_analyzer.inl
-       stream_vis_gtk_pixbuf.cpp
-       stream_vis_gtk_pixbuf.h
-       stream_vis_gtk_pixbuf.inl)
- endif (GTK_SUPPORT)
-endif (GUI_SUPPORT)
-if (WIN32)
+if (GTK_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_gtk_cairo.cpp
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.cpp
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_pixbuf.cpp
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl)
+endif (GTK_SUPPORT)
+if (UNIX)
+ set (source_files
+      ${source_files}
+      stream_vis_x11_window.cpp
+      stream_vis_x11_window.h
+      stream_vis_x11_window.inl)
+elseif (WIN32)
  set (source_files
       ${source_files}
       stream_vis_target_direct3d.cpp
@@ -278,7 +286,7 @@ if (WIN32)
       stream_vis_target_mediafoundation.cpp
       stream_vis_target_mediafoundation.h
       stream_vis_target_mediafoundation.inl)
-endif (WIN32)
+endif ()
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})

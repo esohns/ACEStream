@@ -246,7 +246,12 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_FFMPEG_LIBRARIES})
-# target_link_libraries (${EXECUTABLE_SOURCE} X11)
+
+ if (GUI_SUPPORT)
+  if (WXWIDGETS_USE)
+   target_link_libraries (${EXECUTABLE_SOURCE} ${wxWidgets_LIBRARIES})
+  endif (WXWIDGETS_USE)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
@@ -264,10 +269,18 @@ target_link_libraries (${EXECUTABLE_SOURCE} CommonImage)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonTimer)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif (WIN32)
+if (GUI_SUPPORT)
+ if (WIN32)
+  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
+  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ endif (WIN32)
+ target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
+ if (GTK_USE)
+  target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_GTK)
+ elseif (WXWIDGETS_USE)
+  target_link_libraries (${EXECUTABLE_SOURCE} CommonUI_wxWidgets)
+ endif ()
+endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Decoder)
@@ -285,7 +298,8 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+cotire (${EXECUTABLE_SOURCE})
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -411,6 +425,7 @@ if (WIN32)
 
  # add PCH
  set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+ cotire (${LIBRARY_DS})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_DS}
@@ -463,6 +478,7 @@ if (WIN32)
 
  # add PCH
  set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+ cotire (${LIBRARY_MF})
 
 # add all targets to the build-tree export set
  export (TARGETS ${LIBRARY_MF}
@@ -551,16 +567,14 @@ target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE_TARGET} rt)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
- #target_link_libraries (${EXECUTABLE_TARGET} ${PKG_DBUS_LIBRARIES})
-# target_link_libraries (${EXECUTABLE_TARGET} iw)
- target_link_libraries (${EXECUTABLE_TARGET} X11)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_FFMPEG_LIBRARIES})
- if (GTK3_SUPPORT)
-  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK3_LIBRARIES})
- else ()
-  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_GTK2_LIBRARIES})
- endif ()
+
+ if (GUI_SUPPORT)
+  if (WXWIDGETS_USE)
+   target_link_libraries (${EXECUTABLE_TARGET} ${wxWidgets_LIBRARIES})
+  endif (WXWIDGETS_USE)
+ endif (GUI_SUPPORT)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
  target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)
@@ -575,10 +589,18 @@ target_link_libraries (${EXECUTABLE_TARGET} CommonImage)
 target_link_libraries (${EXECUTABLE_TARGET} CommonLog)
 target_link_libraries (${EXECUTABLE_TARGET} CommonSignal)
 target_link_libraries (${EXECUTABLE_TARGET} CommonTimer)
-if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
+if (GUI_SUPPORT)
+ if (WIN32)
+  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
+  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ endif (WIN32)
+ target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
+ if (GTK_USE)
+  target_link_libraries (${EXECUTABLE_TARGET} CommonUI_GTK)
+ elseif (WXWIDGETS_USE)
+  target_link_libraries (${EXECUTABLE_TARGET} CommonUI_wxWidgets)
+ endif ()
+endif (GUI_SUPPORT)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Decoder)
@@ -597,9 +619,9 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 #cotire (${EXECUTABLE_SOURCE} ${LIBRARY_DS} ${LIBRARY_MF} ${EXECUTABLE_TARGET})
-#cotire (${EXECUTABLE_TARGET})
+cotire (${EXECUTABLE_TARGET})
 
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets

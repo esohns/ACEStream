@@ -96,7 +96,7 @@ struct Test_I_V4L2_MessageData
   Test_I_V4L2_MessageData ()
    : device (-1)
    , index (0)
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 

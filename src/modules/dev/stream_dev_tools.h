@@ -91,6 +91,10 @@ class Stream_Device_Tools
 
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
+  static struct v4l2_pix_format getVideoCaptureFormat (int,                           // file descriptor
+                                                       __u32,                         // pixel format
+                                                       const Common_UI_Resolution_t&, // resolution {0: any}
+                                                       const struct v4l2_fract&);     // framerate {0/1: any}
   static Stream_MediaFramework_V4L_CaptureFormats_t getCaptureSubFormats (int); // file descriptor
   static Common_UI_Resolutions_t getCaptureResolutions (int,    // file descriptor
                                                         __u32); // pixel format
@@ -138,7 +142,8 @@ class Stream_Device_Tools
   static bool setFrameRate (int,                       // file descriptor
                             const struct v4l2_fract&); // frame rate (in time-per-frame (s))
 
-  static std::string formatToString (__u32); // format (fourcc)
+  static std::string formatToString (int,    // file descriptor
+                                     __u32); // format (fourcc)
 
   static struct v4l2_pix_format ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)

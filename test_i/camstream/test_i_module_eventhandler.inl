@@ -42,7 +42,7 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     UserDataType>::Test_I_Stream_Module_EventHandler_T (ISTREAM_T* stream_in)
 #else
                                     UserDataType>::Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::Test_I_Stream_Module_EventHandler_T"));
@@ -76,7 +76,7 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
 
   ACE_NEW_NORETURN (task_p,
                     OWN_TYPE_T (NULL));
-  if (!task_p)
+  if (unlikely (!task_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

@@ -323,7 +323,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   result =
       snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEFAULT_LOG_FILE),
+                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_DEFAULT_LOG_FILE),
                              ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,
@@ -422,7 +422,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       else
       {
         // *TODO*: remove type inference
-        //  int mode = MODULE_DEV_MIC_ALSA_DEFAULT_MODE;
+        //  int mode = STREAM_DEV_MIC_ALSA_DEFAULT_MODE;
         int mode = 0;
 //    snd_spcm_init();
         result =

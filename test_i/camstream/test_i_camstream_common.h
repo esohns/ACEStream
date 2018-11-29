@@ -285,7 +285,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
     deviceIdentifier.identifierDiscriminator = Stream_Device_Identifier::GUID;
 #else
     deviceIdentifier.identifier =
-      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   }
 

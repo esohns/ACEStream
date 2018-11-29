@@ -561,8 +561,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     } // end IF
   if (unlikely (overlayFileDescriptor_ != -1))
   {
+    struct v4l2_window window_s;
+    ACE_OS::memset (&window_s, 0, sizeof (struct v4l2_window));
+    window_s.bitmap = configuration_in.window;
+    window_s.w = configuration_in.area;
     if (!Stream_Device_Tools::initializeOverlay (overlayFileDescriptor_,
-                                                 configuration_in.window))
+                                                 window_s))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_Tools::initializeOverlay(%d): \"%m\", aborting\n"),

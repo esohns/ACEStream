@@ -1257,7 +1257,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second.builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   button_hardware_settings->Enable (Stream_MediaFramework_DirectShow_Tools::hasPropertyPages (filter_p));
@@ -1292,7 +1292,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   IBaseFilter* filter_p = NULL;
   struct _AMMediaType* media_type_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second.builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result) && filter_p);
   ISpecifyPropertyPages* property_pages_p = NULL;
@@ -1537,7 +1537,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   spincontrol_buffer->SetValue (Stream_MediaFramework_DirectShow_Tools::toFramesize (*(*stream_iterator).second.second.sourceFormat));
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second.builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result));
   media_type_p =
@@ -1574,7 +1574,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    (*stream_iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    (*stream_iterator).second.second.builder->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
   ACE_ASSERT (SUCCEEDED (result));
   struct _AMMediaType* media_type_p =
@@ -1894,9 +1894,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
   Common_UI_Resolutions_t resolutions_a =
     Common_UI_Tools::get (ACE_TEXT_ALWAYS_CHAR ((*stream_iterator).second.second.deviceIdentifier.identifier._string));
   ACE_ASSERT (!resolutions_a.empty ());
-  ACE_ASSERT ((*stream_iterator).second.second.sourceFormat);
+  ACE_ASSERT ((*stream_iterator).second.second.outputFormat);
   Common_UI_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (*(*stream_iterator).second.second.sourceFormat);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (*(*stream_iterator).second.second.outputFormat);
 
   choice_resolution_2->SetSelection (wxNOT_FOUND);
   choice_resolution_2->Clear ();
@@ -1928,7 +1928,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIApplication
                                            client_data_p);
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("\"%s\": supports: %dx%d...\n"),
+                ACE_TEXT ("\"%s\": supports: %ux%u\n"),
                 ACE_TEXT (choice_display->GetString (choice_display->GetSelection ()).ToStdString ().c_str ()),
                 (*iterator).cx, (*iterator).cy));
 #endif // _DEBUG
@@ -2348,7 +2348,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsIApplic
   //    Common_File_Tools::getLogDirectory (std::string (),
   //                                        0);
   //  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-  //  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  //  log_file_name += STREAM_DEV_DIRECTSHOW_LOGFILE_NAME;
   //  Stream_Device_Tools::debug (data_p->configuration->moduleHandlerConfiguration.builder,
   //                                     log_file_name);
   //} // end IF

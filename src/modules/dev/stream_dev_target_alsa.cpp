@@ -25,4 +25,4 @@
 #include "stream_dev_defines.h"
 
 const char libacestream_default_dev_target_alsa_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_TARGET_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_TARGET_DEFAULT_NAME_STRING);

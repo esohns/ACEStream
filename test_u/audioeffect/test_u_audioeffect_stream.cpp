@@ -113,7 +113,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -167,7 +167,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
 
   // ******************* Mic Source ************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_Dev_Mic_Source_DirectShow* source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_DirectShow*> (module_p->writer ());
@@ -226,7 +226,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     } // end IF
 
     if (!Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation (graphBuilder_,
-                                                                       MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+                                                                       STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                                                        buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -296,7 +296,7 @@ continue_:
     goto error;
   } // end IF
 
-  graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_entry.filterName = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_entry.mediaType =
     Stream_MediaFramework_DirectShow_Tools::copy (*(*iterator).second.second.inputFormat);
   if (!graph_entry.mediaType)
@@ -365,7 +365,7 @@ continue_:
     configuration_in.allocatorConfiguration_.defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
-    MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
   result_2 =
       buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
   if (FAILED (result_2))
@@ -391,14 +391,14 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_MediaFramework_DirectShow_Tools::connected (graphBuilder_,
-                                                          MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
+                                                          STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting\n"),
                 ACE_TEXT (stream_name_string_)));
 
     if (!Stream_MediaFramework_DirectShow_Tools::connectFirst (graphBuilder_,
-                                                               MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
+                                                               STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::connectFirst(), aborting\n"),
@@ -407,7 +407,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::connected (graphBuilder_,
-                                                                 MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
+                                                                 STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
 
 #if defined (_DEBUG)
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -702,7 +702,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -756,7 +756,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   // ******************* Mic Source ************************
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   Test_U_Dev_Mic_Source_MediaFoundation* source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation*> (module_p->writer ());
@@ -1262,7 +1262,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
     module_p = NULL;
@@ -1290,7 +1290,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -1412,7 +1412,7 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // ******************* Mic Source ************************
   module_p =
-    const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)));
+    const_cast<typename inherited::ISTREAM_T::MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)));
   ACE_ASSERT (module_p);
   source_impl_p =
     dynamic_cast<Test_U_Dev_Mic_Source_ALSA*> (module_p->writer ());

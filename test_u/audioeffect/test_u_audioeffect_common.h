@@ -285,7 +285,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     deviceIdentifier =
-        ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif // ACE_WIN32 || ACE_WIN64
   }
 

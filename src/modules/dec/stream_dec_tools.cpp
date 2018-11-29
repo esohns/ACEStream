@@ -966,7 +966,7 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (const struct _AMMediaType& 
 
   //// encode PCM --> WAV ?
   //struct _GUID converter_CLSID = WAV_Colour;
-  //std::wstring converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
+  //std::wstring converter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
   //if (mediaType_in.subtype == MEDIASUBTYPE_WAVE)
   //{
   //  converter_CLSID = CLSID_MjpegDec;
@@ -1447,10 +1447,10 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     graph_entry.filterName =
-      MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+      STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
     graph_entry.filterName =
-      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+      STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,
