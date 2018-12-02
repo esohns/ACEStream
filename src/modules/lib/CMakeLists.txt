@@ -1,22 +1,32 @@
-﻿if (WIN32)
+﻿if (UNIX)
+ pkg_check_modules (PKG_ALSA REQUIRED alsa)
+ pkg_check_modules (PKG_SOX REQUIRED sox)
+endif (UNIX)
+
+if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
  elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
   option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7"
           OFF)
  else ()                                    # Some other Windows
  endif ()
-endif (WIN32)
 
-if (UNIX)
-elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DD3D_DEBUG_INFO)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif ()
+endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
 if (UNIX)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 

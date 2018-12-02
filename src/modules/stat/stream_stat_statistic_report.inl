@@ -24,7 +24,7 @@
 #include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_macros.h"
-#include "stream_message_base.h"
+//#include "stream_message_base.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

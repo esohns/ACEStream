@@ -10,6 +10,9 @@ add_library (${PROJECT_NAME}_File STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
+ target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC

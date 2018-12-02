@@ -31,6 +31,10 @@
 #include <strmif.h>
 #else
 #include "X11/Xlib.h"
+
+#include "alsa/asoundlib.h"
+
+#include "sox.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Basic_Types.h"
@@ -78,9 +82,18 @@ class Stream_MediaFramework_Tools
   static bool initialize ();
   static void finalize ();
 
+  // X11
   static Common_UI_Resolution_t toResolution (const Display&, // display
                                               Window);        // window
 
+  // ALSA
+  static void ALSAToSoX (enum _snd_pcm_format,       // format
+                         sox_rate_t,                 // sample rate
+                         unsigned,                   // channels
+                         struct sox_encodinginfo_t&, // return value: format
+                         struct sox_signalinfo_t&);  // return value: format
+
+  // v4l
   static unsigned int toFrameSize (const struct Stream_MediaFramework_V4L_MediaType&);
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -1,24 +1,19 @@
-﻿include (FindPkgConfig)
-if (UNIX)
-# pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
-endif ()
-
-add_library (${PROJECT_NAME}_Network STATIC "")
+﻿add_library (${PROJECT_NAME}_Network STATIC "")
 
 # *TODO*: add dependencies
-#find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../..
-#              PATH_SUFFIXES ACENetwork/cmake
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACENetwork_DIR})
-# message (FATAL_ERROR "could not find ACENetwork, aborting")
-#endif ()
+find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+              REQUIRED
+              CONFIG
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../..
+              PATH_SUFFIXES ACENetwork/cmake
+              NO_DEFAULT_PATH)
+if (NOT EXISTS ${ACENetwork_DIR})
+ message (FATAL_ERROR "could not find ACENetwork, aborting")
+endif (NOT EXISTS ${ACENetwork_DIR})
 
 if (UNIX)
-# target_include_directories (${PROJECT_NAME}_Network PUBLIC
-#                             $<BUILD_INTERFACE:${PKG_DBUS_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Network PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Network PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)

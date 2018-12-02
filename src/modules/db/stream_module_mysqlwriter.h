@@ -21,19 +21,18 @@
 #ifndef STREAM_MODULE_MYSQLWRITER_H
 #define STREAM_MODULE_MYSQLWRITER_H
 
-#include "ace/Global_Macros.h"
-
-#if defined (_MSC_VER)
+#include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mysql.h"
 #else
 #include "mysql/mysql.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
 #include "stream_task_base_asynch.h"
-
-//#include "stream_db_exports.h"
 
 extern const char libacestream_default_db_mysql_target_module_name_string[];
 

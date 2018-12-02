@@ -57,7 +57,7 @@ class Test_I_Module_DataBaseWriter
 
  public:
   Test_I_Module_DataBaseWriter (inherited::ISTREAM_T*); // stream handle
-  virtual ~Test_I_Module_DataBaseWriter ();
+  inline virtual ~Test_I_Module_DataBaseWriter () {}
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle

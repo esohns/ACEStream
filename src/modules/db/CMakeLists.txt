@@ -1,16 +1,11 @@
-﻿include (FindPkgConfig)
+﻿set (MYSQL_LIB_FILE libmysqlclient.so)
 if (UNIX)
-# pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
-endif ()
-
-# *TODO*: add dependencies
-set (MYSQL_LIB_FILE libmysqlclient.so)
-if (UNIX)
- find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-               PATHS /usr/lib
-               PATH_SUFFIXES x86_64-linux-gnu
-               DOC "searching for \"${MYSQL_LIB_FILE}\"")
+ pkg_check_modules (PKG_MYSQL REQUIRED mysqlclient) # Fedora 29
+# find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
+#               PATHS /usr/lib
+#               PATH_SUFFIXES x86_64-linux-gnu
+#               DOC "searching for \"${MYSQL_LIB_FILE}\"")
 elseif (WIN32)
  unset (MYSQL_LIB_FILE)
  set (MYSQL_LIB_FILE libmysql.lib)
@@ -20,17 +15,17 @@ elseif (WIN32)
                PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
                PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
-endif ()
-if (NOT MYSQL_LIBRARY)
- message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
+ if (NOT MYSQL_LIBRARY)
+  message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
+ endif (NOT MYSQL_LIBRARY)
 endif ()
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
 add_library (${PROJECT_NAME}_Database STATIC "")
 
 if (UNIX)
- #include_directories (${PKG_DBUS_INCLUDE_DIRS})
- #include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
+ target_include_directories (${PROJECT_NAME}_Database PUBLIC
+                             $<BUILD_INTERFACE:${PKG_MYSQL_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)

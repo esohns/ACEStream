@@ -153,7 +153,8 @@ class Stream_Decoder_LibAVDecoder_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
 #else
-  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
+  static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+//  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
 #endif // ACE_WIN32 || ACE_WIN64
 };
 

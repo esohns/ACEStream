@@ -22,26 +22,31 @@
 #include "ace/Log_Msg.h"
 #include "ace/Synch.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)
 #include "valgrind/valgrind.h"
 #endif // VALGRIND_SUPPORT
+
+#if defined (HAVE_CONFIG_H)
+#include "Common_config.h"
+#endif // HAVE_CONFIG_H
 
 #include "common.h"
 #include "common_macros.h"
 #include "common_pragmas.h"
 
 // Local Header Files
+#if defined (HAVE_CONFIG_H)
+#include "ACEStream_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "stream_common.h"
 #include "stream_macros.h"
 
 #include "test_u_common.h"
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 #include "test_u_gtk_common.h"
-#endif // GTK_SUPPORT
+#elif defined (WXWIDGETS_USE)
+#include "test_u_wxwidgets_common.h"
+#endif
 #endif // GUI_SUPPORT
-
-#if defined (HAVE_CONFIG_H)
-#include "ACEStream_config.h"
-#endif // HAVE_CONFIG_H

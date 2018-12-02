@@ -588,8 +588,8 @@ do_initialize_directshow (const std::string& devicePath_in,
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
-                                                                CLSID_VideoInputDeviceCategory,
-                                                                captureFormat_out))
+                                                         CLSID_VideoInputDeviceCategory,
+                                                         captureFormat_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n")));
@@ -952,6 +952,86 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 
   CoUninitialize ();
 }
+#else
+bool
+do_initialize_v4l (const std::string& deviceIdentifier_in,
+                   bool hasUI_in,
+                   struct Stream_Device_Identifier& deviceIdentifier_out,
+                   struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
+                   struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
+
+  // intialize return value(s)
+  ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+
+  // sanity check(s)
+  ACE_ASSERT (!deviceIdentifier_in.empty ());
+
+  // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
+  //         (v4l2_poll()) for asynchronous operation
+  // *TODO*: support O_NONBLOCK
+  int open_mode = O_RDONLY;
+  int result = -1;
+  deviceIdentifier_out.fileDescriptor =
+      v4l2_open (deviceIdentifier_in.c_str (),
+                 open_mode);
+  if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
+                ACE_TEXT (deviceIdentifier_in.c_str ()),
+                open_mode));
+    return false;
+  } // end IF
+
+  captureFormat_out =
+      Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("\"%s\": default capture format: \"%s\", resolution: %ux%u, framerate: %u/%u\n"),
+              ACE_TEXT (deviceIdentifier_in.c_str ()),
+              ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()),
+              captureFormat_out.format.width, captureFormat_out.format.height,
+              captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
+#endif // _DEBUG
+  if (hasUI_in)
+    outputFormat_out = captureFormat_out;
+
+  return true;
+
+error:
+  if (deviceIdentifier_out.fileDescriptor != -1)
+  {
+    result = v4l2_close (deviceIdentifier_out.fileDescriptor);
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  deviceIdentifier_out.fileDescriptor));
+    deviceIdentifier_out.fileDescriptor = -1;
+  } // end IF
+
+  return false;
+}
+
+void
+do_finalize_v4l (struct Stream_Device_Identifier& deviceIdentifier_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_v4l"));
+
+  int result = -1;
+
+  if (deviceIdentifier_inout.fileDescriptor != -1)
+  {
+    result = v4l2_close (deviceIdentifier_inout.fileDescriptor);
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  deviceIdentifier_inout.fileDescriptor));
+    deviceIdentifier_inout.fileDescriptor = -1;
+  } // end IF
+}
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
@@ -1228,40 +1308,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
-  int file_descriptor = v4l2_open (captureinterfaceIdentifier_in.c_str (),
-                                   O_RDONLY);
-  if (unlikely (file_descriptor == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (captureinterfaceIdentifier_in.c_str ()),
-                O_RDONLY));
-    return;
-  } // end IF
-  Common_UI_Resolution_t resolution_s;
-  resolution_s.width = COMMON_UI_WINDOW_DEFAULT_WIDTH;
-  resolution_s.height = COMMON_UI_WINDOW_DEFAULT_HEIGHT;
-  configuration_in.streamConfiguration.configuration_.format.frameRate.numerator =
-      STREAM_DEV_CAM_V4L_DEFAULT_FRAMERATE;
-  configuration_in.streamConfiguration.configuration_.format.frameRate.denominator =
-      1;
-  configuration_in.streamConfiguration.configuration_.format.format =
-      Stream_Device_Tools::getVideoCaptureFormat (file_descriptor,
-                                                  STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT,
-                                                  resolution_s,
-                                                  configuration_in.streamConfiguration.configuration_.format.frameRate);
-  if (!configuration_in.streamConfiguration.configuration_.format.format.pixelformat)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("video capture device \"%s\" does not support the default format (was: %d,%ux%u,%u/%u), continuing\n"),
-                ACE_TEXT (captureinterfaceIdentifier_in.c_str ()),
-                STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT,
-                resolution_s.width, resolution_s.height,
-                configuration_in.streamConfiguration.configuration_.format.frameRate.numerator, configuration_in.streamConfiguration.configuration_.format.frameRate.denominator));
-  int result = v4l2_close (file_descriptor);
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                file_descriptor));
   configuration_in.streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
 #if defined (GUI_SUPPORT)
@@ -1271,19 +1317,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
    configuration_in.streamConfiguration.configuration_.renderer =
      renderer_in;
-
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
-                                                   configuration_in.streamConfiguration.configuration_);
-  modulehandler_configuration.deviceIdentifier.identifier =
-      displayDevice_in.device;
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
-  v4l_stream_iterator =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
 
   if (!heap_allocator.initialize (configuration_in.streamConfiguration.allocatorConfiguration_))
   {
@@ -1362,6 +1395,30 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       return;
     }
   } // end SWITCH
+#else
+  if (!do_initialize_v4l (captureinterfaceIdentifier_in,
+                          !UIDefinitionFilename_in.empty (), // has UI ?
+                          modulehandler_configuration.deviceIdentifier,
+                          configuration_in.streamConfiguration.configuration_.format,
+                          modulehandler_configuration.outputFormat))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::do_initialize_v4l(), returning\n")));
+    return;
+  } // end IF
+
+  configuration_in.streamConfiguration.initialize (module_configuration,
+                                                   modulehandler_configuration,
+                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
+                                                   configuration_in.streamConfiguration.configuration_);
+  modulehandler_configuration.deviceIdentifier.identifier =
+      displayDevice_in.device;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+                                                               std::make_pair (module_configuration,
+                                                                               modulehandler_configuration)));
+  v4l_stream_iterator =
+    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)

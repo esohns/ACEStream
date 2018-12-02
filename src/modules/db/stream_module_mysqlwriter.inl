@@ -63,7 +63,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
   //    result = mysql_library_init (0,     // argc
   //                                 NULL,  // argv
   //                                 NULL); // groups
-  //    if (result)
+  //    if (unlikely (result))
   //      ACE_DEBUG ((LM_DEBUG,
   //                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
   //                  ACE_TEXT (mysql_error (NULL))));
@@ -115,7 +115,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //  ACE_UNUSED_ARG (passMessageDownstream_out);
 //
 //  // sanity check(s)
-//  if (!connection_)
+//  if (unlikely (!connection_))
 //  {
 ////    ACE_DEBUG ((LM_ERROR,
 ////                ACE_TEXT ("failed to open db connection, returning\n")));
@@ -170,10 +170,12 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+#if defined (_DEBUG)
       else
-        ACE_DEBUG ((LM_ERROR,
+        ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
+#endif // _DEBUG
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       // *TODO*: remove type inferences
       ACE_INET_Addr host_address =
@@ -187,7 +189,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       MYSQL* result_2 = NULL;
       const char* result_p = host_address.get_host_addr (host_address_string,
                                                          sizeof (host_address_string));
-      if (!result_p || (result_p != host_address_string))
+      if (unlikely (!result_p || (result_p != host_address_string)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
@@ -241,7 +243,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             host_address.get_port_number (), // port
                             NULL,                            // (UNIX) socket/named pipe
                             client_flags);                   // client flags
-      if (result_2 != state_)
+      if (unlikely (result_2 != state_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_connect(%s,\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
@@ -254,17 +256,19 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 //      result = mysql_ping ();
-//      if (result)
+//      if (unlikely (result))
 //      {
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("failed to mysql_ping(): \"%s\", aborting\n"),
 //                    ACE_TEXT (mysql_error (&mysql))));
 //        goto error;
 //      } // end IF
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ())));
+#endif // _DEBUG
 
 //      // enable debug messages ?
 //      if (configuration_.debug)
@@ -288,12 +292,12 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      return;
+      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
-      if (!state_)
+      if (unlikely (!state_))
         return; // nothing to do
 
       std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
@@ -313,7 +317,7 @@ error:
       result = mysql_real_query (state_,
                                  query_string.c_str (),
                                  query_string.size ());
-      if (result)
+      if (unlikely (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_query(\"%s\"): \"%s\", continuing\n"),
@@ -323,7 +327,7 @@ error:
         goto close;
       } // end IF
       result_2 = mysql_affected_rows (state_);
-      if (result_2 != session_data_r.data.pageData.size ())
+      if (unlikely (result_2 != session_data_r.data.pageData.size ()))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to insert %u record(s) (result was: %u), continuing\n"),
@@ -332,14 +336,16 @@ error:
                     result_2));
         goto commit;
       } // end IF
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: inserted %u record(s)\n"),
                   inherited::mod_->name (),
                   session_data_r.data.pageData.size ()));
+#endif // _DEBUG
 
 commit:
     //my_bool result_3 = mysql_commit (state_);
-    //if (result_3)
+    //if (unlikely (result_3))
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("%s: failed to mysql_commit(): \"%s\", aborting\n"),
@@ -347,16 +353,20 @@ commit:
     //              ACE_TEXT (mysql_error (state_))));
     //  goto close;
     //} // end IF
+//#if defined (_DEBUG)
     //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("committed %u data record(s)...\n"),
+    //            ACE_TEXT ("committed %u data record(s)\n"),
     //            session_data_r.data.pageData.size (), result_2));
+//#endif // _DEBUG
 
 close:
       mysql_close (state_);
       state_ = NULL;
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed database connection\n"),
                   inherited::mod_->name ()));
+#endif // _DEBUG
 
       break;
     }
@@ -395,7 +405,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     result = mysql_library_init (0,     // argc
                                  NULL,  // argv
                                  NULL); // groups
-    if (result)
+    if (unlikely (result))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: failed to mysql_library_init(): \"%s\", aborting\n"),
@@ -417,7 +427,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //  mysql_thread_init ();
 //  my_init ();
   state_ = mysql_init (NULL);
-  if (!state_)
+  if (unlikely (!state_))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: failed to mysql_init(): \"%s\", aborting\n"),
@@ -439,11 +449,13 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //  char* argument_p = configuration_.DBOptionFileName.c_str ();
   unsigned int timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_CONNECT;
   mysql_option option = MYSQL_OPT_CONNECT_TIMEOUT;
-  my_bool value_b = false;
+  bool value_b = false;
+//  my_bool value_b = false;
   //result = mysql_options (state_,
   //                        option,
   //                        &timeout);
-  //if (result) goto error;
+  //if (unlikely (result))
+  //  goto error;
   //mysql_protocol_type protocol = MYSQL_PROTOCOL_TCP;
   //      switch (configuration_.transportLayer)
   //      {
@@ -461,26 +473,28 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
   //result = mysql_options (state_,
   //                        option,
   //                        &protocol);
-  //if (result) goto error;
+  //if (unlikely (result))
+  //  goto error;
   timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_READ;
   option = MYSQL_OPT_READ_TIMEOUT;
   result = mysql_options (state_,
                           option,
                           &timeout);
-  if (result)
+  if (unlikely (result))
     goto error;
   value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
   option = MYSQL_OPT_RECONNECT;
   result = mysql_options (state_,
                           option,
                           &value_b);
-  if (result) goto error;
+  if (unlikely (result))
+    goto error;
   timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_WRITE;
   option = MYSQL_OPT_WRITE_TIMEOUT;
   result = mysql_options (state_,
                           option,
                           &timeout);
-  if (result)
+  if (unlikely (result))
     goto error;
   if (!configuration_in.dataBaseOptionsFileName.empty ())
   {
@@ -488,7 +502,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     result = mysql_options (state_,
                             option,
                             configuration_in.dataBaseOptionsFileName.c_str ());
-    if (result)
+    if (unlikely (result))
       goto error;
   } // end IF
 

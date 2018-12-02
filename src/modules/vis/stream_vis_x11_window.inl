@@ -231,7 +231,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                               flags,                             // flags
                               NULL, NULL,
                               0);                                // parameters
-    if (!scaleContext_)
+    if (unlikely (!scaleContext_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
@@ -256,11 +256,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //    ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
     out_data[0] = buffer_;
-    if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                               resolution_s.width, resolution_s.height, pixel_format_e,
-                                               in_data,
-                                               resolution_2.width, resolution_2.height, AV_PIX_FMT_RGBA,
-                                               out_data))
+    if (unlikely (!Stream_Module_Decoder_Tools::convert (scaleContext_,
+                                                         resolution_s.width, resolution_s.height, pixel_format_e,
+                                                         in_data,
+                                                         resolution_2.width, resolution_2.height, AV_PIX_FMT_RGBA,
+                                                         out_data)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
@@ -367,7 +367,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
       ACE_NEW_NORETURN (buffer_,
                         uint8_t [resolution_s.width * resolution_s.height * (DefaultDepth (display_, DefaultScreen (display_)) / 8)]);
-      if (!buffer_)
+      if (unlikely (!buffer_))
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

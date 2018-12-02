@@ -22,8 +22,8 @@
 #include "ace/Malloc_Base.h"
 #include "ace/Time_Value.h"
 
+#include "stream_iallocator.h"
 #include "stream_macros.h"
-#include "stream_message_base.h"
 
 template <typename AllocatorConfigurationType,
           typename SessionMessageType,

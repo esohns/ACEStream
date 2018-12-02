@@ -1,8 +1,4 @@
-﻿if (UNIX)
-# add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
-endif ()
-
-set (LLVM_COMPILER_ID_STRING "Clang")
+﻿set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
 string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
 if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
@@ -13,6 +9,9 @@ endif ()
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
 if (UNIX)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 

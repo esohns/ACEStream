@@ -40,12 +40,6 @@ Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (inherited::ISTREAM_T
 
 }
 
-Test_I_Module_DataBaseWriter::~Test_I_Module_DataBaseWriter ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::~Test_I_Module_DataBaseWriter"));
-
-}
-
 void
 Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
                                                     bool& passMessageDownstream_out)
@@ -80,8 +74,9 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       const char* database_name_string_p = NULL;
       MYSQL* result_3 = NULL;
 
-      my_bool result_2 = mysql_thread_init ();
-      if (result_2)
+//      my_bool result_2 = mysql_thread_init ();
+      bool result_2 = mysql_thread_init ();
+      if (unlikely (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_thread_init(), aborting\n"),
@@ -93,7 +88,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       result_p =
         inherited::configuration_->loginOptions.host.get_host_addr (host_address,
                                                                     sizeof (host_address));
-      if (!result_p || (result_p != host_address))
+      if (unlikely (!result_p || (result_p != host_address)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
@@ -162,7 +157,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
                             inherited::configuration_->loginOptions.host.get_port_number (), // port
                             NULL,                                                            // (UNIX) socket
                             client_flags);                                                   // client flags
-      if (result_3 != (inherited::state_))
+      if (unlikely (result_3 != inherited::state_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
@@ -175,22 +170,23 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         goto error;
       } // end IF
       //      result = mysql_ping ();
-      //      if (result)
+      //      if (unlikely (result))
       //      {
       //        ACE_DEBUG ((LM_ERROR,
       //                    ACE_TEXT ("failed to mysql_ping(): \"%s\", aborting\n"),
       //                    ACE_TEXT (mysql_error (&mysql))));
       //        goto error;
       //      } // end IF
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->loginOptions.host).c_str ())));
-
+#endif // _DEBUG
       result =
         mysql_set_character_set (inherited::state_,
                                  ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_DEFAULT_CHARACTER_SET));
-      if (result)
+      if (unlikely (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_set_character_set(\"%s\"): \"%s\", aborting\n"),
@@ -227,11 +223,12 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
-      if (!inherited::state_)
+      if (unlikely (!inherited::state_))
         return; // nothing to do
 
-      my_bool result_2 = mysql_thread_init ();
-      if (result_2)
+//      my_bool result_2 = mysql_thread_init ();
+      bool result_2 = mysql_thread_init ();
+      if (unlikely (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_thread_init(), returning\n"),
@@ -290,7 +287,7 @@ error:
       result = mysql_real_query (state_,
                                  query_string.c_str (),
                                  query_string.size ());
-      if (result)
+      if (unlikely (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_query(): \"%s\", continuing\n"),
@@ -299,7 +296,7 @@ error:
         goto close;
       } // end IF
       result_3 = mysql_affected_rows (state_);
-      if (result_3 != number_of_records)
+      if (unlikely (result_3 != number_of_records))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to insert %u record(s) (result was: %u), continuing\n"),
@@ -307,12 +304,13 @@ error:
                     number_of_records, result_3));
         goto commit;
       } // end IF
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s: inserted %u record(s)\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (session_data_r.data.title.c_str ()),
                   result_3));
-
+#endif // _DEBUG
 commit:
       //my_bool result_3 = mysql_commit (state_);
       //if (result_3)
@@ -332,9 +330,11 @@ commit:
 close:
       mysql_close (inherited::state_);
       inherited::state_ = NULL;
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed database connection\n"),
                   inherited::mod_->name ()));
+#endif // _DEBUG
 
       break;
     }

@@ -32,10 +32,10 @@ if (GTK_USE)
                          "GUI_SUPPORT; GTKGL_SUPPORT" OFF)
 endif (GTK_USE)
 
-include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
+ pkg_check_modules (PKG_SOX REQUIRED sox)
+
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)
    pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
@@ -89,6 +89,8 @@ add_library (${PROJECT_NAME}_Visualization STATIC "")
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)

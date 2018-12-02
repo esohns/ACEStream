@@ -110,6 +110,13 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
  endif ()
 endif ()
 
+if (UNIX)
+ include (FindPkgConfig)
+ if (NOT PKG_CONFIG_FOUND)
+  message (FATAL_ERROR "pkg-config not found, aborting")
+ endif (NOT PKG_CONFIG_FOUND)
+endif (UNIX)
+
 option (TRACING "enable tracing" OFF)
 if (TRACING)
  add_definitions (-DACESTREAM_NTRACE=0)

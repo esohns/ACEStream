@@ -1646,11 +1646,11 @@ do_work (const std::string& deviceIdentifier_in,
   (*modulehandler_iterator).second.second.outputFormat.format =
       Stream_Device_Tools::ffmpegFormatToV4L2Format (STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT);
   (*modulehandler_iterator).second.second.outputFormat.format.height =
-      CAMSTREAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   (*modulehandler_iterator).second.second.outputFormat.format.width =
-      CAMSTREAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
   (*modulehandler_iterator).second.second.outputFormat.frameRate.numerator =
-      CAMSTREAM_DEFAULT_CAPTURE_RATE;
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
 //  (*modulehandler_iterator).second.second.outputFormat.frameRate.denominator =
 //      1;
 //  (*modulehandler_iterator).second.second.method =

@@ -1,5 +1,4 @@
-﻿include (FindPkgConfig)
-if (UNIX)
+﻿if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
 

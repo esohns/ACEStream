@@ -1172,7 +1172,7 @@ ACE_TMAIN (int argc_in,
   ACE_SYNCH_MUTEX* lock_p = NULL;
   ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
 #if defined (GUI_SUPPORT)
-  struct Common_UI_CBData* ui_cb_data_p = NULL;
+//  struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();

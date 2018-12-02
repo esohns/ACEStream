@@ -1,0 +1,11 @@
+
+Linux Package Management:
+* Fedora 29 ('sudo dnf install')
+src/db:   community-mysql-devel
+src/dec:  alsa-devel sox-devel ffmpeg-devel opencv-devel
+src/dev:  libv4l-devel
+src/html: libxml2-devel
+
+test_u:   libcap-devel libnl3-devel
+test_i:   zlib-devel libssl-devel libreoffice-sdk
+

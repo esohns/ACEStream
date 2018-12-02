@@ -1,40 +1,5 @@
 ﻿option (SSL_SUPPORT "enable SSL support" OFF)
 
-if (UNIX)
- include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
- check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
-endif ()
-
-set (ACE_LIB_FILE libACE.so)
-if (UNIX)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib
-               DOC "searching for ${ACE_LIB_FILE}"
-               NO_DEFAULT_PATH)
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
- endif ()
- unset (ACE_LIB_FILE)
- set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_LIB_FILE}"
-               NO_DEFAULT_PATH)
-endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-if (NOT ACE_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
-endif ()
-
 if (SSL_SUPPORT)
  set (ACE_SSL_LIB_FILE libACE_SSL.so)
  if (UNIX)
@@ -64,29 +29,48 @@ if (SSL_SUPPORT)
  endif ()
 endif ()
 
-include (FindPkgConfig)
 if (UNIX)
-# *NOTE*: Common requires libcap
- pkg_check_modules (PKG_CAP REQUIRED libcap)
  if (SSL_SUPPORT)
-  pkg_check_modules (PKG_SSL REQUIRED libssl)
- endif ()
- if (DBUS_SUPPORT)
-  pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
- endif ()
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
- pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
-endif ()
+  find_package (OpenSSL MODULE
+                COMPONENTS Crypto SSL)
+  if (OPENSSL_FOUND)
+   add_definitions (-DSSL_SUPPORT)
+  endif (OPENSSL_FOUND)
+#  pkg_check_modules (PKG_SSL REQUIRED libssl)
+ endif (SSL_SUPPORT)
 
-#pkg_check_modules (PKG_MYSQL REQUIRED libmysql)
-# *TODO*: add dependencies
+# if (DBUS_SUPPORT)
+#  pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+# endif ()
+
+ pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
+endif (UNIX)
+
 set (MYSQL_LIB_FILE libmysqlclient.so)
 if (UNIX)
+# pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
+ pkg_check_modules (PKG_MYSQL REQUIRED mysqlclient) # Fedora 29
+# find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
+#               PATHS /usr/lib
+#               PATH_SUFFIXES x86_64-linux-gnu
+#               DOC "searching for \"${MYSQL_LIB_FILE}\"")
+elseif (WIN32)
+ unset (MYSQL_LIB_FILE)
+ set (MYSQL_LIB_FILE libmysql.lib)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-               PATHS /usr/lib
-               PATH_SUFFIXES x86_64-linux-gnu
+#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
+#               PATH_SUFFIXES lib
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
+               PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
+ if (NOT MYSQL_LIBRARY)
+  message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
+ endif (NOT MYSQL_LIBRARY)
+endif ()
+#add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
+
+if (UNIX)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  unset (LIBXML2_LIB_FILE)
@@ -99,20 +83,7 @@ elseif (WIN32)
  if (NOT LIBXML2_LIBRARY)
   message (FATAL_ERROR "could not find libxml2 (was: \"${LIBXML2_LIB_FILE}\"), aborting")
  endif ()
-
- unset (MYSQL_LIB_FILE)
- set (MYSQL_LIB_FILE libmysql.lib)
- find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
-#               PATH_SUFFIXES lib
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
-               PATH_SUFFIXES cmake/libmysql/Debug
-               DOC "searching for \"${MYSQL_LIB_FILE}\"")
 endif ()
-if (NOT MYSQL_LIBRARY)
- message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
-endif ()
-#add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -154,17 +125,14 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${PKG_CAP_INCLUDE_DIRS})
- if (DBUS_SUPPORT)
-  include_directories (${PKG_DBUS_INCLUDE_DIRS})
- endif ()
+# include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
  include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
  if (SSL_SUPPORT)
   include_directories (${PKG_SSL_INCLUDE_DIRS})
- endif ()
+ endif (SSL_SUPPORT)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
@@ -292,8 +260,6 @@ endif ()
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
- target_link_libraries (${EXECUTABLE} rt)
- target_link_libraries (${EXECUTABLE} iw)
 elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
@@ -301,24 +267,20 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
-endif ()
+endif (SSL_SUPPORT)
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- #target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
-
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
-# target_link_libraries (${EXECUTABLE} ntdll.lib)
- #target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mf.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
 # *TODO*: repair pkgconfig support
  target_link_libraries (${EXECUTABLE} ${LIBXML2_LIBRARY})
+
+ target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 endif ()
-target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
@@ -338,12 +300,11 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
-#target_link_libraries (${EXECUTABLE} ACENetwork_WLAN)
 
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
 endif (UNIX)
 
 # add PCH

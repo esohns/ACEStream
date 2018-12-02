@@ -35,7 +35,7 @@
 #include "stream_ilock.h"
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
-#include "stream_session_message_base.h"
+//#include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
 
@@ -270,7 +270,7 @@ class Stream_HeadModuleTaskBase_T
   virtual void onUnlink ();
 
   // implement/hide (part of) Stream_IStreamControl_T
-  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (static_cast<Stream_SessionId_t> (-1)); ACE_NOTREACHED (return static_cast<Stream_SessionId_t> (-1);) }
   inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; }
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }

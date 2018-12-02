@@ -170,6 +170,7 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionId_in,
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
+  ACE_UNUSED_ARG (message_in);
 
   // sanity check(s)
 #if defined (GUI_SUPPORT)
@@ -279,6 +280,8 @@ continue_:
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
+#else
+  ACE_UNUSED_ARG (event_e);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 }

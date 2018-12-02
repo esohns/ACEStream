@@ -79,7 +79,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
+                              SessionDataContainerType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+/*                              SessionDataContainerType>::paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];*/
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
@@ -124,7 +125,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 #else
   ACE_OS::memset (&(OWN_TYPE_T::paddingBuffer),
                   0,
-                  FF_INPUT_BUFFER_PADDING_SIZE);
+                  AV_INPUT_BUFFER_PADDING_SIZE);
+//                  FF_INPUT_BUFFER_PADDING_SIZE);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -288,7 +290,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     AV_INPUT_BUFFER_PADDING_SIZE;
 #else
-    FF_INPUT_BUFFER_PADDING_SIZE;
+      AV_INPUT_BUFFER_PADDING_SIZE;
+//    FF_INPUT_BUFFER_PADDING_SIZE;
 #endif // ACE_WIN32 || ACE_WIN64
   DataMessageType* message_p = NULL;
   int got_frame = 0;
@@ -801,30 +804,59 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
 #else
-      flags = CODEC_FLAG_UNALIGNED      |
-              CODEC_FLAG_QSCALE         |
-              CODEC_FLAG_OUTPUT_CORRUPT |
-              CODEC_FLAG_QPEL           |
-              //CODEC_FLAG_PASS1          |
-              //CODEC_FLAG_PASS2          |
-              CODEC_FLAG_LOOP_FILTER    |
-              //CODEC_FLAG_GRAY           |
-//              CODEC_FLAG_TRUNCATED      |
-              //CODEC_FLAG_INTERLACED_DCT |
-              CODEC_FLAG_LOW_DELAY      |
-              //CODEC_FLAG_GLOBAL_HEADER  |
-              CODEC_FLAG_BITEXACT;//       |
-      //CODEC_FLAG_INTERLACED_ME  |
-      //CODEC_FLAG_CLOSED_GOP;
-      if (codec_p->capabilities & CODEC_CAP_TRUNCATED)
-        flags |= CODEC_FLAG_TRUNCATED;
+//      flags = CODEC_FLAG_UNALIGNED      |
+//              CODEC_FLAG_QSCALE         |
+//              CODEC_FLAG_OUTPUT_CORRUPT |
+//              CODEC_FLAG_QPEL           |
+//              //CODEC_FLAG_PASS1          |
+//              //CODEC_FLAG_PASS2          |
+//              CODEC_FLAG_LOOP_FILTER    |
+//              //CODEC_FLAG_GRAY           |
+////              CODEC_FLAG_TRUNCATED      |
+//              //CODEC_FLAG_INTERLACED_DCT |
+//              CODEC_FLAG_LOW_DELAY      |
+//              //CODEC_FLAG_GLOBAL_HEADER  |
+//              CODEC_FLAG_BITEXACT;//       |
+//      //CODEC_FLAG_INTERLACED_ME  |
+//      //CODEC_FLAG_CLOSED_GOP;
+      flags = AV_CODEC_FLAG_UNALIGNED      |
+              AV_CODEC_FLAG_QSCALE         |
+      //        AV_CODEC_FLAG_4MV            |
+              AV_CODEC_FLAG_OUTPUT_CORRUPT |
+              AV_CODEC_FLAG_QPEL           |
+              //AV_CODEC_FLAG_PASS1          |
+              //AV_CODEC_FLAG_PASS2          |
+              AV_CODEC_FLAG_LOOP_FILTER    |
+              //AV_CODEC_FLAG_GRAY           |
+              //AV_CODEC_FLAG_PSNR           |
+              AV_CODEC_FLAG_TRUNCATED      |
+              //AV_CODEC_FLAG_INTERLACED_DCT |
+              AV_CODEC_FLAG_LOW_DELAY      |
+              //AV_CODEC_FLAG_GLOBAL_HEADER  |
+              AV_CODEC_FLAG_BITEXACT;//       |
+              //AV_CODEC_FLAG_AC_PRED        |
+      //AV_CODEC_FLAG_INTERLACED_ME  |
+      //AV_CODEC_FLAG_CLOSED_GOP;
+//      if (codec_p->capabilities & CODEC_CAP_TRUNCATED)
+//        flags |= CODEC_FLAG_TRUNCATED;
+      if (codec_p->capabilities & AV_CODEC_CAP_TRUNCATED)
+        flags |= AV_CODEC_FLAG_TRUNCATED;
 
-      flags2 = CODEC_FLAG2_FAST          |
-               CODEC_FLAG2_CHUNKS        |
-               CODEC_FLAG2_IGNORE_CROP   |
-               CODEC_FLAG2_SHOW_ALL      |
-               CODEC_FLAG2_EXPORT_MVS    |
-               CODEC_FLAG2_SKIP_MANUAL;
+//      flags2 = CODEC_FLAG2_FAST          |
+//               CODEC_FLAG2_CHUNKS        |
+//               CODEC_FLAG2_IGNORE_CROP   |
+//               CODEC_FLAG2_SHOW_ALL      |
+//               CODEC_FLAG2_EXPORT_MVS    |
+//               CODEC_FLAG2_SKIP_MANUAL;
+      flags2 = AV_CODEC_FLAG2_FAST          |
+      //         AV_CODEC_FLAG2_NO_OUTPUT           |
+      //         AV_CODEC_FLAG2_LOCAL_HEADER        |
+      //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
+               AV_CODEC_FLAG2_CHUNKS        |
+               AV_CODEC_FLAG2_IGNORE_CROP   |
+               AV_CODEC_FLAG2_SHOW_ALL      |
+               AV_CODEC_FLAG2_EXPORT_MVS    |
+               AV_CODEC_FLAG2_SKIP_MANUAL;
 #endif // ACE_WIN32 || ACE_WIN64
       context_->opaque = &format_;
       //context_->bit_rate = bit_rate;

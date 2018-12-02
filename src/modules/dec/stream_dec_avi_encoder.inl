@@ -37,8 +37,6 @@
 #include <uuids.h>
 #endif // UUIDS_H
 #else
-#include "linux/videodev2.h"
-
 extern "C"
 {
 #include "libavformat/avformat.h"
@@ -60,7 +58,7 @@ extern "C"
 
 #include "common_file_tools.h"
 
-#include "common_ui_common.h"
+//#include "common_ui_common.h"
 
 #include "stream_macros.h"
 
@@ -143,7 +141,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 
           // *TODO*: remove type inference
           if (!session_data_p->targetFileName.empty ())
-            if (!postProcessHeader (session_data_p->targetFileName))
+            if (unlikely (!postProcessHeader (session_data_p->targetFileName)))
             {
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader(\"%s\"), aborting\n"),
@@ -202,19 +200,19 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   ACE_Task_Base* task_base_p = inherited::sibling ();
   ACE_ASSERT (task_base_p);
   WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
-  if (!writer_p)
+  if (unlikely (!writer_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<Stream_Decoder_AVIEncoder_WriterTask_T>: \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
-
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")...\n"),
+              ACE_TEXT ("%s: post-processing AVI file header (was: \"%s\")\n"),
               inherited::mod_->name (),
               ACE_TEXT (targetFilename_in.c_str ())));
-
+#endif // _DEBUG
   // *NOTE*: things left to do (in order):
   //         - correct cb value of 'RIFF' _rifflist (6)
   //         - set dwTotalFrames in _avimainheader  (1)
@@ -238,7 +236,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                        //ios_base::in | ios_base::out//,
                        std::ios::in | std::ios::out | std::ios::binary
                        /*(int)ios_base::_Openprot*/);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to open file (was: \"%s\"): \"%m\", aborting\n"),
@@ -274,25 +272,25 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   stream.seekp (write_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.write (reinterpret_cast<char*> (RIFF_list_p),
                 sizeof (struct _rifflist));
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.seekg (read_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.read (buffer_a, sizeof (struct _rifflist));
-  if (stream.eof () || stream.fail ())
+  if (unlikely (stream.eof () || stream.fail ()))
     goto error;
   read_offset += sizeof (struct _rifflist);
   RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
   ACE_ASSERT (RIFF_list_p->fccListType == FCC ('hdrl'));
   stream.read (buffer_a, sizeof (struct _avimainheader));
-  if (stream.eof () || stream.fail ())
+  if (unlikely (stream.eof () || stream.fail ()))
     goto error;
   write_offset = read_offset;
   read_offset += sizeof (struct _avimainheader);
@@ -305,25 +303,25 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   stream.seekp (write_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.write (reinterpret_cast<char*> (AVI_header_avih_p),
                 sizeof (struct _avimainheader));
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.seekg (read_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.read (buffer_a, sizeof (struct _rifflist));
-  if (stream.eof () || stream.fail ())
+  if (unlikely (stream.eof () || stream.fail ()))
     goto error;
   read_offset += sizeof (struct _rifflist);
   RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
   ACE_ASSERT (RIFF_list_p->fccListType == FCC ('strl'));
   stream.read (buffer_a, sizeof (struct _avistreamheader));
-  if (stream.eof () || stream.fail ())
+  if (unlikely (stream.eof () || stream.fail ()))
     goto error;
   write_offset = read_offset;
   AVI_header_strh_p = reinterpret_cast<struct _avistreamheader*> (buffer_a);
@@ -335,19 +333,19 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   stream.seekp (write_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.write (reinterpret_cast<char*> (AVI_header_strh_p),
                 sizeof (struct _avistreamheader));
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.seekg (list_movi_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.read (buffer_a, sizeof (struct _rifflist));
-  if (stream.eof () || stream.fail ())
+  if (unlikely (stream.eof () || stream.fail ()))
     goto error;
   RIFF_list_p = reinterpret_cast<struct _rifflist*> (buffer_a);
   ACE_ASSERT (RIFF_list_p->fccListType == FCC ('movi'));
@@ -365,14 +363,12 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
   stream.seekp (list_movi_offset,
                 ios::beg);
                 //ios_base::beg);
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
   stream.write (reinterpret_cast<char*> (RIFF_list_p),
                 sizeof (struct _rifflist));
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     goto error;
-
-
 #else
   ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP_RETURN (false);
@@ -385,7 +381,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
 error:
 #endif // ACE_WIN32 || ACE_WIN64
   stream.close ();
-  if (stream.fail ())
+  if (unlikely (stream.fail ()))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to close file (was: \"%s\"), continuing\n"),
                 inherited::mod_->name (),
@@ -474,7 +470,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (formatContext_->streams[0]->codec)
       {
         result = avcodec_close (formatContext_->streams[0]->codec);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -527,16 +523,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         if (formatContext_->streams[0]->codec)
         {
           result = avcodec_close (formatContext_->streams[0]->codec);
-          if (result == -1)
+          if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                         inherited::mod_->name (),
                         ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
         } // end IF
 
-
-      avformat_free_context (formatContext_);
-      formatContext_ = NULL;
+      avformat_free_context (formatContext_); formatContext_ = NULL;
     } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
     frameSize_ = 0;
@@ -544,8 +538,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     width_ = 0;
     if (transformContext_)
     {
-      sws_freeContext (transformContext_);
-      transformContext_ = NULL;
+      sws_freeContext (transformContext_); transformContext_ = NULL;
     } // end IF
     currentFrameOffset_ = 0;
     frameOffsets_.clear ();
@@ -565,7 +558,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
                        NULL);                        // MIME-type
-  if (!output_format_p)
+  if (unlikely (!output_format_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_guess_format(\"%s\") failed, aborting\n"),
@@ -573,10 +566,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("avi")));
     return false;
   } // end IF
-  output_format_p->flags |= AVFMT_RAWPICTURE;
+//  output_format_p->flags |= AVFMT_RAWPICTURE;
   ACE_ASSERT (!formatContext_);
   formatContext_ = avformat_alloc_context ();
-  if (!formatContext_)
+  if (unlikely (!formatContext_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avformat_alloc_context() failed, aborting\n"),
@@ -611,14 +604,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      if (formatContext_->streams[0]->codec)
 //      {
 //        result = avcodec_close (formatContext_->streams[0]->codec);
-//        if (result == -1)
+//        if (unlikely (result == -1))
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("avcodec_close() failed: \"%s\", continuing\n"),
 //                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
 //      } // end IF
 
-//    avformat_free_context (formatContext_);
-//    formatContext_ = NULL;
+//    avformat_free_context (formatContext_); formatContext_ = NULL;
 //  } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -651,7 +643,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
   // sanity check(s)
-  if (!isActive_)
+  if (unlikely (!isActive_))
     return; // nothing to do
 
   // initialize return value(s)
@@ -684,7 +676,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                                    : (isFirst_ ? STREAM_DEC_AVI_JUNK_CHUNK_ALIGN + (4 + 4 + 4) + (4 + 4)
                                                                : (4 + 4))));
 #endif // ACE_WIN32 || ACE_WIN64
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
@@ -706,11 +698,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (isFirst_)
+  if (unlikely (isFirst_))
   {
     isFirst_ = false;
 
-    if (!generateHeader (message_block_p))
+    if (unlikely (!generateHeader (message_block_p)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n"),
@@ -732,7 +724,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #else
   result = message_block_p->copy (ACE_TEXT_ALWAYS_CHAR ("00db"),
                                   4);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
@@ -744,7 +736,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     riff_chunk_size = ACE_SWAP_LONG (riff_chunk_size);
   result = message_block_p->copy (reinterpret_cast<char*> (&riff_chunk_size),
                                   4);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
@@ -786,7 +778,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
   result = inherited::put_next (message_block_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -853,14 +845,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_2 =
-          getMediaType (media_type_r);
+      struct _AMMediaType media_type_2 = getMediaType (media_type_r);
       format_ =
         Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (media_type_2.subtype,
                                                                   STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-      Common_UI_Resolution_t resolution_s =
-          getResolution (session_data_r,
-                         media_type_2);
+      Common_UI_Resolution_t resolution_s = getResolution (session_data_r,
+                                                           media_type_2);
       width_ = resolution_s.cx;
       height_ = resolution_s.cy;
       frame_rate_s = getFrameRate (session_data_r,
@@ -868,9 +858,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #else
       format_ = getMediaType (media_type_r);
-      Common_UI_Resolution_t resolution_s =
-        getResolution (session_data_r,
-                       media_type_r);
+      Common_UI_Resolution_t resolution_s = getResolution (session_data_r,
+                                                           media_type_r);
       width_ = resolution_s.width;
       height_ = resolution_s.height;
       frame_rate_s = getFrameRate (session_data_r,
@@ -931,7 +920,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       formatContext_->oformat->video_codec = codec_id;
 
       codec_p = avcodec_find_encoder (codec_id);
-      if (!codec_p)
+      if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
@@ -941,7 +930,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (!codec_context_p);
       codec_context_p = avcodec_alloc_context3 (codec_p);
-      if (!codec_context_p)
+      if (unlikely (!codec_context_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
@@ -976,7 +965,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       codec_context_p->height = height_;
 //      codec_context_p->gop_size = 0;
       codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
-      codec_context_p->me_method = 1;
+//      codec_context_p->me_method = 1;
 //      codec_context_p->max_b_frames = 0;
 //      codec_context_p->b_quant_factor = -1.0F;
 //      codec_context_p->b_quant_offset = -1.0F;
@@ -1068,7 +1057,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       result = avcodec_open2 (codec_context_p,
                               codec_context_p->codec,
                               NULL);
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
@@ -1081,7 +1070,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (!formatContext_->streams);
       stream_p = avformat_new_stream (formatContext_,
                                       codec_p);
-      if (!stream_p)
+      if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
@@ -1120,18 +1109,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                   flags,                            // flags
                                   NULL, NULL,
                                   0);                               // parameters
-        if (!transformContext_)
+        if (unlikely (!transformContext_))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
           goto error;
         } // end IF
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: converting %s pixel format to %s\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (format_).c_str ()),
                     ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (AV_PIX_FMT_RGB24).c_str ())));
+#endif // _DEBUG
       } // end IF
 
       goto continue_;
@@ -1161,7 +1152,7 @@ continue_:
       ACE_Message_Block* message_block_p = NULL;
 
       // sanity check(s)
-      if (!isActive_)
+      if (unlikely (!isActive_))
         goto continue_2; // nothing to do
       if (!writeAVI1Index_)
         goto continue_2;
@@ -1173,7 +1164,7 @@ continue_:
       // *TODO*: remove type inference
       message_block_p =
         inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-      if (!message_block_p)
+      if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: Stream_TaskBase_T::allocateMessage(%d) failed: \"%m\", continuing\n"),
@@ -1182,24 +1173,24 @@ continue_:
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
-      if (!generateIndex (STREAM_AVI_INDEX_V1,
-                          message_block_p))
+      if (unlikely (!generateIndex (STREAM_AVI_INDEX_V1,
+                                    message_block_p)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(%d): \"%m\", continuing\n"),
                     inherited::mod_->name (),
                     STREAM_AVI_INDEX_V1));
-        message_block_p->release ();
+        message_block_p->release (); message_block_p = NULL;
         goto continue_2;
       } // end IF
 
       result = inherited::put_next (message_block_p, NULL);
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-        message_block_p->release ();
+        message_block_p->release (); message_block_p = NULL;
         goto continue_2;
       } // end IF
 
@@ -1346,7 +1337,7 @@ continue_:
   RIFF_list.fccListType = FCC ('AVI ');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1373,7 +1364,7 @@ continue_:
   RIFF_list.fccListType = FCC ('hdrl');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1437,7 +1428,7 @@ continue_:
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_avih),
                               sizeof (struct _avimainheader));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1466,7 +1457,7 @@ continue_:
   RIFF_list.fccListType = ckidSTREAMLIST;
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1541,7 +1532,7 @@ continue_:
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strh),
                               sizeof (struct _avistreamheader));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1567,7 +1558,7 @@ continue_:
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf),
                               sizeof (struct tagBITMAPINFOHEADER));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1585,16 +1576,25 @@ continue_:
   // --> should speed up CD-ROM access
   value_i = (AVI_header_avih.dwPaddingGranularity -
              (messageBlock_inout->length () + 8));
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: inserting JUNK chunk (%u pad byte(s))\n"),
               inherited::mod_->name (),
               value_i));
+#endif // _DEBUG
   RIFF_chunk.fcc = FCC ('JUNK');
   RIFF_chunk.cb =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                      sizeof (struct _riffchunk));
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
   ACE_OS::memset (messageBlock_inout->wr_ptr (), 0, value_i);
   messageBlock_inout->wr_ptr (RIFF_chunk.cb);
 
@@ -1613,7 +1613,7 @@ continue_:
   RIFF_list.fccListType = FCC ('movi');
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
                                      sizeof (struct _rifflist));
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
@@ -1643,7 +1643,7 @@ continue_2:
                         NULL,                                                             // read callback
                         stream_decoder_aviencoder_libav_write_cb,                         // write callback
                         NULL);                                                            // seek callback
-  if (!formatContext_->pb)
+  if (unlikely (!formatContext_->pb))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avio_alloc_context() failed: \"%m\", aborting\n"),
@@ -1659,7 +1659,7 @@ continue_2:
                 ACE_TEXT ("%s: caught exception in avformat_write_header(), continuing\n"),
                 inherited::mod_->name ()));
   }
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
@@ -1700,7 +1700,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   struct _AMMediaType* result_p =
     Stream_MediaFramework_DirectShow_Tools::copy (format_in);
-  if (!result_p)
+  if (unlikely (!result_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
@@ -1744,7 +1744,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     MFCreateAMMediaTypeFromMFMediaType (&const_cast<IMFMediaType&> (format_in),
                                         GUID_NULL,
                                         &result_p);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
@@ -1998,7 +1998,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (formatContext_);
 
   result = av_write_trailer (formatContext_);
-  if (result == -1)
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
                 inherited::mod_->name (),
@@ -2069,7 +2069,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       if (formatContext_->streams[0]->codec)
       {
         result = avcodec_close (formatContext_->streams[0]->codec);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -2109,6 +2109,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     isFirst_ = true;
+
     int result = -1;
     if (formatContext_)
     {
@@ -2116,7 +2117,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         if (formatContext_->streams[0]->codec)
         {
           result = avcodec_close (formatContext_->streams[0]->codec);
-          if (result == -1)
+          if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: avcodec_close() failed: \"%s\", continuing\n"),
                         inherited::mod_->name (),
@@ -2134,7 +2135,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
                        NULL);                        // MIME-type
-  if (!output_format_p)
+  if (unlikely (!output_format_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_guess_format(\"%s\") failed, aborting\n"),
@@ -2142,10 +2143,10 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("avi")));
     return false;
   } // end IF
-  output_format_p->flags |= AVFMT_RAWPICTURE;
+//  output_format_p->flags |= AVFMT_RAWPICTURE;
   ACE_ASSERT (!formatContext_);
   formatContext_ = avformat_alloc_context ();
-  if (!formatContext_)
+  if (unlikely (!formatContext_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avformat_alloc_context() failed, aborting\n"),
@@ -2177,14 +2178,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      if (formatContext_->streams[0]->codec)
 //      {
 //        result = avcodec_close (formatContext_->streams[0]->codec);
-//        if (result == -1)
+//        if (unlikely (result == -1))
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("avcodec_close() failed: \"%s\", continuing\n"),
 //                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
 //      } // end IF
 
-//    avformat_free_context (formatContext_);
-//    formatContext_ = NULL;
+//    avformat_free_context (formatContext_); formatContext_ = NULL;
 //  } // end IF
 
   return false;
@@ -2219,7 +2219,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-  if (session_data_r.targetFileName.empty ())
+  if (unlikely (session_data_r.targetFileName.empty ()))
     return; // nothing to do
 
   // initialize return value(s)
@@ -2243,7 +2243,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   message_block_p =
     inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
@@ -2252,10 +2252,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (isFirst_)
+  if (unlikely (isFirst_))
   {
     isFirst_ = false;
-    if (!generateHeader (message_block_p))
+
+    if (unlikely (!generateHeader (message_block_p)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n"),
@@ -2267,7 +2268,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   result = message_block_p->copy (ACE_TEXT_ALWAYS_CHAR ("00db"),
                                   4);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
@@ -2279,7 +2280,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     riff_chunk_size = ACE_SWAP_LONG (riff_chunk_size);
   result = message_block_p->copy (reinterpret_cast<char*> (&riff_chunk_size),
                                   4);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
@@ -2289,7 +2290,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   message_block_p->cont (message_inout);
   result = inherited::put_next (message_block_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -2333,7 +2334,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!inherited::sessionData_)
+  if (unlikely (!inherited::sessionData_))
     return;
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
@@ -2396,7 +2397,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       formatContext_->oformat->video_codec = codec_id;
 
       codec_p = avcodec_find_encoder (codec_id);
-      if (!codec_p)
+      if (unlikely (!codec_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
@@ -2406,7 +2407,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (!codec_context_p);
       codec_context_p = avcodec_alloc_context3 (codec_p);
-      if (!codec_context_p)
+      if (unlikely (!codec_context_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
@@ -2415,7 +2416,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
       result = avcodec_get_context_defaults3 (codec_context_p,
                                               codec_p);
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
@@ -2443,7 +2444,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       result = avcodec_open2 (codec_context_p,
                               codec_p,
                               NULL);
-      if (result < 0)
+      if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
@@ -2456,7 +2457,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (!formatContext_->streams);
       stream_p = avformat_new_stream (formatContext_,
                                       codec_p);
-      if (!stream_p)
+      if (unlikely (!stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
@@ -2509,7 +2510,7 @@ continue_:
       int result = -1;
       ACE_Message_Block* message_block_p = NULL;
 
-      if (session_data_r.targetFileName.empty ())
+      if (unlikely (session_data_r.targetFileName.empty ()))
         goto continue_2; // nothing to do
 
       // sanity check(s)
@@ -2519,7 +2520,7 @@ continue_:
       // *TODO*: remove type inference
       message_block_p =
         inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-      if (!message_block_p)
+      if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), continuing\n"),
@@ -2529,7 +2530,7 @@ continue_:
       } // end IF
       ACE_ASSERT (message_block_p);
 
-      if (!generateIndex (message_block_p))
+      if (unlikely (!generateIndex (message_block_p)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n"),
@@ -2539,7 +2540,7 @@ continue_:
       } // end IF
 
       result = inherited::put_next (message_block_p, NULL);
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
@@ -2595,7 +2596,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                         NULL,                                     // read callback
                         stream_decoder_aviencoder_libav_write_cb, // write callback
                         NULL);                                    // seek callback
-  if (!formatContext_->pb)
+  if (unlikely (!formatContext_->pb))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avio_alloc_context() failed: \"%m\", aborting\n"),
@@ -2611,7 +2612,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: caught exception in avformat_write_header(), continuing\n"),
                 inherited::mod_->name ()));
   }
-  if (result < 0)
+  if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
@@ -2648,19 +2649,18 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex"));
 
   // sanity check(s)
+  ACE_ASSERT (formatContext_);
   ACE_ASSERT (messageBlock_inout);
 
-  int result = -1;
-
-  // sanity check(s)
-  ACE_ASSERT (formatContext_);
-
-  result = av_write_trailer (formatContext_);
-  if (result == -1)
+  int result = av_write_trailer (formatContext_);
+  if (unlikely (result == -1))
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", continuing\n"),
+                ACE_TEXT ("%s: av_write_trailer() failed: \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+    return false;
+  } // end IF
 
   return true;
 }
@@ -2671,7 +2671,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 static sox_bool
-sox_overwrite_permitted (char const * filename_in)
+sox_overwrite_permitted (char const* filename_in)
 {
   return sox_true;
 }
@@ -2747,7 +2747,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   if (outputFile_)
   {
     result = sox_close (outputFile_);
-    if (result != SOX_SUCCESS)
+    if (unlikely (result != SOX_SUCCESS))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -2755,7 +2755,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   } // end IF
 
   result = sox_quit ();
-  if (result != SOX_SUCCESS)
+  if (unlikely (result != SOX_SUCCESS))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to sox_quit(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
@@ -2795,7 +2795,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     result = sox_quit ();
-    if (result != SOX_SUCCESS)
+    if (unlikely (result != SOX_SUCCESS))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_quit(): \"%s\", aborting\n"),
@@ -2809,7 +2809,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   result = sox_init ();
-  if (result != SOX_SUCCESS)
+  if (unlikely (result != SOX_SUCCESS))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to sox_init(): \"%s\", aborting\n"),
@@ -2850,10 +2850,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!inherited::isActive_)
+  if (unlikely (!inherited::isActive_))
     return;
 #else
-  if (!outputFile_)
+  if (unlikely (!outputFile_))
     return; // nothing to do
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2875,7 +2875,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   message_block_p =
     inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
@@ -2888,7 +2888,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   {
     inherited::isFirst_ = false;
 
-    if (!generateHeader (message_block_p))
+    if (unlikely (!generateHeader (message_block_p)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Decoder_WAVEncoder_T::generateHeader(), returning\n"),
@@ -2906,10 +2906,17 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
 
   message_block_p->cont (message_inout);
   result = inherited::put_next (message_block_p, NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -2939,7 +2946,7 @@ error:
                          &signalInfo_,
                          &encodingInfo_,
                          ACE_TEXT_ALWAYS_CHAR ("raw"));
-  if (!memory_buffer_p)
+  if (unlikely (!memory_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to sox_open_mem_read(): \"%m\", returning\n"),
@@ -2957,7 +2964,7 @@ error:
     samples_written = sox_write (outputFile_,
                                  samples,
                                  samples_read);
-    if (samples_written != samples_read)
+    if (unlikely (samples_written != samples_read))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_write(): \"%m\", returning\n"),
@@ -2967,10 +2974,10 @@ error:
   } while (true);
 
 error:
-  if (memory_buffer_p)
+  if (likely (memory_buffer_p))
   {
     result = sox_close (memory_buffer_p);
-    if (result != SOX_SUCCESS)
+    if (unlikely (result != SOX_SUCCESS))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -3010,7 +3017,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!inherited::sessionData_)
+  if (unlikely (!inherited::sessionData_))
     return;
 
   SessionDataType& session_data_r =
@@ -3029,7 +3036,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #else
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
-      if (inherited::configuration_->targetFileName.empty ())
+      if (unlikely (inherited::configuration_->targetFileName.empty ()))
         return;
 
       SessionDataType& session_data_r =
@@ -3057,7 +3064,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                           NULL,
                           &oob_data,
                           sox_overwrite_permitted);
-      if (!outputFile_)
+      if (unlikely (!outputFile_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to sox_open_write(\"%s\"): \"%m\", aborting\n"),
@@ -3065,18 +3072,19 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
         goto error;
       } // end IF
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened file stream \"%s\"...\n"),
+                  ACE_TEXT ("%s: opened file stream \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
-
+#endif // _DEBUG
       goto continue_;
 
 error:
       if (outputFile_)
       {
         result = sox_close (outputFile_);
-        if (result != SOX_SUCCESS)
+        if (unlikely (result != SOX_SUCCESS))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -3106,12 +3114,12 @@ continue_:
       struct _riffchunk* RIFF_chunk_fmt_p = NULL;
       struct _riffchunk* RIFF_chunk_data_p = NULL;
 
-      if (session_data_r.targetFileName.empty ())
+      if (unlikely (session_data_r.targetFileName.empty ()))
         goto continue_2;
 
-      if (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
-                                    O_RDWR | O_BINARY,             // flags
-                                    file_IO))                      // return value: stream
+      if (unlikely (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
+                                              O_RDWR | O_BINARY,             // flags
+                                              file_IO)))                     // return value: stream
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
@@ -3135,7 +3143,7 @@ continue_:
          sizeof (struct _riffchunk));
       ACE_NEW_NORETURN (wave_header_p,
                         unsigned char[wave_header_size]);
-      if (!wave_header_p)
+      if (unlikely (!wave_header_p))
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
@@ -3143,7 +3151,7 @@ continue_:
         goto error_2;
       } // end IF
       result_2 = file_IO.recv_n (wave_header_p, wave_header_size);
-      if (result_2 != wave_header_size)
+      if (unlikely (result_2 != wave_header_size))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::recv_n(%d): \"%m\", returning\n"),
@@ -3167,7 +3175,7 @@ continue_:
          sizeof (struct _riffchunk));
 
       result_2 = file_IO.send_n (wave_header_p, wave_header_size);
-      if (result_2 != wave_header_size)
+      if (unlikely (result_2 != wave_header_size))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::send_n(%d): \"%m\", returning\n"),
@@ -3179,9 +3187,9 @@ continue_:
       // clean up
       media_type_p = &media_type_r;
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
-      delete [] wave_header_p;
+      delete [] wave_header_p; wave_header_p = NULL;
       result = file_IO.close ();
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
@@ -3193,11 +3201,13 @@ error_2:
       media_type_p = &media_type_r;
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       if (wave_header_p)
-        delete [] wave_header_p;
+      {
+        delete [] wave_header_p; wave_header_p = NULL;
+      } // end IF
       if (close_file)
       {
         result = file_IO.close ();
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
@@ -3209,17 +3219,19 @@ continue_2:
       {
         sox_uint64_t bytes_written = outputFile_->tell_off;
         result = sox_close (outputFile_);
-        if (result != SOX_SUCCESS)
+        if (unlikely (result != SOX_SUCCESS))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (sox_strerror (result))));
         outputFile_ = NULL;
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     bytes_written));
+#endif // _DEBUG
       } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 

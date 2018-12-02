@@ -1,21 +1,38 @@
-﻿include (FindPkgConfig)
+﻿add_library (${PROJECT_NAME}_Document STATIC "")
+
 if (UNIX)
-# pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
-# pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
+ if (DEFINED ENV{OO_SDK_HOME})
+  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
+ elseif (DEFINED ENV{UNO_PATH})
+   message (WARNING "OO_SDK_HOME not set, falling back to UNO_PATH (was: \"${UNO_PATH}\")")
+   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
+ else ()
+  set (OO_SDK_DIRECTORY /usr/lib64/libreoffice/sdk)
+  #set (OO_SDK_DIRECTORY /usr/lib/libreoffice/sdk)
+  message (WARNING "OO_SDK_HOME|UNO_PATH not set, falling back to /usr/lib64/libreoffice/sdk")
+ endif ()
+ if (NOT EXISTS ${OO_SDK_DIRECTORY})
+  message (FATAL_ERROR "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), aborting")
+ endif (NOT EXISTS ${OO_SDK_DIRECTORY})
+elseif (WIN32)
+ if (DEFINED ENV{OO_SDK_HOME})
+  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
+ elseif (DEFINED ENV{UNO_HOME})
+  message (WARNING "OO_SDK_HOME not set, falling back to UNO_HOME (was: \"${UNO_HOME}\")")
+  set (OO_SDK_DIRECTORY $ENV{UNO_HOME}\..\sdk)
+ else ()
+  message (WARNING "%OO_SDK_HOME%/%UNO_HOME% not set, falling back")
+  set (OO_SDK_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../openoffice/sdk)
+ endif ()
 endif ()
-
-add_library (${PROJECT_NAME}_Document STATIC "")
+target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                            $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
 
 if (UNIX)
-# include_directories (${PKG_DBUS_INCLUDE_DIRS})
-# include_directories (/usr/lib/libreoffice/sdk/include)
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:/usr/include/libreoffice>)
-
  add_definitions (-DSAL_UNX) # libreoffice
  add_definitions (-DUNX)     # openoffice
 
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
+  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
@@ -25,27 +42,9 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Document PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src>)
+target_include_directories (${PROJECT_NAME}_Document PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src>)
 elseif (WIN32)
- if (DEFINED ENV{OO_SDK_HOME})
-  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
- elseif (DEFINED ENV{UNO_HOME})
-   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}\..\sdk)
- else ()
-  message (WARNING "%OO_SDK_HOME%/%UNO_PATH% not set, falling back")
-  set (OO_SDK_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../openoffice/sdk)
- endif ()
-# *NOTE*: workaround
-# set(_PF86 "ProgramFiles(x86)")
-# set (OO_SDK_DIRECTORY
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
-#       "C:/LibreOffice_5.1_SDK_installer/sdk")
-# message (STATUS "Apache OpenOffice SDK include directory: \"${OO_SDK_DIRECTORY}/include\"")
- target_include_directories (${PROJECT_NAME}_Document PUBLIC
-                             $<BUILD_INTERFACE:${OO_SDK_DIRECTORY}/include>)
-
  add_definitions (-DCPPU_ENV=msci)
  add_definitions (-DWNT)
 

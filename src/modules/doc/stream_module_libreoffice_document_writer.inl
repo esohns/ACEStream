@@ -35,7 +35,6 @@
 #include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
 #include "net_common_tools.h"
-//#include "net_configuration.h"
 
 #include "stream_macros.h"
 
@@ -78,7 +77,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   //ACE_NEW_NORETURN (handler_,
   //                  Stream_Module_LibreOffice_Document_Handler ());
   handler_ = new Stream_Module_LibreOffice_Document_Handler ();
-  if (!handler_)
+  if (unlikely (!handler_))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, returning\n"),
@@ -155,7 +154,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 //  ACE_UNUSED_ARG (passMessageDownstream_out);
 //
 //  // sanity check(s)
-//  if (!connection_)
+//  if (unlikely (!connection_))
 //  {
 ////    ACE_DEBUG ((LM_ERROR,
 ////                ACE_TEXT ("failed to open db connection, returning\n")));
@@ -246,10 +245,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+#if defined (_DEBUG)
       else
-        ACE_DEBUG ((LM_ERROR,
+        ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying connection configuration\n"),
                     inherited::mod_->name ()));
+#endif // _DEBUG
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
@@ -257,7 +258,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       result_p =
         (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_addr (host_address,
                                                                                                    sizeof (host_address));
-      if (!result_p || (result_p != host_address))
+      if (unlikely (!result_p || (result_p != host_address)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
@@ -304,13 +305,14 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
         goto error;
       }
       ACE_ASSERT (result_4);
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened LibreOffice connection (was: \"%s\")\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-
+#endif // _DEBUG
       result_4 = property_set_p.set (interface_p,
                                      uno::UNO_QUERY);
       ACE_ASSERT (result_4);
@@ -344,27 +346,32 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                                                   document_properties),  // properties
                         uno::UNO_QUERY);
       ACE_ASSERT (result_4);
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: loaded LibreOffice document (was: \"%s\")\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-
+#endif // _DEBUG
       break;
 
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      return;
+      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
       // *TODO*: ::lang::XComponent::dispose crashes the application
       if (component_.is ())
-        component_->dispose ();
+      {
+        component_->dispose (); component_ = NULL;
+      } // end IF
       if (componentContext_.is ())
-        uno::Reference<lang::XComponent>::query (componentContext_)->dispose ();
+      {
+        uno::Reference<lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
+      } // end IF
 
       break;
     }
@@ -400,9 +407,13 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   {
     // *TODO*: ::lang::XComponent::dispose crashes the application
     if (component_.is ())
-      component_->dispose ();
+    {
+      component_->dispose (); component_ = NULL;
+    } // end IF
     if (componentContext_.is ())
-      uno::Reference<lang::XComponent>::query (componentContext_)->dispose ();
+    {
+      uno::Reference<lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
+    } // end IF
   } // end IF
 
   return inherited::initialize (configuration_in,

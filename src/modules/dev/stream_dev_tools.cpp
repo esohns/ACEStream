@@ -622,9 +622,8 @@ Stream_Device_Tools::defaultCaptureFormat (const std::string& deviceIdentifier_i
   // *TODO*: support O_NONBLOCK
   int open_mode = O_RDONLY;
   int result = -1;
-  int file_descriptor =
-      v4l2_open (deviceIdentifier_in.c_str (),
-                 open_mode);
+  int file_descriptor = v4l2_open (deviceIdentifier_in.c_str (),
+                                   open_mode);
   if (unlikely (file_descriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1413,10 +1412,10 @@ Stream_Device_Tools::getFrameRate (int fileDescriptor_in,
 
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
+  frameRate_out.denominator =
+      stream_parameters.parm.capture.timeperframe.numerator;
   frameRate_out.numerator =
       stream_parameters.parm.capture.timeperframe.denominator;
-  frameRate_out.numerator =
-      stream_parameters.parm.capture.timeperframe.numerator;
 
   return true;
 }

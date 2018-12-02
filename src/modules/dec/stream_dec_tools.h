@@ -32,10 +32,6 @@
 #include <strmif.h>
 #include <vadefs.h>
 #include <windef.h>
-#else
-#include "alsa/asoundlib.h"
-
-#include "sox.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #ifdef __cplusplus
@@ -43,6 +39,9 @@ extern "C"
 {
 #include "libavcodec/avcodec.h"
 #include "libavutil/pixdesc.h"
+#include "libavutil/pixfmt.h"
+
+#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
@@ -56,10 +55,6 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_common.h"
-
-// forward declarations
-enum AVPixelFormat;
-struct SwsContext;
 
 void stream_decoder_libav_log_cb (void*, int, const char*, va_list);
 
@@ -184,6 +179,7 @@ class Stream_Module_Decoder_Tools
   //         audio format
   // *WARNING*: make sure the data buffer contains enough space to hold the
   //            sample data
+  // *TODO*: move this somewhere else
   static void sinus (double,       // frequency (Hz)
                      unsigned int, // sample rate (Hz)
                      unsigned int, // 'data' sample size (bytes)
@@ -191,15 +187,6 @@ class Stream_Module_Decoder_Tools
                      char*,        // target buffer
                      unsigned int, // #'data' samples to write
                      double&);     // (return value:) current phase
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  static void ALSAToSoX (enum _snd_pcm_format,       // format
-                         sox_rate_t,                 // sample rate
-                         unsigned,                   // channels
-                         struct sox_encodinginfo_t&, // return value: format
-                         struct sox_signalinfo_t&);  // return value: format
-#endif // ACE_WIN32 || ACE_WIN64
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())

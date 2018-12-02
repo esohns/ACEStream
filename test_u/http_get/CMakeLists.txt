@@ -1,41 +1,5 @@
 ﻿option (SSL_SUPPORT "enable SSL support" OFF)
 
-if (UNIX)
- include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
-# check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
-endif ()
-
-set (ACE_LIB_FILE libACE.so)
-if (UNIX)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-#               HINTS /usr/local
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib
-               DOC "searching for ${ACE_LIB_FILE}"
-               NO_DEFAULT_PATH)
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
- endif ()
- unset (ACE_LIB_FILE)
- set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_LIB_FILE}"
-               NO_DEFAULT_PATH)
-endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-if (NOT ACE_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
-endif ()
-
 if (SSL_SUPPORT)
  set (ACE_SSL_LIB_FILE libACE_SSL.so)
  if (UNIX)
@@ -65,16 +29,17 @@ if (SSL_SUPPORT)
  endif ()
 endif ()
 
-include (FindPkgConfig)
 if (UNIX)
-# *NOTE*: Common requires libcap
- pkg_check_modules (PKG_CAP REQUIRED libcap)
- #pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
  if (SSL_SUPPORT)
-  pkg_check_modules (PKG_SSL REQUIRED libssl)
- endif ()
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
+  find_package (OpenSSL MODULE
+                COMPONENTS Crypto SSL)
+  if (OPENSSL_FOUND)
+#   set (WXWIDGETS_SUPPORT ON CACHE BOOL "wxWidgets support")
+   add_definitions (-DSSL_SUPPORT)
+  endif (OPENSSL_FOUND)
+#  pkg_check_modules (PKG_SSL REQUIRED libssl)
+ endif (SSL_SUPPORT)
+# pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
 endif (UNIX)
 
 #if (WIN32)
@@ -129,13 +94,14 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${PKG_CAP_INCLUDE_DIRS})
+# include_directories (${PKG_CAP_INCLUDE_DIRS})
 
- include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
+# include_directories (${PKG_FFMPEG_INCLUDE_DIRS})
 
  if (SSL_SUPPORT)
   include_directories (${PKG_SSL_INCLUDE_DIRS})
- endif ()
+ endif (SSL_SUPPORT)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
@@ -260,7 +226,7 @@ target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
 
- target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
@@ -273,9 +239,9 @@ elseif (WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
 endif (UNIX)
-target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
+#target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (SSL_SUPPORT)

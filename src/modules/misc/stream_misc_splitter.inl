@@ -105,7 +105,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   ACE_Message_Block* message_block_p = NULL;
-  if (!buffer_)
+  if (unlikely (!buffer_))
   {
     buffer_ = message_inout;
     message_block_p = buffer_;
@@ -134,7 +134,7 @@ continue_:
   if (remainder)
   {
     message_block_2 = message_block_p->duplicate ();
-    if (!message_block_2)
+    if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
@@ -162,7 +162,7 @@ continue_:
   {
     IDATA_MESSAGE_T* idata_message_p =
       dynamic_cast<IDATA_MESSAGE_T*> (message_block_p);
-    if (!idata_message_p)
+    if (unlikely (!idata_message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IDataMessage_T*>(0x%@), returning\n"),
@@ -184,7 +184,7 @@ continue_:
   ACE_ASSERT (message_block_p->length () == PDUSize_);
 
   int result_2 = inherited::put_next (message_block_p, NULL);
-  if (result_2 == -1)
+  if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -272,7 +272,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.inputFormat);
 
   struct _AMMediaType* media_type_p = getFormat (configuration_in.inputFormat);
-  if (!media_type_p)
+  if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to getFormat(), aborting\n"),
@@ -317,11 +317,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
 
-  struct _AMMediaType* result_p = NULL;
-
-  result_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (*mediaType_in);
-  if (!result_p)
+  struct _AMMediaType* result_p =
+      Stream_MediaFramework_DirectShow_Tools::copy (*mediaType_in);
+  if (unlikely (!result_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
@@ -358,7 +356,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
                                         GUID_NULL,
                                         &result_p);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
@@ -506,7 +504,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   ACE_Message_Block* message_block_p = NULL;
-  if (!buffer_)
+  if (unlikely (!buffer_))
   {
     buffer_ = message_inout;
     message_block_p = buffer_;
@@ -535,7 +533,7 @@ continue_:
   HRESULT result =
       inherited::configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
                                                     &frame_size);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", returning\n"),
@@ -554,7 +552,7 @@ continue_:
   if (remainder)
   {
     message_block_2 = message_block_p->duplicate ();
-    if (!message_block_2)
+    if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
@@ -579,7 +577,7 @@ continue_:
   ACE_ASSERT (total_length == frame_size);
 
   int result_2 = inherited::put_next (message_block_p, NULL);
-  if (result_2 == -1)
+  if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -671,8 +669,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   {
     if (buffer_)
     {
-      buffer_->release ();
-      buffer_ = NULL;
+      buffer_->release (); buffer_ = NULL;
     } // end IF
   } // end IF
 
@@ -682,7 +679,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.format);
 
   struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
-  if (!media_type_p)
+  if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to getFormat(), aborting\n"),
@@ -960,8 +957,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 
   struct _AMMediaType* result_p = NULL;
 
-  if (!Stream_Module_Device_DirectShow_Tools::copy (*format_in,
-                                                             result_p))
+  if (unlikely (!Stream_Module_Device_DirectShow_Tools::copy (*format_in,
+                                                              result_p)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copy(), aborting\n")));
@@ -1008,7 +1005,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
                                         GUID_NULL,
                                         &result_p);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),

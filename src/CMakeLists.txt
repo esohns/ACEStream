@@ -14,7 +14,9 @@ if (UNIX)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  set (CMAKE_THREAD_PREFER_PTHREAD ON)
  find_package (Threads)
-endif ()
+
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
+endif (UNIX)
 
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
@@ -47,9 +49,6 @@ else ()
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
-#include (FindPkgConfig)
-#pkg_check_modules (PKGACE REQUIRED ACE)
-
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -71,6 +70,9 @@ add_definitions (-DHAVE_CONFIG_H)
 add_library (${PROJECT_NAME} STATIC "")
 
 if (UNIX)
+ target_include_directories (${PROJECT_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
  target_include_directories (${PROJECT_NAME} PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE>)
 

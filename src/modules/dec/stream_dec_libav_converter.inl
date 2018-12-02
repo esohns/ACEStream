@@ -303,7 +303,9 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     AV_INPUT_BUFFER_PADDING_SIZE;
 #else
-    FF_INPUT_BUFFER_PADDING_SIZE;
+// *TODO*: find out when this changed
+//    FF_INPUT_BUFFER_PADDING_SIZE;
+      AV_INPUT_BUFFER_PADDING_SIZE;
 #endif // ACE_WIN32 || ACE_WIN64
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];

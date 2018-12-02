@@ -1,4 +1,4 @@
-﻿include (CMakeDependentOption)
+﻿#include (CMakeDependentOption)
 option (BUILD_TEST_U "build test_u" OFF)
 
 # user interface
@@ -66,8 +66,11 @@ if (GUI_SUPPORT)
  endif (GTK_SUPPORT)
 endif (GUI_SUPPORT)
 
-include (FindPkgConfig)
 if (UNIX)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
    if (GTK2_SUPPORT)
@@ -75,13 +78,14 @@ if (UNIX)
    elseif (GTK3_SUPPORT)
     pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
    endif ()
+  endif (GTK_SUPPORT)
+  if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
-  endif (GTK_SUPPORT)
-  if (WXWIDGETS_SUPPORT)
+  elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
-  endif (WXWIDGETS_SUPPORT)
+  endif ()
  endif (GUI_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
@@ -94,14 +98,17 @@ if (UNIX)
  if (GUI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui>)
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/gtk>)
-  endif (GTK_SUPPORT)
+  elseif (WXWIDGETS_USE)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/wxwidgets>)
+  endif ()
  endif (GUI_SUPPORT)
 elseif (WIN32)
  if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    if (GTK2_SUPPORT)
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk2/include/atk-1.0>)
@@ -135,9 +142,12 @@ elseif (WIN32)
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/gtk-3.0>)
    endif ()
-  endif (GTK_SUPPORT)
 # libglade
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
+  elseif (WXWIDGETS_USE)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
+  endif ()
  endif (GUI_SUPPORT)
 
  if (DEFINED ENV{ACE_ROOT})
@@ -157,22 +167,15 @@ elseif (WIN32)
  if (GUI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui>)
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/gtk>)
-  endif (GTK_SUPPORT)
-  if (WXWIDGETS_SUPPORT)
+  elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/wxwidgets>)
-  endif (WXWIDGETS_SUPPORT)
+  endif ()
  endif (GUI_SUPPORT)
 endif ()
-if (GUI_SUPPORT)
- if (WXWIDGETS_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                              $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
- endif (WXWIDGETS_SUPPORT)
-endif (GUI_SUPPORT)
 
 target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
@@ -187,7 +190,7 @@ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
 
 if (WIN32)
  if (GUI_SUPPORT)
-  if (GTK_SUPPORT)
+  if (GTK_USE)
    if (GTK3_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/gio-2.0.lib)
     target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/lib/glib-2.0.lib)
@@ -218,10 +221,11 @@ if (WIN32)
    endif (GTKGL_SUPPORT)
 
    target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_GTK)
-  endif (GTK_SUPPORT)
-  if (WXWIDGETS_SUPPORT)
+  elseif (WXWIDGETS_USE)
    target_link_libraries (${PROJECT_NAME}_Test_U ${wxWidgets_LIBRARIES})
-  endif (WXWIDGETS_SUPPORT)
+
+   target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_wxWidgets)
+  endif ()
 
   target_link_libraries (${PROJECT_NAME}_Test_U CommonUI)
  endif (GUI_SUPPORT)

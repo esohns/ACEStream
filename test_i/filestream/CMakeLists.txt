@@ -1,55 +1,4 @@
-﻿if (UNIX)
- include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
- check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
-endif ()
-
-set (ACE_LIB_FILE libACE.so)
-if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace build/linux/ace
-                DOC "searching for ${ACE_LIB_FILE}")
- else ()
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                DOC "searching for ${ACE_LIB_FILE} (system paths)")
- endif ()
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
- endif ()
- unset (ACE_LIB_FILE)
- set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_LIB_FILE}")
-endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-if (NOT ACE_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "found ACE library \"${ACE_LIBRARY}\"")
-endif ()
-add_definitions (-DACE_HAS_DLL)
-
-include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
-if (UNIX)
-# *NOTE*: Common requires libcap
- pkg_check_modules (PKG_CAP REQUIRED libcap)
- if (GTK3_SUPPORT)
-  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
-endif ()
-
-get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+﻿get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 #message (STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 #message (STATUS "BUILD_PATH: ${BUILD_PATH}")
@@ -61,7 +10,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
-endif ()
+endif (NOT EXISTS ${Common_DIR})
 add_definitions (-DCOMMON_HAS_DLL)
 add_definitions (-DCOMMON_UI_HAS_DLL)
 
@@ -73,7 +22,7 @@ find_package (${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${${PROJECT_NAME}_DIR})
  message (FATAL_ERROR "could not find package \"${PROJECT_NAME}\", aborting")
-endif ()
+endif (NOT EXISTS ${${PROJECT_NAME}_DIR})
 
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -83,18 +32,13 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
-endif ()
+endif (NOT EXISTS ${ACENetwork_DIR})
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${PKG_CAP_INCLUDE_DIRS})
-# if (GTK3_SUPPORT)
-#  include_directories (${PKG_GTK3_INCLUDE_DIRS})
-# else ()
-#  include_directories (${PKG_GTK2_INCLUDE_DIRS})
-# endif ()
+# include_directories (${PKG_CAP_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
@@ -219,10 +163,9 @@ endif ()
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (${EXECUTABLE_SOURCE} rt)
- target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE_SOURCE} iw)
- target_link_libraries (${EXECUTABLE_SOURCE} X11)
+# target_link_libraries (${EXECUTABLE_SOURCE} rt)
+# target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_SOURCE} X11)
 endif (UNIX)
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
@@ -242,8 +185,6 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
-#target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
-#target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_WLAN)
 
 # add PCH
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
@@ -373,10 +314,9 @@ endif ()
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (${EXECUTABLE_TARGET} rt)
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE_TARGET} iw)
- target_link_libraries (${EXECUTABLE_TARGET} X11)
+# target_link_libraries (${EXECUTABLE_TARGET} rt)
+# target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE_TARGET} X11)
 elseif (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE_TARGET} Common)
@@ -387,7 +327,7 @@ if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
                         LINK_FLAGS /FORCE:MULTIPLE)
-endif ()
+endif (WIN32)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
@@ -406,7 +346,9 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
 #                       COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 #cotire (${EXECUTABLE_TARGET})
-add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
+if (WIN32)
+ add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
+endif (WIN32)
 
 ##########################################
 

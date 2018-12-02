@@ -11,14 +11,15 @@
 # sanity check(s)
 command -v basename >/dev/null 2>&1 || { echo "basename is not installed, aborting" >&2; exit 1; }
 
-#OO_SDK_HOME=/usr/lib64/libreoffice/sdk
-OO_SDK_HOME=/usr/lib/libreoffice/sdk
+OO_SDK_HOME=/usr/lib64/libreoffice/sdk
+#OO_SDK_HOME=/usr/lib/libreoffice/sdk
 if [ ! -d ${OO_SDK_HOME} ]
 then
  echo "invalid OO SDK directory (was: \"${OO_SDK_HOME}\"), exiting"
  exit
 fi
-OO_SDK_INCLUDE=/usr/include/libreoffice
+OO_SDK_INCLUDE=${OO_SDK_HOME}/include
+#OO_SDK_INCLUDE=/usr/include/libreoffice
 if [ ! -d ${OO_SDK_INCLUDE} ]
 then
  echo "invalid OO SDK include directory (was: \"${OO_SDK_INCLUDE}\"), exiting"

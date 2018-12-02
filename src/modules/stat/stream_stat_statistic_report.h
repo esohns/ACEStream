@@ -27,7 +27,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Singleton.h"
 #include "ace/Time_Value.h"
 
 #include "common_icounter.h"
@@ -39,8 +38,6 @@
 #include "stream_resetcounterhandler.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_stat_exports.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -58,7 +55,6 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
 
-//extern Stream_Stat_Export const char libacestream_default_stat_report_module_name_string[];
 extern const char libacestream_default_stat_report_module_name_string[];
 
 template <ACE_SYNCH_DECL,
