@@ -498,7 +498,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #if defined (GTK_USE)
         Common_UI_GTK_State_t& state_r =
           const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR_2 ());
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState.lock);
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
           CBData_->progressData.statistic = sessionData_->statistic;
         } // end lock scope
 #endif // GTK_USE

@@ -687,9 +687,11 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   int group_id = -1;
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   // step0b: initialize event dispatch
   CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       (useReactor_in ? numberOfDispatchThreads_in : 0);
@@ -764,10 +766,11 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
 
-  // step1a: start GTK event loop ?
+  // step1a: start UI event loop ?
   if (!interfaceDefinitionFile_in.empty ())
   {
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
     gtk_manager_p->start ();
@@ -784,7 +787,8 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     HWND window_p = GetConsoleWindow ();
@@ -855,11 +859,13 @@ do_work (unsigned int bufferSize_in,
                           false); // wait for downstream (if any) ?
   } // end IF
   else
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     gtk_manager_p->wait ();
 #else
     ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   // step3: clean up
   connection_manager_p->stop ();
@@ -909,11 +915,13 @@ clean:
                                        group_id);
   timer_manager_p->stop ();
   if (!interfaceDefinitionFile_in.empty ())
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
 #else
     ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)

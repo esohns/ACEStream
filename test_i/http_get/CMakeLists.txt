@@ -47,7 +47,7 @@ if (UNIX)
 # pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
 endif (UNIX)
 
-set (MYSQL_LIB_FILE libmysqlclient.so)
+#set (MYSQL_LIB_FILE libmysqlclient.so)
 if (UNIX)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
  pkg_check_modules (PKG_MYSQL REQUIRED mysqlclient) # Fedora 29
@@ -243,6 +243,11 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
  add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
 endif ()
 
+if (UNIX)
+# message (STATUS "PKG_MYSQL_LIBRARY_DIRS: ${PKG_MYSQL_LIBRARY_DIRS}")
+ link_directories (${PKG_MYSQL_LIBRARY_DIRS})
+endif (UNIX)
+
 cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -269,8 +274,9 @@ if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_MYSQL_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
+ #target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 

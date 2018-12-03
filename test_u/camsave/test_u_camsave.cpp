@@ -51,7 +51,6 @@
 #include "Common_config.h"
 #endif // HAVE_CONFIG_H
 
-//#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_log_tools.h"
@@ -64,6 +63,7 @@
 
 #if defined (GUI_SUPPORT)
 #include "common_ui_defines.h"
+#include "common_ui_tools.h"
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"

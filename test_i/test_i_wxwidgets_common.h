@@ -22,7 +22,6 @@
 #define TEST_I_WXWIDGETS_COMMON_H
 
 #include "ace/OS.h"
-//#include "ace/Synch_Traits.h"
 
 #include "common_ui_wxwidgets_common.h"
 
@@ -50,13 +49,13 @@ struct Test_I_wxWidgets_CBData
   Test_I_wxWidgets_CBData ()
    : Test_I_UI_CBData ()
    , progressData ()
-   , UIState (NULL)
+   , UIState ()
   {
-    progressData.state = UIState;
+    progressData.state = &UIState;
   }
 
   struct Test_I_wxWidgets_ProgressData progressData;
-  struct Common_UI_wxWidgets_State*    UIState;
+  struct Common_UI_wxWidgets_State     UIState;
 };
 
 struct Test_I_wxWidgets_ThreadData

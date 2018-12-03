@@ -199,13 +199,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #else
   width  = inherited::configuration_->sourceFormat.width;
   height = inherited::configuration_->sourceFormat.height;
+  pixel_format = session_data_r.formats.front ();
   image_size =
-      av_image_get_buffer_size (session_data_r.inputFormat,
+      av_image_get_buffer_size (pixel_format,
                                 width,
                                 height,
                                 1); // *TODO*: linesize alignment
-  pixel_format = session_data_r.inputFormat;
-  row_stride = av_image_get_linesize (session_data_r.inputFormat,
+  row_stride = av_image_get_linesize (pixel_format,
                                       width,
                                       0);
 #endif // ACE_WIN32 || ACE_WIN64

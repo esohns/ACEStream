@@ -20,13 +20,13 @@
 
 #include "ace/Log_Msg.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
-
-//#include "test_i_source_common.h"
 
 template <typename ConfigurationType>
 Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
@@ -54,11 +54,14 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
   bool shutdown = false;
   switch (signal_in.signal)
   {
+    // *PORTABILITY*: on Windows (TM) SIGQUIT is not defined
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGINT:
-      // *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#else
+    case SIGINT:
+      break;
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
       //       // *PORTABILITY*: tracing in a signal handler context is not portable
       //       // *TODO*
@@ -70,22 +73,24 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
       break;
     }
     // *PORTABILITY*: on Windows SIGUSRx are not defined
-    // --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+    // --> use SIGBREAK (21) and SIGTERM (15) instead
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
-#endif
+#else
+    case SIGUSR1:
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
 
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows (TM) SIGHUP and SIGUSRx are not defined
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // print statistic
@@ -109,11 +114,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     // print statistic ?
   if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    } catch (...)
-    {
+    } catch (...) {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,
@@ -132,12 +135,14 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
     if (inherited::configuration_->hasUI)
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
                                                           false); // N/A
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);

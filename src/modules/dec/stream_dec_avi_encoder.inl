@@ -69,6 +69,8 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #else
 #include "stream_dev_tools.h"
+
+#include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
@@ -3050,7 +3052,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_Module_Decoder_Tools::ALSAToSoX (media_type_r.format,
+      Stream_MediaFramework_Tools::ALSAToSoX (media_type_r.format,
                                               media_type_r.rate,
                                               media_type_r.channels,
                                               encodingInfo_,

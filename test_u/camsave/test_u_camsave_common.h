@@ -909,7 +909,7 @@ struct Stream_CamSave_V4L_UI_CBData
    , subscribers ()
   {
 #if defined (GTK_USE)
-    pixelBufferLock = &lock;
+    pixelBufferLock = &UIState.lock;
 #endif // GTK_USE
   }
 

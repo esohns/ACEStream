@@ -28,16 +28,20 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "gtk/gtk.h"
+#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #include "common_isubscribe.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #include "stream_common.h"
@@ -48,8 +52,10 @@
 #include "stream_session_data.h"
 
 #include "test_u_common.h"
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "test_u_gtk_common.h"
+#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 // forward declarations
@@ -163,18 +169,22 @@ typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_IS
 //////////////////////////////////////////
 
 struct Stream_Filecopy_ProgressData
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_ProgressData
 #else
  : Test_U_UI_ProgressData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 {
   Stream_Filecopy_ProgressData ()
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_ProgressData ()
 #else
    : Test_U_UI_ProgressData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , copied (0)
    , size (0)
   {}
@@ -184,18 +194,22 @@ struct Stream_Filecopy_ProgressData
 };
 
 struct Stream_Filecopy_UI_CBData
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_CBData
 #else
  : Test_U_UI_CBData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 {
   Stream_Filecopy_UI_CBData ()
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_CBData ()
 #else
    : Test_U_UI_CBData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , configuration (NULL)
    , progressData ()
    , stream (NULL)
@@ -209,27 +223,35 @@ struct Stream_Filecopy_UI_CBData
 };
 
 struct Stream_Filecopy_ThreadData
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
  : Test_U_GTK_ThreadData
 #else
  : Test_U_UI_ThreadData
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 {
   Stream_Filecopy_ThreadData ()
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
    : Test_U_GTK_ThreadData ()
 #else
    : Test_U_UI_ThreadData ()
-#endif // GTK_SUPPORT
+#endif // GTK_USE
    , CBData (NULL)
+#endif // GUI_SUPPORT
   {}
 
+#if defined (GUI_SUPPORT)
   struct Stream_Filecopy_UI_CBData* CBData;
+#endif // GUI_SUPPORT
 };
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
                                          struct Stream_Filecopy_UI_CBData> Stream_Filecopy_GtkBuilderDefinition_t;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #endif

@@ -26,7 +26,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_ilock.h"
-#include "common_itaskcontrol.h"
+//#include "common_itaskcontrol.h"
 
 #include "common_ui_gtk_common.h"
 #if defined (GTKGL_SUPPORT)
@@ -55,11 +55,13 @@ struct Test_I_GTK_CBData
   Test_I_GTK_CBData ()
    : Test_I_UI_CBData ()
    , progressData ()
-   , UIState (NULL)
-  {}
+   , UIState ()
+  {
+    progressData.state = &UIState;
+  }
 
   struct Test_I_GTK_ProgressData progressData;
-  Common_UI_GTK_State_t*         UIState;
+  Common_UI_GTK_State_t          UIState;
 };
 
 struct Test_I_GTK_ThreadData

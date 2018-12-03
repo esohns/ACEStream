@@ -1,6 +1,9 @@
 ﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
-include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
+#include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
 
+if (GTK_SUPPORT)
+# include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
+endif (GTK_SUPPORT)
 if (WXWIDGETS_SUPPORT)
  message (STATUS "wxWidgets_DEFINITIONS: ${wxWidgets_DEFINITIONS}")
  message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
@@ -21,48 +24,10 @@ if (WXWIDGETS_SUPPORT)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WXWIDGETS_SUPPORT)
 
-include (CMakeDependentOption)
-if (GTK_USE)
- include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
- CMAKE_DEPENDENT_OPTION (GTKGL_SUPPORT "enable GTK OpenGL support" ON
-                         "GUI_SUPPORT" OFF)
-# *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
-#                   of the project
- CMAKE_DEPENDENT_OPTION (GTKGLAREA_SUPPORT "enable GtkGLArea support" OFF
-                         "GUI_SUPPORT; GTKGL_SUPPORT" OFF)
-endif (GTK_USE)
-
 if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  pkg_check_modules (PKG_SOX REQUIRED sox)
-
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
-   if (GTKGL_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-3.0)
-    endif (GTKGLAREA_SUPPORT)
-   endif (GTKGL_SUPPORT)
-  else ()
-   pkg_check_modules (PKG_GTK REQUIRED gmodule-2.0 gthread-2.0 gtk+-2.0)
-   if (GTKGL_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-2.0)
-    else ()
-     pkg_check_modules (PKG_GTKGL REQUIRED gdkglext-1.0 gtkglext-1.0)
-    endif (GTKGLAREA_SUPPORT)
-   endif (GTKGL_SUPPORT)
-  endif ()
- endif (GTK_SUPPORT)
 elseif (WIN32)
- if (GTK3_SUPPORT)
-# *TODO*: repair pkg-config support
-#  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
- else ()
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
-#  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- endif ()
 endif ()
 
 if (UNIX)
@@ -93,29 +58,24 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
  if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-#  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-#                              $<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>)
+  if (GTK3_FOUND)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               ${PKG_GTK_INCLUDE_DIRS})
-   if (GTKGL_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
-    endif (GTKGLAREA_SUPPORT)
-   endif (GTKGL_SUPPORT)
+                               $<BUILD_INTERFACE:${GTK3_INCLUDE_DIRS}>)
+  elseif (GTK2_FOUND)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>)
+  elseif (GTK_FOUND)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${GTK_INCLUDE_DIR}>)
   else ()
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${PKG_GTK_INCLUDE_DIRS}>)
-   if (GTKGL_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
-    else ()
-     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                 $<BUILD_INTERFACE:${PKG_GTKGL_INCLUDE_DIRS}>)
-    endif (GTKGLAREA_SUPPORT)
-   endif (GTKGL_SUPPORT)
+   if (GTK2_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
+   elseif (GTK3_SUPPORT)
+# *NOTE*: a bug in cmake (3.10.2) requires the additional comment
+    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                                "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
+   endif ()
   endif ()
  endif (GTK_SUPPORT)
 
@@ -249,6 +209,9 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../lib>)
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
+
+#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
+#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 ############## next target ################
 set (source_files

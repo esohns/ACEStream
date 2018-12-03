@@ -26,9 +26,11 @@
 
 #include "common_tools.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -160,12 +162,14 @@ HTTPGet_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     ACE_ASSERT (inherited::configuration_);
     if (inherited::configuration_->hasUI)
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
                                                           false); // N/A
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

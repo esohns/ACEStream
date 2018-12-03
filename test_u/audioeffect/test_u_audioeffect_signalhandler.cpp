@@ -24,9 +24,11 @@
 
 #include "ace/Log_Msg.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -144,11 +146,13 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     // step2: stop UI event processing ?
     if (inherited::configuration_->hasUI)
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
                                                           false); // N/A
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   } // end IF
 }

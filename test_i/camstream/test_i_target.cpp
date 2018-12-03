@@ -1210,9 +1210,9 @@ do_work (unsigned int bufferSize_in,
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_MediaFoundation_ConnectionConfiguration_t mediafoundation_connection_configuration;
@@ -2889,7 +2889,11 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-//continue_:
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+continue_:
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work

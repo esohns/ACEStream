@@ -23,15 +23,15 @@
 #include "common_timer_manager_common.h"
 #include "common_tools.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
 #include "test_i_connection_manager_common.h"
-
-//#include "test_i_target_common.h"
 
 template <typename ConfigurationType,
           typename ConnectionManagerType>
@@ -63,14 +63,14 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
   bool statistic = false;
   switch (signal_in.signal)
   {
-// *PORTABILITY*: on Windows SIGQUIT is not defined
+    // *PORTABILITY*: on Windows (TM) SIGQUIT is not defined
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGINT:
 #else
     case SIGINT:
       break;
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
 //       // *PORTABILITY*: tracing in a signal handler context is not portable
 //       // *TODO*
@@ -78,25 +78,27 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
       //           ACE_TEXT("shutting down...\n")));
 
       shutdown = true;
+
       break;
     }
-// *PORTABILITY*: on Windows SIGUSRx are not defined
-// --> use SIGBREAK (21) and SIGTERM (15) instead...
+    // *PORTABILITY*: on Windows SIGUSRx are not defined
+// --> use SIGBREAK (21) and SIGTERM (15) instead
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
 #else
     case SIGUSR1:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
       break;
     }
+    // *PORTABILITY*: on Windows (TM) SIGHUP and SIGUSRx are not defined
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // close
@@ -153,12 +155,14 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
     if (inherited::configuration_->hasUI)
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
                                                           false); // N/A
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     // step2: invoke controller (if any)
     if (inherited::configuration_->listener)
@@ -182,12 +186,9 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
       if (result <= 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", returning\n"),
+                    ACE_TEXT ("failed to cancel timer (id: %d): \"%m\", returning\n"),
                     inherited::configuration_->statisticReportingTimerId));
-
-        // clean up
         inherited::configuration_->statisticReportingTimerId = -1;
-
         return;
       } // end IF
       inherited::configuration_->statisticReportingTimerId = -1;

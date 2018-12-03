@@ -216,6 +216,7 @@ if (GUI_SUPPORT)
   set (ui_definition_file ${EXECUTABLE}.xrc)
  endif ()
 endif (GUI_SUPPORT)
+message (STATUS "ui_definition_file: ${ui_definition_file}")
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
@@ -236,8 +237,8 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
- target_link_libraries (${EXECUTABLE} rt)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} rt)
+# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 elseif (WIN32)
@@ -293,7 +294,7 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
- target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  if (GUI_SUPPORT)
   if (WXWIDGETS_USE)
    target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})

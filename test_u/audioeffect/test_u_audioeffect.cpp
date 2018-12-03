@@ -928,7 +928,11 @@ do_work (unsigned int bufferSize_in,
   istream_control_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Time_Value one_second (1, 0);
-//  int result_2 = -1;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  int result_2 = -1;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 //  const Stream_Module_t* module_p = NULL;
 //  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
   struct Stream_ModuleConfiguration module_configuration;
@@ -1220,8 +1224,7 @@ do_work (unsigned int bufferSize_in,
   configuration_in.streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
-  configuration_in.streamConfiguration.configuration_.printFinalReport =
-    true;
+  configuration_in.streamConfiguration.configuration_.printFinalReport = true;
   configuration_in.streamConfiguration.configuration_.format =
     &configuration_in.ALSAConfiguration.format;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1409,9 +1412,9 @@ do_work (unsigned int bufferSize_in,
 #if defined (GTK_USE)
     state_r.eventHooks.finiHook = idle_initialize_UI_cb;
     state_r.eventHooks.initHook = idle_finalize_UI_cb;
-    //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+    //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
+    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 #endif // GTK_USE
     CBData_in.stream = &stream;

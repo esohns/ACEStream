@@ -865,7 +865,7 @@ do_work (const std::string& deviceIdentifier_in,
 #else
   struct Test_I_Source_V4L2_Configuration v4l2_configuration;
   camstream_configuration_p = &v4l2_configuration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
     ((eventDispatchType_in == COMMON_EVENT_DISPATCH_PROACTOR) ? numberOfDispatchThreads_in
@@ -1078,7 +1078,7 @@ do_work (const std::string& deviceIdentifier_in,
   //ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
 
   v4l2CBData_in.configuration = &v4l2_configuration;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                    : NET_TRANSPORTLAYER_TCP);
 
@@ -1125,7 +1125,7 @@ do_work (const std::string& deviceIdentifier_in,
                         Test_I_Source_V4L2_UDPStream_t ());
       result = (v4l2CBData_in.stream &&
                 v4l2CBData_in.UDPStream);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       break;
     }
     case COMMON_EVENT_DISPATCH_PROACTOR:
@@ -1168,7 +1168,7 @@ do_work (const std::string& deviceIdentifier_in,
                         Test_I_Source_V4L2_AsynchUDPStream_t ());
       result = (v4l2CBData_in.stream &&
                 v4l2CBData_in.UDPStream);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
       break;
     }
     default:
@@ -1228,7 +1228,7 @@ do_work (const std::string& deviceIdentifier_in,
                 ACE_TEXT ("failed to initialize media framework, returning\n")));
     return;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   int result_2 = -1;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1245,7 +1245,7 @@ do_work (const std::string& deviceIdentifier_in,
     NULL;
 #else
 //  Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
   timer_configuration.dispatch =
     ((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_TIMER_DISPATCH_REACTOR
@@ -1258,9 +1258,11 @@ do_work (const std::string& deviceIdentifier_in,
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_Source_Stream_StatisticReportingHandler_t* report_handler_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_MediaFoundation_ConnectionConfiguration_t mediafoundation_connection_configuration;
   Test_I_Source_DirectShow_ConnectionConfiguration_t directshow_connection_configuration;
@@ -1386,7 +1388,7 @@ do_work (const std::string& deviceIdentifier_in,
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
   report_handler_p = connection_manager_p;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
   Test_I_Source_Stream_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
@@ -1426,7 +1428,7 @@ do_work (const std::string& deviceIdentifier_in,
                                                      &v4l2CBData_in.subscribersLock);
   event_handler_p =
     dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (event_handler.writer ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -1563,7 +1565,7 @@ do_work (const std::string& deviceIdentifier_in,
 
   connection_manager_p->set ((*connection_iterator).second,
                              &v4l2_configuration.userData);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -1657,7 +1659,7 @@ do_work (const std::string& deviceIdentifier_in,
 //      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   (*modulehandler_iterator).second.second.streamConfiguration =
       &(*stream_iterator).second;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p->initialize (timer_configuration);
@@ -1731,7 +1733,7 @@ do_work (const std::string& deviceIdentifier_in,
   result =
     signal_handler.initialize (v4l2_configuration.signalHandlerConfiguration);
   event_handler_p = &signal_handler;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1764,7 +1766,7 @@ do_work (const std::string& deviceIdentifier_in,
   if (!UIDefinitionFilename_in.empty ())
   {
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
     Common_UI_GTK_Manager_t* gtk_manager_p =
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
@@ -1791,7 +1793,7 @@ do_work (const std::string& deviceIdentifier_in,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
       goto clean;
     } // end IF
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1806,7 +1808,7 @@ do_work (const std::string& deviceIdentifier_in,
     if (!showConsole_in)
       was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
   // step1b: initialize worker(s)
@@ -1878,7 +1880,7 @@ do_work (const std::string& deviceIdentifier_in,
       stream_p = v4l2CBData_in.UDPStream;
       result = v4l2CBData_in.UDPStream->initialize ((*stream_iterator).second);
     } // end ELSE
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     if (!result)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1911,10 +1913,10 @@ do_work (const std::string& deviceIdentifier_in,
   //    connection_manager_p->stop ();
   } // end IF
 #if defined (GUI_SUPPORT)
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   else
     gtk_manager_p->wait ();
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 //    connection_manager_p->abort ();
@@ -1988,7 +1990,7 @@ clean:
 #else
   delete v4l2CBData_in.stream; v4l2CBData_in.stream = NULL;
   delete v4l2CBData_in.UDPStream; v4l2CBData_in.UDPStream = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -2058,7 +2060,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     return EXIT_FAILURE;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   Common_Tools::initialize ();
 
   // *PROCESS PROFILE*
@@ -2080,7 +2082,7 @@ ACE_TMAIN (int argc_in,
   device_identifier += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   device_identifier += ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
   std::string interface_identifier;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -2098,7 +2100,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   unsigned short port = TEST_I_DEFAULT_PORT;
   enum Common_EventDispatchType event_dispatch_type_e =
@@ -2120,7 +2122,7 @@ ACE_TMAIN (int argc_in,
                             show_console,
 #else
                             device_identifier,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                             gtk_rc_filename,
                             use_uncompressed_format,
                             gtk_glade_filename,
@@ -2128,7 +2130,7 @@ ACE_TMAIN (int argc_in,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                             use_thread_pool,
                             port,
                             event_dispatch_type_e,
@@ -2146,7 +2148,7 @@ ACE_TMAIN (int argc_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
 

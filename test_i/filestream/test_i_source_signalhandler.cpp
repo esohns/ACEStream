@@ -26,9 +26,11 @@
 
 #include "common_tools.h"
 
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
 #include "common_ui_gtk_manager_common.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "stream_macros.h"
 
@@ -57,11 +59,14 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
   bool shutdown = false;
   switch (signal_in.signal)
   {
+    // *PORTABILITY*: on Windows (TM) SIGQUIT is not defined
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGINT:
-// *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#else
+    case SIGINT:
+      break;
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
 //       // *PORTABILITY*: tracing in a signal handler context is not portable
 //       // *TODO*
@@ -72,23 +77,25 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 
       break;
     }
-// *PORTABILITY*: on Windows SIGUSRx are not defined
-// --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+    // *PORTABILITY*: on Windows (TM) SIGUSRx are not defined
+// --> use SIGBREAK (21) and SIGTERM (15) instead
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
-#endif
+#else
+    case SIGUSR1:
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
 
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows (TM) SIGHUP and SIGUSRx are not defined
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // print statistic
@@ -102,7 +109,7 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
-                  signal_in));
+                  signal_in.signal));
       return;
     }
   } // end SWITCH
@@ -147,12 +154,14 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
 
     // step3: stop UI event processing ?
     if (inherited::configuration_->hasUI)
-#if defined (GTK_SUPPORT)
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
                                                           false); // N/A
 #else
       ;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     // step4: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->dispatchState->reactorGroupId,  // stop reactor ?
