@@ -38,19 +38,22 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
+                         SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                         SessionDataType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
+                         MediaType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
 #else
-                         SessionDataType>::Stream_Module_Splitter_T (typename inherited::ISTREAM_T* stream_in)
+                         MediaType>::Stream_Module_Splitter_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , inherited2 ()
  , buffer_ (NULL)
  , defragment_ (false)
  , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
@@ -65,14 +68,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::~Stream_Module_Splitter_T ()
+                         SessionDataType,
+                         MediaType>::~Stream_Module_Splitter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::~Stream_Module_Splitter_T"));
 
@@ -86,7 +91,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 void
 Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
@@ -94,8 +100,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+                         SessionDataType,
+                         MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::handleDataMessage"));
 
@@ -202,48 +209,14 @@ continue_:
   } // end IF
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType>
-//void
-//Stream_Module_Splitter_T<ACE_SYNCH_USE,
-//                         TimePolicyType,
-//                         ConfigurationType,
-//                         ControlMessageType,
-//                         DataMessageType,
-//                         SessionMessageType,
-//                         SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-//                                                                 bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::handleSessionMessage"));
-//
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//
-//  switch (message_inout->type ())
-//  {
-//    case STREAM_SESSION_MESSAGE_BEGIN:
-//      break;
-//    case STREAM_SESSION_MESSAGE_END:
-//    default:
-//      break;
-//  } // end SWITCH
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename MediaType>
 bool
 Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
@@ -251,8 +224,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+                         SessionDataType,
+                         MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
 
@@ -271,7 +245,8 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_in.inputFormat);
 
-  struct _AMMediaType* media_type_p = getFormat (configuration_in.inputFormat);
+  struct _AMMediaType media_type_s =
+      getMediaType (*configuration_in.inputFormat);
   if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -281,116 +256,20 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   } // end IF
   PDUSize_ = media_type_p->lSampleSize;
 
-  // clean up
-  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
+      inherited2::getMediaType (inherited::configuration_->inputFormat);
   PDUSize_ =
-      av_image_get_buffer_size (configuration_in.format,
-                                configuration_in.width,
-                                configuration_in.height,
+      av_image_get_buffer_size (media_type_s.format,
+                                media_type_s.resolution.width,
+                                media_type_s.resolution.height,
                                 1); // *TODO*: linesize alignment
 #endif // ACE_WIN32 || ACE_WIN64
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-AM_MEDIA_TYPE*
-Stream_Module_Splitter_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::getFormat_impl (const struct _AMMediaType* mediaType_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (mediaType_in);
-
-  struct _AMMediaType* result_p =
-      Stream_MediaFramework_DirectShow_Tools::copy (*mediaType_in);
-  if (unlikely (!result_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
-    return NULL;
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return result_p;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-AM_MEDIA_TYPE*
-Stream_Module_Splitter_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::getFormat_impl (const IMFMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
-                                        GUID_NULL,
-                                        &result_p);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return NULL;
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return result_p;
-}
-#else
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-struct v4l2_format*
-Stream_Module_Splitter_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-  ACE_NOTREACHED (return NULL;)
-}
-#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -405,7 +284,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename StatisticHandlerType,
+          typename MediaType>
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
@@ -417,20 +297,22 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataType,
                           SessionDataContainerType,
                           StatisticContainerType,
+                          StatisticHandlerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          StatisticHandlerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
+                          MediaType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
 #else
-                          StatisticHandlerType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
+                          MediaType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                                            ACE_SYNCH_MUTEX_T* lock_in,
-                                                                            bool autoStart_in,
-                                                                            enum Stream_HeadModuleConcurrency concurrency_in,
-                                                                            bool generateSessionMessages_in)
+                                                                 ACE_SYNCH_MUTEX_T* lock_in,
+                                                                 bool autoStart_in,
+                                                                 enum Stream_HeadModuleConcurrency concurrency_in,
+                                                                 bool generateSessionMessages_in)
  : inherited (stream_in,
               lock_in,
               autoStart_in,
               concurrency_in,
               generateSessionMessages_in)
+ , inherited2 ()
  , buffer_ (NULL)
  , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
 {
@@ -449,7 +331,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename StatisticHandlerType,
+          typename MediaType>
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
@@ -461,7 +344,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataType,
                           SessionDataContainerType,
                           StatisticContainerType,
-                          StatisticHandlerType>::~Stream_Module_SplitterH_T ()
+                          StatisticHandlerType,
+                          MediaType>::~Stream_Module_SplitterH_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::~Stream_Module_SplitterH_T"));
 
@@ -480,7 +364,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename StatisticHandlerType,
+          typename MediaType>
 void
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -493,8 +378,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataType,
                           SessionDataContainerType,
                           StatisticContainerType,
-                          StatisticHandlerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                          StatisticHandlerType,
+                          MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleDataMessage"));
 
@@ -606,7 +492,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename StatisticHandlerType,
+          typename MediaType>
 void
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -619,8 +506,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataType,
                           SessionDataContainerType,
                           StatisticContainerType,
-                          StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                       bool& passMessageDownstream_out)
+                          StatisticHandlerType,
+                          MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleSessionMessage"));
 
@@ -647,7 +535,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename StatisticHandlerType,
+          typename MediaType>
 bool
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -660,8 +549,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataType,
                           SessionDataContainerType,
                           StatisticContainerType,
-                          StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
-                                                             Stream_IAllocator* allocator_in)
+                          StatisticHandlerType,
+                          MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::initialize"));
 
@@ -697,357 +587,3 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//int
-//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-//                              SessionMessageType,
-//                              ProtocolMessageType,
-//                              ConfigurationType,
-//                              StreamStateType,
-//                              SessionDataType,
-//                              SessionDataContainerType,
-//                              StatisticContainerType>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//  ACE_ASSERT (isInitialized_);
-
-//  int result = -1;
-//  int result_2 = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_Time_Value no_wait = COMMON_TIME_NOW;
-//  int message_type = -1;
-//  bool finished = false;
-//  bool stop_processing = false;
-//  struct v4l2_buffer buffer;
-//  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
-//  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-//  buffer.memory = V4L2_MEMORY_USERPTR;
-//  struct v4l2_event event;
-//  ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
-//  INDEX2BUFFER_MAP_ITERATOR_T iterator;
-//  unsigned int queued, done = 0;
-
-//  // step1: start processing data...
-////   ACE_DEBUG ((LM_DEBUG,
-////               ACE_TEXT ("entering processing loop...\n")));
-//  do
-//  {
-//    message_block_p = NULL;
-//    result = inherited::getq (message_block_p,
-//                              &no_wait);
-//    if (result == 0)
-//    {
-//      ACE_ASSERT (message_block_p);
-//      message_type = message_block_p->msg_type ();
-//      switch (message_type)
-//      {
-//        case ACE_Message_Block::MB_STOP:
-//        {
-//          // clean up
-//          message_block_p->release ();
-//          message_block_p = NULL;
-
-//          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-//          //         have been set at this stage
-
-//          // signal the controller ?
-//          if (!finished)
-//          {
-//            ACE_DEBUG ((LM_DEBUG,
-//                        ACE_TEXT ("session aborted...\n")));
-
-//            finished = true;
-//            inherited::finished (); // *NOTE*: enqueues STREAM_SESSION_END
-//          } // end IF
-//          continue;
-//        }
-//        default:
-//          break;
-//      } // end SWITCH
-
-//      // process
-//      // *NOTE*: fire-and-forget message_block_p here
-//      inherited::handleMessage (message_block_p,
-//                                stop_processing);
-//      if (stop_processing)
-//      {
-////        SessionMessageType* session_message_p = NULL;
-////        // downcast message
-////        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-////        if (!session_message_p)
-////        {
-////          if (inherited::module ())
-////            ACE_DEBUG ((LM_ERROR,
-////                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-////                        inherited::name (),
-////                        message_block_p,
-////                        message_type));
-////          else
-////            ACE_DEBUG ((LM_ERROR,
-////                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-////                        message_block_p,
-////                        message_type));
-////          break;
-////        } // end IF
-////        if (session_message_p->type () == STREAM_SESSION_END)
-//          result_2 = 0; // success
-//        goto done; // finished processing
-//      } // end IF
-//    } // end IF
-//    else if (result == -1)
-//    {
-//      int error = ACE_OS::last_error ();
-//      if (error != EWOULDBLOCK) // Win32: 10035
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-//        // signal the controller ?
-//        if (!finished)
-//        {
-//          finished = true;
-//          inherited::finished ();
-//        } // end IF
-
-//        break;
-//      } // end IF
-
-//      // session aborted ? (i.e. connection failed)
-//      ACE_ASSERT (inherited::sessionData_);
-//      const SessionDataType& session_data_r = inherited::sessionData_->get ();
-//      if (session_data_r.aborted)
-//      {
-//        inherited::shutdown ();
-//        continue;
-//      } // end IF
-//    } // end IF
-
-//    // log device status to kernel log
-//    if (debug_)
-//    {
-//      result = v4l2_ioctl (captureFileDescriptor_,
-//                           VIDIOC_LOG_STATUS);
-//      if (result == -1)
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-//                    captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
-//    } // end IF
-
-////    // dequeue pending events
-////    result = v4l2_ioctl (captureFileDescriptor_,
-////                         VIDIOC_DQEVENT,
-////                         &event);
-////    if (result == -1)
-////    {
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-////                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-////    } // end IF
-////    else
-////    {
-////      for (unsigned int i = 0;
-////           i < event.pending;
-////           ++i)
-////      {
-////        result = v4l2_ioctl (captureFileDescriptor_,
-////                             VIDIOC_DQEVENT,
-////                             &event);
-////        if (result == -1)
-////          ACE_DEBUG ((LM_ERROR,
-////                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-////                      captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-////      } // end FOR
-////    } // end ELSE
-
-////    queued =
-////        Stream_Module_Device_Tools::queued (captureFileDescriptor_,
-////                                            inherited::configuration_->buffers,
-////                                            done);
-////    ACE_DEBUG ((LM_DEBUG,
-////                ACE_TEXT ("#queued/done buffers: %u/%u...\n"),
-////                queued, done));
-
-//    // *NOTE*: blocks until:
-//    //         - a buffer is availbale
-//    //         - a frame has been written by the device
-//    result = v4l2_ioctl (captureFileDescriptor_,
-//                         VIDIOC_DQBUF,
-//                         &buffer);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-//                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQBUF")));
-//      break;
-//    } // end IF
-//    if (buffer.flags & V4L2_BUF_FLAG_ERROR)
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("%s: streaming error (fd: %d, index: %d), continuing\n"),
-//                  inherited::mod_->name (),
-//                  captureFileDescriptor_, buffer.index));
-
-////    // sanity check(s)
-////    ACE_ASSERT (buffer.reserved);
-////    message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer.reserved);
-//    iterator = inherited::configuration_->bufferMap.find (buffer.index);
-//    ACE_ASSERT (iterator != inherited::configuration_->bufferMap.end ());
-//    message_block_p = (*iterator).second;
-
-//    result = inherited::put_next (message_block_p, NULL);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
-
-//      // clean up
-//      message_block_p->release ();
-
-//      break;
-//    } // end IF
-
-//    buffer.reserved = 0;
-//  } while (true);
-
-//done:
-//  return result_2;
-//}
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType>
-AM_MEDIA_TYPE*
-Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          ConfigurationType,
-                          StreamControlType,
-                          StreamNotificationType,
-                          StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
-                          StatisticContainerType,
-                          StatisticHandlerType>::getFormat_impl (const struct _AMMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  if (unlikely (!Stream_Module_Device_DirectShow_Tools::copy (*format_in,
-                                                              result_p)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copy(), aborting\n")));
-    return NULL;
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return result_p;
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType>
-AM_MEDIA_TYPE*
-Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          ConfigurationType,
-                          StreamControlType,
-                          StreamNotificationType,
-                          StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
-                          StatisticContainerType,
-                          StatisticHandlerType>::getFormat_impl (const IMFMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
-                                        GUID_NULL,
-                                        &result_p);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return NULL;
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return result_p;
-}
-#else
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType>
-struct v4l2_format*
-Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          ConfigurationType,
-                          StreamControlType,
-                          StreamNotificationType,
-                          StreamStateType,
-                          SessionDataType,
-                          SessionDataContainerType,
-                          StatisticContainerType,
-                          StatisticHandlerType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
-#endif

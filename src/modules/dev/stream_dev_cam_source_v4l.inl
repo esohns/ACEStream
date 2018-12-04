@@ -532,7 +532,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   if (unlikely (!Stream_Device_Tools::setFormat (captureFileDescriptor_,
-                                                 configuration_in.outputFormat.format)))
+                                                 configuration_in.sourceFormat.format)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::setFormat(%d): \"%m\", aborting\n"),
@@ -541,7 +541,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: remove type inference
   if (unlikely (!Stream_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                    configuration_in.outputFormat.frameRate)))
+                                                    configuration_in.sourceFormat.frameRate)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(%d), returning\n"),

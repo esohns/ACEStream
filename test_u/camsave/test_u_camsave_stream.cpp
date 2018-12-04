@@ -1330,7 +1330,6 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_CamSave_SessionData* session_data_p = NULL;
@@ -1371,14 +1370,6 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (configuration_p);
 
   // *TODO*: remove type inferences
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  session_data_p->sourceFormat.height =
-      configuration_p->inputFormat.fmt.pix.height;
-  session_data_p->sourceFormat.width =
-      configuration_p->inputFormat.fmt.pix.width;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_.format);
 //  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,

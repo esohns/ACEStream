@@ -43,18 +43,20 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
+                               SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T* stream_in)
+                               MediaType>::Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T* stream_in)
 #else
-                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
-#endif
+                               MediaType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , isFirst_ (true)
  , lock_ (NULL)
@@ -72,14 +74,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
+                               SessionDataContainerType,
+                               MediaType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
@@ -93,7 +97,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -101,8 +106,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+                               SessionDataContainerType,
+                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleDataMessage"));
 
@@ -115,8 +121,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->pixelBuffer);
   ACE_ASSERT (inherited::sessionData_);
 
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
+//  const typename SessionDataContainerType::DATA_T& session_data_r =
+//      inherited::sessionData_->getR ();
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
@@ -130,40 +136,14 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     return;
   }
 
-  unsigned int width, height = 0;
+//  const MediaType& media_type_r = session_data_r.formats.front ();
   unsigned int image_size = 0;
-  enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
   unsigned int row_stride = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (session_data_r.inputFormat);
-
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
-  if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo))
-    video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
-  else if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo2))
-    video_info_header_2 =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (session_data_r.inputFormat->formattype).c_str ())));
-    goto error;
-  } // end ELSE
-  height =
-    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biHeight
-                                                   : video_info_header_2->bmiHeader.biHeight);
-  width =
-    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biWidth
-                                                   : video_info_header_2->bmiHeader.biWidth);
+  struct _AMMediaType media_type_s =
+      inherited2::getMediaType (inherited::configuration_->outputFormat);
   image_size =
-    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
-                         : video_info_header_2->bmiHeader.biSizeImage);
-  pixel_format =
-    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.format->subtype);
+      Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
 //  struct _GUID sub_type = GUID_NULL;
 //  HRESULT result_3 = session_data_r.inputFormat->GetGUID (MF_MT_SUBTYPE,
 //                                                          &sub_type);
@@ -174,39 +154,29 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
 //    return;
 //  } // end IF
-//  result_3 = MFGetAttributeSize (session_data_r.inputFormat,
-//                                 MF_MT_FRAME_SIZE,
-//                                 &width, &height);
-//  if (FAILED (result_3))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", returning\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//    return;
-//  } // end IF
 //  result_3 = MFCalculateImageSize (sub_type,
-//                                   width, height,
+//                                   resolution.width, resolution.height,
 //                                   &image_size);
 //  if (FAILED (result_3))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
 //                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
-//                width, height,
+//                resolution.width, resolution.height,
 //                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
 //    return;
 //  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  width  = inherited::configuration_->sourceFormat.width;
-  height = inherited::configuration_->sourceFormat.height;
-  pixel_format = session_data_r.formats.front ();
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
+      inherited2::getMediaType (inherited::configuration_->outputFormat);
   image_size =
-      av_image_get_buffer_size (pixel_format,
-                                width,
-                                height,
+      av_image_get_buffer_size (media_type_s.format,
+                                media_type_s.resolution.width,
+                                media_type_s.resolution.height,
                                 1); // *TODO*: linesize alignment
-  row_stride = av_image_get_linesize (pixel_format,
-                                      width,
+  row_stride = av_image_get_linesize (media_type_s.format,
+                                      media_type_s.resolution.width,
                                       0);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -247,8 +217,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   int pixbuf_row_stride =
       gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
-      ((pixel_format != AV_PIX_FMT_RGBA) ||
-       ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
+      ((media_type_s.format != AV_PIX_FMT_RGBA) ||
+       ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) || (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
@@ -257,14 +227,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   {
     if (scaleContext_)
     {
-      sws_freeContext (scaleContext_);
-      scaleContext_ = NULL;
+      sws_freeContext (scaleContext_); scaleContext_ = NULL;
     } // end IF
     int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
 //                 SWS_LANCZOS | SWS_ACCURATE_RND);
     scaleContext_ =
         sws_getCachedContext (NULL,
-                              width, height, pixel_format,
+                              media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                               pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                               flags,                             // flags
                               NULL, NULL,
@@ -274,32 +243,31 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-
       result = -1;
-
       goto unlock;
     } // end IF
     scaleContextHeight_ = pixbuf_height;
     scaleContextWidth_ = pixbuf_width;
-
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
                 inherited::mod_->name (),
-                width, height,
+                media_type_s.resolution.width, media_type_s.resolution.height,
                 pixbuf_width, pixbuf_height));
+#endif // _DEBUG
   } // end IF
 
   result = 0;
 
   // step3: transform image?
 
-  // *TODO*: this looks wrong...
+  // *TODO*: this looks wrong
   if (!transform_image)
   { ACE_ASSERT (image_size == message_inout->length ());
     // *TODO*: GTK requires RGB, not RGBA --> drop transparency
     ACE_ASSERT (static_cast<unsigned int> (pixbuf_row_stride) == row_stride);
     for (unsigned int i = 0;
-         i < height;
+         i < media_type_s.resolution.height;
          ++i)
       ACE_OS::memcpy (data_2 + (i * pixbuf_row_stride),
                       message_inout->rd_ptr () + (i * row_stride),
@@ -312,7 +280,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             width, height, pixel_format,
+                                             media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                                              in_data,
                                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                                              out_data))
@@ -320,9 +288,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
                 inherited::mod_->name ()));
-
     result = -1;
-
     goto unlock;
   } // end IF
 
@@ -411,7 +377,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -419,8 +386,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                bool& passMessageDownstream_out)
+                               SessionDataContainerType,
+                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleSessionMessage"));
 
@@ -450,7 +418,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -458,8 +427,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                      Stream_IAllocator* allocator_in)
+                               SessionDataContainerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
 
@@ -525,78 +495,3 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType>
-AM_MEDIA_TYPE&
-Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
-                inherited::mod_->name ()));
-    return struct _AMMediaType (); // *TODO*: will crash
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return *result_p;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType>
-AM_MEDIA_TYPE&
-Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType>::getFormat_impl (const IMFMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
-                                        GUID_NULL,
-                                        &result_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return struct _AMMediaType (); // *TODO*: will crash
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return *result_p;
-}
-#endif

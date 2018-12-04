@@ -35,7 +35,6 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_misc_aggregator.h"
-//#include "stream_misc_exports.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>

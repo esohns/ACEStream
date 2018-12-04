@@ -337,7 +337,7 @@ error_2:
 
   result = true;
 #else
-  std::string directory (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY));
+  std::string directory (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY));
   ACE_Dirent_Selector entries;
   int result_2 = entries.open (ACE_TEXT (directory.c_str ()),
                                &dirent_selector,
@@ -1687,7 +1687,7 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-    (*modulehandler_iterator).second.second.inputFormat.fmt.pix.sizeimage;
+    (*modulehandler_iterator).second.second.sourceFormat.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (frame_size_i));
@@ -4804,7 +4804,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       }
     } // end SWITCH
 #else
-    (*modulehandler_iterator).second.second.interfaceIdentifier.identifier =
+    (*modulehandler_iterator).second.second.deviceIdentifier.identifier =
         g_value_get_string (&value);
 #endif
     g_value_unset (&value);
@@ -4970,7 +4970,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.fileDescriptor,
-                                    (*modulehandler_iterator).second.second.inputFormat);
+                                    (*modulehandler_iterator).second.second.sourceFormat);
 #endif
   if (!result_3)
   {
@@ -7234,7 +7234,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.pixelformat =
+  (*modulehandler_iterator).second.second.sourceFormat.format.pix.pixelformat =
     format_i;
 
   result =
@@ -7541,8 +7541,10 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.width = width;
-  (*modulehandler_iterator).second.second.inputFormat.fmt.pix.height = height;
+  (*modulehandler_iterator).second.second.sourceFormat.format.fmt.pix.width =
+      width;
+  (*modulehandler_iterator).second.second.sourceFormat.format.fmt.pix.height =
+      height;
 
   result = load_rates (v4l2_ui_cb_data_p->fileDescriptor,
                        format_i,
@@ -7778,9 +7780,10 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.frameRate.numerator = frame_rate;
-  (*modulehandler_iterator).second.second.frameRate.denominator =
-    frame_rate_denominator;
+  (*modulehandler_iterator).second.second.sourceFormat.frameRate.numerator =
+      frame_rate;
+  (*modulehandler_iterator).second.second.sourceFormat.frameRate.denominator =
+      frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_p);
   update_buffer_size (ui_cb_data_p);
@@ -7932,7 +7935,8 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.area = *allocation_in;
+  (*modulehandler_iterator).second.second.area.width = allocation_in->width;
+  (*modulehandler_iterator).second.second.area.height = allocation_in->height;
 #endif
 } // drawingarea_size_allocate_source_cb
 void
@@ -8002,16 +8006,16 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
+    ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfigurations.end ());
   Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());

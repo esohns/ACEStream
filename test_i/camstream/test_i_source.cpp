@@ -1054,6 +1054,10 @@ do_work (const std::string& deviceIdentifier_in,
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
 
   Test_I_Source_V4L2_StreamConfiguration_t stream_configuration;
+  stream_configuration.configuration_.format.format.width =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+  stream_configuration.configuration_.format.format.height =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                std::make_pair (module_configuration,
                                                                modulehandler_configuration)));
@@ -1640,21 +1644,20 @@ do_work (const std::string& deviceIdentifier_in,
       STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  (*modulehandler_iterator).second.second.pixelBufferLock = &v4l2CBData_in.lock;
-  (*modulehandler_iterator).second.second.sourceFormat.height = 240;
-  (*modulehandler_iterator).second.second.sourceFormat.width = 320;
+  (*modulehandler_iterator).second.second.pixelBufferLock =
+      &v4l2CBData_in.UIState.lock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second.outputFormat.format =
-      Stream_Device_Tools::ffmpegFormatToV4L2Format (STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT);
-  (*modulehandler_iterator).second.second.outputFormat.format.height =
+  (*modulehandler_iterator).second.second.sourceFormat.format.pixelformat =
+      STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT;
+  (*modulehandler_iterator).second.second.sourceFormat.format.height =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
-  (*modulehandler_iterator).second.second.outputFormat.format.width =
+  (*modulehandler_iterator).second.second.sourceFormat.format.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  (*modulehandler_iterator).second.second.outputFormat.frameRate.numerator =
+  (*modulehandler_iterator).second.second.sourceFormat.frameRate.num =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
-//  (*modulehandler_iterator).second.second.outputFormat.frameRate.denominator =
-//      1;
+  (*modulehandler_iterator).second.second.outputFormat.format =
+      STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
 //  (*modulehandler_iterator).second.second.method =
 //      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   (*modulehandler_iterator).second.second.streamConfiguration =
@@ -2112,7 +2115,6 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
-//  bool result_2 = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2198,6 +2200,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
+  bool result_2 = false;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -2254,9 +2257,9 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_I_Source_V4L2_UI_CBData v4l2_ui_cb_data;
   //v4l2_ui_cb_data.progressData.state = &v4l2_ui_cb_data;
-#if defined (GTK_USE)
+#if defined (GUI_SUPPORT)
   ui_cb_data_p = &v4l2_ui_cb_data;
-#endif // GTK_USE
+#endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
@@ -2399,7 +2402,7 @@ ACE_TMAIN (int argc_in,
 #else
   Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
                                                       argv_in,
-                                                      &ui_cb_data);
+                                                      &v4l2_ui_cb_data);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!gtk_glade_filename.empty ())
   {

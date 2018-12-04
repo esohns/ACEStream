@@ -273,7 +273,7 @@ Test_I_Target_EventHandler_T<SessionIdType,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->UIState->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE
         CBData_->progressData.statistic = sessionData_->statistic;
 #if defined (GTK_USE)

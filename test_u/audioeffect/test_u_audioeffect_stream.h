@@ -172,7 +172,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   ULONG            referenceCount_;
 };
 #else
-class Test_U_AudioEffect_Stream
+class Test_U_AudioEffect_ALSA_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         stream_name_string_,
@@ -180,11 +180,11 @@ class Test_U_AudioEffect_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_U_AudioEffect_StreamState,
-                        struct Test_U_AudioEffect_StreamConfiguration,
+                        struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                         struct Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
                         Test_U_ControlMessage_t,
@@ -198,11 +198,11 @@ class Test_U_AudioEffect_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_U_AudioEffect_StreamState,
-                        struct Test_U_AudioEffect_StreamConfiguration,
+                        struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                         struct Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
                         Test_U_ControlMessage_t,
@@ -210,8 +210,8 @@ class Test_U_AudioEffect_Stream
                         Test_U_AudioEffect_SessionMessage> inherited;
 
  public:
-  Test_U_AudioEffect_Stream ();
-  virtual ~Test_U_AudioEffect_Stream ();
+  Test_U_AudioEffect_ALSA_Stream ();
+  virtual ~Test_U_AudioEffect_ALSA_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -221,8 +221,8 @@ class Test_U_AudioEffect_Stream
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream (const Test_U_AudioEffect_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream& operator= (const Test_U_AudioEffect_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_ALSA_Stream (const Test_U_AudioEffect_ALSA_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_ALSA_Stream& operator= (const Test_U_AudioEffect_ALSA_Stream&))
 };
 #endif
 

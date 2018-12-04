@@ -923,7 +923,7 @@ do_work (unsigned int bufferSize_in,
     }
   } // end SWITCH
 #else
-  Test_U_AudioEffect_Stream stream;
+  Test_U_AudioEffect_ALSA_Stream stream;
   istream_p = &stream;
   istream_control_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -992,8 +992,8 @@ do_work (unsigned int bufferSize_in,
                                                    );
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
-  struct Test_U_AudioEffect_ModuleHandlerConfiguration modulehandler_configuration;
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
+  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_ASSERT (allocator_configuration_p);

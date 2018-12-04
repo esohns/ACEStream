@@ -26,7 +26,6 @@
 #include "stream_common.h"
 
 // forward declarations
-struct Stream_CamSave_SessionData;
 #if defined (GUI_SUPPORT)
 struct Stream_CamSave_UI_CBData;
 #endif // GUI_SUPPORT
@@ -75,13 +74,13 @@ class Stream_CamSave_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler_T& operator= (const Stream_CamSave_EventHandler_T&))
 
 #if defined (GUI_SUPPORT)
-  struct Stream_CamSave_UI_CBData*   CBData_;
+  struct Stream_CamSave_UI_CBData*             CBData_;
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
-  InterfaceType*                     interface_;
+  InterfaceType*                               interface_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  struct Stream_CamSave_SessionData* sessionData_;
+  typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 
 // include template definition

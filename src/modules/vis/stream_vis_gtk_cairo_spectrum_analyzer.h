@@ -39,7 +39,6 @@
 #else
 #include "GL/gl.h"
 #endif // ACE_WIN32 || ACE_WIN64
-//#include "gdk/gdk.h"
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
@@ -51,7 +50,6 @@
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-//#include "gtkgl/gdkgl.h"
 #include "gtkgl/gtkglarea.h"
 #else
 #include "gtk/gtkgl.h" // gtkglext
@@ -68,6 +66,8 @@
 
 #include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
+
+#include "stream_lib_mediatype_converter.h"
 
 #include "stream_stat_common.h"
 
@@ -86,7 +86,10 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename TimerManagerType> // implements Common_ITimer
+          ////////////////////////////////
+          typename TimerManagerType, // implements Common_ITimer
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -98,6 +101,12 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                    ,SessionDataType>
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
@@ -117,7 +126,13 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Common_Math_FFT inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,SessionDataType> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
+  typedef Common_Math_FFT inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -165,13 +180,6 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #endif // GTK_CHECK_VERSION (3,10,0)
 
   void update ();
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
-#endif // ACE_WIN32 || ACE_WIN64
 
   cairo_t*                                           cairoContext_;
   ACE_SYNCH_MUTEX_T*                                 surfaceLock_;

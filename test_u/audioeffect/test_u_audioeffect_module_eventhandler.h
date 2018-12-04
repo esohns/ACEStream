@@ -130,7 +130,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionD
 class Test_U_AudioEffect_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                          Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
@@ -140,7 +140,7 @@ class Test_U_AudioEffect_Module_EventHandler
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                          Test_U_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
@@ -165,7 +165,7 @@ class Test_U_AudioEffect_Module_EventHandler
 // declare module
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                              // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,        // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_U_AudioEffect_Module_EventHandler);                     // writer type

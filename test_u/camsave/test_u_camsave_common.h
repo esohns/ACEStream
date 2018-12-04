@@ -852,7 +852,7 @@ struct Stream_CamSave_UI_CBData
    , isFirst (true)
    , progressData ()
   {
-    progressData.state = this->UIState;
+    progressData.state = &UIState;
   }
 
   bool                               isFirst; // first activation ?

@@ -1198,34 +1198,34 @@ error:
   return E_FAIL;
 }
 #else
-Test_U_AudioEffect_Stream::Test_U_AudioEffect_Stream ()
+Test_U_AudioEffect_ALSA_Stream::Test_U_AudioEffect_ALSA_Stream ()
  : inherited ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::Test_U_AudioEffect_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::Test_U_AudioEffect_ALSA_Stream"));
 
 }
 
-Test_U_AudioEffect_Stream::~Test_U_AudioEffect_Stream ()
+Test_U_AudioEffect_ALSA_Stream::~Test_U_AudioEffect_ALSA_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::~Test_U_AudioEffect_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::~Test_U_AudioEffect_ALSA_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
-                                 bool& delete_out)
+Test_U_AudioEffect_ALSA_Stream::load (Stream_ModuleList_t& modules_out,
+                                      bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::load"));
 
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
-  struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
+  struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration* configuration_p =
+      dynamic_cast<struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   // sanity check(s)
   ACE_ASSERT (configuration_p);
 
@@ -1300,9 +1300,9 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -1329,7 +1329,7 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
 //  if (!configuration_in.moduleHandlerConfiguration->format)
 //  {
 //    if (!Stream_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->deviceHandle,
-//                                                       const_cast<Test_U_AudioEffect_StreamConfiguration&> (configuration_in).moduleHandlerConfiguration->format))
+//                                                       const_cast<Test_U_AudioEffect_ALSA_StreamConfiguration&> (configuration_in).moduleHandlerConfiguration->format))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to Stream_Device_Tools::getCaptureFormat(): \"%m\", aborting\n")));

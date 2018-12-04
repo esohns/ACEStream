@@ -106,6 +106,10 @@ set (source_files
      stream_lib_common.h
      stream_lib_defines.h
 #     stream_lib_exports.h
+     stream_lib_ffmpeg_common.h
+     stream_lib_mediatype_converter.cpp
+     stream_lib_mediatype_converter.h
+     stream_lib_mediatype_converter.inl
      stream_lib_tools.cpp
      stream_lib_tools.h)
 if (UNIX)
@@ -224,6 +228,9 @@ set (source_files
      stream_lib_common.h
      stream_lib_defines.h
 #     stream_lib_exports.h
+     stream_lib_ffmpeg_common.h
+     stream_lib_mediatype_converter.h
+     stream_lib_mediatype_converter.inl
      stream_lib_tools.h)
 if (UNIX)
  set (source_files

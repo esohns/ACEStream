@@ -27,6 +27,12 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "common_ui_gtk_manager_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
 #include "stream_macros.h"
 
 #include "test_i_camstream_common.h"

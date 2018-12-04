@@ -109,9 +109,11 @@ class Stream_CamSave_DirectShow_Stream
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
   Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   Stream_CamSave_DirectShow_AVIEncoder_Module        encoder_;
   Stream_CamSave_DirectShow_FileWriter_Module        fileWriter_;
 };
@@ -191,9 +193,11 @@ class Stream_CamSave_MediaFoundation_Stream
   Stream_CamSave_MediaFoundation_MediaFoundationDisplay_Module     mediaFoundationDisplay_;
   Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull_Module mediaFoundationDisplayNull_;
   Stream_CamSave_MediaFoundation_Direct3DDisplay_Module            direct3DDisplay_;
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   Stream_CamSave_MediaFoundation_AVIEncoder_Module                 encoder_;
   Stream_CamSave_MediaFoundation_FileWriter_Module                 fileWriter_;
 
@@ -261,9 +265,11 @@ class Stream_CamSave_V4L_Stream
   Stream_CamSave_LibAVDecoder_Module    decoder_;
   Stream_CamSave_LibAVConverter_Module  converter_;
   Stream_CamSave_StatisticReport_Module statisticReport_;
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   Stream_CamSave_V4L2_AVIEncoder_Module encoder_;
   Stream_CamSave_FileWriter_Module      fileWriter_;
 };

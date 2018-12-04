@@ -208,14 +208,6 @@ typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subsc
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> Test_U_AudioEffect_IDispatch_t;
-struct Test_U_AudioEffect_StreamConfiguration;
-struct Test_U_AudioEffect_ModuleHandlerConfiguration;
-//extern const char stream_name_string_[];
-typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
-                               struct Test_U_AudioEffect_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
-                               struct Test_U_AudioEffect_ModuleHandlerConfiguration> Test_U_AudioEffect_StreamConfiguration_t;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -229,22 +221,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , asynchPlayback (false)
-#endif // ACE_WIN32 || ACE_WIN64
    , audioOutput (0)
    , deviceIdentifier ()
    , dispatch (NULL)
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , captureDeviceHandle (NULL)
-   , effect ()
-   , effectOptions ()
-   , manageSoX (false)
-   , playbackDeviceHandle (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    , GdkWindow2D (NULL)
@@ -271,23 +251,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , streamConfiguration (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , subscriber (NULL)
-   , subscribers (NULL)
-#endif // ACE_WIN32 || ACE_WIN64
    , targetFileName ()
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-    deviceIdentifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
-#endif // ACE_WIN32 || ACE_WIN64
-  }
+  {}
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -297,26 +262,12 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif /* GTKGL_SUPPORT */
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
-  //         is not possible (playback eventually hogs all threads and starves)
-  bool                                              asynchPlayback;
-#endif // ACE_WIN32 || ACE_WIN64
   int                                               audioOutput;
   // *PORTABILITY*: Win32: (usb) device path
   //                UNIX : (ALSA/OSS/...) device file path (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
   std::string                                       deviceIdentifier;
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  struct _snd_pcm*                                  captureDeviceHandle;
-  std::string                                       effect;
-  std::vector<std::string>                          effectOptions;
-  bool                                              manageSoX;
-  struct _snd_pcm*                                  playbackDeviceHandle;
-#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkWindow*                                        GdkWindow2D;
@@ -343,15 +294,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                      spectrumAnalyzerResolution;
   bool                                              sinus;
   double                                            sinusFrequency;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  Test_U_AudioEffect_StreamConfiguration_t*         streamConfiguration;
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  Test_U_AudioEffect_ISessionNotify_t*              subscriber;
-  Test_U_AudioEffect_Subscribers_t*                 subscribers;
-#endif // ACE_WIN32 || ACE_WIN64
   std::string                                       targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -424,6 +366,48 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
   Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*      subscriber;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t*         subscribers;
 };
+#else
+struct Test_U_AudioEffect_ALSA_StreamConfiguration;
+struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration;
+//extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_U_AudioEffect_ALSA_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration> Test_U_AudioEffect_ALSA_StreamConfiguration_t;
+struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
+ : Test_U_AudioEffect_ModuleHandlerConfiguration
+{
+  Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration ()
+   : Test_U_AudioEffect_ModuleHandlerConfiguration ()
+   , asynchPlayback (false)
+   , captureDeviceHandle (NULL)
+   , effect ()
+   , effectOptions ()
+   , inputFormat ()
+   , manageSoX (false)
+   , playbackDeviceHandle (NULL)
+   , streamConfiguration (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
+  {
+    deviceIdentifier =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+  }
+
+  // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
+  //         is not possible (playback eventually hogs all threads and starves)
+  bool                                           asynchPlayback;
+  struct _snd_pcm*                               captureDeviceHandle;
+  std::string                                    effect;
+  std::vector<std::string>                       effectOptions;
+  struct Stream_MediaFramework_ALSA_MediaType    inputFormat;
+  bool                                           manageSoX;
+  struct _snd_pcm*                               playbackDeviceHandle;
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t* streamConfiguration;
+  Test_U_AudioEffect_ISessionNotify_t*           subscriber;
+  Test_U_AudioEffect_Subscribers_t*              subscribers;
+};
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_AudioEffect_Statistic
@@ -456,20 +440,18 @@ class Test_U_AudioEffect_SessionData
  public:
   Test_U_AudioEffect_SessionData ()
    : Test_U_ALSA_SessionData ()
-   , statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , height (0)
-   , width (0)
+   , resolution ()
 #endif // ACE_WIN32 || ACE_WIN64
+   , statistic ()
   {}
 
-  struct Test_U_AudioEffect_Statistic statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  unsigned int                        height; // *TODO*: remove ASAP !
-  unsigned int                        width; // *TODO*: remove ASAP !
+  Common_UI_Resolution_t              resolution; // *TODO*: remove ASAP !
 #endif // ACE_WIN32 || ACE_WIN64
+  struct Test_U_AudioEffect_Statistic statistic;
 };
 typedef Stream_SessionData_T<Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
 
@@ -558,10 +540,10 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
   {}
 };
 #else
-struct Test_U_AudioEffect_StreamConfiguration
+struct Test_U_AudioEffect_ALSA_StreamConfiguration
  : Stream_Configuration
 {
-  Test_U_AudioEffect_StreamConfiguration ()
+  Test_U_AudioEffect_ALSA_StreamConfiguration ()
    : Stream_Configuration ()
    , format (NULL)
   {}
@@ -607,7 +589,7 @@ struct Test_U_AudioEffect_Configuration
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_StreamConfiguration_t             streamConfiguration;
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t        streamConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };

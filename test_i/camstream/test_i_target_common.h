@@ -35,8 +35,6 @@
 #include <mfapi.h>
 #include <mfobjects.h>
 #include <strmif.h>
-#else
-//#include <linux/videodev2.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -73,6 +71,12 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_guids.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#include "stream_lib_ffmpeg_common.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
 #include "net_defines.h"
 #include "net_ilistener.h"
@@ -311,7 +315,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , crunch (true)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
-   , inputFormat (NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
    , streamConfiguration (NULL)
@@ -322,14 +325,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , windowController2 (NULL)
   {
     inbound = true;
-
-    inputFormat =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!inputFormat)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, continuing\n")));
-    else
-      ACE_OS::memset (inputFormat, 0, sizeof (struct _AMMediaType));
 
     push = true; // *TODO*: support asynch directshow filter
     filterCLSID =
@@ -346,7 +341,6 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   bool                                                 crunch;            // splitter module
   struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                filterCLSID;
-  struct _AMMediaType*                                 inputFormat;       // splitter module
   bool                                                 push; // media sample passing strategy
   ACE_Message_Queue_Base*                              queue; // (inbound) buffer queue handle
   Test_I_Target_DirectShow_StreamConfiguration_t*      streamConfiguration;
@@ -447,64 +441,44 @@ struct Test_I_Target_ModuleHandlerConfiguration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
    , crunch (false)
-   , format (AV_PIX_FMT_RGB24)
-   , height (0)
-   , inputFormat ()
-   , queue (NULL)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   , sourceFormat ()
+   , outputFormat ()
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+   , queue (NULL)
    , streamConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
-   , v4l2Window ()
-   , width (0)
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   , window (NULL)
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   {
     inbound = true;
   }
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkRectangle                              area;
+  GdkRectangle                                  area;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
-  Test_I_Target_InetConnectionManager_t*    connectionManager; // net IO module
+  Test_I_Target_ConnectionConfigurations_t*     connectionConfigurations;
+  Test_I_Target_InetConnectionManager_t*        connectionManager; // net IO module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  guint                                     contextId;
+  guint                                         contextId;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  bool                                      crunch;            // splitter module
-  enum AVPixelFormat                        format;
-  unsigned int                              height;
-  struct v4l2_format                        inputFormat;       // splitter module
-  ACE_Message_Queue_Base*                   queue;  // (inbound) buffer queue handle
+  bool                                          crunch;            // splitter module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkRectangle                              sourceFormat; // gtk pixbuf module
+  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat; // gtk pixbuf module
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  ACE_Message_Queue_Base*                       queue;  // (inbound) buffer queue handle
   // *TODO*: remove this ASAP
-  Test_I_Target_StreamConfiguration_t*      streamConfiguration;
-  std::string                               targetFileName;    // file writer module
-  Test_I_Target_ISessionNotify_t*           subscriber;
-  Test_I_Target_Subscribers_t*              subscribers;
-  struct v4l2_window                        v4l2Window;
-  unsigned int                              width;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  GdkWindow*                                window;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+  Test_I_Target_StreamConfiguration_t*          streamConfiguration;
+  std::string                                   targetFileName;    // file writer module
+  Test_I_Target_ISessionNotify_t*               subscriber;
+  Test_I_Target_Subscribers_t*                  subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

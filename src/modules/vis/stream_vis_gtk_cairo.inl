@@ -18,10 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
 extern "C"
 {
-#include "libavutil/frame.h"
+#include "libavutil/imgutils.h"
+#include "libswscale/swscale.h"
 }
+#endif /* __cplusplus */
 
 #include "ace/Log_Msg.h"
 
@@ -39,7 +42,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
@@ -47,12 +51,14 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
+                              SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
+,                             MediaType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
 #else
-                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T* stream_in)
+                              MediaType>::Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
+ , inherited2 ()
  , isFirst_ (true)
  , lock_ (NULL)
  , scaleContext_ (NULL)
@@ -70,7 +76,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
@@ -78,7 +85,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::~Stream_Module_Vis_GTK_Cairo_T ()
+                              SessionDataContainerType,
+                              MediaType>::~Stream_Module_Vis_GTK_Cairo_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::~Stream_Module_Vis_GTK_Cairo_T"));
 
@@ -98,7 +106,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -107,8 +116,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                            bool& passMessageDownstream_out)
+                              SessionDataContainerType,
+                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleDataMessage"));
 
@@ -136,37 +146,14 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     return;
   }
 
-  unsigned int width, height = 0;
-  enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
+  //  const MediaType& media_type_r = session_data_r.formats.front ();
+  unsigned int image_size = 0;
   unsigned int row_stride = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (session_data_r.inputFormat);
-
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
-  if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo))
-    video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.inputFormat->pbFormat);
-  else if (InlineIsEqualGUID (session_data_r.inputFormat->formattype, FORMAT_VideoInfo2))
-    video_info_header_2 =
-    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.inputFormat->pbFormat);
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::GUIDToString (session_data_r.inputFormat->formattype).c_str ())));
-    goto error;
-  } // end ELSE
-  height =
-    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biHeight
-                               : video_info_header_2->bmiHeader.biHeight);
-  width =
-    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biWidth
-                               : video_info_header_2->bmiHeader.biWidth);
-//  image_size =
-//    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
-//     : video_info_header_2->bmiHeader.biSizeImage);
+  struct _AMMediaType media_type_s =
+      inherited2::getMediaType (inherited::configuration_->outputFormat);
+  image_size =
+      Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
   pixel_format =
     Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (session_data_r.inputFormat->subtype);
   //  struct _GUID sub_type = GUID_NULL;
@@ -202,19 +189,18 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //    return;
   //  } // end IF
 #else
-  width = inherited::configuration_->sourceFormat.width;
-  height = inherited::configuration_->sourceFormat.height;
-//  image_size =
-//    av_image_get_buffer_size (session_data_r.format,
-//                              width,
-//                              height,
-//                              1); // *TODO*: linesize alignment
-  pixel_format = session_data_r.inputFormat;
-  row_stride = av_image_get_linesize (session_data_r.inputFormat,
-                                      width,
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
+      inherited2::getMediaType (inherited::configuration_->outputFormat);
+  image_size =
+    av_image_get_buffer_size (media_type_s.format,
+                              media_type_s.resolution.width,
+                              media_type_s.resolution.height,
+                              1); // *TODO*: linesize alignment
+  row_stride = av_image_get_linesize (media_type_s.format,
+                                      media_type_s.resolution.width,
                                       0);
   ACE_UNUSED_ARG (row_stride);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   //  bool leave_gdk = false;
   bool release_lock = false;
@@ -255,8 +241,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //  int pixbuf_row_stride =
 //    gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
-    ((pixel_format != pixel_format_2) ||
-     ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
+    ((media_type_s.format != pixel_format_2) ||
+     ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) || (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
@@ -275,7 +261,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     //                 SWS_LANCZOS | SWS_ACCURATE_RND);
     scaleContext_ =
       sws_getCachedContext (NULL,
-                            width, height, pixel_format,
+                            media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                             pixbuf_width, pixbuf_height, pixel_format_2,
                             flags,                             // flags
                             NULL, NULL,
@@ -285,19 +271,18 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-
       result = -1;
-
       goto unlock;
     } // end IF
     scaleContextHeight_ = pixbuf_height;
     scaleContextWidth_ = pixbuf_width;
-
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
                 inherited::mod_->name (),
-                width, height,
+                media_type_s.resolution.width, media_type_s.resolution.height,
                 pixbuf_width, pixbuf_height));
+#endif // _DEBUG
   } // end IF
 
   // step3: transform image?
@@ -306,7 +291,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             width, height, pixel_format,
+                                             media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
                                              in_data,
                                              pixbuf_width, pixbuf_height, pixel_format_2,
                                              out_data))
@@ -314,9 +299,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
                 inherited::mod_->name ()));
-
     result = -1;
-
     goto unlock;
   } // end IF
 
@@ -411,7 +394,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -420,8 +404,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                               bool& passMessageDownstream_out)
+                              SessionDataContainerType,
+                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleSessionMessage"));
 
@@ -433,8 +418,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     {
       break;
 
-      //error:
-      //      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//error:
+//      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -452,7 +437,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -461,7 +447,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::toggle ()
+                              SessionDataContainerType,
+                              MediaType>::toggle ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::toggle"));
 
@@ -477,7 +464,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -486,8 +474,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                     Stream_IAllocator* allocator_in)
+                              SessionDataContainerType,
+                              MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
@@ -497,8 +486,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     lock_ = NULL;
     if (scaleContext_)
     {
-      sws_freeContext (scaleContext_);
-      scaleContext_ = NULL;
+      sws_freeContext (scaleContext_); scaleContext_ = NULL;
     } // end IF
     scaleContextHeight_ = 0;
     scaleContextWidth_ = 0;
@@ -529,10 +517,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //      { // *NOTE*: most probable reason: window is not mapped
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
-
-//        // clean up
 //        gdk_threads_leave ();
-
 //        return false;
 //      } // end IF
 //      gdk_threads_leave ();
@@ -553,82 +538,3 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-AM_MEDIA_TYPE&
-Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataType,
-                              SessionDataContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
-                                                             result_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
-                inherited::mod_->name ()));
-    return struct _AMMediaType (); // *TODO*: will crash
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return *result_p;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-AM_MEDIA_TYPE&
-Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataType,
-                              SessionDataContainerType>::getFormat_impl (const IMFMediaType* format_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::getFormat_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (format_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
-                                        GUID_NULL,
-                                        &result_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return struct _AMMediaType (); // *TODO*: will crash
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return *result_p;
-}
-#endif

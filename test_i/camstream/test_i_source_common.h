@@ -37,14 +37,6 @@
 #else
 #include <windef.h>
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#else
-#include "linux/videodev2.h"
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/pixfmt.h"
-}
-#endif
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -76,6 +68,12 @@ extern "C"
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_ffmpeg_common.h"
+#include "stream_lib_v4l_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_camstream_common.h"
 #include "test_i_camstream_network.h"
@@ -308,7 +306,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
-   , inputFormat (NULL)
+   , outputFormat (NULL)
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , sourceFormat (NULL)
    , streamConfiguration (NULL)
@@ -349,11 +347,11 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     filterCLSID = rhs_in.filterCLSID;
     if (inputFormat)
       Stream_MediaFramework_DirectShow_Tools::delete_ (inputFormat);
-    if (rhs_in.inputFormat)
+    if (rhs_in.outputFormat)
     {
-      inputFormat =
-        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.inputFormat);
-      if (!inputFormat)
+      outputFormat =
+        Stream_MediaFramework_DirectShow_Tools::copy (*rhs_in.outputFormat);
+      if (!outputFormat)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), returning\n")));
@@ -407,7 +405,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   guint                                                contextId;
   struct Test_I_Source_DirectShow_FilterConfiguration* filterConfiguration;
   CLSID                                                filterCLSID;
-  struct _AMMediaType*                                 inputFormat; // source module
+  struct _AMMediaType*                                 outputFormat; // display module
   bool                                                 push;
   struct _AMMediaType*                                 sourceFormat;
   Test_I_Source_DirectShow_StreamConfiguration_t*      streamConfiguration;
@@ -433,8 +431,8 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , inputFormat (NULL)
    , mediaSource (NULL)
+   , outputFormat (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
    , sourceFormat (NULL)
@@ -457,16 +455,16 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  IMFMediaType*                                             inputFormat;
-  TOPOID                                                    sampleGrabberNodeId;
-  Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx*                                         mediaSource;
 #else
   IMFMediaSource*                                           mediaSource;
 #endif // _WIN32_WINNT_WIN8
+  IMFMediaType*                                             outputFormat; // display module
+  TOPOID                                                    sampleGrabberNodeId;
   IMFMediaSession*                                          session;
   IMFMediaType*                                             sourceFormat;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
   Test_I_Source_MediaFoundation_ISessionNotify_t*           subscriber;
   Test_I_Source_MediaFoundation_Subscribers_t*              subscribers;
   IMFVideoDisplayControl*                                   windowController;
@@ -495,6 +493,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , fileDescriptor (-1)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
+   , sourceFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -520,7 +519,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_InetConnectionManager_t*    connectionManager; // TCP IO module
   int                                            fileDescriptor;
   enum v4l2_memory                               method; // v4l2 camera source
-  struct Stream_MediaFramework_V4L_MediaType     outputFormat;
+  struct Stream_MediaFramework_FFMPEG_MediaType  outputFormat; // display module
+  struct Stream_MediaFramework_V4L_MediaType     sourceFormat; // source module
   ACE_Time_Value                                 statisticCollectionInterval;
   // *TODO*: remove this ASAP
   Test_I_Source_V4L2_StreamConfiguration_t*      streamConfiguration;

@@ -400,7 +400,7 @@ error:
   void** hints_p = NULL;
   int result_2 =
       snd_device_name_hint (-1,
-                            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_PCM_INTERFACE_NAME),
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_ALSA_PCM_INTERFACE_NAME),
                             &hints_p);
   if (result_2 < 0)
   {
@@ -1364,7 +1364,7 @@ load_channels (IMFMediaSource* IMFMediaSource_in,
 #else
 bool
 load_formats (struct _snd_pcm* handle_in,
-              const Stream_Device_ALSAConfiguration& format_in,
+              const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
@@ -1401,7 +1401,7 @@ load_formats (struct _snd_pcm* handle_in,
 
   result = snd_pcm_hw_params_set_access (handle_in,
                                          format_p,
-                                         format_in.access);
+                                         mediaType_in.access);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1431,7 +1431,7 @@ load_formats (struct _snd_pcm* handle_in,
     if (result == 0)
       formats_supported.insert (static_cast<enum _snd_pcm_format> (i));
   } // end FOR
-  snd_pcm_format_mask_free (format_mask_p);
+  snd_pcm_format_mask_free (format_mask_p); format_mask_p = NULL;
 
   for (std::set<snd_pcm_format_t>::const_iterator iterator_2 = formats_supported.begin ();
        iterator_2 != formats_supported.end ();
@@ -1445,20 +1445,26 @@ load_formats (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
 error:
+  if (format_mask_p)
+  {
+    snd_pcm_format_mask_free (format_mask_p); format_mask_p = NULL;
+  } // end IF
   if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  {
+    snd_pcm_hw_params_free (format_p); format_p = NULL;
+  } // end IF
 
   return false;
 }
 
 bool
 load_sample_rates (struct _snd_pcm* handle_in,
-                   const Stream_Device_ALSAConfiguration& format_in,
+                   const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in,
                    GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
@@ -1497,7 +1503,7 @@ load_sample_rates (struct _snd_pcm* handle_in,
 
   result = snd_pcm_hw_params_set_access (handle_in,
                                          format_p,
-                                         format_in.access);
+                                         mediaType_in.access);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1507,7 +1513,7 @@ load_sample_rates (struct _snd_pcm* handle_in,
   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
-                                         format_in.format);
+                                         mediaType_in.format);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1555,13 +1561,15 @@ load_sample_rates (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
 error:
   if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  {
+    snd_pcm_hw_params_free (format_p); format_p = NULL;
+  } // end IF
 
   return false;
 }
@@ -1972,7 +1980,7 @@ error:
   //         directory specified by the LADSPA_HOME environment variable
   std::string command_line_string =
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND);
-  int result_2 = -1;
+//  int result_2 = -1;
   std::string command_output_string;
   std::string::size_type start_position, end_position;
   char* saveptr_p = NULL;

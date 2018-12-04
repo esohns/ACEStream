@@ -35,8 +35,6 @@
 #include "stream_streammodule_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-// *NOTE*: wxWidgets may have #defined __WXDEBUG__
-//#undef __WXDEBUG__
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 
@@ -51,6 +49,8 @@
 #else
 #include "stream_dev_cam_source_v4l.h"
 
+#include "stream_lib_v4l_common.h"
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"
@@ -58,7 +58,7 @@
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#include "stream_dec_avi_decoder.h"
+#include "stream_lib_ffmpeg_common.h"
 
 #include "stream_misc_splitter.h"
 
@@ -144,14 +144,16 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Test_I_ControlMessage_t,
                                  Test_I_Target_DirectShow_Stream_Message,
                                  Test_I_Target_DirectShow_Stream_SessionMessage,
-                                 struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_Splitter;
+                                 struct Test_I_Target_DirectShow_SessionData,
+                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_DirectShow_Splitter;
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
                                  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                  Test_I_ControlMessage_t,
                                  Test_I_Target_MediaFoundation_Stream_Message,
                                  Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                 struct Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_Splitter;
+                                 struct Test_I_Target_MediaFoundation_SessionData,
+                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_MediaFoundation_Splitter;
 #else
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
@@ -159,7 +161,8 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Test_I_ControlMessage_t,
                                  Test_I_Target_Stream_Message,
                                  Test_I_Target_Stream_SessionMessage,
-                                 struct Test_I_Target_SessionData> Test_I_Target_Splitter;
+                                 struct Test_I_Target_SessionData,
+                                 struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Splitter;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -391,7 +394,8 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_ControlMessage_t,
                                        Test_I_Source_V4L2_Stream_Message,
                                        Test_I_Source_V4L2_Stream_SessionMessage,
-                                       Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Display;
+                                       Test_I_Source_V4L2_SessionData_t,
+                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Source_V4L2_Display;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -556,7 +560,8 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_ControlMessage_t,
                                        Test_I_Target_Stream_Message,
                                        Test_I_Target_Stream_SessionMessage,
-                                       Test_I_Target_SessionData_t> Test_I_Target_Display;
+                                       Test_I_Target_SessionData_t,
+                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Display;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

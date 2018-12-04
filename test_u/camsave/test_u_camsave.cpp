@@ -1001,7 +1001,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   return true;
 
-error:
+//error:
   if (deviceIdentifier_out.fileDescriptor != -1)
   {
     result = v4l2_close (deviceIdentifier_out.fileDescriptor);
@@ -1184,8 +1184,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       captureinterfaceIdentifier_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.pixelBufferLock =
-    configuration_in.pixelBufferLock;
+  modulehandler_configuration.pixelBufferLock = CBData_in.pixelBufferLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
@@ -1487,6 +1486,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
+  int result = -1;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -1619,10 +1619,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GTK_USE)
     //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    CBData_in.UIState->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    CBData_in.UIState.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
-    CBData_in.UIState->eventHooks.finiHook = idle_finalize_UI_cb;
-    CBData_in.UIState->eventHooks.initHook = idle_initialize_UI_cb;
+    CBData_in.UIState.eventHooks.finiHook = idle_finalize_UI_cb;
+    CBData_in.UIState.eventHooks.initHook = idle_initialize_UI_cb;
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -1893,7 +1893,11 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool print_version_and_exit = false;
   //bool run_stress_test = false;
-//  bool result_2 = false;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  bool result_2 = false;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,

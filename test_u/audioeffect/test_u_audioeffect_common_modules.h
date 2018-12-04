@@ -101,7 +101,7 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Test_U_ControlMessage_t,
                                      Test_U_AudioEffect_Message,
                                      Test_U_AudioEffect_SessionMessage,
-                                     struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                     struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                      enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_U_AudioEffect_StreamState,
@@ -111,11 +111,11 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Common_Timer_Manager_t> Test_U_Dev_Mic_Source_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_mic_source_alsa_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_U_Dev_Mic_Source_ALSA);                          // writer type
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
@@ -216,7 +216,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_U_AudioEffect_MediaFoundation_SessionData,
 #else
 typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                             struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                              Test_U_ControlMessage_t,
                                              Test_U_AudioEffect_Message,
                                              Test_U_AudioEffect_SessionMessage,
@@ -227,14 +227,14 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              double, 1> Test_U_AudioEffect_StatisticAnalysis;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_stat_analysis_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_U_AudioEffect_StatisticAnalysis);                // name
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                      struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                                       ACE_Message_Block,
                                                       Test_U_AudioEffect_Message,
                                                       Test_U_AudioEffect_SessionMessage,
@@ -245,7 +245,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
-                                                      struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                      struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                                       ACE_Message_Block,
                                                       Test_U_AudioEffect_Message,
                                                       Test_U_AudioEffect_SessionMessage,
@@ -256,13 +256,13 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_U_AudioEffect_SessionData,                // session data type
                           enum Stream_SessionMessageType,                       // session event type
-                          struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                          struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_stat_report_module_name_string,
                           Stream_INotify_t,                                     // stream notification interface type
                           Test_U_AudioEffect_Module_Statistic_ReaderTask_t,     // reader type
                           Test_U_AudioEffect_Module_Statistic_WriterTask_t,     // writer type
                           Test_U_AudioEffect_StatisticReport);                  // name
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
@@ -331,7 +331,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionD
 #else
 typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
-                                   struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage,
@@ -339,14 +339,14 @@ typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
                                    struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SoXEffect;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,   // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_dec_sox_effect_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_U_AudioEffect_SoXEffect);                          // writer type
 
 typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
-                                 struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                 struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                  Test_U_ControlMessage_t,
                                  Test_U_AudioEffect_Message,
                                  Test_U_AudioEffect_SessionMessage,
@@ -354,7 +354,7 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Target_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                          // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,    // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dev_target_alsa_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_U_AudioEffect_Target_ALSA);                         // writer type
@@ -362,16 +362,17 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,            
 #if defined (GTK_USE)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,
-                                                          struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                          struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                                           Test_U_ControlMessage_t,
                                                           Test_U_AudioEffect_Message,
                                                           Test_U_AudioEffect_SessionMessage,
                                                           struct Test_U_AudioEffect_SessionData,
                                                           Test_U_AudioEffect_SessionData_t,
-                                                          Common_Timer_Manager_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
+                                                          Common_Timer_Manager_t,
+                                                          struct Stream_MediaFramework_ALSA_MediaType> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                         // session data type
                               enum Stream_SessionMessageType,                                // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,          // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,          // module handler configuration type
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_AudioEffect_Vis_SpectrumAnalyzer);                      // writer type
@@ -379,7 +380,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,            
 #endif // GUI_SUPPORT
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
-                                    struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                    struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                     Test_U_ControlMessage_t,
                                     Test_U_AudioEffect_Message,
                                     Test_U_AudioEffect_SessionMessage,
@@ -389,11 +390,11 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_ALSA_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                          // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration,    // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dec_wav_encoder_module_name_string,
                               Stream_INotify_t,                                        // stream notification interface type
                               Test_U_AudioEffect_ALSA_WAVEncoder);                     // writer type
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
@@ -425,17 +426,17 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionD
 #else
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
-                                   struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage,
                                    struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
-                              struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_sink_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_U_AudioEffect_Module_FileWriter);                // writer type
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

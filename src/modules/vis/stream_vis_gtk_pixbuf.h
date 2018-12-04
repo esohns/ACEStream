@@ -33,6 +33,8 @@
 
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 // forward declarations
 struct SwsContext;
 
@@ -47,7 +49,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Module_Vis_GTK_Pixbuf_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -59,6 +63,12 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionDataContainerType::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -71,6 +81,12 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -93,12 +109,6 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
- protected:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
-  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
-#endif // ACE_WIN32 || ACE_WIN64
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
@@ -106,14 +116,8 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
-  struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
-  struct _AMMediaType& getFormat_impl (const IMFMediaType*);
-#endif // ACE_WIN32 || ACE_WIN64
 
   bool               isFirst_;
-
   ACE_SYNCH_MUTEX_T* lock_;
   struct SwsContext* scaleContext_;
   unsigned int       scaleContextHeight_;

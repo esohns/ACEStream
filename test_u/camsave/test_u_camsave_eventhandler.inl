@@ -108,6 +108,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
@@ -117,14 +120,14 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    *(CBData_->UIState);
+    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
   sessionData_ =
-    &const_cast<struct Stream_CamSave_SessionData&> (sessionData_in);
+    &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
@@ -193,6 +196,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
@@ -201,7 +207,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    *(CBData_->UIState);
+    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
@@ -260,6 +266,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
@@ -268,7 +277,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    *(CBData_->UIState);
+    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
@@ -277,11 +286,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-#if defined (GTK_USE)
-    CBData_->UIState->eventStack.push (COMMON_UI_EVENT_DATA);
-#elif defined (WXWIDGETS_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-#endif
   } // end lock scope
 #endif // GUI_SUPPORT
 
@@ -329,6 +334,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   ACE_ASSERT (CBData_);
 #if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif // GTK_USE
@@ -337,7 +345,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #if defined (GUI_SUPPORT)
   UIStateType& state_r =
 #if defined (GTK_USE)
-    *(CBData_->UIState);
+    const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
