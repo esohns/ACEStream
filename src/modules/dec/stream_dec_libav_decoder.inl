@@ -55,7 +55,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 char
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -63,7 +64,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+                              SessionDataContainerType,
+                              MediaType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
 #else
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -71,7 +73,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 char
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -79,8 +82,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-/*                              SessionDataContainerType>::paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];*/
+                              SessionDataContainerType,
+                              MediaType>::paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+/*                              MediaType>::paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];*/
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
@@ -89,19 +93,22 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
+                              SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T (ISTREAM_T* stream_in)
+                              MediaType>::Stream_Decoder_LibAVDecoder_T (ISTREAM_T* stream_in)
 #else
-                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T* stream_in)
+                              MediaType>::Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , inherited2 ()
  , buffer_ (NULL)
 // , buffer_ ()
 // , bufferRef_ ()
@@ -136,14 +143,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::~Stream_Decoder_LibAVDecoder_T ()
+                              SessionDataContainerType,
+                              MediaType>::~Stream_Decoder_LibAVDecoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::~Stream_Decoder_LibAVDecoder_T"));
 
@@ -176,7 +185,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -184,8 +194,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                     Stream_IAllocator* allocator_in)
+                              SessionDataContainerType,
+                              MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::initialize"));
 
@@ -245,7 +256,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  outputFormat_ = getFormat (configuration_in.outputFormat);
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            media_type_s);
+  outputFormat_ = media_type_s.format;
   if (unlikely (outputFormat_ == AV_PIX_FMT_NONE))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -264,7 +278,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -272,8 +287,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                            bool& passMessageDownstream_out)
+                              SessionDataContainerType,
+                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::handleDataMessage"));
 
@@ -591,7 +607,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -599,8 +616,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                               bool& passMessageDownstream_out)
+                              SessionDataContainerType,
+                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::handleSessionMessage"));
 
@@ -621,34 +639,33 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
-      enum AVPixelFormat input_format_e = AV_PIX_FMT_NONE;
-      Common_UI_Resolution_t resolution_s;
       unsigned int decode_height, decode_width;
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
-      input_format_e = getFormat (session_data_r.formats.front ());
-      resolution_s = getResolution (session_data_r.formats.front ());
+      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      formatHeight_ = static_cast<unsigned int> (std::abs (resolution_s.cy));
+      formatHeight_ =
+          static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       decode_height = formatHeight_;
-      decode_width = static_cast<unsigned int> (resolution_s.cx);
+      decode_width = static_cast<unsigned int> (media_type_s.resolution.cx);
 #else
-      formatHeight_ = resolution_s.height;
+      formatHeight_ = media_type_s.resolution.height;
       decode_height = formatHeight_;
-      decode_width = resolution_s.width;
+      decode_width = media_type_s.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
 
       if ((codecId_ == AV_CODEC_ID_NONE) &&
-          Stream_Module_Decoder_Tools::isCompressedVideo (input_format_e))
+          Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: codec id not set, best-guessing based on the input pixel format (was: %s)\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (input_format_e).c_str ())));
+                    ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (media_type_s.format).c_str ())));
         codecId_ =
-            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (input_format_e);
+            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
       } // end IF
       if (codecId_ == AV_CODEC_ID_NONE)
         ACE_DEBUG ((LM_ERROR,

@@ -1576,7 +1576,7 @@ error:
 
 bool
 load_sample_resolutions (struct _snd_pcm* handle_in,
-                         const Stream_Device_ALSAConfiguration& format_in,
+                         const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in,
                          GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
@@ -1614,7 +1614,7 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
 
   result = snd_pcm_hw_params_set_access (handle_in,
                                          format_p,
-                                         format_in.access);
+                                         mediaType_in.access);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1624,7 +1624,7 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
-                                         format_in.format);
+                                         mediaType_in.format);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1635,7 +1635,7 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
   result =
       snd_pcm_hw_params_set_rate_near (handle_in,
                                        format_p,
-                                       &const_cast<Stream_Device_ALSAConfiguration&> (format_in).rate,
+                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
                                        &subunit_direction);
   if (result < 0)
   {
@@ -1645,7 +1645,7 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
     goto error;
   } // end IF
 
-  resolutions_supported.insert (snd_pcm_format_width (format_in.format));
+  resolutions_supported.insert (snd_pcm_format_width (mediaType_in.format));
 //  for (unsigned int* i = resolutions;
 //       *i;
 //       ++i)
@@ -1672,20 +1672,22 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
 error:
   if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  {
+    snd_pcm_hw_params_free (format_p); format_p = NULL;
+  } // end IF
 
   return false;
 }
 
 bool
 load_channels (struct _snd_pcm* handle_in,
-               const Stream_Device_ALSAConfiguration& format_in,
+               const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in,
                GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_channels"));
@@ -1724,7 +1726,7 @@ load_channels (struct _snd_pcm* handle_in,
 
   result = snd_pcm_hw_params_set_access (handle_in,
                                          format_p,
-                                         format_in.access);
+                                         mediaType_in.access);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1734,7 +1736,7 @@ load_channels (struct _snd_pcm* handle_in,
   } // end IF
   result = snd_pcm_hw_params_set_format (handle_in,
                                          format_p,
-                                         format_in.format);
+                                         mediaType_in.format);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1745,7 +1747,7 @@ load_channels (struct _snd_pcm* handle_in,
   result =
       snd_pcm_hw_params_set_rate_near (handle_in,
                                        format_p,
-                                       &const_cast<Stream_Device_ALSAConfiguration&> (format_in).rate,
+                                       &const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in).rate,
                                        &subunit_direction);
   if (result < 0)
   {
@@ -1791,13 +1793,15 @@ load_channels (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
-  snd_pcm_hw_params_free (format_p);
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   return true;
 
 error:
   if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  {
+    snd_pcm_hw_params_free (format_p); format_p = NULL;
+  } // end IF
 
   return false;
 }
@@ -2102,8 +2106,8 @@ get_buffer_size (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* ui_cb_data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
@@ -2429,8 +2433,8 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  Test_U_AudioEffect_Stream::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_U_AudioEffect_Stream::IINITIALIZE_T*> (data_p->CBData->stream);
+  Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T* iinitialize_p =
+    dynamic_cast<Test_U_AudioEffect_ALSA_Stream::IINITIALIZE_T*> (data_p->CBData->stream);
   ACE_ASSERT (iinitialize_p);
   result_2 =
     iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration);
@@ -2438,6 +2442,7 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Stream_IStream_t*> (data_p->CBData->stream);
   istream_control_p =
     dynamic_cast<Stream_IStreamControlBase*> (data_p->CBData->stream);
+  Common_IGetR_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -2528,7 +2533,7 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  Common_IGetR_T<Test_U_AudioEffect_SessionData_t>* iget_p =
+  iget_p =
     dynamic_cast<Common_IGetR_T<Test_U_AudioEffect_SessionData_t>*> (data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   session_data_container_p = &iget_p->getR ();
@@ -2695,8 +2700,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3015,7 +3020,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -3239,9 +3244,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_toggle_button_set_active (toggle_button_p,
                                 is_mute);
 
-  enum Stream_Visualization_SpectrumAnalyzer2DMode mode_2d =
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode mode_2d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
-  enum Stream_Visualization_SpectrumAnalyzer3DMode mode_3d =
+  enum Stream_Visualization_SpectrumAnalyzer_3DMode mode_3d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -3370,6 +3375,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION (2,12,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
+  GtkBox* box_p = NULL;
 #if defined (GTKGL_SUPPORT)
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
@@ -3539,7 +3545,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 
-  GtkBox* box_p =
+  box_p =
     GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
   ACE_ASSERT (box_p);
@@ -3836,7 +3842,7 @@ continue_:
                                   true);
     box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
     ACE_ASSERT (box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (box_p),
                               true);
@@ -3878,7 +3884,7 @@ continue_:
                                   true);
     box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
     ACE_ASSERT (box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (box_p),
                               true);
@@ -3986,7 +3992,7 @@ continue_:
 
     box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
     ACE_ASSERT (box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (box_p),
                               true);
@@ -4056,7 +4062,7 @@ continue_:
 
     box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
     ACE_ASSERT (box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (box_p),
                               true);
@@ -4322,8 +4328,8 @@ idle_finalize_UI_cb (gpointer userData_in)
   // sanity check(s)
 //  ACE_ASSERT (data_base_p->configuration);
 
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -4331,7 +4337,7 @@ idle_finalize_UI_cb (gpointer userData_in)
   ACE_ASSERT (data_p->stream);
   stream_p = data_p->stream;
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4468,8 +4474,8 @@ idle_session_end_cb (gpointer userData_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 //
-//  struct Test_U_AudioEffect_GTK_CBData* data_p =
-//    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+//  struct Test_U_AudioEffect_UI_CBData* data_p =
+//    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
 //  ACE_ASSERT (data_p);
@@ -4840,13 +4846,13 @@ idle_update_display_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -4971,8 +4977,8 @@ extern "C"
 //
 //  ACE_UNUSED_ARG (widget_in);
 //  ACE_UNUSED_ARG (rectangle_in);
-//  Test_U_AudioEffect_GTK_CBData* data_p =
-//      static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+//  Test_U_AudioEffect_UI_CBData* data_p =
+//      static_cast<Test_U_AudioEffect_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
 //  ACE_ASSERT (data_p);
@@ -5020,7 +5026,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   Common_UI_GTK_BuildersConstIterator_t iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
+#endif
 #if GTK_CHECK_VERSION(2,30,0)
     GValue value = G_VALUE_INIT;
 #else
@@ -5076,15 +5084,16 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* ui_cb_data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
+  ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->stream);
 
   stream_p = ui_cb_data_p->stream;
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
@@ -5164,9 +5173,10 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       }
     } // end SWITCH
 #else
-    data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      value_i;
-    (*modulehandler_configuration_iterator).second.second.bufferSize = value_i;
+    ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+      static_cast<unsigned int> (value_i);
+    (*modulehandler_configuration_iterator).second.second.bufferSize =
+        static_cast<unsigned int> (value_i);
 #endif
   } // end IF
   else
@@ -5196,7 +5206,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end SWITCH
 #else
     value_i =
-      data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+      static_cast<gint> (ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize);
 #endif
     gtk_spin_button_set_value (spin_button_p,
                                static_cast<gdouble> (value_i));
@@ -5208,6 +5218,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_2;
   GtkListStore* list_store_p = NULL;
+  GFile* file_p = NULL;
+  GtkAction* action_p = NULL;
+  GtkFrame* frame_p = NULL;
+  GtkToggleButton* toggle_button_p = NULL;
+  GtkFileChooserButton* file_chooser_button_p = NULL;
+  bool save_to_file = false;
+
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
@@ -5257,15 +5274,15 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (!Stream_Device_Tools::setFormat (data_p->handle,
-                                              data_p->configuration->ALSAConfiguration))
+  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
+                                       ui_cb_data_p->configuration->ALSAConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
   (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
-      data_p->handle;
+      ui_cb_data_p->handle;
 #endif
 
   combo_box_p =
@@ -5321,7 +5338,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.format->format =
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.format =
     static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
 #endif
   g_value_unset (&value);
@@ -5376,7 +5393,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.format->rate =
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.rate =
     g_value_get_uint (&value);
 #endif
   g_value_unset (&value);
@@ -5434,9 +5451,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   // *NOTE*: ALSA encodes the resolution in the format identifier, so it has
   //         already been set at this stage
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s --> %d...\n"),
-              ACE_TEXT (snd_pcm_format_description ((*modulehandler_configuration_iterator).second.second.format->format)),
-              snd_pcm_format_width ((*modulehandler_configuration_iterator).second.second.format->format)));
+              ACE_TEXT ("%s --> %d\n"),
+              ACE_TEXT (snd_pcm_format_description ((*modulehandler_configuration_iterator).second.second.sourceFormat.format)),
+              snd_pcm_format_width ((*modulehandler_configuration_iterator).second.second.sourceFormat.format)));
 //  data_p->configuration->moduleHandlerConfiguration.format-> =
 //    g_value_get_uint (&value);
 #endif
@@ -5468,18 +5485,18 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.inputFormat->cbFormat == sizeof (struct tWAVEFORMATEX));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.inputFormat->pbFormat);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.sourceFormat->cbFormat == sizeof (struct tWAVEFORMATEX));
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.sourceFormat->pbFormat);
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second.inputFormat->pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> ((*directshow_modulehandler_configuration_iterator).second.second.sourceFormat->pbFormat);
       waveformatex_p->nChannels = static_cast<WORD> (g_value_get_uint (&value));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       result =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.inputFormat->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
-                                                                                                      g_value_get_uint (&value));
+        (*mediafoundation_modulehandler_configuration_iterator).second.second.sourceFormat->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                                       g_value_get_uint (&value));
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -5492,24 +5509,21 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_configuration_iterator).second.second.format->channels =
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.channels =
     g_value_get_uint (&value);
 #endif
   g_value_unset (&value);
 
-  GtkAction* action_p = NULL;
-  GtkFrame* frame_p = NULL;
-
-  GtkToggleButton* toggle_button_p =
+  toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
-  bool save_to_file = gtk_toggle_button_get_active (toggle_button_p);
-  GtkFileChooserButton* file_chooser_button_p =
+  save_to_file = gtk_toggle_button_get_active (toggle_button_p);
+  file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  GFile* file_p =
+  file_p =
     gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
   if (file_p)
   {
@@ -5653,7 +5667,6 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   // sanity check(s)
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
 //  if (!Stream_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.deviceHandle,
 //                                                     *data_p->configuration->moduleHandlerConfiguration.format))
@@ -5757,7 +5770,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_NEW_NORETURN (thread_data_p,
                     struct Test_U_AudioEffect_ThreadData ());
   if (thread_data_p)
-    thread_data_p->CBData = data_p;
+    thread_data_p->CBData = ui_cb_data_p;
 #endif
   if (!thread_data_p)
   {
@@ -5918,8 +5931,8 @@ action_cut_activate_cb (GtkAction* action_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -5985,8 +5998,8 @@ action_report_activate_cb (GtkAction* action_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -6130,14 +6143,14 @@ toggleaction_sinus_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -6224,14 +6237,14 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -6304,14 +6317,14 @@ toggleaction_effect_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -6498,12 +6511,12 @@ toggleaction_mute_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -6605,14 +6618,14 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -6726,14 +6739,14 @@ toggleaction_3d_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -6785,8 +6798,8 @@ toggleaction_3d_toggled_cb (GtkToggleAction* toggleAction_in,
 //  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 //
 //  ACE_UNUSED_ARG (widget_in);
-//  Test_U_AudioEffect_GTK_CBData* data_p =
-//    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+//  Test_U_AudioEffect_UI_CBData* data_p =
+//    static_cast<Test_U_AudioEffect_UI_CBData*> (userData_in);
 //
 //  // sanity check(s)
 //  ACE_ASSERT (data_p);
@@ -6970,21 +6983,21 @@ button_quit_clicked_cb (GtkButton* button_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->stream);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  stream_p = data_p->stream;
+  stream_p = ui_cb_data_p->stream;
   Test_U_AudioEffect_IStreamControl_t* istream_control_p =
-    dynamic_cast<Test_U_AudioEffect_IStreamControl_t*> (directshow_ui_cb_data_p->stream);
+    dynamic_cast<Test_U_AudioEffect_IStreamControl_t*> (ui_cb_data_p->stream);
   ACE_ASSERT (istream_control_p);
   status_e = istream_control_p->status ();
 #endif
@@ -7073,14 +7086,14 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -7315,18 +7328,18 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->stream);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p->stream);
 
-  stream_p = data_p->stream;
+  stream_p = ui_cb_data_p->stream;
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
   ACE_ASSERT (stream_p);
 
@@ -7475,7 +7488,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   module_name =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING);
   module_p =
     const_cast<Stream_Module_t*> (istream_p->find (module_name));
 #endif
@@ -7608,41 +7621,41 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   int result = -1;
   struct _snd_pcm_hw_params* format_p = NULL;
 
-  if (data_p->handle)
+  if (ui_cb_data_p->handle)
   {
-    result = snd_pcm_close (data_p->handle);
+    result = snd_pcm_close (ui_cb_data_p->handle);
     if (result < 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed ALSA device...\n")));
-    ACE_ASSERT (data_p->handle == (*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
-    data_p->handle = NULL;
+    ACE_ASSERT (ui_cb_data_p->handle == (*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
+    ui_cb_data_p->handle = NULL;
     (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
         NULL;
   } // end IF
-  ACE_ASSERT (!data_p->handle);
+  ACE_ASSERT (!ui_cb_data_p->handle);
 //  int mode = MODULE_DEV_MIC_ALSA_DEFAULT_MODE;
   int mode = 0;
   //    snd_spcm_init();
-  result = snd_pcm_open (&data_p->handle,
-                         device_name.c_str (),
+  result = snd_pcm_open (&ui_cb_data_p->handle,
+                         device_string.c_str (),
                          SND_PCM_STREAM_CAPTURE, mode);
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_open(\"%s\") for capture: \"%s\", aborting\n"),
-                ACE_TEXT (device_name.c_str ()),
+                ACE_TEXT (device_string.c_str ()),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
   (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
-    data_p->handle;
-  ACE_ASSERT (data_p->handle);
+    ui_cb_data_p->handle;
+  ACE_ASSERT (ui_cb_data_p->handle);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened ALSA device (capture) \"%s\"...\n"),
-              ACE_TEXT (device_name.c_str ())));
+              ACE_TEXT ("opened ALSA device (capture) \"%s\"\n"),
+              ACE_TEXT (device_string.c_str ())));
 
 //    snd_pcm_hw_params_alloca (&format_p);
   snd_pcm_hw_params_malloc (&format_p);
@@ -7652,7 +7665,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  result = snd_pcm_hw_params_any (data_p->handle,
+  result = snd_pcm_hw_params_any (ui_cb_data_p->handle,
                                   format_p);
   if (result < 0)
   {
@@ -7661,7 +7674,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  result = snd_pcm_hw_params (data_p->handle,
+  result = snd_pcm_hw_params (ui_cb_data_p->handle,
                               format_p);
   if (result < 0)
   {
@@ -7673,25 +7686,24 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: default format:\n%s"),
-              ACE_TEXT (snd_pcm_name (data_p->handle)),
+              ACE_TEXT (snd_pcm_name (ui_cb_data_p->handle)),
               ACE_TEXT (Stream_Device_Tools::formatToString (format_p).c_str ())));
-#endif
-  snd_pcm_hw_params_free (format_p);
+#endif // _DEBUG
+  snd_pcm_hw_params_free (format_p); format_p = NULL;
 
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
-  if (!Stream_Device_Tools::getFormat (data_p->handle,
-                                              *(*modulehandler_configuration_iterator).second.second.format))
+  if (!Stream_Device_Tools::getFormat (ui_cb_data_p->handle,
+                                       (*modulehandler_configuration_iterator).second.second.sourceFormat))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  (*modulehandler_configuration_iterator).second.second.format->access =
-    MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS;
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.access =
+    STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
-      load_formats (data_p->handle,
-                    *(*modulehandler_configuration_iterator).second.second.format,
+      load_formats (ui_cb_data_p->handle,
+                    (*modulehandler_configuration_iterator).second.second.sourceFormat,
                     list_store_p);
 #endif
   if (!result_2)
@@ -7764,20 +7776,22 @@ error:
     }
   } // end SWITCH
 #else
-  if (data_p->handle)
+  if (ui_cb_data_p->handle)
   {
-    result = snd_pcm_close (data_p->handle);
+    result = snd_pcm_close (ui_cb_data_p->handle);
     if (result < 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed ALSA device...\n")));
-    data_p->handle = NULL;
+    ui_cb_data_p->handle = NULL;
   } // end IF
 
   if (format_p)
-    snd_pcm_hw_params_free (format_p);
+  {
+    snd_pcm_hw_params_free (format_p); format_p = NULL;
+  } // end IF
 #endif
 } // combobox_source_changed_cb
 
@@ -7840,16 +7854,16 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -7974,18 +7988,20 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (data_p->handle);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
+  ACE_ASSERT (ui_cb_data_p->handle);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  (*modulehandler_configuration_iterator).second.second.format->format = format_e;
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.format =
+      format_e;
   // *TODO*: format setting doesn't work yet
-  (*modulehandler_configuration_iterator).second.second.format->format =
-      MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT;
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("format setting is currently broken, continuing\n")));
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.format =
+      STREAM_DEV_MIC_ALSA_DEFAULT_FORMAT;
 
   result_2 =
-      load_sample_rates (data_p->handle,
-                         *(*modulehandler_configuration_iterator).second.second.format,
+      load_sample_rates (ui_cb_data_p->handle,
+                         (*modulehandler_configuration_iterator).second.second.sourceFormat,
                          list_store_p);
 #endif
   if (!result_2)
@@ -8115,14 +8131,14 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -8278,14 +8294,13 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p->handle);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
-  (*modulehandler_configuration_iterator).second.second.format->rate =
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.rate =
       sample_rate;
 
   result_2 =
       load_sample_resolutions (data_p->handle,
-                               *(*modulehandler_configuration_iterator).second.second.format,
+                               (*modulehandler_configuration_iterator).second.second.sourceFormat,
                                list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -8419,14 +8434,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -8607,14 +8622,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p->handle);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
 //  data_p->configuration->moduleHandlerConfiguration.format->format =
 //      bits_per_sample;
 
   result_2 =
       load_channels (data_p->handle,
-                     *(*modulehandler_configuration_iterator).second.second.format,
+                     (*modulehandler_configuration_iterator).second.second.sourceFormat,
                      list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -8748,16 +8762,16 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -8916,11 +8930,10 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (data_p->handle);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
+  ACE_ASSERT (ui_cb_data_p->handle);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  (*modulehandler_configuration_iterator).second.second.format->channels =
+  (*modulehandler_configuration_iterator).second.second.sourceFormat.channels =
       number_of_channels;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -8948,7 +8961,7 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   ACE_ASSERT (ui_cb_data_base_p);
 
   Stream_IStream_t* istream_p = NULL;
-  enum Stream_Visualization_SpectrumAnalyzer2DMode mode =
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode mode =
       STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   unsigned int sample_size = 0; // bytes
   bool is_signed_format = false;
@@ -9036,14 +9049,14 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -9051,11 +9064,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   mode =
     (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
   is_signed_format =
-      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second.format->format);
+      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second.sourceFormat.format);
   sample_size =
-      snd_pcm_format_physical_width ((*modulehandler_configuration_iterator).second.second.format->format) / 8;
+      snd_pcm_format_physical_width ((*modulehandler_configuration_iterator).second.second.sourceFormat.format) / 8;
   channels =
-    (*modulehandler_configuration_iterator).second.second.format->channels;
+    (*modulehandler_configuration_iterator).second.second.sourceFormat.channels;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -9184,14 +9197,14 @@ drawingarea_realize_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -9292,16 +9305,16 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T streamconfiguration_iterator =
-      data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (streamconfiguration_iterator != data_p->configuration->streamConfiguration.end ());
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T streamconfiguration_iterator =
+      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (streamconfiguration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_SYNCH_MUTEX* lock_p = NULL;
@@ -9331,7 +9344,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  lock_p = &data_p->surfaceLock;
+  lock_p = &ui_cb_data_p->surfaceLock;
   (*streamconfiguration_iterator).second.second.area2D = *allocation_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -9433,12 +9446,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     } // end SWITCH
 #else
 #if GTK_CHECK_VERSION(3,10,0)
-    if (data_p->cairoSurface2D)
-      cairo_surface_destroy (data_p->cairoSurface2D);
-    data_p->cairoSurface2D = surface_p;
-    (*modulehandler_configuration_iterator).second.second.cairoSurface2D =
+    if (ui_cb_data_p->cairoSurface2D)
+      cairo_surface_destroy (ui_cb_data_p->cairoSurface2D);
+    ui_cb_data_p->cairoSurface2D = surface_p;
+    (*streamconfiguration_iterator).second.second.cairoSurface2D =
       surface_p;
-    ACE_ASSERT (data_p->cairoSurface2D);
+    ACE_ASSERT (ui_cb_data_p->cairoSurface2D);
 #else
     if (data_p->pixelBuffer2D)
       g_object_unref (data_p->pixelBuffer2D);
@@ -9473,7 +9486,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  notification_p = data_p->resizeNotification;
+  notification_p = ui_cb_data_p->resizeNotification;
 #endif // ACE_WIN32 || ACE_WIN64
   if (notification_p)
   {
@@ -9556,13 +9569,13 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
       data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -9662,8 +9675,10 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
 #else
   if (widget_in == GTK_WIDGET (drawing_area_p))
     (*modulehandler_configuration_iterator).second.second.area2D = *area_p;
+#if defined (GTKGL_SUPPORT)
   else
     (*modulehandler_configuration_iterator).second.second.area3D = *area_p;
+#endif /* GTKGL_SUPPORT */
 #endif // ACE_WIN32 || ACE_WIN64
 
   if (widget_in != GTK_WIDGET (drawing_area_p))
@@ -10029,14 +10044,14 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -10177,14 +10192,14 @@ glarea_realize_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -10579,13 +10594,13 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -10811,13 +10826,13 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
 //    ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 //  } // end ELSE
 //#else
-//  struct Test_U_AudioEffect_GTK_CBData* data_p =
-//      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+//  struct Test_U_AudioEffect_UI_CBData* data_p =
+//      static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 //  // sanity check(s)
 //  ACE_ASSERT (data_p);
 //  ACE_ASSERT (data_p->configuration);
 //
-//  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+//  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
 //    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 //#endif
@@ -10893,14 +10908,14 @@ glarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -10998,14 +11013,14 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -11138,14 +11153,14 @@ glarea_size_allocate_event_cb (GtkWidget* widget_in,
   //  ACE_ASSERT (directshow_ui_cb_data_p->configuration);
   //} // end ELSE
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -11252,14 +11267,14 @@ glarea_draw_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -11426,14 +11441,14 @@ glarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -11531,14 +11546,14 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
@@ -11687,14 +11702,14 @@ glarea_configure_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif
@@ -11784,14 +11799,14 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_UI_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 #endif

@@ -2792,7 +2792,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  (*iterator_4).second.second.area = allocation;
+  (*iterator_4).second.second.area.height =
+      static_cast<__u32> (allocation.height);
+  (*iterator_4).second.second.area.width =
+      static_cast<__u32> (allocation.width);
 
   ACE_ASSERT (!v4l2_ui_cb_data_p->pixelBuffer);
   v4l2_ui_cb_data_p->pixelBuffer =
@@ -4970,7 +4973,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.fileDescriptor,
-                                    (*modulehandler_iterator).second.second.sourceFormat);
+                                    (*modulehandler_iterator).second.second.sourceFormat.format);
 #endif
   if (!result_3)
   {
@@ -6981,8 +6984,8 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   int open_mode =
-      (((*iterator_4).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                    : O_RDONLY);
+      (((*iterator_4).second.second.method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                : O_RDONLY);
   v4l2_ui_cb_data_p->fileDescriptor =
     v4l2_open (device_identifier_string.c_str (),
                open_mode);
@@ -7234,7 +7237,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.sourceFormat.format.pix.pixelformat =
+  (*modulehandler_iterator).second.second.sourceFormat.format.pixelformat =
     format_i;
 
   result =
@@ -7541,9 +7544,9 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.sourceFormat.format.fmt.pix.width =
+  (*modulehandler_iterator).second.second.sourceFormat.format.width =
       width;
-  (*modulehandler_iterator).second.second.sourceFormat.format.fmt.pix.height =
+  (*modulehandler_iterator).second.second.sourceFormat.format.height =
       height;
 
   result = load_rates (v4l2_ui_cb_data_p->fileDescriptor,
@@ -8073,11 +8076,10 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-
-  (*iterator).second.second.area = *allocation_in;
+  (*modulehandler_iterator).second.second.area.height =
+      static_cast<__u32> (allocation_in->height);
+  (*modulehandler_iterator).second.second.area.width =
+      static_cast<__u32> (allocation_in->width);
 #endif
 } // drawingarea_size_allocate_target_cb
 #else

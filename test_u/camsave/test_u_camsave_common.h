@@ -91,6 +91,8 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directdraw_common.h"
 #include "stream_lib_directshow_tools.h"
+#else
+#include "stream_lib_ffmpeg_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_common.h"
@@ -577,6 +579,7 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , fileDescriptor (-1)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
+   , sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
   {
@@ -592,16 +595,17 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   }
 
 #if defined (GUI_SUPPORT)
-  struct v4l2_rect                           area;
+  struct v4l2_rect                              area;
 #endif // GUI_SUPPORT
-  __u32                                      buffers; // v4l device buffers
-  enum AVPixelFormat                         codecFormat; // preferred output-
-  enum AVCodecID                             codecId;
-  int                                        fileDescriptor;
-  enum v4l2_memory                           method; // v4l camera source
-  struct Stream_MediaFramework_V4L_MediaType outputFormat;
-  Stream_CamSave_ISessionNotify_t*           subscriber;
-  Stream_CamSave_Subscribers_t*              subscribers;
+  __u32                                         buffers; // v4l device buffers
+  enum AVPixelFormat                            codecFormat; // preferred output-
+  enum AVCodecID                                codecId;
+  int                                           fileDescriptor;
+  enum v4l2_memory                              method; // v4l camera source
+  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
+  struct Stream_MediaFramework_V4L_MediaType    sourceFormat;
+  Stream_CamSave_ISessionNotify_t*              subscriber;
+  Stream_CamSave_Subscribers_t*                 subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

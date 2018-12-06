@@ -58,6 +58,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                MediaType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , inherited2 ()
  , isFirst_ (true)
  , lock_ (NULL)
  , scaleContext_ (NULL)
@@ -137,39 +138,40 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   }
 
 //  const MediaType& media_type_r = session_data_r.formats.front ();
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            media_type_s);
   unsigned int image_size = 0;
   unsigned int row_stride = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s =
-      inherited2::getMediaType (inherited::configuration_->outputFormat);
-  image_size =
-      Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
-//  struct _GUID sub_type = GUID_NULL;
-//  HRESULT result_3 = session_data_r.inputFormat->GetGUID (MF_MT_SUBTYPE,
-//                                                          &sub_type);
-//  if (FAILED (result_3))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//    return;
-//  } // end IF
-//  result_3 = MFCalculateImageSize (sub_type,
-//                                   resolution.width, resolution.height,
-//                                   &image_size);
-//  if (FAILED (result_3))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
-//                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
-//                resolution.width, resolution.height,
-//                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//    return;
-//  } // end IF
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-#else
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
-      inherited2::getMediaType (inherited::configuration_->outputFormat);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  struct _AMMediaType media_type_s =
+//      inherited2::getMediaType (inherited::configuration_->outputFormat);
+//  image_size =
+//      Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
+////  struct _GUID sub_type = GUID_NULL;
+////  HRESULT result_3 = session_data_r.inputFormat->GetGUID (MF_MT_SUBTYPE,
+////                                                          &sub_type);
+////  if (FAILED (result_3))
+////  {
+////    ACE_DEBUG ((LM_ERROR,
+////                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
+////                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+////    return;
+////  } // end IF
+////  result_3 = MFCalculateImageSize (sub_type,
+////                                   resolution.width, resolution.height,
+////                                   &image_size);
+////  if (FAILED (result_3))
+////  {
+////    ACE_DEBUG ((LM_ERROR,
+////                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
+////                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
+////                resolution.width, resolution.height,
+////                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+////    return;
+////  } // end IF
+//  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+//#else
   image_size =
       av_image_get_buffer_size (media_type_s.format,
                                 media_type_s.resolution.width,
@@ -178,7 +180,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   row_stride = av_image_get_linesize (media_type_s.format,
                                       media_type_s.resolution.width,
                                       0);
-#endif // ACE_WIN32 || ACE_WIN64
+//#endif // ACE_WIN32 || ACE_WIN64
 
 //  bool leave_gdk = false;
   bool release_lock = false;
@@ -494,4 +496,29 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+void
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::toggle ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::toggle"));
+
+  ACE_ASSERT (false); // *TODO*
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
 }

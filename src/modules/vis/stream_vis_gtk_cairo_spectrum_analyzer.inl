@@ -32,6 +32,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#else
+#include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_vis_defines.h"
@@ -363,22 +365,15 @@ continue_:
   // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (configuration_in.inputFormat);
+  ACE_ASSERT (configuration_in.sourceFormat);
 
-  struct _AMMediaType* media_type_p =
-    getFormat (configuration_in.inputFormat);
-  if (unlikely (!media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-  ACE_ASSERT (InlineIsEqualGUID (media_type_p->formattype, FORMAT_WaveFormatEx));
+  struct _AMMediaType media_type_s =
+      getMediaType (configuration_in.sourceFormat);
+  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
 
-  ACE_ASSERT (media_type_p->pbFormat);
+  ACE_ASSERT (media_type_s.pbFormat);
   struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
 #endif // ACE_WIN32 || ACE_WIN64
 
   bool result_2 = false;
@@ -388,13 +383,13 @@ continue_:
   channels = waveformatex_p->nChannels;
   sample_rate = waveformatex_p->nSamplesPerSec;
 
-  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.inputformat);
-
-  channels = configuration_in.inputformat->channels;
-  sample_rate = configuration_in.inputformat->rate;
+  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+  inherited2::getMediaType (configuration_in.sourceFormat,
+                            media_type_s);
+  channels = media_type_s.channels;
+  sample_rate = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
   result_2 =
     inherited3::Initialize (channels,
@@ -573,8 +568,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s =
-          inherited2::getMediaType (session_data_r.formats.front ());
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
       data_sample_size =
         ((snd_pcm_format_width (media_type_s.format) / 8) *
           media_type_s.channels);

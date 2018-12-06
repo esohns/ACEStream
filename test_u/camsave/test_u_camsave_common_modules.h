@@ -128,7 +128,8 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Test_U_ControlMessage_t,
                                       Stream_CamSave_Message_t,
                                       Stream_CamSave_SessionMessage_t,
-                                      Stream_CamSave_SessionData_t> Stream_CamSave_LibAVDecoder;
+                                      Stream_CamSave_SessionData_t,
+                                      struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_LibAVDecoder;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -348,7 +349,8 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Stream_CamSave_DirectShow_Message_t,
                                       Stream_CamSave_DirectShow_SessionMessage_t,
                                       Stream_CamSave_SessionData,
-                                      Stream_CamSave_SessionData_t> Stream_CamSave_DirectShow_GTKCairoDisplay;
+                                      Stream_CamSave_SessionData_t,
+                                      struct _AMMediaType> Stream_CamSave_DirectShow_GTKCairoDisplay;
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
@@ -356,7 +358,8 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Stream_CamSave_MediaFoundation_Message_t,
                                       Stream_CamSave_MediaFoundation_SessionMessage_t,
                                       Stream_CamSave_SessionData,
-                                      Stream_CamSave_SessionData_t> Stream_CamSave_MediaFoundation_GTKCairoDisplay;
+                                      Stream_CamSave_SessionData_t,
+                                      IMFMediaType*> Stream_CamSave_MediaFoundation_GTKCairoDisplay;
 #endif // GTK_USE
 #else
 #if defined (GTK_USE)

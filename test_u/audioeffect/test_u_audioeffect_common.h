@@ -384,9 +384,9 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , captureDeviceHandle (NULL)
    , effect ()
    , effectOptions ()
-   , inputFormat ()
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
+   , sourceFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -401,9 +401,9 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
   struct _snd_pcm*                               captureDeviceHandle;
   std::string                                    effect;
   std::vector<std::string>                       effectOptions;
-  struct Stream_MediaFramework_ALSA_MediaType    inputFormat;
   bool                                           manageSoX;
   struct _snd_pcm*                               playbackDeviceHandle;
+  struct Stream_MediaFramework_ALSA_MediaType    sourceFormat;
   Test_U_AudioEffect_ALSA_StreamConfiguration_t* streamConfiguration;
   Test_U_AudioEffect_ISessionNotify_t*           subscriber;
   Test_U_AudioEffect_Subscribers_t*              subscribers;

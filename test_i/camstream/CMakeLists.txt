@@ -559,11 +559,11 @@ add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
-# target_link_libraries (${EXECUTABLE_TARGET} rt)
-# target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
 
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_FFMPEG_LIBRARIES})
+
+ target_link_libraries (${EXECUTABLE_TARGET} X11)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
  target_link_libraries (${EXECUTABLE_TARGET} strmiids.lib)

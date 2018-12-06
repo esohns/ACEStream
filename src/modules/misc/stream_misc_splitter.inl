@@ -243,10 +243,10 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   defragment_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (configuration_in.inputFormat);
+  ACE_ASSERT (configuration_in.outputFormat);
 
   struct _AMMediaType media_type_s =
-      getMediaType (*configuration_in.inputFormat);
+      getMediaType (*configuration_in.outputFormat);
   if (unlikely (!media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -258,8 +258,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
-      inherited2::getMediaType (inherited::configuration_->inputFormat);
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  inherited2::getMediaType (inherited::configuration_->outputFormat,
+                            media_type_s);
   PDUSize_ =
       av_image_get_buffer_size (media_type_s.format,
                                 media_type_s.resolution.width,

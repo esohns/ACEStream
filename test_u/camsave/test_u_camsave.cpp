@@ -958,13 +958,13 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
                    bool hasUI_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
-                   struct Stream_MediaFramework_V4L_MediaType& outputFormat_out)
+                   struct Stream_MediaFramework_FFMPEG_MediaType& outputFormat_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_v4l"));
 
   // intialize return value(s)
   ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
+  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
 
   // sanity check(s)
   ACE_ASSERT (!deviceIdentifier_in.empty ());
@@ -997,7 +997,16 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
 #endif // _DEBUG
   if (hasUI_in)
-    outputFormat_out = captureFormat_out;
+  {
+    outputFormat_out.format =
+        Stream_Device_Tools::v4l2FormatToffmpegFormat (captureFormat_out.format.pixelformat);
+    outputFormat_out.frameRate.num =
+        static_cast<int> (captureFormat_out.frameRate.numerator);
+    outputFormat_out.frameRate.den =
+        static_cast<int> (captureFormat_out.frameRate.denominator);
+    outputFormat_out.resolution.height = captureFormat_out.format.height;
+    outputFormat_out.resolution.width = captureFormat_out.format.width;
+  } // end IF
 
   return true;
 

@@ -1654,7 +1654,7 @@ do_work (const std::string& deviceIdentifier_in,
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   (*modulehandler_iterator).second.second.sourceFormat.format.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  (*modulehandler_iterator).second.second.sourceFormat.frameRate.num =
+  (*modulehandler_iterator).second.second.sourceFormat.frameRate.numerator =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
   (*modulehandler_iterator).second.second.outputFormat.format =
       STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
