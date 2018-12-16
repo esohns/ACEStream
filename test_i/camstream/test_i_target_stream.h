@@ -48,13 +48,13 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
@@ -62,7 +62,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream
@@ -79,14 +79,14 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_DirectShow_SessionData,
+                                        Test_I_Target_DirectShow_SessionData,
                                         Test_I_Target_DirectShow_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
-                                        Test_I_Target_DirectShow_Stream_SessionMessage,
+                                        Test_I_Target_DirectShow_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
-                                        struct Test_I_Target_DirectShow_UserData>
+                                        struct Test_I_Target_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -101,14 +101,14 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_DirectShow_SessionData,
+                                        Test_I_Target_DirectShow_SessionData,
                                         Test_I_Target_DirectShow_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
-                                        Test_I_Target_DirectShow_Stream_SessionMessage,
+                                        Test_I_Target_DirectShow_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
-                                        struct Test_I_Target_DirectShow_UserData> inherited;
+                                        struct Test_I_Target_UserData> inherited;
 
  public:
   Test_I_Target_DirectShow_Stream ();
@@ -149,14 +149,14 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_MediaFoundation_SessionData,
+                                        Test_I_Target_MediaFoundation_SessionData,
                                         Test_I_Target_MediaFoundation_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
-                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                        Test_I_Target_MediaFoundation_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
-                                        struct Test_I_Target_MediaFoundation_UserData>
+                                        struct Test_I_Target_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -171,14 +171,14 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_MediaFoundation_SessionData,
+                                        Test_I_Target_MediaFoundation_SessionData,
                                         Test_I_Target_MediaFoundation_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
-                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                        Test_I_Target_MediaFoundation_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
-                                        struct Test_I_Target_MediaFoundation_UserData> inherited;
+                                        struct Test_I_Target_UserData> inherited;
 
  public:
   Test_I_Target_MediaFoundation_Stream ();
@@ -218,7 +218,7 @@ class Test_I_Target_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData,
+                                        Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
@@ -240,7 +240,7 @@ class Test_I_Target_Stream
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
-                                        struct Test_I_Target_SessionData,
+                                        Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
@@ -272,6 +272,6 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

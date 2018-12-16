@@ -1507,15 +1507,15 @@ Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     } // end IF
 continue_:
 #if defined (_DEBUG)
-    struct _AMMediaType* media_type_p =
+    struct _AMMediaType media_type_s =
       Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
-    ACE_ASSERT (media_type_p);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("connected \"%s\" to \"%s\": %s\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*media_type_p, true).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+    ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #endif // _DEBUG
 //continue_2:
     pin_2->Release (); pin_2 = NULL;
@@ -2300,9 +2300,9 @@ Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder* builder_in,
   HRESULT result = E_FAIL;
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else if (InlineIsEqualGUID (deviceCategory_in, GUID_NULL))
   { // retrieve the first filter that has no input pin
     IEnumFilters* enumerator_p = NULL;
@@ -2852,27 +2852,19 @@ Stream_MediaFramework_DirectShow_Tools::toString_2 (const struct _AMMediaType& m
   return result;
 }
 
-struct _AMMediaType*
+struct _AMMediaType
 Stream_MediaFramework_DirectShow_Tools::toFormat (IPin* pin_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFormat"));
 
   // initialize return value(s)
-  struct _AMMediaType* result_p = NULL;
+  struct _AMMediaType result_s;
+  ACE_OS::memset (&result_s, 0, sizeof (struct _AMMediaType));
 
   // sanity check(s)
   ACE_ASSERT (pin_in);
-  result_p =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!result_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory(): \"%m\", aborting\n")));
-    return NULL;
-  } // end IF
-  ACE_OS::memset (result_p, 0, sizeof (struct _AMMediaType));
 
-  HRESULT result = pin_in->ConnectionMediaType (result_p);
+  HRESULT result = pin_in->ConnectionMediaType (&result_s);
   if (FAILED (result))
   {
     IBaseFilter* filter_p =
@@ -2884,35 +2876,28 @@ Stream_MediaFramework_DirectShow_Tools::toFormat (IPin* pin_in)
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_in).c_str ()),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     filter_p->Release (); filter_p = NULL;
-    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
-    return NULL;
+    Stream_MediaFramework_DirectShow_Tools::free (result_s);
+    ACE_OS::memset (&result_s, 0, sizeof (struct _AMMediaType));
+    return result_s;
   } // end IF
 
-  return result_p;
+  return result_s;
 }
 
 bool
 Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_in,
                                                          const std::wstring& filterName_in,
-                                                         struct _AMMediaType*& mediaType_out)
+                                                         struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::getOutputFormat"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
   ACE_ASSERT (!filterName_in.empty ());
-  if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
-  //mediaType_out = CreateMediaType (NULL);
-  mediaType_out =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!mediaType_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory(): \"%m\", aborting\n")));
-    return false;
-  } // end IF
-  ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
+
+  // initialize return value(s)
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
+  ACE_OS::memset (&mediaType_inout, 0, sizeof (struct _AMMediaType));
 
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
@@ -2949,7 +2934,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     // *NOTE*: connect()ing the 'sample grabber' to the 'null renderer' breaks
     //         the connection between the 'AVI decompressor' and the 'sample
     //         grabber' (go ahead, try it in with graphedit.exe)
-    result = isample_grabber_p->GetConnectedMediaType (mediaType_out);
+    result = isample_grabber_p->GetConnectedMediaType (&mediaType_inout);
     if (FAILED (result)) // 0x80040209: VFW_E_NOT_CONNECTED
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2971,15 +2956,7 @@ Stream_MediaFramework_DirectShow_Tools::getOutputFormat (IGraphBuilder* builder_
     goto error;
   } // end IF
   ACE_ASSERT (pin_p);
-  mediaType_out = Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
-  if (!mediaType_out)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to Stream_MediaFramework_DirectShow_Tools::toFormat(), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
-                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ())));
-    goto error;
-  } // end IF
+  mediaType_inout = Stream_MediaFramework_DirectShow_Tools::toFormat (pin_p);
   pin_p->Release (); pin_p = NULL;
 
 continue_:
@@ -2988,8 +2965,7 @@ continue_:
   return true;
 
 error:
-  if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
   if (filter_p)
     filter_p->Release ();
   if (pin_p)
@@ -3176,7 +3152,7 @@ Stream_MediaFramework_DirectShow_Tools::copy (const struct _AMMediaType& mediaTy
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    CoTaskMemFree (result_p);
+    CoTaskMemFree (result_p); result_p = NULL;
     return NULL;
   } // end IF
 
@@ -3391,38 +3367,163 @@ Stream_MediaFramework_DirectShow_Tools::resize (const Common_UI_Resolution_t& si
   } // end ELSE
 }
 
-struct _AMMediaType*
+void
+Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
+                                                   struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::setFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (!InlineIsEqualGUID (mediaSubType_in, GUID_NULL));
+
+  mediaType_inout.subtype = mediaSubType_in;
+
+  FOURCCMap fourcc_map (&mediaType_inout.subtype);
+  if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+
+    video_info_header_p->bmiHeader.biCompression =
+      (Stream_Module_Decoder_Tools::isCompressedVideo (mediaType_inout.subtype,
+                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
+                                                                                         : BI_RGB);
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+
+    video_info_header2_p->bmiHeader.biCompression =
+      (Stream_Module_Decoder_Tools::isCompressedVideo (mediaType_inout.subtype,
+                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
+                                                                                         : BI_RGB);
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+  } // end ELSE
+  // *TOOD*: update lSampleSize, dwBitRate, biBitCount, biCompression and
+  //         biSizeImage accordingly
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_UI_Resolution_t& resolution_in,
+                                                       struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::setResolution"));
+
+  unsigned int frames_per_second_i = 0, frame_size_i = 0;
+  if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+
+    video_info_header_p->bmiHeader.biWidth = resolution_in.cx;
+    video_info_header_p->bmiHeader.biHeight = resolution_in.cy;
+    video_info_header_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header_p->bmiHeader);
+    frames_per_second_i =
+      10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
+    frame_size_i = video_info_header_p->bmiHeader.biSizeImage;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+
+    video_info_header2_p->bmiHeader.biWidth = resolution_in.cx;
+    video_info_header2_p->bmiHeader.biHeight = resolution_in.cy;
+    video_info_header2_p->bmiHeader.biSizeImage =
+      DIBSIZE (video_info_header2_p->bmiHeader);
+    frames_per_second_i =
+      10000000 / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame);
+    video_info_header2_p->dwBitRate =
+      (video_info_header2_p->bmiHeader.biSizeImage * frames_per_second_i) * 8;
+    frame_size_i = video_info_header2_p->bmiHeader.biSizeImage;
+  } // end ELSE IFs
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+    return;
+  } // end ELSE
+  ACE_ASSERT (frame_size_i);
+  mediaType_inout.lSampleSize = frame_size_i;
+}
+
+void
+Stream_MediaFramework_DirectShow_Tools::setFramerate (const unsigned int& frameRate_in,
+                                                      struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::setFramerate"));
+
+  if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+    video_info_header_p->AvgTimePerFrame = 10000000 / frameRate_in;
+    video_info_header_p->dwBitRate =
+      (video_info_header_p->bmiHeader.biSizeImage * frameRate_in) * 8;
+  } // end IF
+  else if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo2))
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+    video_info_header2_p->AvgTimePerFrame = 10000000 / frameRate_in;
+    video_info_header2_p->dwBitRate =
+      (video_info_header2_p->bmiHeader.biSizeImage * frameRate_in) * 8;
+  } // end ELSE IFs
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), returning\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (mediaType_inout.formattype).c_str ())));
+    return;
+  } // end ELSE
+}
+
+struct _AMMediaType
 Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toRGB"));
 
   // initialize return value(s)
-  struct _AMMediaType* result_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  struct _AMMediaType result_s;
+  ACE_OS::memset (&result_s, 0, sizeof (struct _AMMediaType));
 
-  // sanity check(s)
-  if (!result_p)
+  struct _AMMediaType* media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
-    return NULL;
+    return result_s;
   } // end IF
-  if (Stream_MediaFramework_Tools::isRGB (result_p->subtype,
+  result_s = *media_type_p;
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
+
+  if (Stream_MediaFramework_Tools::isRGB (result_s.subtype,
                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
-    return result_p; // nothing to do
+    return result_s; // nothing to do
 
   HRESULT result_2 = E_FAIL;
-  ACE_ASSERT (InlineIsEqualGUID (result_p->majortype, MEDIATYPE_Video));
-  result_p->subtype =
+  ACE_ASSERT (InlineIsEqualGUID (result_s.majortype, MEDIATYPE_Video));
+  result_s.subtype =
     (Stream_MediaFramework_Tools::isRGB (STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT,
                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? STREAM_DEC_DIRECTSHOW_FILTER_VIDEO_RENDERER_DEFAULT_FORMAT
                                                                            : MEDIASUBTYPE_RGB32);
-  result_p->bFixedSizeSamples = TRUE;
-  result_p->bTemporalCompression = FALSE;
-  if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo))
-  { ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+  result_s.bFixedSizeSamples = TRUE;
+  result_s.bTemporalCompression = FALSE;
+  if (InlineIsEqualGUID (result_s.formattype, FORMAT_VideoInfo))
+  { ACE_ASSERT (result_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
     struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_s.pbFormat);
     // *NOTE*: empty --> use entire video
     result_2 = SetRectEmpty (&video_info_header_p->rcSource);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -3441,7 +3542,7 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
+      Stream_MediaFramework_Tools::toBitCount (result_s.subtype);
     ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
@@ -3454,14 +3555,14 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
       (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_p->lSampleSize =
+    result_s.lSampleSize =
       video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
-  else if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (result_s.formattype, FORMAT_VideoInfo2))
   {
-    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    ACE_ASSERT (result_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
     struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_p->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_s.pbFormat);
     // *NOTE*: empty --> use entire video
     result_2 = SetRectEmpty (&video_info_header_p->rcSource);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -3486,7 +3587,7 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
+      Stream_MediaFramework_Tools::toBitCount (result_s.subtype);
     ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
@@ -3499,18 +3600,18 @@ Stream_MediaFramework_DirectShow_Tools::toRGB (const struct _AMMediaType& mediaT
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
       (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_p->lSampleSize =
+    result_s.lSampleSize =
       video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_p->formattype).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_s.formattype).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::free (result_s);
   } // end ELSE
 
-  return result_p;
+  return result_s;
 }
 
 std::string

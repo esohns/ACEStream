@@ -757,7 +757,9 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+#if defined (GTK_USE)
+      gtk_manager_p->stop (true);
+#endif // GTK_USE
       timer_manager_p->stop ();
       delete CBData_in.stream; CBData_in.stream = NULL;
       delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;

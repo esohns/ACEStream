@@ -150,7 +150,7 @@ class Stream_MediaFramework_MediaFoundation_Target_T
 
   // helper methods
   //DataMessageType* allocateMessage (unsigned int); // (requested) size
-  bool initialize_MediaFoundation (const struct _AMMediaType&,     // sample grabber sink input media type handle
+  bool initialize_MediaFoundation (IMFMediaType*,                  // sample grabber sink input media type handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                    IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
 #else

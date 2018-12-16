@@ -22,7 +22,6 @@
 #define STREAM_LIB_MEDIAFOUNDATION_TOOLS_H
 
 #include <list>
-#include <map>
 #include <string>
 
 #include <d3d9.h>
@@ -33,6 +32,9 @@
 #include <strmif.h>
 
 #include "ace/Global_Macros.h"
+
+#include "stream_lib_common.h"
+#include "stream_lib_mediafoundation_common.h"
 
 class Stream_MediaFramework_MediaFoundation_Tools
 {
@@ -148,6 +150,7 @@ class Stream_MediaFramework_MediaFoundation_Tools
                     REFGUID);             // key
   // *IMPORTANT NOTE*: callers must 'Release' any return values !
   static IMFMediaType* copy (const IMFMediaType*); // media type
+  inline static void free (Stream_MediaFramework_MediaFoundation_Formats_t& formats_in) { for (Stream_MediaFramework_MediaFoundation_FormatsIterator_t iterator = formats_in.begin (); iterator != formats_in.end (); ++iterator) (*iterator)->Release (); formats_in.clear (); }
   //static std::string mediaSubTypeToString (REFGUID); // media subtype
   static std::string toString (const IMFMediaType*); // media type
   static std::string toString (MF_TOPOSTATUS); // topology status

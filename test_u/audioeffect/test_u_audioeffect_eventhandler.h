@@ -33,7 +33,7 @@
 #if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_DirectShow_UI_CBData;
 #endif // GUI_SUPPORT
-struct Test_U_AudioEffect_DirectShow_SessionData;
+class Test_U_AudioEffect_DirectShow_SessionData;
 
 class Test_U_AudioEffect_DirectShow_EventHandler
  : public Test_U_AudioEffect_DirectShow_ISessionNotify_t
@@ -49,7 +49,7 @@ class Test_U_AudioEffect_DirectShow_EventHandler
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const struct Test_U_AudioEffect_DirectShow_SessionData&);
+                      const Test_U_AudioEffect_DirectShow_SessionData&);
   inline virtual void notify (Stream_SessionId_t, const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
@@ -63,9 +63,9 @@ class Test_U_AudioEffect_DirectShow_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_EventHandler& operator= (const Test_U_AudioEffect_DirectShow_EventHandler&))
 
 #if defined (GUI_SUPPORT)
-  struct Test_U_AudioEffect_DirectShow_UI_CBData*   CBData_;
+  struct Test_U_AudioEffect_DirectShow_UI_CBData* CBData_;
 #endif // GUI_SUPPORT
-  struct Test_U_AudioEffect_DirectShow_SessionData* sessionData_;
+  Test_U_AudioEffect_DirectShow_SessionData*      sessionData_;
 };
 
 //////////////////////////////////////////
@@ -74,7 +74,7 @@ class Test_U_AudioEffect_DirectShow_EventHandler
 #if defined (GUI_SUPPORT)
 struct Test_U_AudioEffect_MediaFoundation_UI_CBData;
 #endif // GUI_SUPPORT
-struct Test_U_AudioEffect_MediaFoundation_SessionData;
+class Test_U_AudioEffect_MediaFoundation_SessionData;
 
 class Test_U_AudioEffect_MediaFoundation_EventHandler
  : public Test_U_AudioEffect_MediaFoundation_ISessionNotify_t
@@ -90,7 +90,7 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const struct Test_U_AudioEffect_MediaFoundation_SessionData&);
+                      const Test_U_AudioEffect_MediaFoundation_SessionData&);
   inline virtual void notify (Stream_SessionId_t, const enum Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
@@ -104,9 +104,9 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_EventHandler& operator= (const Test_U_AudioEffect_MediaFoundation_EventHandler&))
 
 #if defined (GUI_SUPPORT)
-  struct Test_U_AudioEffect_MediaFoundation_UI_CBData*   CBData_;
+  struct Test_U_AudioEffect_MediaFoundation_UI_CBData* CBData_;
 #endif // GUI_SUPPORT
-  struct Test_U_AudioEffect_MediaFoundation_SessionData* sessionData_;
+  Test_U_AudioEffect_MediaFoundation_SessionData*      sessionData_;
 };
 #else
 // forward declarations

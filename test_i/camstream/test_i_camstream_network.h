@@ -32,7 +32,9 @@
 #endif
 #include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
+#if defined (SSL_SUPPORT)
 #include "ace/SSL/SSL_SOCK_Stream.h"
+#endif // SSL_SUPPORT
 
 #include "common_statistic_handler.h"
 
@@ -59,12 +61,14 @@
 
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
+#if defined (SSL_SUPPORT)
 #include "net_client_ssl_connector.h"
+#endif // SSL_SUPPORT
 
 #include "test_i_connection_common.h"
 
 #include "test_i_camstream_defines.h"
- //#include "test_i_source_common.h"
+//#include "test_i_source_common.h"
 
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
@@ -74,37 +78,36 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 struct Test_I_Source_DirectShow_ConnectionConfiguration;
 struct Test_I_Source_DirectShow_ConnectionState;
 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration;
-struct Test_I_Source_DirectShow_SessionData;
+class Test_I_Source_DirectShow_SessionData;
 struct Test_I_Source_DirectShow_SocketHandlerConfiguration;
 struct Test_I_Source_DirectShow_StreamConfiguration;
 class Test_I_Source_DirectShow_Stream_Message;
-class Test_I_Source_DirectShow_Stream_SessionMessage;
+class Test_I_Source_DirectShow_SessionMessage;
 struct Test_I_Source_DirectShow_StreamState;
 struct Test_I_Source_DirectShow_UserData;
 
 struct Test_I_Target_DirectShow_ConnectionConfiguration;
 struct Test_I_Target_DirectShow_ConnectionState;
 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration;
-struct Test_I_Target_DirectShow_SessionData;
+class Test_I_Target_DirectShow_SessionData;
 struct Test_I_Target_DirectShow_SocketHandlerConfiguration;
 class Test_I_Target_DirectShow_Stream;
 class Test_I_Target_DirectShow_Stream_Message;
-class Test_I_Target_DirectShow_Stream_SessionMessage;
+class Test_I_Target_DirectShow_SessionMessage;
 struct Test_I_Target_DirectShow_StreamConfiguration;
 struct Test_I_Target_DirectShow_StreamState;
-struct Test_I_Target_DirectShow_UserData;
 
-typedef Stream_SessionData_T<struct Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
 
-typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 
 struct Test_I_Source_MediaFoundation_Configuration;
 struct Test_I_Source_MediaFoundation_ConnectionState;
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
-struct Test_I_Source_MediaFoundation_SessionData;
+class Test_I_Source_MediaFoundation_SessionData;
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration;
 class Test_I_Source_MediaFoundation_Stream_Message;
-class Test_I_Source_MediaFoundation_Stream_SessionMessage;
+class Test_I_Source_MediaFoundation_SessionMessage;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 struct Test_I_Source_MediaFoundation_StreamState;
 struct Test_I_Source_MediaFoundation_UserData;
@@ -112,63 +115,59 @@ struct Test_I_Source_MediaFoundation_UserData;
 struct Test_I_Target_MediaFoundation_Configuration;
 struct Test_I_Target_MediaFoundation_ConnectionState;
 struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration;
-struct Test_I_Target_MediaFoundation_SessionData;
+class Test_I_Target_MediaFoundation_SessionData;
 struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration;
 class Test_I_Target_MediaFoundation_Stream;
 class Test_I_Target_MediaFoundation_Stream_Message;
-class Test_I_Target_MediaFoundation_Stream_SessionMessage;
+class Test_I_Target_MediaFoundation_SessionMessage;
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
 struct Test_I_Target_MediaFoundation_StreamState;
-struct Test_I_Target_MediaFoundation_UserData;
 
-typedef Stream_SessionData_T<struct Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
 
-typedef Stream_SessionData_T<struct Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
 struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
-struct Test_I_Source_V4L2_SessionData;
+class Test_I_Source_V4L2_SessionData;
 struct Test_I_Source_V4L2_SocketHandlerConfiguration;
 class Test_I_Source_V4L2_Stream_Message;
-class Test_I_Source_V4L2_Stream_SessionMessage;
+class Test_I_Source_V4L2_SessionMessage;
 struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_StreamState;
 struct Test_I_Source_V4L2_UserData;
 
-typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
-//struct Test_I_Source_Stream_StatisticData;
-//typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
-#endif
+typedef Stream_SessionData_T<Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_ConnectionConfiguration;
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
 struct Test_I_Target_DirectShow_ConnectionState;
 struct Test_I_Target_MediaFoundation_ConnectionState;
-struct Test_I_Target_DirectShow_UserData;
-struct Test_I_Target_MediaFoundation_UserData;
 #else
 struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_ConnectionState;
 struct Test_I_Target_ModuleHandlerConfiguration;
-struct Test_I_Target_SessionData;
+class Test_I_Target_SessionData;
 struct Test_I_Target_SocketHandlerConfiguration;
 class Test_I_Target_Stream;
 class Test_I_Target_Stream_Message;
-class Test_I_Target_Stream_SessionMessage;
+class Test_I_Target_SessionMessage;
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_StreamState;
-struct Test_I_Target_UserData;
-#endif
 
-typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+#endif
+struct Test_I_Target_UserData;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //                                 Test_I_Target_DirectShow_ConnectionConfiguration_t,
 //                                 struct Test_I_Target_DirectShow_ConnectionState,
 //                                 Test_I_Statistic_t,
-//                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+//                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 //typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //                                 Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
 //                                 struct Test_I_Target_MediaFoundation_ConnectionState,
@@ -191,8 +190,7 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 typedef Stream_Statistic Test_I_Statistic_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_Stream_StatisticData;
-typedef Common_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
+typedef Common_StatisticHandler_T<Test_I_Statistic_t> Test_I_Source_StatisticHandler_t;
 
 struct Test_I_Source_DirectShow_ConnectionConfiguration;
 struct Test_I_Source_DirectShow_SocketHandlerConfiguration
@@ -419,7 +417,7 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
   struct Net_UDPSocketConfiguration                        socketConfiguration_3;
   struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
 
-  struct Test_I_Target_DirectShow_UserData*                userData;
+  struct Test_I_Target_UserData*                           userData;
 };
 
 struct Test_I_Target_DirectShow_StreamConfiguration;
@@ -438,7 +436,7 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_IInetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_IInetConnectionManager_t;
 
 struct Test_I_Target_DirectShow_ConnectionConfiguration
  : Net_ConnectionConfiguration
@@ -456,7 +454,7 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
   Test_I_Target_DirectShow_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
 
-  struct Test_I_Target_DirectShow_UserData*                  userData;
+  struct Test_I_Target_UserData*                             userData;
 };
 typedef std::map<std::string,
                  Test_I_Target_DirectShow_ConnectionConfiguration_t> Test_I_Target_DirectShow_ConnectionConfigurations_t;
@@ -467,7 +465,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
 struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
@@ -488,7 +486,7 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
   struct Net_UDPSocketConfiguration                             socketConfiguration_3;
   struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
 
-  struct Test_I_Target_MediaFoundation_UserData*                userData;
+  struct Test_I_Target_UserData*                                userData;
 };
 
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
@@ -507,7 +505,7 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_IInetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_IInetConnectionManager_t;
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
@@ -526,7 +524,7 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
   Test_I_Target_MediaFoundation_StreamConfiguration_t*            streamConfiguration;
 
-  struct Test_I_Target_MediaFoundation_UserData*                  userData;
+  struct Test_I_Target_UserData*                                  userData;
 };
 typedef std::map<std::string,
                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t> Test_I_Target_MediaFoundation_ConnectionConfigurations_t;
@@ -537,7 +535,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_SocketHandlerConfiguration
@@ -625,11 +623,11 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                      struct Test_I_Source_DirectShow_SessionData,
+                                      Test_I_Source_DirectShow_SessionData,
                                       Test_I_Source_DirectShow_SessionData_t,
                                       Test_I_ControlMessage_t,
                                       Test_I_Source_DirectShow_Stream_Message,
-                                      Test_I_Source_DirectShow_Stream_SessionMessage,
+                                      Test_I_Source_DirectShow_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Source_DirectShow_InetConnectionManager_t,
                                       struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_NetStream_t;
@@ -646,11 +644,11 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                      struct Test_I_Source_MediaFoundation_SessionData,
+                                      Test_I_Source_MediaFoundation_SessionData,
                                       Test_I_Source_MediaFoundation_SessionData_t,
                                       Test_I_ControlMessage_t,
                                       Test_I_Source_MediaFoundation_Stream_Message,
-                                      Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                      Test_I_Source_MediaFoundation_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                       struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_NetStream_t;
@@ -668,11 +666,11 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                      struct Test_I_Source_V4L2_SessionData,
+                                      Test_I_Source_V4L2_SessionData,
                                       Test_I_Source_V4L2_SessionData_t,
                                       Test_I_ControlMessage_t,
                                       Test_I_Source_V4L2_Stream_Message,
-                                      Test_I_Source_V4L2_Stream_SessionMessage,
+                                      Test_I_Source_V4L2_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Source_V4L2_InetConnectionManager_t,
                                       struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_NetStream_t;
@@ -708,6 +706,7 @@ struct Test_I_Source_DirectShow_ConnectionState
   {}
 
   struct Test_I_Source_DirectShow_ConnectionConfiguration* configuration;
+
   struct Test_I_Source_DirectShow_UserData*                userData;
 };
 struct Test_I_Source_MediaFoundation_ConnectionState
@@ -720,6 +719,7 @@ struct Test_I_Source_MediaFoundation_ConnectionState
   {}
 
   struct Test_I_Source_MediaFoundation_ConnectionConfiguration* configuration;
+
   struct Test_I_Source_MediaFoundation_UserData*                userData;
 };
 
@@ -732,9 +732,9 @@ struct Test_I_Target_DirectShow_ConnectionState
    , userData (NULL)
   {}
 
-  // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_DirectShow_ConnectionConfiguration* configuration;
-  struct Test_I_Target_DirectShow_UserData*                userData;
+
+  struct Test_I_Target_UserData*                           userData;
 };
 struct Test_I_Target_MediaFoundation_ConnectionState
  : Test_I_ConnectionState
@@ -745,9 +745,9 @@ struct Test_I_Target_MediaFoundation_ConnectionState
    , userData (NULL)
   {}
 
-  // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_MediaFoundation_ConnectionConfiguration* configuration;
-  struct Test_I_Target_MediaFoundation_UserData*                userData;
+
+  struct Test_I_Target_UserData*                                userData;
 };
 #else
 struct Test_I_Source_V4L2_ConnectionState
@@ -772,8 +772,8 @@ struct Test_I_Target_ConnectionState
    , userData (NULL)
   {}
 
-  // *TODO*: consider making this a separate entity (i.e. a pointer)
   struct Test_I_Target_ConnectionConfiguration* configuration;
+
   struct Test_I_Target_UserData*                userData;
 };
 #endif
@@ -815,9 +815,11 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Source_DirectShow_SocketHandlerConfiguration> Test_I_Source_DirectShow_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Source_DirectShow_SocketHandlerConfiguration> Test_I_Source_DirectShow_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Source_DirectShow_SocketHandlerConfiguration> Test_I_Source_DirectShow_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -828,9 +830,11 @@ typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration> Test_I_Source_MediaFoundation_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration> Test_I_Source_MediaFoundation_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration> Test_I_Source_MediaFoundation_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -841,9 +845,11 @@ typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -863,6 +869,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_DirectShow_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_DirectShow_SSLTCPSocketHandler_t,
                                 Test_I_Source_DirectShow_ConnectionConfiguration_t,
@@ -873,6 +880,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_DirectShow_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_DirectShow_AsynchTCPSocketHandler_t,
                                       Test_I_Source_DirectShow_ConnectionConfiguration_t,
                                       struct Test_I_Source_DirectShow_ConnectionState,
@@ -911,6 +919,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_MediaFoundation_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_MediaFoundation_SSLTCPSocketHandler_t,
                                 Test_I_Source_MediaFoundation_ConnectionConfiguration_t,
@@ -921,6 +930,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_MediaFoundation_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_MediaFoundation_AsynchTCPSocketHandler_t,
                                       Test_I_Source_MediaFoundation_ConnectionConfiguration_t,
                                       struct Test_I_Source_MediaFoundation_ConnectionState,
@@ -959,6 +969,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_V4L2_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_V4L2_SSLTCPSocketHandler_t,
                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
@@ -969,6 +980,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_V4L2_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L2_AsynchTCPSocketHandler_t,
                                       Test_I_Source_V4L2_ConnectionConfiguration_t,
                                       struct Test_I_Source_V4L2_ConnectionState,
@@ -1025,6 +1037,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Test_I_Source_DirectShow_SocketHandlerConfiguration,
                                Test_I_Source_DirectShow_NetStream_t,
                                struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_TCPConnector_t;
+#if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -1034,6 +1047,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLTCPConnection_t,
                                    struct Test_I_Source_DirectShow_SocketHandlerConfiguration,
                                    Test_I_Source_DirectShow_NetStream_t,
                                    struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_SSLTCPConnector_t;
+#endif // SSL_SUPPORT
 typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_DirectShow_ConnectionConfiguration_t,
@@ -1076,6 +1090,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration,
                                Test_I_Source_MediaFoundation_NetStream_t,
                                struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_TCPConnector_t;
+#if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -1085,6 +1100,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLTCPConnectio
                                    struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration,
                                    Test_I_Source_MediaFoundation_NetStream_t,
                                    struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_SSLTCPConnector_t;
+#endif // SSL_SUPPORT
 typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_MediaFoundation_ConnectionConfiguration_t,
@@ -1127,6 +1143,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                Test_I_Source_V4L2_NetStream_t,
                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnector_t;
+#if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L2_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -1136,6 +1153,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L2_SSLTCPConnection_t,
                                    struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                    Test_I_Source_V4L2_NetStream_t,
                                    struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_SSLTCPConnector_t;
+#endif // SSL_SUPPORT
 typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L2_ConnectionConfiguration_t,
@@ -1175,9 +1193,11 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchUDPConnection_t,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Target_DirectShow_SocketHandlerConfiguration> Test_I_Target_DirectShow_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Target_DirectShow_SocketHandlerConfiguration> Test_I_Target_DirectShow_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Target_DirectShow_SocketHandlerConfiguration> Test_I_Target_DirectShow_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -1188,9 +1208,11 @@ typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -1201,9 +1223,11 @@ typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
                                struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_TCPSocketHandler_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
                                struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_SSLTCPSocketHandler_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
@@ -1222,7 +1246,8 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_DirectShow_ListenerConfiguration,
                                 Test_I_Target_DirectShow_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_TCPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_DirectShow_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_DirectShow_SSLTCPSocketHandler_t,
                                 Test_I_Target_DirectShow_ConnectionConfiguration_t,
@@ -1232,7 +1257,8 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_DirectShow_ListenerConfiguration,
                                 Test_I_Target_DirectShow_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_SSLTCPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_DirectShow_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_DirectShow_AsynchTCPSocketHandler_t,
                                       Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                       struct Test_I_Target_DirectShow_ConnectionState,
@@ -1241,7 +1267,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_DirectShow_AsynchTCPSocketHa
                                       struct Test_I_Target_DirectShow_ListenerConfiguration,
                                       Test_I_Target_DirectShow_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_AsynchTCPConnection_t;
+                                      struct Test_I_Target_UserData> Test_I_Target_DirectShow_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_DirectShow_UDPSocketHandler_t,
@@ -1251,7 +1277,7 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
                                 Test_I_Target_DirectShow_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_UDPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_DirectShow_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_DirectShow_AsynchUDPSocketHandler_t,
                                       Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                       struct Test_I_Target_DirectShow_ConnectionState,
@@ -1259,7 +1285,7 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_DirectShow_AsynchUDPSocketHa
                                       struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
                                       Test_I_Target_DirectShow_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_AsynchUDPConnection_t;
+                                      struct Test_I_Target_UserData> Test_I_Target_DirectShow_AsynchUDPConnection_t;
 
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_MediaFoundation_TCPSocketHandler_t,
@@ -1270,7 +1296,8 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                                 Test_I_Target_MediaFoundation_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_TCPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_MediaFoundation_SSLTCPSocketHandler_t,
                                 Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
@@ -1280,7 +1307,8 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                                 Test_I_Target_MediaFoundation_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_SSLTCPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_MediaFoundation_AsynchTCPSocketHandler_t,
                                       Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                       struct Test_I_Target_MediaFoundation_ConnectionState,
@@ -1289,7 +1317,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_MediaFoundation_AsynchTCPSoc
                                       struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                                       Test_I_Target_MediaFoundation_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_AsynchTCPConnection_t;
+                                      struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_MediaFoundation_UDPSocketHandler_t,
@@ -1299,7 +1327,7 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
                                 Test_I_Target_MediaFoundation_Stream,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_UDPConnection_t;
+                                struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_MediaFoundation_AsynchUDPSocketHandler_t,
                                       Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                       struct Test_I_Target_MediaFoundation_ConnectionState,
@@ -1307,7 +1335,7 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_MediaFoundation_AsynchUDPSoc
                                       struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
                                       Test_I_Target_MediaFoundation_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_AsynchUDPConnection_t;
+                                      struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_TCPSocketHandler_t,
@@ -1319,6 +1347,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_Stream,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Target_UserData> Test_I_Target_TCPConnection_t;
+#if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_SSLTCPSocketHandler_t,
                                 Test_I_Target_ConnectionConfiguration_t,
@@ -1329,6 +1358,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_Stream,
                                 Common_Timer_Manager_t,
                                 struct Test_I_Target_UserData> Test_I_Target_SSLTCPConnection_t;
+#endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPSocketHandler_t,
                                       Test_I_Target_ConnectionConfiguration_t,
                                       struct Test_I_Target_ConnectionState,
@@ -1368,6 +1398,6 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 #else
 typedef Net_IConnector_T<ACE_INET_Addr,
                          Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IInetConnector_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

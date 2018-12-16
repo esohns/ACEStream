@@ -175,14 +175,14 @@ Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePat
       ACE_ASSERT (properties_p);
       moniker_p->Release (); moniker_p = NULL;
       result_2 =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
                             &variant_s,
                             0);
       if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
       { // most probable reason: audio device
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -199,14 +199,14 @@ Stream_Device_DirectShow_Tools::devicePathToString (const std::string& devicePat
         continue;
       } // end IF
       result_2 =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
                             &variant_s,
                             0);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error;
       } // end IF
@@ -306,14 +306,14 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
       ACE_ASSERT (properties_p);
       moniker_p->Release (); moniker_p = NULL;
       result_2 =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
                             &variant_s,
                             0);
       if (FAILED (result_2)) // ERROR_FILE_NOT_FOUND: 0x80070002
       {
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         result_2 = VariantClear (&variant_s);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -330,14 +330,14 @@ Stream_Device_DirectShow_Tools::devicePath (const std::string& friendlyName_in)
         continue;
       } // end IF
       result_2 =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
                             &variant_s,
                             0);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
         goto error;
       } // end IF
@@ -378,7 +378,12 @@ Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (REFGUID deviceCategory_
   Stream_Device_List_t devices_a =
     Stream_Device_DirectShow_Tools::getCaptureDevices (deviceCategory_in);
   if (likely (!devices_a.empty ()))
-    result = devices_a.front ();
+  {
+    const struct Stream_Device_Identifier& device_identifier_s =
+      devices_a.front ();
+    ACE_ASSERT (device_identifier_s.identifierDiscriminator == Stream_Device_Identifier::STRING);
+    result = device_identifier_s.identifier._string;
+  } // end IF
 
   return result;
 }
@@ -407,6 +412,9 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
   IMoniker* moniker_p = NULL;
   IPropertyBag* properties_p = NULL;
   struct tagVARIANT variant_s;
+  struct Stream_Device_Identifier device_identifier_s;
+  device_identifier_s.identifierDiscriminator =
+    Stream_Device_Identifier::STRING;
   HRESULT result_2 = E_FAIL;
 
   result_2 =
@@ -457,14 +465,14 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     ACE_ASSERT (properties_p);
 
     result_2 =
-      properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+      properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
                           &variant_s,
                           0);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       properties_p->Release (); properties_p = NULL;
       moniker_p->Release (); moniker_p = NULL;
@@ -474,18 +482,20 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     ACE_Wide_To_Ascii converter (variant_s.bstrVal);
     result_2 = VariantClear (&variant_s);
     ACE_ASSERT (SUCCEEDED (result_2));
-    result.push_back (converter.char_rep ());
+    ACE_OS::strcpy (device_identifier_s.identifier._string,
+                    converter.char_rep ());
+    result.push_back (device_identifier_s);
 #if defined (_DEBUG)
     std::string friendly_name_string;
     result_2 =
-      properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+      properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
                           &variant_s,
                           0);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       properties_p->Release (); properties_p = NULL;
       moniker_p->Release (); moniker_p = NULL;
@@ -497,13 +507,13 @@ Stream_Device_DirectShow_Tools::getCaptureDevices (REFGUID deviceCategory_in)
     ACE_ASSERT (SUCCEEDED (result_2));
     friendly_name_string = converter_2.char_rep ();
     result_2 =
-      properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
+      properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
                           &variant_s,
                           0);
     if (FAILED (result_2))
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
     ACE_Wide_To_Ascii converter_3 (variant_s.bstrVal);
     result_2 = VariantClear (&variant_s);
@@ -551,7 +561,6 @@ Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (const struct _AMMediaType& 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ())));
-
   return result;
 }
 
@@ -786,8 +795,8 @@ Stream_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamC
 
 bool
 Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
-                                                         REFGUID deviceCategory_in,
-                                                         struct _AMMediaType*& mediaType_out)
+                                                  REFGUID deviceCategory_in,
+                                                  struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureFormat"));
 
@@ -795,18 +804,14 @@ Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
   ACE_ASSERT (builder_in);
 
   // initialize return value(s)
-  if (mediaType_out)
-  {
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
-    mediaType_out = NULL;
-  } // end IF
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
 
   // sanity check(s)
   std::wstring filter_name;
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -838,7 +843,7 @@ Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no capture pin found, aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
-    filter_p->Release ();
+    filter_p->Release (); filter_p = NULL;
     return false;
   } // end IF
   filter_p->Release (); filter_p = NULL;
@@ -848,22 +853,26 @@ Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    pin_p->Release ();
+    pin_p->Release (); pin_p = NULL;
     return false;
   } // end IF
   ACE_ASSERT (stream_config_p);
   pin_p->Release (); pin_p = NULL;
-  result = stream_config_p->GetFormat (&mediaType_out);
+  struct _AMMediaType* media_type_p = NULL;
+  result = stream_config_p->GetFormat (&media_type_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-    stream_config_p->Release ();
+    stream_config_p->Release (); stream_config_p = NULL;
     return false;
   } // end IF
-  ACE_ASSERT (mediaType_out);
+  ACE_ASSERT (media_type_p);
   stream_config_p->Release (); stream_config_p = NULL;
+
+  mediaType_inout = *media_type_p;
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
 
   return true;
 }
@@ -874,7 +883,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
                                                        LONG width_in,
                                                        LONG height_in,
                                                        unsigned int frameRate_in,
-                                                       struct _AMMediaType*& mediaType_out)
+                                                       struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getVideoCaptureFormat"));
 
@@ -882,18 +891,17 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
   ACE_ASSERT (builder_in);
 
   // initialize return value(s)
-  if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
     return false;
   } // end IF
@@ -908,7 +916,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no capture pin found, aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO)));
+                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO)));
     return false;
   } // end IF
   filter_p->Release (); filter_p = NULL;
@@ -934,6 +942,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
   } // end IF
   ACE_ASSERT (size == sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
 
+  struct _AMMediaType* media_type_p = NULL;
   struct _VIDEO_STREAM_CONFIG_CAPS video_stream_config_caps_s;
   ACE_OS::memset (&video_stream_config_caps_s, 0, sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
   Common_UI_Resolution_t resolution_s;
@@ -944,7 +953,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
   {
     result =
       stream_config_p->GetStreamCaps (i,
-                                      &mediaType_out,
+                                      &media_type_p,
                                       reinterpret_cast<BYTE*> (&video_stream_config_caps_s));
     if (FAILED (result))
     {
@@ -952,40 +961,43 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      stream_config_p->Release ();
+      stream_config_p->Release (); stream_config_p = NULL;
       return false;
     } // end IF
-    ACE_ASSERT (mediaType_out);
-    if (!InlineIsEqualGUID (mediaSubType_in, mediaType_out->subtype))
+    ACE_ASSERT (media_type_p);
+    if (!InlineIsEqualGUID (mediaSubType_in, media_type_p->subtype))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     resolution_s =
-      Stream_MediaFramework_DirectShow_Tools::toResolution (*mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::toResolution (*media_type_p);
     if ((width_in  && (resolution_s.cx != width_in)) ||
         (height_in && (resolution_s.cy != height_in)))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     framerate_i =
-      Stream_MediaFramework_DirectShow_Tools::toFramerate (*mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p);
     if (frameRate_in && (framerate_i != frameRate_in))
     {
-      Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
       continue;
     } // end IF
     break; // --> found a match
   } // end FOR
   stream_config_p->Release (); stream_config_p = NULL;
 
-  return !!mediaType_out;
+  mediaType_inout = *media_type_p;
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
+
+  return true;
 }
 
 void
 Stream_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_in,
-                                                           REFGUID formatType_in)
+                                                    REFGUID formatType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::listCaptureFormats"));
 
@@ -1099,8 +1111,8 @@ Stream_Device_DirectShow_Tools::listCaptureFormats (IBaseFilter* filter_in,
 
 bool
 Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
-                                                         REFGUID deviceCategory_in,
-                                                         const struct _AMMediaType& mediaType_in)
+                                                  REFGUID deviceCategory_in,
+                                                  const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::setCaptureFormat"));
 
@@ -1109,9 +1121,9 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
   std::wstring filter_name;
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1170,7 +1182,7 @@ Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()), result,
                 ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (mediaType_in, false).c_str ())));
-    stream_config_p->Release ();
+    stream_config_p->Release (); stream_config_p = NULL;
     return false;
   } // end IF
   stream_config_p->Release (); stream_config_p = NULL;
@@ -1303,14 +1315,14 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
     if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
     {
       result =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
                             &variant_s,
                             0);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
         properties_p->Release (); properties_p = NULL;
         moniker_p->Release (); moniker_p = NULL;
@@ -1323,14 +1335,14 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
     else if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
     {
       result =
-        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+        properties_p->Read (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
                             &variant_s,
                             0);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
                     ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
         properties_p->Release (); properties_p = NULL;
         moniker_p->Release (); moniker_p = NULL;
@@ -1372,9 +1384,9 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
   moniker_p->Release (); moniker_p = NULL;
 
   if (InlineIsEqualGUID (deviceCategory_in, CLSID_AudioInputDeviceCategory))
-    filter_name = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (InlineIsEqualGUID (deviceCategory_in, CLSID_VideoInputDeviceCategory))
-    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,

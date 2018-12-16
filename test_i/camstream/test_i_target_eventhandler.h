@@ -73,24 +73,24 @@ class Test_I_Target_EventHandler_T
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-                                     struct Test_I_Target_DirectShow_SessionData,
+                                     Test_I_Target_DirectShow_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_DirectShow_Stream_Message,
-                                     Test_I_Target_DirectShow_Stream_SessionMessage,
+                                     Test_I_Target_DirectShow_SessionMessage,
                                      struct Test_I_Target_DirectShow_UI_CBData> Test_I_Target_DirectShow_EventHandler_t;
 
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-                                     struct Test_I_Target_MediaFoundation_SessionData,
+                                     Test_I_Target_MediaFoundation_SessionData,
                                      enum Stream_SessionMessageType,
                                      Test_I_Target_MediaFoundation_Stream_Message,
-                                     Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                     Test_I_Target_MediaFoundation_SessionMessage,
                                      struct Test_I_Target_MediaFoundation_UI_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
 #else
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Target_SessionData,
-                                     Stream_SessionMessageType,
+                                     enum Stream_SessionMessageType,
                                      Test_I_Target_Stream_Message,
-                                     Test_I_Target_Stream_SessionMessage,
+                                     Test_I_Target_SessionMessage,
                                      struct Test_I_Target_UI_CBData> Test_I_Target_EventHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 

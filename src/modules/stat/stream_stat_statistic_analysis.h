@@ -41,6 +41,7 @@
 #else
 #include "stream_lib_alsa_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_lib_mediatype_converter.h"
 
 #include "stream_stat_common.h"
 
@@ -70,9 +71,15 @@ class Stream_Statistic_StatisticAnalysis_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_Math_Sample_T<ValueType,
                                Aggregation>
 {
@@ -86,8 +93,14 @@ class Stream_Statistic_StatisticAnalysis_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
   typedef Common_Math_Sample_T<ValueType,
-                               Aggregation> inherited2;
+                               Aggregation> inherited3;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -109,6 +122,7 @@ class Stream_Statistic_StatisticAnalysis_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
+  // convenient types
   typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> INOTIFY_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T ())
@@ -116,15 +130,6 @@ class Stream_Statistic_StatisticAnalysis_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticAnalysis_T& operator= (const Stream_Statistic_StatisticAnalysis_T&))
 
   //virtual int svc (void);
-
-  template <typename MediaType2> MediaType& getMediaType (const MediaType2& mediaType_in) { return getMediaType_impl (mediaType_in); }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  inline AM_MEDIA_TYPE& getMediaType_impl (const struct _AMMediaType& mediaType_in) { return const_cast<struct _AMMediaType&> (mediaType_in); }
-  // *IMPORTANT NOTE*: callers must Stream_MediaFramework_DirectShow_Tools::free_() the return value
-  AM_MEDIA_TYPE& getMediaType_impl (const IMFMediaType*&);
-#else
-  inline Stream_MediaFramework_ALSA_MediaType& getMediaType_impl (const Stream_MediaFramework_ALSA_MediaType& mediaType_in) { /*ACE_ASSERT (mediaType_in);*/ return const_cast<struct Stream_MediaFramework_ALSA_MediaType&> (mediaType_in); }
-#endif // ACE_WIN32 || ACE_WIN64
 
   virtual void Process (unsigned int,  // starting slot index
                         unsigned int); // ending slot index
@@ -148,7 +153,7 @@ class Stream_Statistic_StatisticAnalysis_T
   double                          volumeVariance_;
 
   INOTIFY_T*                      eventDispatcher_;
-  typename inherited2::ITERATOR_T iterator_;
+  typename inherited3::ITERATOR_T iterator_;
   unsigned int                    sampleCount_;
 };
 

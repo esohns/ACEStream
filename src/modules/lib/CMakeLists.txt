@@ -145,6 +145,7 @@ elseif (WIN32)
       stream_lib_mediafoundation_callback.cpp
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl
+      stream_lib_mediafoundation_common.h
       stream_lib_mediafoundation_mediasource.cpp
       stream_lib_mediafoundation_mediasource.h
       stream_lib_mediafoundation_mediasource.inl
@@ -257,6 +258,7 @@ elseif (WIN32)
       stream_lib_guids.h
       stream_lib_mediafoundation_callback.h
       stream_lib_mediafoundation_callback.inl
+      stream_lib_mediafoundation_common.h
       stream_lib_mediafoundation_mediasource.h
       stream_lib_mediafoundation_mediasource.inl
       stream_lib_mediafoundation_message_base.h

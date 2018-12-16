@@ -49,7 +49,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
                              ConfigurationType,
@@ -57,7 +58,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::Stream_Vis_Target_Direct3D_T (ISTREAM_T* stream_in)
+                             SessionDataContainerType,
+                             MediaType>::Stream_Vis_Target_Direct3D_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , clientWindow_ (NULL)
  , closeWindow_ (false)
@@ -86,7 +88,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
                              ConfigurationType,
@@ -94,7 +97,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::~Stream_Vis_Target_Direct3D_T ()
+                             SessionDataContainerType,
+                             MediaType>::~Stream_Vis_Target_Direct3D_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::~Stream_Vis_Target_Direct3D_T"));
 
@@ -131,7 +135,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -140,7 +145,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::handleControlMessage (ControlMessageType& controlMessage_in)
+                             SessionDataContainerType,
+                             MediaType>::handleControlMessage (ControlMessageType& controlMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleControlMessage"));
 
@@ -160,7 +166,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -169,8 +176,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                           bool& passMessageDownstream_out)
+                             SessionDataContainerType,
+                             MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleDataMessage"));
 
@@ -347,7 +355,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: saved screenshot \"%s\"...\n"),
+                ACE_TEXT ("%s: saved screenshot \"%s\"\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
 #endif // _DEBUG
@@ -456,7 +464,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -465,8 +474,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                              bool& passMessageDownstream_out)
+                             SessionDataContainerType,
+                             MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleSessionMessage"));
 
@@ -491,8 +501,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     !direct3DConfiguration_->presentationParameters.hDeviceWindow &&
                     !direct3DConfiguration_->focusWindow))
         return; // --> nothing to do
-
+      struct _AMMediaType media_type_s;
       Common_UI_Resolution_t resolution_s;
+      HWND window_handle_p = NULL;
 
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
@@ -510,10 +521,12 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (!session_data_r.formats.empty ());
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
       resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
       ACE_ASSERT ((resolution_s.cx == direct3DConfiguration_->presentationParameters.BackBufferWidth) && (resolution_s.cy == direct3DConfiguration_->presentationParameters.BackBufferHeight));
-      HWND window_handle_p =
+      window_handle_p =
         (direct3DConfiguration_->presentationParameters.Windowed ? direct3DConfiguration_->presentationParameters.hDeviceWindow
                                                                  : direct3DConfiguration_->focusWindow);
       if (window_handle_p)
@@ -526,7 +539,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         resetMode_ = true;
         if (!window_handle_p)
         { ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
-          ACE_ASSERT (!direct3DConfiguration_->focusWindow);
+          //ACE_ASSERT (!direct3DConfiguration_->focusWindow);
           DWORD window_style_i = (WS_OVERLAPPED     |
                                   WS_CAPTION        |
                                   (WS_CLIPSIBLINGS  |
@@ -616,7 +629,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         result_2 =
           initialize_Direct3DDevice ((direct3DConfiguration_->presentationParameters.Windowed ? window_handle_p
                                                                                               : NULL),
-                                     session_data_r.formats.front (),
+                                     media_type_s,
                                      direct3DConfiguration_->handle,
                                      direct3DConfiguration_->presentationParameters,
                                      defaultStride_,
@@ -635,7 +648,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (!direct3DConfiguration_->handle);
         if (unlikely (!initialize_Direct3D (*direct3DConfiguration_,
-                                            session_data_r.formats.front (),
+                                            media_type_s,
                                             direct3DConfiguration_->handle,
                                             direct3DConfiguration_->presentationParameters,
                                             defaultStride_,
@@ -652,6 +665,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end ELSE
       ACE_ASSERT (device_handle_p);
 
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
       break;
 
 error:
@@ -659,6 +674,7 @@ error:
       {
         direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
       } // end IF
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
       if (COM_initialized)
         CoUninitialize ();
@@ -708,7 +724,7 @@ error:
       { ACE_ASSERT (direct3DConfiguration_);
         ACE_ASSERT (direct3DConfiguration_->handle);
         direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
-        releaseDeviceHandle_ = NULL;
+        releaseDeviceHandle_ = false;
       } // end IF
 
       if (COM_initialized)
@@ -717,13 +733,13 @@ error:
       if (closeWindow_)
       { ACE_ASSERT (direct3DConfiguration_);
         ACE_ASSERT (direct3DConfiguration_->presentationParameters.hDeviceWindow);
-        closeWindow_ = false;
         if (unlikely (!::CloseWindow (direct3DConfiguration_->presentationParameters.hDeviceWindow)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CloseWindow(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
         direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
+        closeWindow_ = false;
       } // end IF
 
       break;
@@ -740,7 +756,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -749,7 +766,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::toggle ()
+                             SessionDataContainerType,
+                             MediaType>::toggle ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::toggle"));
 
@@ -761,8 +779,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   ACE_ASSERT (direct3DConfiguration_);
   ACE_ASSERT (direct3DConfiguration_->handle);
 
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (session_data_r.formats.front (),
+                            media_type_s);
   Common_UI_Resolution_t resolution_s =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 
   // *IMPORTANT NOTE*: the configuration has to be updated at this stage !
 
@@ -806,7 +827,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   direct3DConfiguration_->adapter,
                   resolution_s.cx, resolution_s.cy));
-      return;
+      goto error;
     } // end IF
 
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
@@ -824,7 +845,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   } // end ELSE
 
   HRESULT result =
-    resetDevice (session_data_r.formats.front (),
+    resetDevice (media_type_s,
                  *direct3DConfiguration_,
                  direct3DConfiguration_->handle,
                  direct3DConfiguration_->presentationParameters,
@@ -836,8 +857,15 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return;
+    goto error;
   } // end IF
+
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+  return;
+
+error:
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 }
 
 template <ACE_SYNCH_DECL,
@@ -847,7 +875,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -856,8 +885,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                    Stream_IAllocator* allocator_in)
+                             SessionDataContainerType,
+                             MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                     Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize"));
 
@@ -914,7 +944,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -923,16 +954,17 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
-                                                                             const struct _AMMediaType& mediaType_in,
+                             SessionDataContainerType,
+                             MediaType>::initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
+                                                              const struct _AMMediaType& mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                                                             IDirect3DDevice9Ex*& handle_inout,
+                                                              IDirect3DDevice9Ex*& handle_inout,
 #else
-                                                                             IDirect3DDevice9*& handle_inout,
+                                                              IDirect3DDevice9*& handle_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                                             struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                                             LONG& stride_out,
-                                                                             struct tagRECT& destinationRectangle_out)
+                                                              struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
+                                                              LONG& stride_out,
+                                                              struct tagRECT& destinationRectangle_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3D"));
 
@@ -1003,7 +1035,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1012,13 +1045,14 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
+                             SessionDataContainerType,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                             SessionDataContainerType>::checkCooperativeLevel (IDirect3DDevice9Ex* handle_in,
+                             MediaType>::checkCooperativeLevel (IDirect3DDevice9Ex* handle_in,
 #else
-                             SessionDataContainerType>::checkCooperativeLevel (IDirect3DDevice9* handle_in,
+                             MediaType>::checkCooperativeLevel (IDirect3DDevice9* handle_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                                               bool& resetDevice_out,
-                                                                               bool& destroyDevice_out)
+                                                                bool& resetDevice_out,
+                                                                bool& destroyDevice_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::checkCooperativeLevel"));
 
@@ -1075,7 +1109,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 HRESULT
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1084,16 +1119,17 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::resetDevice (const struct _AMMediaType& mediaType_in,
-                                                                     struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
+                             SessionDataContainerType,
+                             MediaType>::resetDevice (const struct _AMMediaType& mediaType_in,
+                                                      struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                                                     IDirect3DDevice9Ex*& handle_inout,
+                                                      IDirect3DDevice9Ex*& handle_inout,
 #else
-                                                                     IDirect3DDevice9*& handle_inout,
+                                                      IDirect3DDevice9*& handle_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                                     struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                                     LONG& stride_out,
-                                                                     struct tagRECT& destinationRectangle_out)
+                                                      struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
+                                                      LONG& stride_out,
+                                                      struct tagRECT& destinationRectangle_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::resetDevice"));
 
@@ -1153,7 +1189,8 @@ continue_:
     0,
     0,
     presentationParameters_inout.BackBufferWidth,
-    presentationParameters_inout.BackBufferHeight };
+    presentationParameters_inout.BackBufferHeight
+  };
   updateDestinationRectangle (presentationParameters_inout.hDeviceWindow,
                               source_rectangle_s,
                               destinationRectangle_out);
@@ -1168,7 +1205,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 tagRECT
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1177,8 +1215,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::letterbox_rectangle (const struct tagRECT& source_in,
-                                                                             const struct tagRECT& destination_in)
+                             SessionDataContainerType,
+                             MediaType>::letterbox_rectangle (const struct tagRECT& source_in,
+                                                              const struct tagRECT& destination_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::letterbox_rectangle"));
 
@@ -1223,7 +1262,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1232,9 +1272,10 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::updateDestinationRectangle (HWND windowHandle_in,
-                                                                                    const struct tagRECT& sourceRectangle_in,
-                                                                                    struct tagRECT& destinationRectangle_out)
+                             SessionDataContainerType,
+                             MediaType>::updateDestinationRectangle (HWND windowHandle_in,
+                                                                     const struct tagRECT& sourceRectangle_in,
+                                                                     struct tagRECT& destinationRectangle_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::updateDestinationRectangle"));
 
@@ -1375,7 +1416,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 HRESULT
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1384,16 +1426,17 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::initialize_Direct3DDevice (HWND windowHandle_in,
-                                                                                   const struct _AMMediaType& mediaType_in,
+                             SessionDataContainerType,
+                             MediaType>::initialize_Direct3DDevice (HWND windowHandle_in,
+                                                                    const struct _AMMediaType& mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                                                                                   IDirect3DDevice9Ex* handle_in,
+                                                                    IDirect3DDevice9Ex* handle_in,
 #else
-                                                                                   IDirect3DDevice9* handle_in,
+                                                                    IDirect3DDevice9* handle_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                                                                   struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                                                   LONG& stride_out,
-                                                                                   struct tagRECT& destinationRectangle_out)
+                                                                    struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
+                                                                    LONG& stride_out,
+                                                                    struct tagRECT& destinationRectangle_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice"));
 
@@ -1450,7 +1493,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     0,
     0,
     presentationParameters_inout.BackBufferWidth,
-    presentationParameters_inout.BackBufferHeight };
+    presentationParameters_inout.BackBufferHeight
+  };
   updateDestinationRectangle (windowHandle_in,
                               source_rectangle_s,
                               destinationRectangle_out);
@@ -1465,7 +1509,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 HRESULT
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1474,7 +1519,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::setTransformation (REFGUID subType_in)
+                             SessionDataContainerType,
+                             MediaType>::setTransformation (REFGUID subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::setTransformation"));
 
@@ -1548,7 +1594,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1557,7 +1604,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::isFormatSupported (REFGUID subType_in)
+                             SessionDataContainerType,
+                             MediaType>::isFormatSupported (REFGUID subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::isFormatSupported"));
 
@@ -1600,7 +1648,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 HRESULT
 Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              TimePolicyType,
@@ -1609,8 +1658,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::getFormat (DWORD index_in,
-                                                                   struct _GUID& subType_out) const
+                             SessionDataContainerType,
+                             MediaType>::getFormat (DWORD index_in,
+                                                    struct _GUID& subType_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::getFormat"));
 
@@ -1672,7 +1722,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
   Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
                                           TimePolicyType,
                                           ConfigurationType,
@@ -1680,7 +1731,8 @@ template <ACE_SYNCH_DECL,
                                           DataMessageType,
                                           SessionMessageType,
                                           SessionDataType,
-                                          SessionDataContainerType>::Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T* stream_in)
+                                          SessionDataContainerType,
+                                          MediaType>::Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_DirectShow_Target_Direct3D_T::Stream_Vis_DirectShow_Target_Direct3D_T"));
@@ -1694,7 +1746,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
                                         TimePolicyType,
@@ -1703,8 +1756,9 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
                                         DataMessageType,
                                         SessionMessageType,
                                         SessionDataType,
-                                        SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                                      bool& passMessageDownstream_out)
+                                        SessionDataContainerType,
+                                        MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_DirectShow_Target_Direct3D_T::handleDataMessage"));
 
@@ -1933,7 +1987,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              TimePolicyType,
                                              ConfigurationType,
@@ -1941,7 +1996,8 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T* stream_in)
+                                             SessionDataContainerType,
+                                             MediaType>::Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , interlaceMode_ (MFVideoInterlace_Unknown)
  , pixelAspectRatio_ ()
@@ -1957,7 +2013,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              TimePolicyType,
@@ -1966,8 +2023,9 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                                           bool& passMessageDownstream_out)
+                                             SessionDataContainerType,
+                                             MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_MediaFoundation_Target_Direct3D_T::handleDataMessage"));
 
@@ -2310,7 +2368,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              TimePolicyType,
@@ -2319,8 +2378,9 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                              bool& passMessageDownstream_out)
+                                             SessionDataContainerType,
+                                             MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_MediaFoundation_Target_Direct3D_T::handleSessionMessage"));
 
@@ -2401,40 +2461,25 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_ASSERT (media_type_p);
-
-      if (session_data_r.inputFormat)
-        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
-      ACE_ASSERT (!session_data_r.inputFormat);
-      session_data_r.inputFormat =
-        static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-      if (!session_data_r.inputFormat)
-      {
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      ACE_OS::memset (session_data_r.inputFormat, 0, sizeof (struct _AMMediaType));
-      ACE_ASSERT (!session_data_r.inputFormat->pbFormat);
-      result_2 = MFInitAMMediaTypeFromMFMediaType (media_type_p,
-                                                   GUID_NULL,
-                                                   session_data_r.inputFormat);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        goto error;
-      } // end IF
-      media_type_p->Release (); media_type_p = NULL;
-      ACE_ASSERT (session_data_r.inputFormat);
+      MediaType media_type_s;
+      inherited::getMediaType (media_type_p,
+                               media_type_s);
+      session_data_r.formats.push_back (media_type_s);
+      struct _AMMediaType media_type_2;
+      inherited::getMediaType (media_type_s,
+                               media_type_2);
 
       // sanity check(s)
-      ACE_ASSERT (session_data_r.inputFormat);
-      resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (*session_data_r.inputFormat);
+      UINT32 width_i = 0, height_i = 0;
+      HRESULT result =
+        MFGetAttributeSize (media_type_p,
+                            MF_MT_FRAME_SIZE,
+                            &width_i, &height_i);
+      resolution_s.cx = static_cast<LONG> (width_i);
+      resolution_s.cy = static_cast<LONG> (height_i);
+      ACE_ASSERT (SUCCEEDED (result));
       ACE_ASSERT ((resolution_s.cx == inherited::direct3DConfiguration_->presentationParameters.BackBufferWidth) && (resolution_s.cy == inherited::direct3DConfiguration_->presentationParameters.BackBufferHeight));
+      media_type_p->Release (); media_type_p = NULL;
       HWND window_handle_p =
         (inherited::direct3DConfiguration_->presentationParameters.Windowed ? inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow
                                                                             : inherited::direct3DConfiguration_->focusWindow);
@@ -2535,7 +2580,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       {
         result_2 =
           initialize_Direct3DDevice (inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow,
-                                     *session_data_r.inputFormat,
+                                     media_type_2,
                                      inherited::direct3DConfiguration_->handle,
                                      inherited::direct3DConfiguration_->presentationParameters,
                                      inherited::defaultStride_,
@@ -2554,7 +2599,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (!inherited::direct3DConfiguration_->handle);
         if (unlikely (!initialize_Direct3D (*inherited::direct3DConfiguration_,
-                                            *session_data_r.inputFormat,
+                                            media_type_2,
                                             inherited::direct3DConfiguration_->handle,
                                             inherited::direct3DConfiguration_->presentationParameters,
                                             inherited::defaultStride_,
@@ -2571,13 +2616,19 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end ELSE
       ACE_ASSERT (device_handle_p);
 
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
+
       topology_p->Release (); topology_p = NULL;
 
       break;
 
 error:
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
+
       if (topology_p)
-        topology_p->Release ();
+      {
+        topology_p->Release (); topology_p = NULL;
+      } // end IF
 
       if (inherited::direct3DConfiguration_->handle)
       {
@@ -2656,7 +2707,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 HRESULT
 Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              TimePolicyType,
@@ -2665,8 +2717,9 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::get_default_stride (IMFMediaType* mediaType_in,
-                                                                                            LONG& stride_out)
+                                             SessionDataContainerType,
+                                             MediaType>::get_default_stride (IMFMediaType* mediaType_in,
+                                                                             LONG& stride_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_MediaFoundation_Target_Direct3D_T::get_default_stride"));
 
@@ -2739,7 +2792,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 tagRECT
 Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              TimePolicyType,
@@ -2748,8 +2802,9 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::normalize_aspect_ratio (const struct tagRECT& rectangle_in,
-                                                                                                const struct _MFRatio& pixelAspectRatio_in)
+                                             SessionDataContainerType,
+                                             MediaType>::normalize_aspect_ratio (const struct tagRECT& rectangle_in,
+                                                                                 const struct _MFRatio& pixelAspectRatio_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_MediaFoundation_Target_Direct3D_T::normalize_aspect_ratio"));
 

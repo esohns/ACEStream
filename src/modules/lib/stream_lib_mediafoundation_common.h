@@ -18,69 +18,14 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_GTK_COMMON_H
-#define TEST_U_GTK_COMMON_H
+#ifndef STREAM_LIB_MEDIAFOUNDATION_COMMON_H
+#define STREAM_LIB_MEDIAFOUNDATION_COMMON_H
 
-#include "gtk/gtk.h"
+#include <deque>
 
-#include "ace/OS.h"
-#include "ace/Synch_Traits.h"
+#include <mfobjects.h>
 
-#include "common_ilock.h"
-//#include "common_itaskcontrol.h"
-
-#include "common_ui_gtk_common.h"
-#if defined (GTKGL_SUPPORT)
-#include "common_ui_gtk_gl_common.h"
-#endif // GTKGL_SUPPORT
-
-#include "test_u_common.h"
-
-// forward declarations
-struct Test_U_Configuration;
-
-struct Test_U_GTK_ProgressData
- : Common_UI_GTK_ProgressData
-{
-  Test_U_GTK_ProgressData ()
-   : Common_UI_GTK_ProgressData ()
-   , statistic ()
-  {
-    ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
-  }
-
-  Test_U_Statistic_t statistic;
-};
-
-struct Test_U_GTK_CBData
- : Test_U_UI_CBData
-{
-  Test_U_GTK_CBData ()
-   : Test_U_UI_CBData ()
-   , progressData ()
-   , UIState (NULL)
-  {
-    progressData.state = UIState;
-  }
-
-  struct Test_U_GTK_ProgressData progressData;
-  Common_UI_GTK_State_t*         UIState;
-};
-
-struct Test_U_GTK_ThreadData
- : Test_U_UI_ThreadData
-{
-  Test_U_GTK_ThreadData ()
-   : Test_U_UI_ThreadData ()
-   , CBData (NULL)
-   , eventSourceId (0)
-  {}
-
-  struct Test_U_GTK_CBData* CBData;
-  guint                     eventSourceId;
-};
-
-//typedef Common_ITaskControl_T<ACE_MT_SYNCH,
-//                              Common_ILock_T<ACE_MT_SYNCH> > Test_U_GTK_Manager_t;
+typedef std::deque<IMFMediaType*> Stream_MediaFramework_MediaFoundation_Formats_t;
+typedef Stream_MediaFramework_MediaFoundation_Formats_t::iterator Stream_MediaFramework_MediaFoundation_FormatsIterator_t;
 
 #endif

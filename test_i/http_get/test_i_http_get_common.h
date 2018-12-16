@@ -36,10 +36,10 @@
 //struct Test_I_ConnectionConfiguration;
 //struct Test_I_StreamConfiguration;
 struct Test_I_HTTPGet_UserData
- : Test_I_UserData
+ : Stream_UserData
 {
   Test_I_HTTPGet_UserData ()
-   : Test_I_UserData ()
+   : Stream_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
   {}

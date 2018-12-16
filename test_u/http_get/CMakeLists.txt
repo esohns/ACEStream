@@ -1,10 +1,10 @@
-﻿option (SSL_SUPPORT "enable SSL support" OFF)
+﻿option (SSL_SUPPORT "enable SSL support" ON)
 
 if (SSL_SUPPORT)
  set (ACE_SSL_LIB_FILE libACE_SSL.so)
  if (UNIX)
   find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
+                HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE
                 PATHS ENV ACE_ROOT
                 PATH_SUFFIXES lib
                 DOC "searching for ${ACE_SSL_LIB_FILE}"
@@ -117,7 +117,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  if (SSL_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/include)
  endif (SSL_SUPPORT)
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})

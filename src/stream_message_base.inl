@@ -208,7 +208,9 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   // sanity check(s)
 //  ACE_ASSERT (sessionId_in);
-  ACE_ASSERT (!isInitialized_);
+  // *NOTE*: messages may be initialized more than once (see: stream_net_io.inl::374)
+  // *TODO*: work around each case and reactivate this test
+  //ACE_ASSERT (!isInitialized_);
 
   if (dataBlock_in)
   { ACE_ASSERT (!inherited::data_block_);
@@ -541,6 +543,25 @@ Stream_MessageBase_2<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::~Stream_MessageBase_2"));
 
   // *NOTE*: will be called just before (!) this is passed back to the allocator
+}
+
+template <typename AllocatorConfigurationType,
+          typename MessageType,
+          typename HeaderType,
+          typename CommandType>
+void
+Stream_MessageBase_2<AllocatorConfigurationType,
+                     MessageType,
+                     HeaderType,
+                     CommandType>::initialize (Stream_SessionId_t sessionId_in,
+                                               ACE_Data_Block* dataBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
+
+  ACE_ASSERT (!inherited::isInitialized_);
+
+  inherited::initialize (sessionId_in,
+                         dataBlock_in);
 }
 
 template <typename AllocatorConfigurationType,

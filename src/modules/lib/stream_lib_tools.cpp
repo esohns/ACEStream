@@ -489,7 +489,12 @@ Stream_MediaFramework_Tools::initialize ()
   return true;
 }
 void
-Stream_MediaFramework_Tools::finalize ()
+Stream_MediaFramework_Tools::finalize (
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                       enum Stream_MediaFramework_Type mediaFramework_in)
+#else
+                                      )
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::finalize"));
 

@@ -99,11 +99,11 @@ class Stream_MediaFramework_DirectShow_Tools
                               const std::wstring&,       // video renderer filter name
                               IMFVideoDisplayControl*&); // return value: video renderer window configuration handle
 
-  // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
+  // *IMPORTANT NOTE*: caller must free() the return value !
   // *NOTE*: graph/filter must be connected
-  static bool getOutputFormat (IGraphBuilder*,         // graph builder handle
-                               const std::wstring&,    // filter name
-                               struct _AMMediaType*&); // return value: media type
+  static bool getOutputFormat (IGraphBuilder*,        // graph builder handle
+                               const std::wstring&,   // filter name
+                               struct _AMMediaType&); // return value: media type
 
   // pin
   static void dump (IPin*); // pin handle
@@ -124,9 +124,9 @@ class Stream_MediaFramework_DirectShow_Tools
   static bool hasUncompressedFormat (REFGUID,                // device category
                                      IPin*,                  // pin handle
                                      struct _AMMediaType*&); // return value: media type
-  // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
+  // *IMPORTANT NOTE*: caller must free() the return value !
   // *NOTE*: pin must be connected
-  static struct _AMMediaType* toFormat (IPin*); // pin handle
+  static struct _AMMediaType toFormat (IPin*); // pin handle
 
   // filter
   // *NOTE*: "...filters are given names when they participate [!] in a filter
@@ -172,14 +172,20 @@ class Stream_MediaFramework_DirectShow_Tools
                      const struct _AMMediaType&); // media type
   static void resize (const Common_UI_Resolution_t&, // new size
                       struct _AMMediaType&);         // in/out: media type
+  static void setFormat (REFGUID,               // media type
+                         struct _AMMediaType&); // in/out: media type
+  static void setResolution (const Common_UI_Resolution_t&, // resolution
+                             struct _AMMediaType&); // in/out: media type
+  static void setFramerate (const unsigned int&,   // framerate (i.e. fps)
+                            struct _AMMediaType&); // in/out: media type
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
   // *IMPORTANT NOTE*: callers must 'DeleteMediaType' any return values
   inline static DMO_MEDIA_TYPE* toDMOMediaType (const struct _AMMediaType& mediaType_in) { return reinterpret_cast<DMO_MEDIA_TYPE*> (Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in)); }
   static unsigned int toFramerate (const struct _AMMediaType&); // media type
   static unsigned int toFramesize (const struct _AMMediaType&); // media type
   static Common_UI_Resolution_t toResolution (const struct _AMMediaType&); // media type
-  // *IMPORTANT NOTE*: callers must 'delete_' any return values
-  static struct _AMMediaType* toRGB (const struct _AMMediaType&); // media type
+  // *IMPORTANT NOTE*: callers must 'free' return values
+  static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
 

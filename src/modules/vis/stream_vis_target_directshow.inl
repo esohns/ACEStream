@@ -722,7 +722,6 @@ error:
       IPin* pin_p = NULL;
       enum _FilterState filter_state = State_Stopped;
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-      Common_UI_Resolution_t resolution_s;
 
       result_2 =
         inherited::IMediaControl_->GetState (INFINITE,

@@ -107,7 +107,7 @@ enum Stream_MessageType : int
   STREAM_MESSAGE_DATA_MASK     = 0x400,                       // data
   STREAM_MESSAGE_PROTOCOL_MASK = 0x800,                       // protocol
   ////////////////////////////////////////
-  STREAM_MESSAGE_MAX,
+  STREAM_MESSAGE_MAX           = (int)0xFFFFFFFF,
 };
 
 #if defined (__llvm__)

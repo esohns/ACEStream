@@ -100,15 +100,16 @@ typedef int Test_I_CommandType_t;
 
 typedef Stream_Statistic Test_I_Statistic_t;
 
-typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
+typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_StatisticReportingHandler_t;
+typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_Target_StatisticReportingHandler_t;
 
 struct Test_I_CamStream_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_CamStream_UserData
- : Test_I_UserData
+ : Stream_UserData
 {
   Test_I_CamStream_UserData ()
-   : Test_I_UserData ()
+   : Stream_UserData ()
    , configuration (NULL)
    , streamConfiguration (NULL)
   {}
@@ -125,7 +126,6 @@ struct Test_I_CamStream_DirectShow_SessionData
    : Test_I_SessionData ()
    , direct3DDevice (NULL)
    , resetToken (0)
-   , userData (NULL)
   {}
 
   // *NOTE*: called on stream link after connecting; 'this' is upstream
@@ -151,9 +151,7 @@ struct Test_I_CamStream_DirectShow_SessionData
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), continuing\n")));
 
-continue_:
-    userData = (userData ? userData : rhs_in.userData);
-
+//continue_:
     return *this;
   }
 
@@ -163,12 +161,12 @@ continue_:
   IDirect3DDevice9*                 direct3DDevice;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   UINT                              resetToken; // direct 3D manager 'id'
-
-  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<struct Test_I_CamStream_DirectShow_SessionData> Test_I_CamStream_DirectShow_SessionData_t;
+//typedef Stream_SessionData_T<Test_I_CamStream_DirectShow_SessionData> Test_I_CamStream_DirectShow_SessionData_t;
+
 struct Test_I_CamStream_MediaFoundation_SessionData
  : Test_I_SessionData
+
 {
   Test_I_CamStream_MediaFoundation_SessionData ()
    : Test_I_SessionData ()
@@ -177,15 +175,12 @@ struct Test_I_CamStream_MediaFoundation_SessionData
    , rendererNodeId (0)
    , session (NULL)
    //, topology (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
-
-    userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
@@ -199,53 +194,25 @@ struct Test_I_CamStream_MediaFoundation_SessionData
   TOPOID                            rendererNodeId;
   IMFMediaSession*                  session;
   //IMFTopology*               topology;
-
-  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<struct Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
-struct Test_I_CamStream_SessionData
+//typedef Stream_SessionData_T<Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
+#else
+struct Test_I_CamStream_V4L_SessionData
  : Test_I_SessionData
 {
-  Test_I_CamStream_SessionData ()
+  Test_I_CamStream_V4L_SessionData ()
    : Test_I_SessionData ()
-   , userData (NULL)
   {}
 
-  struct Test_I_CamStream_SessionData& operator+= (const struct Test_I_CamStream_SessionData& rhs_in)
+  struct Test_I_CamStream_V4L_SessionData& operator+= (const struct Test_I_CamStream_V4L_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
 
-    userData = (userData ? userData : rhs_in.userData);
-
     return *this;
   }
-
-  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<struct Test_I_CamStream_SessionData> Test_I_CamStream_SessionData_t;
-#else
-struct Test_I_CamStream_V4L2_SessionData
- : Test_I_V4L_SessionData
-{
-  Test_I_CamStream_V4L2_SessionData ()
-   : Test_I_V4L_SessionData ()
-   , userData (NULL)
-  {}
-
-  struct Test_I_CamStream_V4L2_SessionData& operator+= (const struct Test_I_CamStream_V4L2_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Test_I_V4L_SessionData::operator+= (rhs_in);
-
-    userData = (userData ? userData : rhs_in.userData);
-
-    return *this;
-  }
-
-  struct Test_I_CamStream_UserData* userData;
-};
-typedef Stream_SessionData_T<struct Test_I_CamStream_V4L2_SessionData> Test_I_CamStream_SessionData_t;
+//typedef Stream_SessionData_T<Test_I_CamStream_V4L_SessionData> Test_I_CamStream_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations

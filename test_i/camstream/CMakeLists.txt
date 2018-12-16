@@ -292,7 +292,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 cotire (${EXECUTABLE_SOURCE})
 
 set (RESOURCE_FILES
@@ -419,6 +419,7 @@ if (WIN32)
 
  # add PCH
  set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+ set_target_properties (${LIBRARY_DS} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
  cotire (${LIBRARY_DS})
 
 # add all targets to the build-tree export set
@@ -472,6 +473,7 @@ if (WIN32)
 
  # add PCH
  set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+ set_target_properties (${LIBRARY_MF} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
  cotire (${LIBRARY_MF})
 
 # add all targets to the build-tree export set
@@ -608,7 +610,7 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 
 # add PCH
 set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 #cotire (${EXECUTABLE_SOURCE} ${LIBRARY_DS} ${LIBRARY_MF} ${EXECUTABLE_TARGET})
 cotire (${EXECUTABLE_TARGET})
 

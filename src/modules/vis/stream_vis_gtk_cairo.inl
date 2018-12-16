@@ -53,7 +53,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               SessionDataType,
                               SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-,                             MediaType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
+                              MediaType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
 #else
                               MediaType>::Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T* stream_in)
 #endif
@@ -192,11 +192,20 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //#else
   image_size =
     av_image_get_buffer_size (media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              media_type_s.resolution.cx,
+                              media_type_s.resolution.cy,
+#else
                               media_type_s.resolution.width,
                               media_type_s.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
                               1); // *TODO*: linesize alignment
   row_stride = av_image_get_linesize (media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                      media_type_s.resolution.cx,
+#else
                                       media_type_s.resolution.width,
+#endif // ACE_WIN32 || ACE_WIN64
                                       0);
   ACE_UNUSED_ARG (row_stride);
 //#endif // ACE_WIN32 || ACE_WIN64
@@ -241,7 +250,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //    gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
     ((media_type_s.format != pixel_format_2) ||
-     ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) || (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+     ((static_cast<int> (media_type_s.resolution.cx) != pixbuf_width) ||
+      (static_cast<int> (media_type_s.resolution.cy) != pixbuf_height)));
+#else
+     ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) ||
+      (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
+#endif // ACE_WIN32 || ACE_WIN64
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
@@ -253,14 +268,20 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   {
     if (scaleContext_)
     {
-      sws_freeContext (scaleContext_);
-      scaleContext_ = NULL;
+      sws_freeContext (scaleContext_); scaleContext_ = NULL;
     } // end IF
     int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
     //                 SWS_LANCZOS | SWS_ACCURATE_RND);
     scaleContext_ =
       sws_getCachedContext (NULL,
-                            media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            media_type_s.resolution.cx,
+                            media_type_s.resolution.cy,
+#else
+                            media_type_s.resolution.width,
+                            media_type_s.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                            media_type_s.format,
                             pixbuf_width, pixbuf_height, pixel_format_2,
                             flags,                             // flags
                             NULL, NULL,
@@ -276,11 +297,19 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     scaleContextHeight_ = pixbuf_height;
     scaleContextWidth_ = pixbuf_width;
 #if defined (_DEBUG)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
+                inherited::mod_->name (),
+                media_type_s.resolution.cx, media_type_s.resolution.cy,
+                pixbuf_width, pixbuf_height));
+#else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
                 inherited::mod_->name (),
                 media_type_s.resolution.width, media_type_s.resolution.height,
                 pixbuf_width, pixbuf_height));
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
   } // end IF
 
@@ -290,7 +319,12 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                             media_type_s.resolution.cx, media_type_s.resolution.cy,
+#else
+                                             media_type_s.resolution.width, media_type_s.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                                             media_type_s.format,
                                              in_data,
                                              pixbuf_width, pixbuf_height, pixel_format_2,
                                              out_data))
@@ -335,10 +369,7 @@ unlock:
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to gdk_pixbuf_new_from_data(), returning\n")));
-
-  //    // clean up
   //    gdk_threads_leave ();
-
   //    return;
   //  } // end IF
 

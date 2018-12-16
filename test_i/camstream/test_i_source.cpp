@@ -95,6 +95,8 @@
 #endif // GUI_SUPPORT
 #include "test_i_common_modules.h"
 
+#include "test_i_camstream_common.h"
+
 #include "test_i_source_common.h"
 #include "test_i_source_eventhandler.h"
 #include "test_i_source_message.h"
@@ -513,8 +515,8 @@ do_initialize_directshow (const std::string& devicePath_in,
                           bool hasUI_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
-                          struct _AMMediaType*& captureFormat_out,
-                          struct _AMMediaType*& outputFormat_out) // directshow sample grabber-
+                          struct _AMMediaType& captureFormat_inout,
+                          struct _AMMediaType& outputFormat_inout) // directshow sample grabber-
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -524,11 +526,11 @@ do_initialize_directshow (const std::string& devicePath_in,
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;
   BOOL result_2 = false;
   IMediaFilter* media_filter_p = NULL;
+  struct _AMMediaType* media_type_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
   ACE_ASSERT (!IAMStreamConfig_out);
-  ACE_ASSERT (!outputFormat_out);
 
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
   Stream_Device_DirectShow_Tools::initialize (coInitialize_in);
@@ -552,37 +554,40 @@ do_initialize_directshow (const std::string& devicePath_in,
 
   if (!Stream_Device_DirectShow_Tools::getCaptureFormat (IGraphBuilder_out,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         captureFormat_out))
+                                                         captureFormat_inout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getCaptureFormat(CLSID_VideoInputDeviceCategory), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (captureFormat_out);
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: %s\n"),
               ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (devicePath_in).c_str ()),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*captureFormat_out, true).c_str ())));
-
-  outputFormat_out =
-    Stream_MediaFramework_DirectShow_Tools::copy (*captureFormat_out);
-  if (!outputFormat_out)
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (captureFormat_inout, true).c_str ())));
+#endif // _DEBUG
+  media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_inout);
+  if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (outputFormat_out);
+  ACE_ASSERT (media_type_p);
+  outputFormat_inout = *media_type_p;
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
+
 
   // *NOTE*: the default save format is RGB32
-  ACE_ASSERT (InlineIsEqualGUID (outputFormat_out->majortype, MEDIATYPE_Video));
-  outputFormat_out->subtype = MEDIASUBTYPE_RGB32;
-  outputFormat_out->bFixedSizeSamples = TRUE;
-  outputFormat_out->bTemporalCompression = FALSE;
-  if (InlineIsEqualGUID (outputFormat_out->formattype, FORMAT_VideoInfo))
-  { ACE_ASSERT (outputFormat_out->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+  ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
+  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  outputFormat_inout.bFixedSizeSamples = TRUE;
+  outputFormat_inout.bTemporalCompression = FALSE;
+  if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
+  { ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
     struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_out->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
     // *NOTE*: empty --> use entire video
     result_2 = SetRectEmpty (&video_info_header_p->rcSource);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -606,14 +611,13 @@ do_initialize_directshow (const std::string& devicePath_in,
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
       (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-    outputFormat_out->lSampleSize =
-      video_info_header_p->bmiHeader.biSizeImage;
+    outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
-  else if (InlineIsEqualGUID (outputFormat_out->formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
   {
-    ACE_ASSERT (outputFormat_out->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
     struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_out->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_inout.pbFormat);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount = 32;
@@ -629,14 +633,13 @@ do_initialize_directshow (const std::string& devicePath_in,
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
       (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-    outputFormat_out->lSampleSize =
-      video_info_header_p->bmiHeader.biSizeImage;
+    outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_out->formattype).c_str ())));
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_inout.formattype).c_str ())));
     goto error;
   } // end ELSE
 
@@ -648,8 +651,8 @@ do_initialize_directshow (const std::string& devicePath_in,
   } // end IF
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            *captureFormat_out,
-                                                            *outputFormat_out,
+                                                            captureFormat_inout,
+                                                            outputFormat_inout,
                                                             NULL,
                                                             IGraphBuilder_out,
                                                             graph_configuration))
@@ -681,14 +684,16 @@ do_initialize_directshow (const std::string& devicePath_in,
   return true;
 
 error:
+  if (media_type_p)
+  {
+    CoTaskMemFree (media_type_p); media_type_p = NULL;
+  } // end IF
   if (media_filter_p)
     media_filter_p->Release ();
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
-  if (outputFormat_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (outputFormat_out);
-  if (captureFormat_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (captureFormat_out);
+  Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
+  Stream_MediaFramework_DirectShow_Tools::free (captureFormat_inout);
   if (IAMStreamConfig_out)
   {
     IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
@@ -1208,9 +1213,8 @@ do_work (const std::string& deviceIdentifier_in,
                                   !UIDefinitionFilename_in.empty (), // has UI ?
                                   (*directshow_modulehandler_iterator).second.second.builder,
                                   directShowCBData_in.streamConfiguration,
-                                  (*directshow_modulehandler_iterator).second.second.sourceFormat,
-                                  (*directshow_modulehandler_iterator).second.second.inputFormat);
-      ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.inputFormat);
+                                  (*directshow_stream_iterator).second.configuration_.format,
+                                  (*directshow_modulehandler_iterator).second.second.outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1260,11 +1264,13 @@ do_work (const std::string& deviceIdentifier_in,
   long timer_id = -1;
 //  int group_id = -1;
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
-  Test_I_Source_Stream_StatisticReportingHandler_t* report_handler_p = NULL;
+  Test_I_Source_StatisticReportingHandler_t* report_handler_p = NULL;
+  //Test_I_Source_Stream_IStatistic_t stream_report_handler;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
+  Common_UI_GTK_State_t* ui_state_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1396,7 +1402,8 @@ do_work (const std::string& deviceIdentifier_in,
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
   Test_I_Source_Stream_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                                             report_handler_p,
+                                                             //&stream_report_handler,
+                                                             NULL,
                                                              false);
   ACE_Event_Handler* event_handler_p = NULL;
 //  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
@@ -1644,8 +1651,12 @@ do_work (const std::string& deviceIdentifier_in,
       STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   (*modulehandler_iterator).second.second.pixelBufferLock =
-      &v4l2CBData_in.UIState.lock;
+      &ui_state_p->lock;
+  v4l2CBData_in.UIState = ui_state_p;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   (*modulehandler_iterator).second.second.sourceFormat.format.pixelformat =
@@ -1770,16 +1781,12 @@ do_work (const std::string& deviceIdentifier_in,
   {
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-    Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-    ACE_ASSERT (gtk_manager_p);
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-    state_r.eventHooks.finiHook = idle_finalize_source_UI_cb;
-    state_r.eventHooks.initHook = idle_initialize_source_UI_cb;
+    ACE_ASSERT (ui_state_p);
+    ui_state_p->eventHooks.finiHook = idle_finalize_source_UI_cb;
+    ui_state_p->eventHooks.initHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    ui_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
     gtk_manager_p->start ();

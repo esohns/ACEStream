@@ -34,21 +34,23 @@
 
 #include "stream_common.h"
 
-template <typename MediaFormatType,
+template <typename BaseType,
+          typename MediaFormatType,
           typename StreamStateType, // inherits Stream_State
           typename StatisticType, // inherits Stream_Statistic
           typename UserDataType>
 class Stream_SessionDataMediaBase_T
- : public Stream_SessionData
+ : public BaseType
 {
-  typedef Stream_SessionData inherited;
+  typedef BaseType inherited;
 
  public:
   // convenient types
   typedef MediaFormatType MEDIAFORMAT_T;
   typedef std::deque<MediaFormatType> MEDIAFORMATS_T;
   typedef typename MEDIAFORMATS_T::iterator MEDIAFORMATS_ITERATOR_T;
-  typedef Stream_SessionDataMediaBase_T<MediaFormatType,
+  typedef Stream_SessionDataMediaBase_T<BaseType,
+                                        MediaFormatType,
                                         StreamStateType,
                                         StatisticType,
                                         UserDataType> OWN_TYPE_T;

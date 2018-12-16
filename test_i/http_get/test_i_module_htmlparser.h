@@ -53,12 +53,12 @@ void test_i_libxml2_sax_end_element_cb (void*,           // user data
 //                        const xmlChar*); // name
 
 void
-errorCallback (void*,       // context
-               const char*, // message
-               ...);        // arguments
+test_i_libxml2_sax_error_cb (void*,       // context
+                             const char*, // message
+                             ...);        // arguments
 void
-structuredErrorCallback (void*,        // user data
-                         xmlErrorPtr); // error
+test_i_libxml2_sax_structured_error_cb (void*,        // user data
+                                        xmlErrorPtr); // error
 
 class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,

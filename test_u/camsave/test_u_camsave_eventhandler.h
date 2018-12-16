@@ -57,7 +57,7 @@ class Stream_CamSave_EventHandler_T
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const struct Stream_CamSave_SessionData&);
+                      const typename SessionMessageType::DATA_T::DATA_T&);
   virtual void notify (Stream_SessionId_t,
                        const enum Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);

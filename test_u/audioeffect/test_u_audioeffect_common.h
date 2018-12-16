@@ -84,6 +84,10 @@ extern "C"
 #include "common_statistic_handler.h"
 #include "common_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "common_error_tools.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
@@ -182,9 +186,116 @@ struct Test_U_AudioEffect_MessageData
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
+struct Test_U_AudioEffect_Statistic
+ : Test_U_Statistic_t
+{
+  Test_U_AudioEffect_Statistic ()
+   : Test_U_Statistic_t ()
+   , amplitudeAverage (0.0)
+   , amplitudeVariance (0.0)
+   , streakAverage (0.0)
+   , streakCount (0)
+   , streakVariance (0.0)
+   , volumeAverage (0.0)
+   , volumeVariance (0.0)
+  {}
+
+  double       amplitudeAverage;
+  double       amplitudeVariance;
+  double       streakAverage;
+  unsigned int streakCount;
+  double       streakVariance;
+  double       volumeAverage;
+  double       volumeVariance;
+};
+typedef Common_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandler_t;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_AudioEffect_SessionData
+  : Test_U_SessionData
+#else
+class Test_U_AudioEffect_SessionData
+ : public Test_U_ALSA_SessionData
+#endif // ACE_WIN32 || ACE_WIN64
+{
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ public:
+#endif // ACE_WIN32 || ACE_WIN64
+  Test_U_AudioEffect_SessionData ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   : Test_U_SessionData ()
+#else
+   : Test_U_ALSA_SessionData ()
+   , resolution ()
+#endif // ACE_WIN32 || ACE_WIN64
+   , statistic ()
+  {}
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  Common_UI_Resolution_t              resolution; // *TODO*: remove ASAP !
+#endif // ACE_WIN32 || ACE_WIN64
+  struct Test_U_AudioEffect_Statistic statistic;
+};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+typedef Stream_SessionData_T<Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_AudioEffect_DirectShow_StreamState;
+class Test_U_AudioEffect_DirectShow_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_U_AudioEffect_SessionData,
+                                        struct _AMMediaType,
+                                        struct Test_U_AudioEffect_DirectShow_StreamState,
+                                        struct Test_U_AudioEffect_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_U_AudioEffect_DirectShow_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_U_AudioEffect_SessionData,
+                                   struct _AMMediaType,
+                                   struct Test_U_AudioEffect_DirectShow_StreamState,
+                                   struct Test_U_AudioEffect_Statistic,
+                                   struct Stream_UserData> ()
+   , builder (NULL)
+  {}
+
+  IGraphBuilder* builder;
+};
+typedef Stream_SessionData_T<Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_SessionData_t;
+
+struct Test_U_AudioEffect_MediaFoundation_StreamState;
+class Test_U_AudioEffect_MediaFoundation_SessionData
+ : public Stream_SessionDataMediaBase_T<struct Test_U_AudioEffect_SessionData,
+                                        IMFMediaType*,
+                                        struct Test_U_AudioEffect_MediaFoundation_StreamState,
+                                        struct Test_U_AudioEffect_Statistic,
+                                        struct Stream_UserData>
+{
+ public:
+  Test_U_AudioEffect_MediaFoundation_SessionData ()
+   : Stream_SessionDataMediaBase_T<struct Test_U_AudioEffect_SessionData,
+                                   IMFMediaType*,
+                                   struct Test_U_AudioEffect_MediaFoundation_StreamState,
+                                   struct Test_U_AudioEffect_Statistic,
+                                   struct Stream_UserData> ()
+   , rendererNodeId (0)
+   , session (NULL)
+   , sourceFormat (NULL)
+  {}
+
+  TOPOID           rendererNodeId;
+  IMFMediaSession* session;
+  IMFMediaType*    sourceFormat;
+};
+typedef Stream_SessionData_T<Test_U_AudioEffect_MediaFoundation_SessionData> Test_U_AudioEffect_MediaFoundation_SessionData_t;
+#endif // ACE_WIN32 || ACE_WIN64
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_DirectShow_SessionData,
+                                    Test_U_AudioEffect_DirectShow_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_DirectShow_Message,
                                     Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ISessionNotify_t;
@@ -192,7 +303,7 @@ typedef std::list<Test_U_AudioEffect_DirectShow_ISessionNotify_t*> Test_U_AudioE
 typedef Test_U_AudioEffect_DirectShow_Subscribers_t::iterator Test_U_AudioEffect_DirectShow_SubscribersIterator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                    Test_U_AudioEffect_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_U_AudioEffect_MediaFoundation_Message,
                                     Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ISessionNotify_t;
@@ -313,7 +424,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , builder (NULL)
    , effect (GUID_NULL)
    , effectOptions ()
-   , inputFormat (NULL)
+   , outputFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -322,7 +433,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   IGraphBuilder*                                            builder;
   CLSID                                                     effect;
   union Stream_MediaFramework_DirectShow_AudioEffectOptions effectOptions;
-  struct _AMMediaType*                                      inputFormat;
+  struct _AMMediaType                                       outputFormat;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t*      streamConfiguration;
   Test_U_AudioEffect_DirectShow_ISessionNotify_t*           subscriber;
   Test_U_AudioEffect_DirectShow_Subscribers_t*              subscribers;
@@ -343,14 +454,14 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
    , effectOptions ()
-   , inputFormat (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , outputFormat (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {
-    HRESULT result = MFCreateMediaType (&inputFormat);
+    HRESULT result = MFCreateMediaType (&outputFormat);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
@@ -359,9 +470,9 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 
   CLSID                                                     effect;
   std::string                                               effectOptions;
-  IMFMediaType*                                             inputFormat;
   TOPOID                                                    sampleGrabberNodeId;
   IMFMediaSession*                                          session;
+  IMFMediaType*                                             outputFormat;
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t* streamConfiguration;
   Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*      subscriber;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t*         subscribers;
@@ -385,8 +496,8 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , effect ()
    , effectOptions ()
    , manageSoX (false)
+   , outputFormat ()
    , playbackDeviceHandle (NULL)
-   , sourceFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -402,85 +513,15 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
   std::string                                    effect;
   std::vector<std::string>                       effectOptions;
   bool                                           manageSoX;
+  struct Stream_MediaFramework_ALSA_MediaType    outputFormat;
   struct _snd_pcm*                               playbackDeviceHandle;
-  struct Stream_MediaFramework_ALSA_MediaType    sourceFormat;
   Test_U_AudioEffect_ALSA_StreamConfiguration_t* streamConfiguration;
   Test_U_AudioEffect_ISessionNotify_t*           subscriber;
   Test_U_AudioEffect_Subscribers_t*              subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
-struct Test_U_AudioEffect_Statistic
- : Test_U_Statistic_t
-{
-  Test_U_AudioEffect_Statistic ()
-   : Test_U_Statistic_t ()
-   , amplitudeAverage (0.0)
-   , amplitudeVariance (0.0)
-   , streakAverage (0.0)
-   , streakCount (0)
-   , streakVariance (0.0)
-   , volumeAverage (0.0)
-   , volumeVariance (0.0)
-  {}
-
-  double       amplitudeAverage;
-  double       amplitudeVariance;
-  double       streakAverage;
-  unsigned int streakCount;
-  double       streakVariance;
-  double       volumeAverage;
-  double       volumeVariance;
-};
-typedef Common_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandler_t;
-
-class Test_U_AudioEffect_SessionData
- : public Test_U_ALSA_SessionData
-{
- public:
-  Test_U_AudioEffect_SessionData ()
-   : Test_U_ALSA_SessionData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-   , resolution ()
-#endif // ACE_WIN32 || ACE_WIN64
-   , statistic ()
-  {}
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  Common_UI_Resolution_t              resolution; // *TODO*: remove ASAP !
-#endif // ACE_WIN32 || ACE_WIN64
-  struct Test_U_AudioEffect_Statistic statistic;
-};
-typedef Stream_SessionData_T<Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
-
-struct Test_U_AudioEffect_StreamState
- : Stream_State
-{
-  Test_U_AudioEffect_StreamState ()
-   : Stream_State ()
-   , sessionData (NULL)
-  {}
-
-  struct Test_U_AudioEffect_SessionData* sessionData;
-};
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_U_AudioEffect_DirectShow_SessionData
- : Test_U_AudioEffect_SessionData
-{
-  Test_U_AudioEffect_DirectShow_SessionData ()
-   : Test_U_AudioEffect_SessionData ()
-   , builder (NULL)
-   , inputFormat (NULL)
-  {}
-
-  IGraphBuilder*       builder;
-  struct _AMMediaType* inputFormat;
-};
-typedef Stream_SessionData_T<struct Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_SessionData_t;
-
 struct Test_U_AudioEffect_DirectShow_StreamState
  : Stream_State
 {
@@ -489,24 +530,8 @@ struct Test_U_AudioEffect_DirectShow_StreamState
    , sessionData (NULL)
   {}
 
-  struct Test_U_AudioEffect_DirectShow_SessionData* sessionData;
+  Test_U_AudioEffect_DirectShow_SessionData* sessionData;
 };
-
-struct Test_U_AudioEffect_MediaFoundation_SessionData
- : Test_U_AudioEffect_SessionData
-{
-  Test_U_AudioEffect_MediaFoundation_SessionData ()
-   : Test_U_AudioEffect_SessionData ()
-   , inputFormat (NULL)
-   , rendererNodeId (0)
-   , session (NULL)
-  {}
-
-  IMFMediaType*    inputFormat;
-  TOPOID           rendererNodeId;
-  IMFMediaSession* session;
-};
-typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionData> Test_U_AudioEffect_MediaFoundation_SessionData_t;
 
 struct Test_U_AudioEffect_MediaFoundation_StreamState
  : Stream_State
@@ -516,7 +541,18 @@ struct Test_U_AudioEffect_MediaFoundation_StreamState
    , sessionData (NULL)
   {}
 
-  struct Test_U_AudioEffect_MediaFoundation_SessionData* sessionData;
+  Test_U_AudioEffect_MediaFoundation_SessionData* sessionData;
+};
+#else
+struct Test_U_AudioEffect_StreamState
+ : Stream_State
+{
+  Test_U_AudioEffect_StreamState ()
+   : Stream_State ()
+   , sessionData (NULL)
+  {}
+
+  Test_U_AudioEffect_SessionData* sessionData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -527,9 +563,11 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
   Test_U_AudioEffect_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , filterGraphConfiguration ()
+   , format ()
   {}
 
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
+  struct _AMMediaType                      format;
 };
 
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
@@ -537,7 +575,10 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
 {
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
+   , format (NULL)
   {}
+
+  IMFMediaType* format;
 };
 #else
 struct Test_U_AudioEffect_ALSA_StreamConfiguration
@@ -545,10 +586,10 @@ struct Test_U_AudioEffect_ALSA_StreamConfiguration
 {
   Test_U_AudioEffect_ALSA_StreamConfiguration ()
    : Stream_Configuration ()
-   , format (NULL)
+   , format ()
   {}
 
-  struct Stream_MediaFramework_ALSA_MediaType* format;
+  struct Stream_MediaFramework_ALSA_MediaType format;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -35,9 +35,8 @@
 #include "test_u_camsave_common.h"
 
 // forward declaratation(s)
-struct Stream_CamSave_SessionData;
-typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
-//struct Stream_CamSave_UserData;
+struct Stream_CamSave_UserData;
+
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -45,30 +44,33 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
 
-template <typename DataMessageType>
+template <typename DataMessageType,
+          typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CamSave_SessionMessage_T
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
-                                      Stream_CamSave_SessionData_t,
+                                      SessionDataType,
                                       struct Stream_CamSave_UserData>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //friend class Stream_DirectShowAllocatorBase_T<ACE_MT_SYNCH,
-  //                                              struct Stream_AllocatorConfiguration,
-  //                                              Test_U_ControlMessage_t,
-  //                                              DataMessageType,
-  //                                              Stream_CamSave_SessionMessage>;
-#endif
+  //friend class Stream_AllocatorBase_T<ACE_MT_SYNCH,
+  //                                    struct Stream_AllocatorConfiguration,
+  //                                    Test_U_ControlMessage_t,
+  //                                    DataMessageType,
+  //                                    Stream_CamSave_SessionMessage_T<DataMessageType,
+  //                                                                    SessionDataType> >;
+#endif // ACE_WIN32 || ACE_WIN64
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  DataMessageType,
-                                                 Stream_CamSave_SessionMessage_T<DataMessageType> >;
+                                                 Stream_CamSave_SessionMessage_T<DataMessageType,
+                                                                                 SessionDataType> >;
 
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
-                                      Stream_CamSave_SessionData_t,
+                                      SessionDataType,
                                       struct Stream_CamSave_UserData> inherited;
 
  public:
@@ -76,7 +78,7 @@ class Stream_CamSave_SessionMessage_T
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Stream_CamSave_SessionMessage_T (Stream_SessionId_t,
                                    enum Stream_SessionMessageType,
-                                   Stream_CamSave_SessionData_t*&,   // session data container handle
+                                   SessionDataType*&,   // session data container handle
                                    struct Stream_CamSave_UserData*);
   inline virtual ~Stream_CamSave_SessionMessage_T () {}
 
@@ -85,10 +87,12 @@ class Stream_CamSave_SessionMessage_T
 
  private:
   // convenient types
-  typedef Stream_CamSave_SessionMessage_T<DataMessageType> OWN_TYPE_T;
+  typedef Stream_CamSave_SessionMessage_T<DataMessageType,
+                                          SessionDataType> OWN_TYPE_T;
 
   // copy ctor to be used by duplicate()
-  Stream_CamSave_SessionMessage_T (const Stream_CamSave_SessionMessage_T&);
+  Stream_CamSave_SessionMessage_T (const Stream_CamSave_SessionMessage_T<DataMessageType,
+                                                                         SessionDataType>&);
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe

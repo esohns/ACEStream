@@ -365,12 +365,10 @@ continue_:
   // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (configuration_in.sourceFormat);
-
-  struct _AMMediaType media_type_s =
-      getMediaType (configuration_in.sourceFormat);
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-
   ACE_ASSERT (media_type_s.pbFormat);
   struct tWAVEFORMATEX* waveformatex_p =
     reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
@@ -547,8 +545,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       int sample_byte_order = ACE_BYTE_ORDER;
 //      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_s =
-          inherited2::getMediaType (session_data_r.formats.front ());
+      struct _AMMediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
       ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
       ACE_ASSERT (media_type_s.pbFormat);
 
@@ -1178,8 +1177,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   height_ = cairo_image_surface_get_height (cairoSurface_);
   width_ = cairo_image_surface_get_width (cairoSurface_);
 #else
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cairoContext_);
   ACE_ASSERT (pixelBuffer_);
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();  
+  ACE_ASSERT (!session_data_r.formats.empty ());
 
   gdk_cairo_set_source_pixbuf (cairoContext_,
                                pixelBuffer_,
@@ -1189,40 +1191,35 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int data_sample_size = 0;
   unsigned int sound_sample_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (inherited::sessionData_);
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();  
-  struct _AMMediaType* media_type_p = NULL;
-  media_type_p = getFormat (session_data_r.inputFormat);
-  if (unlikely (!media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve media type, returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-  ACE_ASSERT (InlineIsEqualGUID (media_type_p->formattype, FORMAT_WaveFormatEx));
-  ACE_ASSERT (media_type_p->pbFormat);
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (session_data_r.formats.front (),
+                            media_type_s);
+  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (media_type_s.pbFormat);
   // *NOTE*: apparently, all Win32 sound data is signed 16 bits
   struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
   ACE_ASSERT (waveformatex_p);
   data_sample_size = waveformatex_p->nBlockAlign;
   sound_sample_size = (data_sample_size * 8) / waveformatex_p->wBitsPerSample;
 
-  Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
+  MediaType media_type_s;
+  inherited2::getMediaType (session_data_r.formats.front (),
+                            media_type_s);
   data_sample_size =
-    ((snd_pcm_format_width (session_data_r.format.format) / 8) *
-      session_data_r.format.channels);
-  sound_sample_size = data_sample_size / session_data_r.format.channels;
+    ((snd_pcm_format_width (media_type_s.format) / 8) *
+      media_type_s.format.channels);
+  sound_sample_size = data_sample_size / media_type_s.format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
 
   height_ = gdk_pixbuf_get_height (pixelBuffer_);
   width_ = gdk_pixbuf_get_width (pixelBuffer_);
 
-  channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
+  channelFactor_ = width_ / static_cast<double> (inherited3::channels_);
   scaleFactorX_ =
-      width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+      width_ / static_cast<double> (inherited3::channels_ * inherited3::slots_);
   scaleFactorY_ =
       height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
 #endif // GTK_CHECK_VERSION (3,10,0)

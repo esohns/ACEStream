@@ -63,15 +63,15 @@ class Stream_Device_DirectShow_Tools
                                                       REFGUID,                        // media subtype
                                                       const Common_UI_Resolution_t&); // resolution
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
-  static bool getCaptureFormat (IGraphBuilder*,         // graph builder handle
-                                REFGUID,                // device category
-                                struct _AMMediaType*&); // return value: media type
-  static bool getVideoCaptureFormat (IGraphBuilder*,         // graph builder handle
-                                     REFGUID,                // media subtype {GUID_NULL: default}
-                                     LONG,                   // width {0: any}
-                                     LONG,                   // height {0: any}
-                                     unsigned int,           // framerate {0: any}
-                                     struct _AMMediaType*&); // return value: media type
+  static bool getCaptureFormat (IGraphBuilder*,        // graph builder handle
+                                REFGUID,               // device category
+                                struct _AMMediaType&); // return value: media type
+  static bool getVideoCaptureFormat (IGraphBuilder*,        // graph builder handle
+                                     REFGUID,               // media subtype {GUID_NULL: default}
+                                     LONG,                  // width {0: any}
+                                     LONG,                  // height {0: any}
+                                     unsigned int,          // framerate {0: any}
+                                     struct _AMMediaType&); // return value: media type
   static void listCaptureFormats (IBaseFilter*,         // filter handle
                                   REFGUID = GUID_NULL); // format type {GUID_NULL: all}
   static bool setCaptureFormat (IGraphBuilder*,              // graph builder handle

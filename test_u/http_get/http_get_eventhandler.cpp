@@ -217,7 +217,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    CBData_->UIState.eventStack.push (event_e);
+    state_r.eventStack.push (event_e);
   } // end lock scope
 #endif // GTK_USE
 #endif // GUI_SUPPORT

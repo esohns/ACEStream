@@ -69,10 +69,10 @@
 class Stream_IAllocator;
 
 struct Test_I_Target_UserData
- : Test_I_UserData
+ : Stream_UserData
 {
   Test_I_Target_UserData ()
-   : Test_I_UserData ()
+   : Stream_UserData ()
   {}
 };
 

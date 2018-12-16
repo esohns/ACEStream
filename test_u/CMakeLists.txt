@@ -85,6 +85,19 @@ if (UNIX)
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                 "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
    endif ()
+
+   if (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
+   endif (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+
+   if (LIBGLADE_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                                $<BUILD_INTERFACE:${PKG_GLADE_INCLUDE_DIRS}>)
+   endif (LIBGLADE_SUPPORT)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
@@ -145,8 +158,19 @@ elseif (WIN32)
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtk3/include/gtk-3.0>)
    endif ()
-# libglade
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
+
+   if (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
+   endif (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+
+   if (LIBGLADE_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../libglade-2.6.4/include/libglade-2.0>)
+   endif (LIBGLADE_SUPPORT)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)

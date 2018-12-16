@@ -54,14 +54,16 @@ class Stream_MediaFramework_MediaTypeConverter_T
 //  template <typename T, typename U> T getMediaType_2 (const U&) { T result; ACE_ASSERT (false); ACE_NOTSUP_RETURN (result); ACE_NOTREACHED (return result;) }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *IMPORTANT NOTE*: return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
-//  void getMediaType_impl (const struct _AMMediaType&, struct _AMMediaType&);
-//  void getMediaType_impl (const struct _AMMediaType&, struct Stream_MediaFramework_FFMPEG_MediaType&);
+  // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
+  inline void getMediaType (const struct _AMMediaType& mediaType_in, struct _AMMediaType& mediaType_out) { struct _AMMediaType* media_type_p = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in); ACE_ASSERT (media_type_p); mediaType_out = *media_type_p; CoTaskMemFree (media_type_p); }
+  void getMediaType (const struct _AMMediaType&, IMFMediaType*&);
+  void getMediaType (const struct _AMMediaType&, struct Stream_MediaFramework_FFMPEG_MediaType&);
 
-//  void getMediaType_impl (const IMFMediaType*&, struct _AMMediaType&);
-//  void getMediaType_impl (const IMFMediaType*&, struct Stream_MediaFramework_FFMPEG_MediaType&);
+  void getMediaType (const IMFMediaType*, IMFMediaType*&);
+  void getMediaType (const IMFMediaType*, struct _AMMediaType&);
+  void getMediaType (const IMFMediaType*, struct Stream_MediaFramework_FFMPEG_MediaType&);
 
-//  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_MediaType&, struct _AMMediaType&);
+  void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType&, struct _AMMediaType&);
 //  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_MediaType&, IMFMediaType*&);
 #else
   inline void getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out = mediaType_in; }

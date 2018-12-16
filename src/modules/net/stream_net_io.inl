@@ -406,10 +406,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
-
-      // clean up
-      message_block_p->release ();
-
+      message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
   } // end IF

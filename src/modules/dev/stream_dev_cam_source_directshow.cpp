@@ -25,4 +25,4 @@
 #include "stream_dev_defines.h"
 
 const char libacestream_default_dev_cam_source_directshow_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);

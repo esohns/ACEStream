@@ -35,7 +35,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_mediafoundation_callback.h"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_net_io_stream.h"
 #include "stream_net_target.h"
@@ -47,7 +47,7 @@
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMFMediaSession;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 class Stream_IAllocator;
 
 extern const char stream_name_string_[];
@@ -359,7 +359,7 @@ class Test_I_Source_V4L2_Stream_T
   // *TODO*: re-consider this API
   void ping ();
 };
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 // include template definition
 #include "test_i_source_stream.inl"
@@ -371,33 +371,35 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          struct Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
-                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
                                           Test_I_Source_DirectShow_TCPConnector_t> Test_I_Source_DirectShow_TCPStream_t;
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          struct Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
-                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
                                           Test_I_Source_DirectShow_SSLTCPConnector_t> Test_I_Source_DirectShow_SSLTCPStream_t;
+#endif // SSL_SUPPORT
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          struct Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
-                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
                                           Test_I_Source_DirectShow_TCPAsynchConnector_t> Test_I_Source_DirectShow_AsynchTCPStream_t;
 
@@ -405,22 +407,22 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          struct Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
-                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
                                           Test_I_Source_DirectShow_UDPConnector_t> Test_I_Source_DirectShow_UDPStream_t;
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
                                           Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                                          struct Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
-                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
                                           Test_I_Source_DirectShow_UDPAsynchConnector_t> Test_I_Source_DirectShow_AsynchUDPStream_t;
 
@@ -428,33 +430,35 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               struct Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
                                                Test_I_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
-                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                                Test_I_Source_MediaFoundation_TCPConnector_t> Test_I_Source_MediaFoundation_TCPStream_t;
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               struct Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
                                                Test_I_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
-                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                                Test_I_Source_MediaFoundation_SSLTCPConnector_t> Test_I_Source_MediaFoundation_SSLTCPStream_t;
+#endif // SSL_SUPPORT
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               struct Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
                                                Test_I_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
-                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                                Test_I_Source_MediaFoundation_TCPAsynchConnector_t> Test_I_Source_MediaFoundation_AsynchTCPStream_t;
 
@@ -462,22 +466,22 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               struct Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
                                                Test_I_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
-                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                                Test_I_Source_MediaFoundation_UDPConnector_t> Test_I_Source_MediaFoundation_UDPStream_t;
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                                Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                                               struct Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
                                                Test_I_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
-                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
                                                Test_I_Source_MediaFoundation_UDPAsynchConnector_t> Test_I_Source_MediaFoundation_AsynchUDPStream_t;
 #else
@@ -485,33 +489,35 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
                                     Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                    struct Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_TCPConnector_t> Test_I_Source_V4L2_TCPStream_t;
+#if defined (SSL_SUPPORT)
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
                                     Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                    struct Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_SSLTCPConnector_t> Test_I_Source_V4L2_SSLTCPStream_t;
+#endif // SSL_SUPPORT
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
                                     Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                    struct Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_TCPAsynchConnector_t> Test_I_Source_V4L2_AsynchTCPStream_t;
 
@@ -519,23 +525,24 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
                                     Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                    struct Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_UDPConnector_t> Test_I_Source_V4L2_UDPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
                                     Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                    struct Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_UDPAsynchConnector_t> Test_I_Source_V4L2_AsynchUDPStream_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
 #endif

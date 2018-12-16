@@ -59,14 +59,14 @@ class Stream_CamSave_DirectShow_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_DirectShow_StreamState,
                         struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData, // session data
-                        Stream_CamSave_SessionData_t,      // session data container (reference counted)
+                        Stream_CamSave_DirectShow_SessionData,
+                        Stream_CamSave_DirectShow_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
                         Stream_CamSave_DirectShow_SessionMessage_t>
@@ -77,14 +77,14 @@ class Stream_CamSave_DirectShow_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_DirectShow_StreamState,
                         struct Stream_CamSave_DirectShow_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,
-                        Stream_CamSave_SessionData_t,
+                        Stream_CamSave_DirectShow_SessionData,
+                        Stream_CamSave_DirectShow_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_DirectShow_Message_t,
                         Stream_CamSave_DirectShow_SessionMessage_t> inherited;
@@ -125,14 +125,14 @@ class Stream_CamSave_MediaFoundation_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_MediaFoundation_StreamState,
                         struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData, // session data
-                        Stream_CamSave_SessionData_t,      // session data container (reference counted)
+                        Stream_CamSave_MediaFoundation_SessionData,
+                        Stream_CamSave_MediaFoundation_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
                         Stream_CamSave_MediaFoundation_SessionMessage_t>
@@ -144,14 +144,14 @@ class Stream_CamSave_MediaFoundation_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_MediaFoundation_StreamState,
                         struct Stream_CamSave_MediaFoundation_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,
-                        Stream_CamSave_SessionData_t,
+                        Stream_CamSave_MediaFoundation_SessionData,
+                        Stream_CamSave_MediaFoundation_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_MediaFoundation_Message_t,
                         Stream_CamSave_MediaFoundation_SessionMessage_t> inherited;
@@ -215,17 +215,17 @@ class Stream_CamSave_V4L_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_V4L_StreamState,
                         struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData, // session data
-                        Stream_CamSave_SessionData_t,      // session data container (reference counted)
+                        Stream_CamSave_V4L_SessionData,
+                        Stream_CamSave_V4L_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_Message_t,
-                        Stream_CamSave_SessionMessage_t>
+                        Stream_CamSave_V4L_SessionMessage_t>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -233,17 +233,17 @@ class Stream_CamSave_V4L_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_V4L_StreamState,
                         struct Stream_CamSave_V4L_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,
-                        Stream_CamSave_SessionData_t,
+                        Stream_CamSave_V4L_SessionData,
+                        Stream_CamSave_V4L_SessionData_t,
                         Test_U_ControlMessage_t,
                         Stream_CamSave_Message_t,
-                        Stream_CamSave_SessionMessage_t> inherited;
+                        Stream_CamSave_V4L_SessionMessage_t> inherited;
 
  public:
   Stream_CamSave_V4L_Stream ();
@@ -270,7 +270,7 @@ class Stream_CamSave_V4L_Stream
   Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Stream_CamSave_V4L2_AVIEncoder_Module encoder_;
+  Stream_CamSave_V4L_AVIEncoder_Module  encoder_;
   Stream_CamSave_FileWriter_Module      fileWriter_;
 };
 #endif // ACE_WIN32 || ACE_WIN64

@@ -88,6 +88,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
   //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
   //{
@@ -98,6 +100,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                     false);
     modules_out.push_back (module_p);
   //} // end IF
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
@@ -133,6 +137,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
+  struct _AMMediaType media_type_s;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -152,8 +157,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
-  struct Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
-    const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+  Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
+    const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -282,7 +287,7 @@ continue_:
                                                  log_file_name);
 #endif // _DEBUG
 
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (*(*iterator).second.second.inputFormat,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (configuration_in.configuration_.format,
                                                             ((*iterator).second.second.mute ? -1
                                                                                             : (*iterator).second.second.audioOutput),
                                                             graphBuilder_,
@@ -298,7 +303,7 @@ continue_:
 
   graph_entry.filterName = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_entry.mediaType =
-    Stream_MediaFramework_DirectShow_Tools::copy (*(*iterator).second.second.inputFormat);
+    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_.format);
   if (!graph_entry.mediaType)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -331,8 +336,7 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (isample_grabber_p);
-  filter_p->Release ();
-  filter_p = NULL;
+  filter_p->Release (); filter_p = NULL;
 
   result_2 = isample_grabber_p->SetBufferSamples (false);
   if (FAILED (result_2))
@@ -352,8 +356,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  isample_grabber_p->Release ();
-  isample_grabber_p = NULL;
+  isample_grabber_p->Release (); isample_grabber_p = NULL;
 
   ACE_ASSERT (buffer_negotiation_p);
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
@@ -451,8 +454,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  media_filter_p->Release ();
-  media_filter_p = NULL;
+  media_filter_p->Release (); media_filter_p = NULL;
 
   result_2 = graphBuilder_->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
   if (FAILED (result_2))
@@ -473,14 +475,11 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
-  graph_streams_p->Release ();
-  graph_streams_p = NULL;
+  graph_streams_p->Release (); graph_streams_p = NULL;
 
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (graphBuilder_,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                                session_data_r.inputFormat))
+                                                                media_type_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
@@ -488,7 +487,9 @@ continue_:
                 ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
-  ACE_ASSERT (session_data_r.inputFormat);
+  session_data_r.formats.push_back (media_type_s);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
   // ---------------------------------------------------------------------------
 
@@ -541,9 +542,6 @@ error:
   {
     graphBuilder_->Release (); graphBuilder_ = NULL;
   } // end IF
-
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 
   //if (COM_initialized)
   //  CoUninitialize ();
@@ -677,6 +675,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
   //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
   //{
@@ -687,6 +687,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                     false);
     modules_out.push_back (module_p);
   //} // end IF
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
@@ -722,6 +724,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
+  IMFMediaType* media_type_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -741,8 +744,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
-  struct Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+  Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
+    const_cast<Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -774,7 +777,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   IMFTopology* topology_p = NULL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
-  IMFMediaType* media_type_p = NULL;
   ULONG reference_count = 0;
 
   result_2 = CoInitializeEx (NULL,
@@ -846,7 +848,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   TOPOID renderer_node_id = 0;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second.deviceIdentifier,
-                                                               (*iterator).second.second.inputFormat,
+                                                               configuration_in.configuration_.format,
                                                                source_impl_p,
                                                                ((*iterator).second.second.mute ? -1
                                                                                                : (*iterator).second.second.audioOutput),
@@ -885,7 +887,7 @@ continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                     (*iterator).second.second.inputFormat))
+                                                              configuration_in.configuration_.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -897,31 +899,29 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString ((*iterator).second.second.inputFormat).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_.format).c_str ())));
 #endif // _DEBUG
 
-  if (session_data_r.inputFormat)
-  {
-    session_data_r.inputFormat->Release (); session_data_r.inputFormat = NULL;
-  } // end IF
-  session_data_r.inputFormat =
-    Stream_MediaFramework_MediaFoundation_Tools::copy ((*iterator).second.second.inputFormat);
-  if (!session_data_r.inputFormat)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
-    goto error;
-  } // end IF
-
-  //if (!Stream_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
-  //                                                                  configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-  //                                                                  media_type_p))
+  //media_type_p =
+  //  Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_.format);
+  //if (!media_type_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n")));
   //  goto error;
   //} // end IF
-  //ACE_ASSERT (media_type_p);
+  //session_data_r.formats.push_back (media_type_p);
+
+  if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
+                                                                     (*iterator).second.second.sampleGrabberNodeId,
+                                                                     media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+  session_data_r.formats.push_back (media_type_p);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)
@@ -963,10 +963,6 @@ error:
     media_type_p->Release ();
   if (topology_p)
     topology_p->Release ();
-  if (session_data_r.inputFormat)
-  {
-    session_data_r.inputFormat->Release (); session_data_r.inputFormat = NULL;
-  } // end IF
   //session_data_r.resetToken = 0;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)

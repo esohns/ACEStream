@@ -413,7 +413,7 @@ stream_processing_thread (void* arg_in)
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("stream processing thread (id: %t) starting...\n")));
+              ACE_TEXT ("stream processing thread (id: %t) starting\n")));
 #endif // _DEBUG
 
   ACE_THR_FUNC_RETURN result;
@@ -430,8 +430,19 @@ stream_processing_thread (void* arg_in)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  const Stream_CamSave_DirectShow_SessionData_t* directshow_session_data_container_p =
+    NULL;
+  const Stream_CamSave_MediaFoundation_SessionData_t* mediafoundation_session_data_container_p =
+    NULL;
+  const Stream_CamSave_DirectShow_SessionData* directshow_session_data_p =
+    NULL;
+  const Stream_CamSave_MediaFoundation_SessionData* mediafoundation_session_data_p =
+    NULL;
+#else
   const Stream_CamSave_SessionData_t* session_data_container_p = NULL;
-  const Stream_CamSave_SessionData* session_data_p = NULL;
+  const struct Stream_CamSave_SessionData* session_data_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
   Stream_IStreamControlBase* stream_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -487,7 +498,12 @@ stream_processing_thread (void* arg_in)
         goto error;
       } // end IF
       stream_p = directshow_cb_data_p->stream;
-      session_data_container_p = &directshow_cb_data_p->stream->getR ();
+      directshow_session_data_container_p =
+        &directshow_cb_data_p->stream->getR ();
+      ACE_ASSERT (directshow_session_data_container_p);
+      directshow_session_data_p = &directshow_session_data_container_p->getR ();
+      ACE_ASSERT (directshow_session_data_p);
+      thread_data_p->sessionId = directshow_session_data_p->sessionId;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -499,7 +515,13 @@ stream_processing_thread (void* arg_in)
         goto error;
       } // end IF
       stream_p = mediafoundation_cb_data_p->stream;
-      session_data_container_p = &mediafoundation_cb_data_p->stream->getR ();
+      mediafoundation_session_data_container_p =
+        &mediafoundation_cb_data_p->stream->getR ();
+      ACE_ASSERT (mediafoundation_session_data_container_p);
+      mediafoundation_session_data_p =
+        &mediafoundation_session_data_container_p->getR ();
+      ACE_ASSERT (mediafoundation_session_data_p);
+      thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;
       break;
     }
     default:
@@ -519,10 +541,11 @@ stream_processing_thread (void* arg_in)
   } // end IF
   stream_p = cb_data_p->stream;
   session_data_container_p = &cb_data_p->stream->getR ();
-#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->getR ();
+  session_data_p = &csession_data_container_p->getR ();
+  ACE_ASSERT (session_data_p);
   thread_data_p->sessionId = session_data_p->sessionId;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: blocks until 'finished'
   ACE_ASSERT (stream_p);
@@ -693,6 +716,8 @@ wxBEGIN_EVENT_TABLE (Stream_CamSave_V4L_WxWidgetsDialog_t, dialog_main)
 wxEND_EVENT_TABLE ()
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 //////////////////////////////////////////
 
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
@@ -788,12 +813,12 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   for (Stream_Device_ListIterator_t iterator = devices_a.begin ();
        iterator != devices_a.end ();
        ++iterator)
-  {
+  { ACE_ASSERT ((*iterator).identifierDiscriminator == Stream_Device_Identifier::STRING);
     client_data_p = NULL;
     ACE_NEW_NORETURN (client_data_p,
                       wxStringClientData ());
     ACE_ASSERT (client_data_p);
-    client_data_p->SetData ((*iterator).identifier);
+    client_data_p->SetData ((*iterator).identifier._string);
 
     index_i =
       choice_source->Append ((*iterator).description.c_str (),
@@ -1033,8 +1058,6 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 
 //////////////////////////////////////////
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
@@ -1834,9 +1857,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   ACE_ASSERT (!resolutions_a.empty ());
   Common_UI_Resolution_t resolution_s;
   resolution_s.width =
-      (*stream_iterator).second.second.outputFormat.format.width;
+      (*stream_iterator).second.second.outputFormat.resolution.width;
   resolution_s.height =
-      (*stream_iterator).second.second.outputFormat.format.height;
+      (*stream_iterator).second.second.outputFormat.resolution.height;
   choice_resolution_2->SetSelection (wxNOT_FOUND);
   choice_resolution_2->Clear ();
   index_i = wxNOT_FOUND;

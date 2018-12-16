@@ -100,7 +100,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
                               SessionMessageType>::start (Stream_SessionId_t sessionId_in,
-                                                          const struct Stream_CamSave_SessionData& sessionData_in)
+                                                          const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler_T::start"));
 

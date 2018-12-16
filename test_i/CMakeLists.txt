@@ -8,7 +8,7 @@ if (GUI_SUPPORT)
  include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/PreUIFramework.cmake)
  include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetUIFramework.cmake)
 
- if (CUSES_USE)
+ if (CURSES_USE)
  elseif (GTK_USE)
   include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetGTKVersion.cmake)
  elseif (WXWIDGETS_USE)

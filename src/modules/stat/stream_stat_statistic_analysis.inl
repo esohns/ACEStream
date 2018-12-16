@@ -59,7 +59,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
                                      Aggregation>::Stream_Statistic_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , inherited2 (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE,
+ , inherited2 ()
+ , inherited3 (MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE,
                MODULE_STAT_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE)
  , amplitudeSum_ (0)
  , amplitudeSumSqr_ (0)
@@ -185,26 +186,26 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   do
   {
     samples_to_write =
-      (number_of_samples > inherited2::slots_ ? inherited2::slots_
+      (number_of_samples > inherited3::slots_ ? inherited3::slots_
                                               : number_of_samples);
     iterator_.buffer_ = message_inout->rd_ptr () + offset;
     for (unsigned int i = 0; i < Aggregation; ++i)
     {
       samples_to_write =
-          (number_of_samples > inherited2::slots_ ? inherited2::slots_
+          (number_of_samples > inherited3::slots_ ? inherited3::slots_
                                                   : number_of_samples);
 
       // make space for inbound samples at the end of the buffer, shifting
       // previous samples towards the beginning
-      tail_slot = inherited2::slots_ - samples_to_write;
-      ACE_OS::memmove (&(inherited2::buffer_[i][0]),
-                       &(inherited2::buffer_[i][samples_to_write]),
+      tail_slot = inherited3::slots_ - samples_to_write;
+      ACE_OS::memmove (&(inherited3::buffer_[i][0]),
+                       &(inherited3::buffer_[i][samples_to_write]),
                        tail_slot * sizeof (ValueType));
 
       // copy the sample data to the tail end of the buffer, transform to
       // ValueType
       for (unsigned int j = 0; j < samples_to_write; ++j)
-        inherited2::buffer_[i][tail_slot + j] = iterator_.get (j, i);
+        inherited3::buffer_[i][tail_slot + j] = iterator_.get (j, i);
       offset += (iterator_.subSampleSize_ * samples_to_write);
 
       // analyze sample data
@@ -212,7 +213,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     } // end FOR
 
     number_of_samples -= samples_to_write;
-    if (number_of_samples == 0)
+    if (unlikely (number_of_samples == 0))
       break; // done
   } while (true);
 }
@@ -262,7 +263,6 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-      MediaType& media_type_r = getMediaType (session_data_r.formats.front ());
 
       bool result_2 = false;
 //      bool shutdown = false;
@@ -272,13 +272,16 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       unsigned int sample_rate;
       int sample_byte_order = ACE_BYTE_ORDER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
       // sanity check(s)
-      ACE_ASSERT (InlineIsEqualGUID (media_type_r.formattype, FORMAT_WaveFormatEx));
-      ACE_ASSERT (media_type_r.pbFormat);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      ACE_ASSERT (media_type_s.pbFormat);
 
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
       sample_size = waveformatex_p->nBlockAlign;
       sub_sample_size = (sample_size * 8) /
@@ -289,18 +292,21 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 //      channels = waveformatex_p->nChannels;
       sample_rate = waveformatex_p->nSamplesPerSec;
 
-      Stream_MediaFramework_DirectShow_Tools::free_ (media_type_r);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
+      MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                media_type_s);
       sample_size =
-        ((snd_pcm_format_width (media_type_r.format) / 8) *
-         media_type_r.channels);
-      sub_sample_size = sample_size / media_type_r.channels;
+        ((snd_pcm_format_width (media_type_s.format) / 8) *
+         media_type_s.channels);
+      sub_sample_size = sample_size / media_type_s.channels;
       sample_byte_order =
-          ((snd_pcm_format_little_endian (media_type_r.format) == 1) ? ACE_LITTLE_ENDIAN
+          ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                      : -1);
 
 //      channels = session_data_r.inputFormat.channels;
-      sample_rate = media_type_r.rate;
+      sample_rate = media_type_s.rate;
 #endif
       result_2 = iterator_.initialize (sample_size,
                                        sub_sample_size,
@@ -315,7 +321,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       } // end IF
 
       result_2 =
-        inherited2::Initialize (inherited::configuration_->spectrumAnalyzerResolution,
+        inherited3::Initialize (inherited::configuration_->spectrumAnalyzerResolution,
                                 sample_rate);
       if (unlikely (!result_2))
       {
@@ -497,58 +503,6 @@ error:
 //  return result;
 //}
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename MediaType,
-          typename ValueType,
-          unsigned int Aggregation>
-AM_MEDIA_TYPE&
-Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     StatisticContainerType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     MediaType,
-                                     ValueType,
-                                     Aggregation>::getMediaType_impl (const IMFMediaType*& mediaType_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::getMediaType_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (mediaType_in);
-
-  struct _AMMediaType* result_p = NULL;
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
-                                        GUID_NULL,
-                                        &result_p);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return struct _AMMediaType ();
-  } // end IF
-  ACE_ASSERT (result_p);
-
-  return *result_p;
-}
-#endif // ACE_WIN32 || ACE_WIN64
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -579,7 +533,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticAnalysis_T::Process"));
 
   // sanity check(s)
-  ACE_ASSERT (endIndex_in < inherited2::slots_);
+  ACE_ASSERT (endIndex_in < inherited3::slots_);
 
 //  int result = -1;
 
@@ -601,14 +555,14 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       static bool in_peak = false;
       static bool was_in_peak = false;
 
-      amplitudeSum_ += inherited2::buffer_[i][startIndex_in + j];
+      amplitudeSum_ += inherited3::buffer_[i][startIndex_in + j];
       amplitudeSumSqr_ +=
-          (inherited2::buffer_[i][startIndex_in + j] * inherited2::buffer_[i][startIndex_in + j]);
+          (inherited3::buffer_[i][startIndex_in + j] * inherited3::buffer_[i][startIndex_in + j]);
       amplitudeVariance_ =
           ((sampleCount_ > 1) ? (amplitudeSumSqr_ - ((amplitudeSum_ * amplitudeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
                               : 0.0);
       difference =
-          (sampleCount_ ? inherited2::buffer_[i][startIndex_in + j] - (amplitudeSum_ / (double)sampleCount_)
+          (sampleCount_ ? inherited3::buffer_[i][startIndex_in + j] - (amplitudeSum_ / (double)sampleCount_)
                         : 0.0);
 
       was_in_peak = in_peak;
@@ -618,7 +572,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 //      if (in_peak && !was_in_peak)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected peak...\n")));
-#endif
+#endif // _DEBUG
 
       // step2: 'sustain' detection
       static bool in_streak = false;
@@ -631,8 +585,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
         {
 #if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("detected streak end...\n")));
-#endif
+                      ACE_TEXT ("detected streak end\n")));
+#endif // _DEBUG
           ++streakCount_;
         } // end IF
         streak_ = 0;
@@ -641,8 +595,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
 //        if (in_volume)
 //          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("detected volume end...\n")));
-#endif
+//                      ACE_TEXT ("detected volume end\n")));
+#endif // _DEBUG
         volume_ = 0;
         in_volume = false;
 
@@ -668,8 +622,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
         {
 #if defined (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("detected noise (streak)...\n")));
-#endif
+                      ACE_TEXT ("detected noise (streak)\n")));
+#endif // _DEBUG
           //        goto continue_2;
         } // end IF
 
@@ -679,8 +633,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       {
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("detected streak end...\n")));
-#endif
+                    ACE_TEXT ("detected streak end\n")));
+#endif // _DEBUG
         streak_ = 0;
         ++streakCount_;
         was_in_streak = false;
@@ -693,10 +647,10 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       continue;
 
       // step2b: 'sustain' detection (volume)
-      volume_ += inherited2::buffer_[i][startIndex_in + j];
-      volumeSum_ += inherited2::buffer_[i][startIndex_in + j];
+      volume_ += inherited3::buffer_[i][startIndex_in + j];
+      volumeSum_ += inherited3::buffer_[i][startIndex_in + j];
       volumeSumSqr_ +=
-          (inherited2::buffer_[i][startIndex_in + j] * inherited2::buffer_[i][startIndex_in + j]);
+          (inherited3::buffer_[i][startIndex_in + j] * inherited3::buffer_[i][startIndex_in + j]);
       volumeVariance_ =
           ((sampleCount_ > 1) ? (volumeSumSqr_ - ((volumeSum_ * volumeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
                               : 0.0);
@@ -712,8 +666,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
         {
 #if defined (_DEBUG)
 //          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("detected noise (volume)...\n")));
-#endif
+//                      ACE_TEXT ("detected noise (volume)\n")));
+#endif // _DEBUG
           //        goto continue_2;
         } // end IF
 

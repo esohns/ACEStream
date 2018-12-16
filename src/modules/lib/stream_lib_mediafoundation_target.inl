@@ -845,10 +845,9 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       COM_initialized = true;
 
       // sanity check(s)
+      ACE_ASSERT (!(inherited::configuration_->session && session_data_r.session));
       ACE_ASSERT (!mediaSession_);
-      ACE_ASSERT (session_data_r.inputFormat);
-      ACE_ASSERT (!(inherited::configuration_->session &&
-                    session_data_r.session));
+      ACE_ASSERT (!session_data_r.formats.empty ());
 
       ULONG reference_count = 0;
       if (inherited::configuration_->session)
@@ -866,7 +865,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       //WCHAR* symbolic_link_p = NULL;
       //UINT32 symbolic_link_size = 0;
-      if (!initialize_MediaFoundation (*session_data_r.inputFormat,
+      if (!initialize_MediaFoundation (session_data_r.formats.front (),
                                        this,
                                        sampleGrabberSinkNodeId_,
                                        mediaSession_))
@@ -888,8 +887,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -920,8 +918,7 @@ error:
 
       if (sessionData_)
       {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
+        sessionData_->decrease (); sessionData_ = NULL;
       } // end IF
 
       if (mediaSession_)
@@ -931,8 +928,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-        mediaSession_->Release ();
-        mediaSession_ = NULL;
+        mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -963,7 +959,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      DataMessageType,
                                      SessionMessageType,
                                      SessionDataType,
-                                     SessionDataContainerType>::initialize_MediaFoundation (const struct _AMMediaType& mediaType_in,
+                                     SessionDataContainerType>::initialize_MediaFoundation (IMFMediaType* mediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
                                                                                             IMFSampleGrabberSinkCallback2* sampleGrabberSinkCallback_in,
 #else
@@ -978,9 +974,9 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   sampleGrabberSinkNodeId_out = 0;
 
   // sanity check(s)
+  ACE_ASSERT (mediaType_in);
   ACE_ASSERT (IMFMediaSession_inout);
 
-  IMFMediaType* media_type_p = NULL;
   TOPOID node_id = 0;
   IMFTopologyNode* topology_node_p = NULL;
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
@@ -1002,24 +998,7 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (topology_p);
 
-  result = MFCreateMediaType (&media_type_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  result = MFInitMediaTypeFromAMMediaType (media_type_p,
-                                           &mediaType_in);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (media_type_p,
+  if (!Stream_MediaFramework_MediaFoundation_Tools::addGrabber (mediaType_in,
                                                                 sampleGrabberSinkCallback_in,
                                                                 topology_p,
                                                                 node_id))
@@ -1052,8 +1031,6 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
   return true;
 
 error:
-  if (media_type_p)
-    media_type_p->Release ();
   if (topology_p)
     topology_p->Release ();
 

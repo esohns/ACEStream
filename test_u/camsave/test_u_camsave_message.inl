@@ -23,34 +23,40 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include <DShow.h>
 #else
-#include <libv4l2.h>
-#include <linux/videodev2.h>
+#include "libv4l2.h"
+#include "linux/videodev2.h"
 #endif
 
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
-template <typename DataType>
-Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (unsigned int size_in)
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::Stream_CamSave_Message_T (unsigned int size_in)
  : inherited (size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::Stream_CamSave_Message_T"));
 
 }
 
-template <typename DataType>
-Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (const Stream_CamSave_Message_T& message_in)
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::Stream_CamSave_Message_T (const OWN_TYPE_T& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::Stream_CamSave_Message_T"));
 
 }
 
-template <typename DataType>
-Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (Stream_SessionId_t sessionId_in,
-                                                              ACE_Data_Block* dataBlock_in,
-                                                              ACE_Allocator* messageAllocator_in,
-                                                              bool incrementMessageCounter_in)
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::Stream_CamSave_Message_T (Stream_SessionId_t sessionId_in,
+                                                                     ACE_Data_Block* dataBlock_in,
+                                                                     ACE_Allocator* messageAllocator_in,
+                                                                     bool incrementMessageCounter_in)
  : inherited (sessionId_in,
               dataBlock_in,               // use (don't own (!) memory of-) this data block
               messageAllocator_in,        // message block allocator
@@ -60,9 +66,11 @@ Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (Stream_SessionId_t
 
 }
 
-template <typename DataType>
-Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (Stream_SessionId_t sessionId_in,
-                                                              ACE_Allocator* messageAllocator_in)
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::Stream_CamSave_Message_T (Stream_SessionId_t sessionId_in,
+                                                                     ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
 {
@@ -70,8 +78,10 @@ Stream_CamSave_Message_T<DataType>::Stream_CamSave_Message_T (Stream_SessionId_t
 
 }
 
-template <typename DataType>
-Stream_CamSave_Message_T<DataType>::~Stream_CamSave_Message_T ()
+template <typename DataType,
+          typename SessionDataType>
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::~Stream_CamSave_Message_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::~Stream_CamSave_Message_T"));
 
@@ -84,9 +94,11 @@ Stream_CamSave_Message_T<DataType>::~Stream_CamSave_Message_T ()
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
-template <typename DataType>
+template <typename DataType,
+          typename SessionDataType>
 ACE_Message_Block*
-Stream_CamSave_Message_T<DataType>::duplicate (void) const
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::duplicate"));
 
@@ -140,9 +152,11 @@ Stream_CamSave_Message_T<DataType>::duplicate (void) const
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-template <typename DataType>
+template <typename DataType,
+          typename SessionDataType>
 ACE_Message_Block*
-Stream_CamSave_Message_T<DataType>::release (void)
+Stream_CamSave_Message_T<DataType,
+                         SessionDataType>::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message_T::release"));
 

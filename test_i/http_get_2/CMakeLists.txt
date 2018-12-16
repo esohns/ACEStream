@@ -1,4 +1,4 @@
-﻿option (SSL_SUPPORT "enable SSL support" OFF)
+﻿option (SSL_SUPPORT "enable SSL support" ON)
 
 if (SSL_SUPPORT)
  set (ACE_SSL_LIB_FILE libACE_SSL.so)
@@ -181,7 +181,7 @@ elseif (WIN32)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
  if (SSL_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/include)
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
@@ -300,8 +300,8 @@ elseif (WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 
  if (SSL_SUPPORT)
-#  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
-  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
+#  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/lib/libeay32.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/lib/ssleay32.lib)
  endif (SSL_SUPPORT)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -339,7 +339,7 @@ elseif (WIN32)
 
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/bin.msvc/libxml2.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2/win32/bin.msvc/libxml2.lib)
 
  target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/isal.lib)
 

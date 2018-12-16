@@ -26,4 +26,4 @@
 
 //Stream_Dev_Export const char libacestream_default_dev_cam_source_mediafoundation_module_name_string[] =
 const char libacestream_default_dev_cam_source_mediafoundation_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);

@@ -242,24 +242,15 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   defragment_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.outputFormat);
-
-  struct _AMMediaType media_type_s =
-      getMediaType (*configuration_in.outputFormat);
-  if (unlikely (!media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to getFormat(), aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-  PDUSize_ = media_type_p->lSampleSize;
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            media_type_s);
+  PDUSize_ = media_type_s.lSampleSize;
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  inherited2::getMediaType (inherited::configuration_->outputFormat,
+  inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   PDUSize_ =
       av_image_get_buffer_size (media_type_s.format,

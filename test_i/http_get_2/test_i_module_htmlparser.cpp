@@ -37,11 +37,11 @@
 #include "stream_tools.h"
 
 void
-errorCallback (void* userData_in,
-               const char* message_in,
-               ...)
+test_i_libxml2_sax_error_cb (void* userData_in,
+                             const char* message_in,
+                             ...)
 {
-  STREAM_TRACE (ACE_TEXT ("::errorCallback"));
+  //STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_error_cb"));
 
   int result = -1;
 
@@ -63,33 +63,29 @@ errorCallback (void* userData_in,
   va_end (arguments);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("errorCallback[%s:%d:%d] (%d,%d): %s"),
+              ACE_TEXT ("test_i_libxml2_sax_error_cb[%s:%d:%d] (%d,%d): %s"),
               data_p->parserContext->lastError.file, data_p->parserContext->lastError.line, data_p->parserContext->lastError.int2,
               data_p->parserContext->lastError.domain, data_p->parserContext->lastError.code,
               buffer));
 }
 
 void
-structuredErrorCallback (void* userData_in,
-                         xmlErrorPtr error_in)
+test_i_libxml2_sax_structured_error_cb (void* userData_in,
+                                        xmlErrorPtr error_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::structuredErrorCallback"));
+  //STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_structured_error_cb"));
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("structuredErrorCallback: %s\n"),
+              ACE_TEXT ("test_i_libxml2_sax_structured_error_cb: %s\n"),
               ACE_TEXT (error_in->message)));
 }
+
+//////////////////////////////////////////
 
 Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser (ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser"));
-
-}
-
-Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser"));
 
 }
 
@@ -256,13 +252,13 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 //  inherited::SAXHandler_.getEntity = getEntity;
 //  inherited::SAXHandler_.startDocument = startDocument;
 //  inherited::SAXHandler_.endDocument = endDocument;
-  inherited::SAXHandler_.startElement = startElement;
-  inherited::SAXHandler_.endElement = endElement;
-  inherited::SAXHandler_.characters = characters;
+  inherited::SAXHandler_.startElement = test_i_libxml2_sax_start_element_cb;
+  inherited::SAXHandler_.endElement = test_i_libxml2_sax_end_element_cb;
+  inherited::SAXHandler_.characters = test_i_libxml2_sax_characters_cb;
   ////////////////////////////////////////
-  inherited::SAXHandler_.warning = errorCallback;
-  inherited::SAXHandler_.error = errorCallback;
-  inherited::SAXHandler_.fatalError = errorCallback;
+  inherited::SAXHandler_.warning = test_i_libxml2_sax_error_cb;
+  inherited::SAXHandler_.error = test_i_libxml2_sax_error_cb;
+  inherited::SAXHandler_.fatalError = test_i_libxml2_sax_error_cb;
 
   return true;
 }
@@ -270,25 +266,27 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 ////////////////////////////////////////////////////////////////////////////////
 
 //void
-//startDocument (void* userData_in)
+//test_i_libxml2_sax_start_document_cb (void* userData_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("::startDocument"));
+//  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_start_document_cb"));
 //
 //  ACE_UNUSED_ARG (userData_in);
 //}
+
 //void
-//endDocument (void* userData_in)
+//test_i_libxml2_sax_end_document_cb (void* userData_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("::endDocument"));
+//  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_end_document_cb"));
 //
 //  ACE_UNUSED_ARG (userData_in);
 //}
+
 void
-characters (void* userData_in,
-            const xmlChar* string_in,
-            int length_in)
+test_i_libxml2_sax_characters_cb (void* userData_in,
+                                  const xmlChar* string_in,
+                                  int length_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::characters"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_characters_cb"));
 
   ACE_UNUSED_ARG (length_in);
 
@@ -301,12 +299,13 @@ characters (void* userData_in,
 
   data_p->characters += reinterpret_cast<const char*> (string_in);
 }
+
 void
-startElement (void* userData_in,
-              const xmlChar* name_in,
-              const xmlChar** attributes_in)
+test_i_libxml2_sax_start_element_cb (void* userData_in,
+                                     const xmlChar* name_in,
+                                     const xmlChar** attributes_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::startElement"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_start_element_cb"));
 
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
@@ -510,11 +509,12 @@ body:
     } // end WHILE
   } // end ELSE IF
 }
+
 void
-endElement (void* userData_in,
-            const xmlChar* name_in)
+test_i_libxml2_sax_end_element_cb (void* userData_in,
+                                   const xmlChar* name_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::endElement"));
+  STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_end_element_cb"));
 
   struct Test_I_SAXParserContext* data_p =
     static_cast<struct Test_I_SAXParserContext*> (userData_in);

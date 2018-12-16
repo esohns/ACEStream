@@ -1067,6 +1067,11 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->getR ();
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
+
       unsigned int width = 0;
       unsigned int buffer_size = frameSize_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

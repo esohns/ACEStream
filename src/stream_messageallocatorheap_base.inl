@@ -58,7 +58,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                         (!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
                          (maximumNumberOfMessages_in >= SEM_VALUE_MAX) ? SEM_VALUE_MAX
                                                                        : maximumNumberOfMessages_in)) // maximum
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
  , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::Stream_MessageAllocatorHeapBase_T"));
@@ -85,14 +85,14 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     result = freeMessageCounter_.acquire ();
   else
     result = freeMessageCounter_.tryacquire ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     if (block_)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::acquire(): \"%m\", aborting\n")));
     return NULL;
   } // end IF
-  poolSize_++;
+  ++poolSize_;
 
   // step1: get a free data block
   ACE_Data_Block* data_block_p = NULL;
@@ -103,15 +103,12 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block()), continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
-
-    // clean up
-    poolSize_--;
+    --poolSize_;
     freeMessageCounter_.release ();
-
     return NULL;
   } // end IF
 
@@ -128,16 +125,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType(), continuing\n")));
   }
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate control message, aborting\n")));
-
-    // clean up
-    data_block_p->release ();
-    poolSize_--;
+    data_block_p->release (); data_block_p = NULL;
+    --poolSize_;
     freeMessageCounter_.release ();
-
     return NULL;
   } // end IF
   message_block_p->data_block (data_block_p);
@@ -164,14 +158,14 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     result = freeMessageCounter_.acquire ();
   else
     result = freeMessageCounter_.tryacquire ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     if (block_)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::acquire(): \"%m\", aborting\n")));
     return NULL;
   } // end IF
-  poolSize_++;
+  ++poolSize_;
 
   // step1: get free data block
   ACE_Data_Block* data_block_p = NULL;
@@ -183,16 +177,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), continuing\n"),
                 bytes_in));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
-
-    // clean up
-    poolSize_--;
+    --poolSize_;
     freeMessageCounter_.release ();
-
     return NULL;
   } // end IF
 
@@ -221,17 +212,14 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), continuing\n"),
                 bytes_in));
   }
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
                 bytes_in));
-
-    // clean up
-    data_block_p->release ();
-    poolSize_--;
+    data_block_p->release (); data_block_p = NULL;
+    --poolSize_;
     freeMessageCounter_.release ();
-
     return NULL;
   } // end IF
 
@@ -262,14 +250,14 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     result = freeMessageCounter_.acquire ();
   else
     result = freeMessageCounter_.tryacquire ();
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     if (block_)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Semaphore::acquire(): \"%m\", aborting\n")));
     return NULL;
   } // end IF
-  poolSize_++;
+  ++poolSize_;
 
   // step1: allocate free message
   void* message_p = NULL;
@@ -282,17 +270,14 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                 (bytes_in ? sizeof (DataMessageType)
                           : sizeof (SessionMessageType))));
   }
-  if (!message_p)
+  if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate (Session)MessageType(%u), aborting\n"),
                 (bytes_in ? sizeof (DataMessageType)
                           : sizeof (SessionMessageType))));
-
-    // clean up
     poolSize_--;
     freeMessageCounter_.release ();
-
     return NULL;
   } // end IF
 
@@ -321,9 +306,9 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   inherited::free (handle_in);
 
   // OK: one slot just emptied
-  poolSize_--;
+  --poolSize_;
   result = freeMessageCounter_.release ();
-  if (result == -1)
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::release(): \"%m\", continuing\n")));
 }

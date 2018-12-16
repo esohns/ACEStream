@@ -164,7 +164,7 @@ struct Test_I_Configuration
   struct Common_ParserConfiguration        parserConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
 
-  struct Test_I_UserData                   userData;
+  struct Stream_UserData                   userData;
 };
 
 #endif

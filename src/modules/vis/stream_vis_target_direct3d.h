@@ -36,6 +36,8 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 extern const char libacestream_default_vis_direct3d_module_name_string[];
 
 typedef void (*Stream_Vis_Target_Direct3D_TransformationCB) (BYTE*,       // destination
@@ -70,7 +72,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Vis_Target_Direct3D_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -82,6 +86,12 @@ class Stream_Vis_Target_Direct3D_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,SessionDataType>
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -94,6 +104,12 @@ class Stream_Vis_Target_Direct3D_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,SessionDataType> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   Stream_Vis_Target_Direct3D_T (ISTREAM_T*); // stream handle
@@ -194,7 +210,8 @@ class Stream_Vis_Target_Direct3D_T
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataType,
-                                       SessionDataContainerType> OWN_TYPE_T;
+                                       SessionDataContainerType,
+                                       MediaType> OWN_TYPE_T;
 
   // helper methods
   // *NOTE*: all image data needs to be transformed to RGB32
@@ -231,7 +248,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Vis_DirectShow_Target_Direct3D_T
  : public Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -240,7 +259,8 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataType,
-                                       SessionDataContainerType>
+                                       SessionDataContainerType,
+                                       MediaType>
 {
   typedef Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -249,7 +269,8 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataType,
-                                       SessionDataContainerType> inherited;
+                                       SessionDataContainerType,
+                                       MediaType> inherited;
 
  public:
   Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T*); // stream handle
@@ -278,7 +299,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Vis_MediaFoundation_Target_Direct3D_T
  : public Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -287,7 +310,8 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataType,
-                                       SessionDataContainerType>
+                                       SessionDataContainerType,
+                                       MediaType>
 {
   typedef Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -296,7 +320,8 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataType,
-                                       SessionDataContainerType> inherited;
+                                       SessionDataContainerType,
+                                       MediaType> inherited;
 
  public:
   Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T*); // stream handle

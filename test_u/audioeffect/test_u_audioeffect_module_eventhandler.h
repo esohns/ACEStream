@@ -46,7 +46,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_DirectShow_SessionData,
+                                         Test_U_AudioEffect_DirectShow_SessionData,
                                          struct Test_U_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -56,7 +56,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_DirectShow_SessionData,
+                                         Test_U_AudioEffect_DirectShow_SessionData,
                                          struct Test_U_UserData> inherited;
 
  public:
@@ -83,7 +83,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                         Test_U_AudioEffect_MediaFoundation_SessionData,
                                          struct Test_U_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -93,7 +93,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                         Test_U_AudioEffect_MediaFoundation_SessionData,
                                          struct Test_U_UserData> inherited;
 
  public:
@@ -113,13 +113,13 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
 //////////////////////////////////////////
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Module_EventHandler);              // writer type
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_misc_messagehandler_module_name_string,

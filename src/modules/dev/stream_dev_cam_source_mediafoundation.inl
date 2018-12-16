@@ -393,7 +393,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     {
       // *TODO*: remove type inference
       //ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      //ACE_ASSERT (session_data_r.inputFormat);
+      //ACE_ASSERT (session_data_r.sourceFormat);
 
       bool COM_initialized = false;
       bool release_device = false;
@@ -462,7 +462,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         //if (!initialize_MediaFoundation (inherited::configuration_->device,
         //                                 inherited::configuration_->window,
         //                                 direct3D_manager_p,
-        //                                 session_data_r.inputFormat,
+        //                                 session_data_r.sourceFormat,
         //                                 mediaSource_,
         //                                 symbolicLink_,
         //                                 symbolicLinkSize_,
@@ -486,13 +486,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         //ACE_ASSERT (media_source_p);
 
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->inputFormat);
+        //ACE_ASSERT (inherited::configuration_->sourceFormat);
+        ACE_ASSERT (!session_data_r.formats.empty ());
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
         if (unlikely (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string),
-                                                                               inherited::configuration_->inputFormat,
-                                                                               //session_data_r.inputFormat,
+                                                                               session_data_r.formats.back (),
                                                                                this,
                                                                                //inherited::configuration_->window,
                                                                                NULL,
@@ -507,7 +507,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (topology_p);
 
         if (unlikely (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                              inherited::configuration_->inputFormat)))
+                                                                              session_data_r.formats.back ())))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
@@ -517,7 +517,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"\n"),
-                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (inherited::configuration_->inputFormat).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (session_data_r.formats.back ()).c_str ())));
 #endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
@@ -597,8 +597,6 @@ error:
       //  session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
       //  session_data_r.direct3DManagerResetToken = 0;
       //} // end IF
-      if (session_data_r.inputFormat)
-        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (session_data_r.session)
       {
@@ -698,8 +696,6 @@ continue_:
         presentationClock_->Release (); presentationClock_ = NULL;
       } // end IF
 
-      if (likely (session_data_r.inputFormat))
-        Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (likely (session_data_r.session))
       {

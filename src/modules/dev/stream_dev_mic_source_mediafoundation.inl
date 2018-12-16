@@ -125,7 +125,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
     if (FAILED (result) &&
         (result != MF_E_SHUTDOWN)) // --> already shut down
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
@@ -408,7 +409,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                   COINIT_SPEED_OVER_MEMORY));
       if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       COM_initialized = true;
 
@@ -432,13 +434,11 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       } // end IF
       else
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-      {
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->inputFormat);
-
+      { ACE_ASSERT (!session_data_r.formats.empty ());
+        IMFMediaType* media_type_p = session_data_r.formats.back ();
         IMFTopology* topology_p = NULL;
         if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology (inherited::configuration_->deviceIdentifier,
-                                                                     inherited::configuration_->inputFormat,
+                                                                     media_type_p,
                                                                      this,
                                                                      (inherited::configuration_->mute ? -1
                                                                                                       : inherited::configuration_->audioOutput),
@@ -447,23 +447,26 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                                      topology_p))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(), aborting\n")));
+                      ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::loadAudioRendererTopology(), aborting\n"),
+                      inherited::mod_->name ()));
           goto error;
         } // end IF
         ACE_ASSERT (topology_p);
 
         if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                    inherited::configuration_->inputFormat))
+                                                                    media_type_p))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
+                      ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
+                      inherited::mod_->name ()));
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("capture format: \"%s\"\n"),
-                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (inherited::configuration_->inputFormat).c_str ())));
+                    ACE_TEXT ("%s: capture format: \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
 #endif // _DEBUG
 
         IMFAttributes* attributes_p = NULL;
@@ -471,7 +474,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           topology_p->Release (); topology_p = NULL;
           goto error;
@@ -492,7 +496,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to MFCreateMediaSession(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           attributes_p->Release (); attributes_p = NULL;
           topology_p->Release (); topology_p = NULL;
@@ -510,7 +515,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
           topology_p->Release (); topology_p = NULL;
           goto error;
@@ -540,7 +546,8 @@ error:
         result = session_data_r.session->Shutdown ();
         if (FAILED (result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         shutdown_session = false;
         session_data_r.session->Release (); session_data_r.session = NULL;
@@ -552,7 +559,8 @@ error:
           result = mediaSession_->Shutdown ();
           if (FAILED (result))
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
                         ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
@@ -581,7 +589,8 @@ error:
                                                  &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                      inherited::mod_->name (),
                       inherited::timerId_));
         inherited::timerId_ = -1;
       } // end IF
@@ -593,7 +602,8 @@ error:
                                           COINIT_SPEED_OVER_MEMORY));
       if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       COM_initialized = true;
 
@@ -635,7 +645,8 @@ continue_:
         result_2 = session_data_r.session->Shutdown ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         shutdown_session = false;
         session_data_r.session->Release (); session_data_r.session = NULL;
@@ -647,7 +658,8 @@ continue_:
           result = mediaSession_->Shutdown ();
           if (FAILED (result))
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
                         ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
@@ -1842,7 +1854,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                      symbolicLinkSize_out))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (deviceName_in.c_str ())));
       return false;
     } // end IF
@@ -1870,7 +1883,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                          IMFTopology_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::loadRendererTopology(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Device_Tools::loadRendererTopology(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 

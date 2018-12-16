@@ -37,13 +37,11 @@
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_UserData;
-struct Test_I_Target_DirectShow_UserData;
 struct Test_I_Source_MediaFoundation_UserData;
-struct Test_I_Target_MediaFoundation_UserData;
 #else
 struct Test_I_Source_V4L2_UserData;
+#endif // ACE_WIN32 || ACE_WIN64
 struct Test_I_Target_UserData;
-#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
@@ -57,7 +55,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 
 typedef ACE_Singleton<Test_I_Source_DirectShow_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON;
@@ -75,7 +73,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 
 typedef ACE_Singleton<Test_I_Source_MediaFoundation_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON;

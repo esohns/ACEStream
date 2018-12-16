@@ -23,11 +23,13 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
-template <typename MediaFormatType,
+template <typename BaseType,
+          typename MediaFormatType,
           typename StreamStateType,
           typename StatisticType,
           typename UserDataType>
-Stream_SessionDataMediaBase_T<MediaFormatType,
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
                               StreamStateType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T ()
@@ -44,18 +46,22 @@ Stream_SessionDataMediaBase_T<MediaFormatType,
 
 }
 
-template <typename MediaFormatType,
+template <typename BaseType,
+          typename MediaFormatType,
           typename StreamStateType,
           typename StatisticType,
           typename UserDataType>
-Stream_SessionDataMediaBase_T<MediaFormatType,
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
                               StreamStateType,
                               StatisticType,
                               UserDataType>&
-Stream_SessionDataMediaBase_T<MediaFormatType,
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
                               StreamStateType,
                               StatisticType,
-                              UserDataType>::operator+= (const Stream_SessionDataMediaBase_T<MediaFormatType,
+                              UserDataType>::operator+= (const Stream_SessionDataMediaBase_T<BaseType,
+                                                                                             MediaFormatType,
                                                                                              StreamStateType,
                                                                                              StatisticType,
                                                                                              UserDataType>& rhs_in)

@@ -22,10 +22,12 @@
 
 #include "stream_macros.h"
 
-template <typename DataMessageType>
-Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
+template <typename DataMessageType,
+          typename SessionDataType>
+Stream_CamSave_SessionMessage_T<DataMessageType,
+                                SessionDataType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
                                                                                    enum Stream_SessionMessageType messageType_in,
-                                                                                   Stream_CamSave_SessionData_t*& sessionData_in,
+                                                                                   SessionDataType*& sessionData_in,
                                                                                    struct Stream_CamSave_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
@@ -36,16 +38,21 @@ Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_
 
 }
 
-template <typename DataMessageType>
-Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_T (const Stream_CamSave_SessionMessage_T& message_in)
+template <typename DataMessageType,
+          typename SessionDataType>
+Stream_CamSave_SessionMessage_T<DataMessageType,
+                                SessionDataType>::Stream_CamSave_SessionMessage_T (const typename Stream_CamSave_SessionMessage_T<DataMessageType,
+                                                                                                                                  SessionDataType>& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage_T::Stream_CamSave_SessionMessage_T"));
 
 }
 
-template <typename DataMessageType>
-Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
+template <typename DataMessageType,
+          typename SessionDataType>
+Stream_CamSave_SessionMessage_T<DataMessageType,
+                                SessionDataType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
                                                                                    ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
@@ -54,8 +61,10 @@ Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_
 
 }
 
-template <typename DataMessageType>
-Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
+template <typename DataMessageType,
+          typename SessionDataType>
+Stream_CamSave_SessionMessage_T<DataMessageType,
+                                SessionDataType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
                                                                                    ACE_Data_Block* dataBlock_in,
                                                                                    ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
@@ -66,9 +75,11 @@ Stream_CamSave_SessionMessage_T<DataMessageType>::Stream_CamSave_SessionMessage_
 
 }
 
-template <typename DataMessageType>
+template <typename DataMessageType,
+          typename SessionDataType>
 ACE_Message_Block*
-Stream_CamSave_SessionMessage_T<DataMessageType>::duplicate (void) const
+Stream_CamSave_SessionMessage_T<DataMessageType,
+                                SessionDataType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage_T::duplicate"));
 
@@ -99,8 +110,7 @@ Stream_CamSave_SessionMessage_T<DataMessageType>::duplicate (void) const
     // when things go wrong, release all resources and return
     if (message_p->cont_ == 0)
     {
-      message_p->release ();
-      message_p = NULL;
+      message_p->release (); message_p = NULL;
     } // end IF
   } // end IF
 

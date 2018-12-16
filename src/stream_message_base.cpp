@@ -21,10 +21,3 @@
 
 #include "ace/Synch.h"
 #include "stream_message_base.h"
-
-//#include "stream_exports.h"
-
-//////////////////////////////////////////
-
-//// export
-//template class Stream_Export Stream_MessageBase_T<Stream_AllocatorConfiguration, int>;

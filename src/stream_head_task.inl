@@ -108,7 +108,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (timeValue_in);
 
-  int result = -1;
+  int result = 0;
   bool enqueue_message = true;
 
   // sanity check(s)
@@ -118,7 +118,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
   {
     case ACE_Message_Block::MB_DATA:
     case ACE_Message_Block::MB_PROTO:
-      result = 0; break;
+      break;
     //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
     {
@@ -134,32 +134,25 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     messageBlock_in,
                     messageBlock_in->msg_type ()));
+        result = -1;
         break;
       } // end IF
 
       switch (session_message_p->type ())
       {
         case STREAM_SESSION_MESSAGE_LINK:
-        {
-          isLinked_ = true;
-
-          // sanity check(s)
-          ACE_ASSERT (!sessionData_);
-
+        { ACE_ASSERT (!sessionData_);
           sessionData_ =
             &const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
           sessionData_->increase ();
-
+          isLinked_ = true;
           break;
         }
         case STREAM_SESSION_MESSAGE_END:
         {
           // *TODO*: merge session data every time ?
           if (isLinked_)
-          {
-            // sanity check(s)
-            ACE_ASSERT (sessionData_);
-
+          { ACE_ASSERT (sessionData_);
             session_message_p->initialize (session_message_p->sessionId (),
                                            STREAM_SESSION_MESSAGE_END,
                                            sessionData_,
@@ -167,7 +160,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
             sessionData_->decrease (); sessionData_ = NULL;
             isLinked_ = false;
           } // end IF
-
           break;
         }
         default:
@@ -185,24 +177,26 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     }
     //////////////////////////////////////
     case STREAM_MESSAGE_CONTROL:
-      result = 0; enqueue_message = false; break;
+    {
+      enqueue_message = false;
+      break;
+    }
     //////////////////////////////////////
     default:
     {
-      enqueue_message = false;
-
-      ACE_DEBUG ((LM_WARNING,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
                   inherited::mod_->name (),
                   messageBlock_in->msg_type ()));
+      enqueue_message = false;
+      result = -1;
       break;
     }
   } // end SWITCH
 
-  if (enqueue_message)
+  if (likely (enqueue_message))
     return inherited::put (messageBlock_in, timeValue_in);
 
-  // clean up
   messageBlock_in->release ();
 
   return result;
@@ -280,7 +274,7 @@ Stream_TailTask_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (timeValue_in);
 
-  int result = -1;
+  int result = 0;
   bool enqueue_message = true;
 
   // sanity check(s)
@@ -290,7 +284,7 @@ Stream_TailTask_T<ACE_SYNCH_USE,
   {
     case ACE_Message_Block::MB_DATA:
     case ACE_Message_Block::MB_PROTO:
-      result = 0; break;
+      break;
     //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
     {
@@ -306,6 +300,7 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     messageBlock_in,
                     messageBlock_in->msg_type ()));
+        result = -1;
         break;
       } // end IF
 
@@ -316,7 +311,6 @@ Stream_TailTask_T<ACE_SYNCH_USE,
           sessionData_ =
             &const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
           sessionData_->increase ();
-          result = 0;
           break;
         }
         case STREAM_SESSION_MESSAGE_END:
@@ -330,37 +324,39 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to Stream_TailTask_T::putControlMessage(%d), aborting\n"),
                         inherited::mod_->name (),
                         STREAM_CONTROL_END));
+            result = -1;
             break;
           } // end IF
           sessionData_->decrease (); sessionData_ = NULL;
-          result = 0;
           break;
         }
         default:
-          result = 0; break;
+          break;
       } // end SWITCH
       break;
     }
     //////////////////////////////////////
     case STREAM_MESSAGE_CONTROL:
-      result = 0; enqueue_message = false; break;
+    {
+      enqueue_message = false;
+      break;
+    }
     //////////////////////////////////////
     default:
     {
-      enqueue_message = false;
-
-      ACE_DEBUG ((LM_WARNING,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
                   inherited::mod_->name (),
                   messageBlock_in->msg_type ()));
+      enqueue_message = false;
+      result = -1;
       break;
     }
   } // end SWITCH
 
-  if (enqueue_message)
+  if (likely (enqueue_message))
     return inherited::put (messageBlock_in, timeValue_in);
 
-  // clean up
   messageBlock_in->release ();
 
   return result;
@@ -436,7 +432,7 @@ allocate:
                 ACE_TEXT ("%s: failed to ACE_Message_Block::size(%d): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 sizeof (typename SessionMessageType::DATA_T::DATA_T)));
-    message_block_p->release ();
+    message_block_p->release (); message_block_p = NULL;
     return false;
   } // end IF  
   result =
@@ -448,7 +444,7 @@ allocate:
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 sizeof (typename SessionMessageType::DATA_T::DATA_T)));
-    message_block_p->release ();
+    message_block_p->release (); message_block_p = NULL;
     return false;
   } // end IF
 
@@ -459,7 +455,7 @@ allocate:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    message_block_p->release ();
+    message_block_p->release (); message_block_p = NULL;
     return false;
   } // end IF
 

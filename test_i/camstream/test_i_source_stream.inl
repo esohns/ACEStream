@@ -226,6 +226,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
+  struct _AMMediaType media_type_s;
 
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -293,7 +294,6 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     goto error;
   } // end IF
   ACE_ASSERT ((*iterator).second.second.builder);
-  ACE_ASSERT ((*iterator).second.second.sourceFormat);
   ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
   stream_config_p->Release (); stream_config_p = NULL;
@@ -301,7 +301,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second.builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         *(*iterator).second.second.sourceFormat))
+                                                         configuration_in.configuration_.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -330,8 +330,8 @@ continue_:
   ACE_ASSERT ((*iterator).second.second.direct3DConfiguration->handle);
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            *(*iterator).second.second.sourceFormat,
-                                                            *(*iterator).second.second.inputFormat,
+                                                            configuration_in.configuration_.format,
+                                                            (*iterator).second.second.outputFormat,
                                                             (*iterator).second.second.window,
                                                             (*iterator).second.second.builder,
                                                             graph_configuration))
@@ -547,12 +547,12 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  if (session_data_p->inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_p->inputFormat);
-  ACE_ASSERT (!session_data_p->inputFormat);
+  ACE_ASSERT (session_data_p->formats.empty ());
+  session_data_p->formats.push_back (configuration_in.configuration_.format);
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                                session_data_p->inputFormat))
+                                                                media_type_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
@@ -560,8 +560,8 @@ continue_:
                 ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
-  ACE_ASSERT (session_data_p->inputFormat);
-  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->inputFormat, *(*iterator).second.second.inputFormat));
+  session_data_p->formats.push_back (media_type_s);
+  //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->outputFormat, *(*iterator).second.second.outputFormat));
 
   // ---------------------------------------------------------------------------
   // step6: initialize head module
@@ -608,8 +608,7 @@ error:
   {
     session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
   } // end IF
-  if (session_data_p->inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_p->inputFormat);
+  Stream_MediaFramework_DirectShow_Tools::free (session_data_p->formats);
   session_data_p->resetToken = 0;
 
   if (isample_grabber_p)
@@ -908,6 +907,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  IMFMediaType* media_type_p = NULL;
 
   // ---------------------------------------------------------------------------
   // sanity check(s)
@@ -966,31 +966,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   UINT32 item_count = 0;
   ULONG reference_count = 0;
 
-  IMFMediaType* media_type_p = NULL;
-  if (!(*iterator).second.second.inputFormat)
-  {
-    result = MFCreateMediaType (&(*iterator).second.second.inputFormat);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      goto error;
-    } // end IF
-  } // end IF
-  media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy ((*iterator).second.second.inputFormat);
-  if (!media_type_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology ((*iterator).second.second.deviceIdentifier.identifier._string,
-                                                               media_type_p,
+                                                               configuration_in.configuration_.format,
                                                                source_impl_p,
                                                                NULL,
                                                                //(*iterator).second.window,
@@ -1008,81 +985,50 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   graph_loaded = true;
 
   // set default capture media type ?
-  result = media_type_p->GetCount (&item_count);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  if (!item_count)
-  {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-    IMFMediaSourceEx* media_source_p = NULL;
-#else
-    IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_p,
-                                                                      media_source_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      goto error;
-    } // end IF
-    if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-                                                                       media_type_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      media_source_p->Release (); media_source_p = NULL;
-      goto error;
-    } // end IF
-    media_source_p->Release (); media_source_p = NULL;
+//  result = media_type_p->GetCount (&item_count);
+//  if (FAILED (result))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
+//                ACE_TEXT (stream_name_string_),
+//                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//    goto error;
+//  } // end IF
+//  if (!item_count)
+//  {
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+//    IMFMediaSourceEx* media_source_p = NULL;
+//#else
+//    IMFMediaSource* media_source_p = NULL;
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+//    if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource (topology_p,
+//                                                                      media_source_p))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), aborting\n"),
+//                  ACE_TEXT (stream_name_string_)));
+//      goto error;
+//    } // end IF
+//  } // end IF
 
-    (*iterator).second.second.inputFormat =
-      Stream_MediaFramework_MediaFoundation_Tools::copy (media_type_p);
-    if (!(*iterator).second.second.inputFormat)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      goto error;
-    } // end IF
-  } // end IF
-  else if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                   media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: %s\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (media_type_p).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_.format).c_str ())));
 #endif // _DEBUG
-  media_type_p->Release (); media_type_p = NULL;
-
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
-  ACE_ASSERT (!session_data_r.inputFormat);
-  session_data_r.inputFormat =
-    static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!session_data_r.inputFormat)
+  media_type_p =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_.format);
+  if (!media_type_p)
   {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  ACE_OS::memset (session_data_r.inputFormat, 0, sizeof (struct _AMMediaType));
-  ACE_ASSERT (!session_data_r.inputFormat->pbFormat);
+  ACE_ASSERT (session_data_r.formats.empty ());
+  session_data_r.formats.push_back (media_type_p);
+  media_type_p = NULL;
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
                                                                      (*iterator).second.second.sampleGrabberNodeId,
                                                                      media_type_p))
@@ -1093,19 +1039,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
-  result = MFInitAMMediaTypeFromMFMediaType (media_type_p,
-                                             GUID_NULL,
-                                             session_data_r.inputFormat);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  media_type_p->Release (); media_type_p = NULL;
-  ACE_ASSERT (session_data_r.inputFormat);
+  session_data_r.formats.push_back (media_type_p);
+  media_type_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
@@ -1208,8 +1143,7 @@ error:
   {
     session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   } // end IF
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
+  Stream_MediaFramework_MediaFoundation_Tools::free (session_data_r.formats);
   session_data_r.direct3DManagerResetToken = 0;
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (session_data_r.session)

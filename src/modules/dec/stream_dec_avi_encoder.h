@@ -59,6 +59,8 @@ extern "C"
 
 #include "stream_dev_tools.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 // forward declaration(s)
 struct AVFormatContext;
 struct SwsContext;
@@ -177,6 +179,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
 {
   friend class Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                                       TimePolicyType,
@@ -199,6 +207,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -220,7 +234,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  bool                    isActive_;
+  bool                                          isActive_;
   // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
   //         fields with information about the length of the consecutive,
   //         linearly structured bulk data.
@@ -237,63 +251,32 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         information upon reception of completion event messages sent
   //         upstream by trailing modules of the processing stream (i.e. reader-
   //         side processing)
-  bool                    isFirst_;
+  bool                                          isFirst_;
 
-  enum AVPixelFormat      format_;
+  struct Stream_MediaFramework_FFMPEG_MediaType format_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct AVFormatContext* formatContext_;
+  struct AVFormatContext*                       formatContext_;
 #endif // ACE_WIN32 || ACE_WIN64
-  unsigned int            frameSize_; // output-
-  unsigned int            height_;
-  unsigned int            width_;
-  struct SwsContext*      transformContext_;
+  unsigned int                                  frameSize_; // output-
+  struct SwsContext*                            transformContext_;
 
   typedef std::vector<unsigned int> FRAMEOFFSETS_T;
   typedef FRAMEOFFSETS_T::const_iterator FRAMEOFFSETSITERATOR_T;
-  unsigned int            currentFrameOffset_;
-  FRAMEOFFSETS_T          frameOffsets_;
-  bool                    writeAVI1Index_; // AVI 1.0 "idx1" at end of file
-  bool                    writeAVI2Index_; // AVI 2.0 "inx1" + super-index
+  unsigned int                                  currentFrameOffset_;
+  FRAMEOFFSETS_T                                frameOffsets_;
+  bool                                          writeAVI1Index_; // AVI 1.0 "idx1" at end of file
+  bool                                          writeAVI2Index_; // AVI 2.0 "inx1" + super-index
 
   // helper methods
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
   bool generateIndex (enum Stream_Decoder_AVIIndexType, // index version
                       ACE_Message_Block*);              // message buffer handle
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *IMPORTANT NOTE*: return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
-  AM_MEDIA_TYPE getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
-#else
-  enum AVPixelFormat getMediaType (const MediaType& mediaType_in) { return getMediaType_impl (mediaType_in); }
-#endif // ACE_WIN32 || ACE_WIN64
-  Common_UI_Resolution_t getResolution (const SessionDataType& sessionData_in, const MediaType& mediaType_in) { return getResolution_impl (sessionData_in, mediaType_in); }
-  struct AVRational getFrameRate (const SessionDataType& sessionData_in, const MediaType& mediaType_in) { return getFrameRate_impl (sessionData_in, mediaType_in); }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  AM_MEDIA_TYPE getMediaType_impl (const struct _AMMediaType&);
-  AM_MEDIA_TYPE getMediaType_impl (const IMFMediaType*&);
-  Common_UI_Resolution_t getResolution_impl (const SessionDataType&,
-                                             const struct _AMMediaType&);
-  Common_UI_Resolution_t getResolution_impl (const SessionDataType&,
-                                             const IMFMediaType*&);
-  struct AVRational getFrameRate_impl (const SessionDataType&,
-                                       const struct _AMMediaType&);
-  struct AVRational getFrameRate_impl (const SessionDataType&,
-                                       const IMFMediaType*&);
-#else
-  inline enum AVPixelFormat getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat); }
-  inline enum AVPixelFormat getMediaType_impl (const struct Stream_MediaFramework_ALSA_MediaType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (AV_PIX_FMT_NONE); ACE_NOTREACHED (return AV_PIX_FMT_NONE;) }
-  inline Common_UI_Resolution_t getResolution_impl (const SessionDataType&, const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_UI_Resolution_t return_value; return_value.width = mediaType_in.format.width; return_value.height = mediaType_in.format.height; return return_value; }
-  inline Common_UI_Resolution_t getResolution_impl (const SessionDataType&, const struct Stream_MediaFramework_ALSA_MediaType&) { Common_UI_Resolution_t return_value; ACE_ASSERT (false); ACE_NOTSUP_RETURN (return_value); ACE_NOTREACHED (return return_value;) }
-  inline struct AVRational getFrameRate_impl (const SessionDataType&, const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { struct AVRational return_value; return_value.num = mediaType_in.frameRate.numerator; return_value.den = mediaType_in.frameRate.denominator; return return_value; }
-  inline struct AVRational getFrameRate_impl (const SessionDataType&, const struct Stream_MediaFramework_ALSA_MediaType&) { struct AVRational return_value; ACE_ASSERT (false); ACE_NOTSUP_RETURN (return_value); ACE_NOTREACHED (return return_value;) }
-#endif // ACE_WIN32 || ACE_WIN64
-//  inline struct AVRational getFrameRate_impl (const SessionDataType&, const enum AVPixelFormat&) { ACE_ASSERT (inherited::configuration_); ACE_ASSERT (inherited::configuration_->outputFormat); return inherited::configuration_->outputFormat->frameRate; }
 };
 
 //////////////////////////////////////////
@@ -334,6 +317,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -345,6 +334,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
@@ -384,16 +379,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   DataMessageType* allocateMessage (unsigned int); // requested size
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
-  template <typename MediaType> struct Stream_MediaFramework_V4L_MediaType getMediaType (const MediaType& format_in) { return getMediaType_impl (format_in); }
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
-
-  inline const struct Stream_MediaFramework_V4L_MediaType getMediaType_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return const_cast<struct Stream_MediaFramework_V4L_MediaType&> (mediaType_in); }
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

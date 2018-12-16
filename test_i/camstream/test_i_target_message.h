@@ -43,11 +43,11 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-class Test_I_Target_DirectShow_Stream_SessionMessage;
-class Test_I_Target_MediaFoundation_Stream_SessionMessage;
+class Test_I_Target_DirectShow_SessionMessage;
+class Test_I_Target_MediaFoundation_SessionMessage;
 #else
-class Test_I_Target_Stream_SessionMessage;
-#endif
+class Test_I_Target_SessionMessage;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
@@ -60,7 +60,7 @@ class Test_I_Target_DirectShow_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
-                                                 Test_I_Target_DirectShow_Stream_SessionMessage>;
+                                                 Test_I_Target_DirectShow_SessionMessage>;
 
  public:
   Test_I_Target_DirectShow_Stream_Message (unsigned int); // size
@@ -111,7 +111,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
-                                                 Test_I_Target_MediaFoundation_Stream_SessionMessage>;
+                                                 Test_I_Target_MediaFoundation_SessionMessage>;
 
  public:
   Test_I_Target_MediaFoundation_Stream_Message (unsigned int); // size
@@ -154,7 +154,7 @@ class Test_I_Target_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
-                                                 Test_I_Target_Stream_SessionMessage>;
+                                                 Test_I_Target_SessionMessage>;
 
  public:
   Test_I_Target_Stream_Message (unsigned int); // size

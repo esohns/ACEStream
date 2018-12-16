@@ -160,10 +160,10 @@ struct Stream_DirectShow_ModuleHandlerConfiguration
 {
    Stream_DirectShow_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , outputFormat (NULL)
+   , outputFormat ()
   {}
 
-  struct _AMMediaType* outputFormat;
+  struct _AMMediaType outputFormat;
 };
 
 struct Stream_MediaFoundation_ModuleHandlerConfiguration

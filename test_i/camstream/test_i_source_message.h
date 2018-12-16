@@ -56,7 +56,7 @@ class Test_I_Source_DirectShow_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_DirectShow_Stream_Message,
-                                                 Test_I_Source_DirectShow_Stream_SessionMessage>;
+                                                 Test_I_Source_DirectShow_SessionMessage>;
 
   typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
@@ -105,7 +105,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_MediaFoundation_Stream_Message,
-                                                 Test_I_Source_MediaFoundation_Stream_SessionMessage>;
+                                                 Test_I_Source_MediaFoundation_SessionMessage>;
 
   typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
@@ -155,7 +155,7 @@ class Test_I_Source_V4L2_Stream_Message
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Source_V4L2_Stream_Message,
-                                                 Test_I_Source_V4L2_Stream_SessionMessage>;
+                                                 Test_I_Source_V4L2_SessionMessage>;
 
  public:
   Test_I_Source_V4L2_Stream_Message (unsigned int); // size

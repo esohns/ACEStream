@@ -49,13 +49,13 @@ struct Test_I_wxWidgets_CBData
   Test_I_wxWidgets_CBData ()
    : Test_I_UI_CBData ()
    , progressData ()
-   , UIState ()
+   , UIState (NULL)
   {
-    progressData.state = &UIState;
+    progressData.state = UIState;
   }
 
   struct Test_I_wxWidgets_ProgressData progressData;
-  struct Common_UI_wxWidgets_State     UIState;
+  struct Common_UI_wxWidgets_State*    UIState;
 };
 
 struct Test_I_wxWidgets_ThreadData

@@ -139,8 +139,8 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  struct Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+  Test_I_Target_DirectShow_SessionData& session_data_r =
+    const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;
@@ -364,12 +364,9 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //} // end IF
   //ACE_ASSERT (graph_entry_r.mediaType);
 #if defined (_DEBUG)
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("input format: %s\n"),
-  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::toString (*graph_entry_r.mediaType, true).c_str ())));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("input format: %s\n"),
-              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (*configuration_p->inputFormat, true).c_str ())));
+              ACE_TEXT ("source format: %s\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (configuration_p->sourceFormat, true).c_str ())));
 
   //log_file_name =
   //  Common_File_Tools::getLogDirectory (std::string (),
@@ -378,7 +375,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //log_file_name += STREAM_DEV_DIRECTSHOW_LOGFILE_NAME;
   //Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
   //                                              log_file_name);
-#endif
+#endif // _DEBUG
 
   //// sanity check(s)
   //ACE_ASSERT (!session_data_r.direct3DDevice);
@@ -490,9 +487,8 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
   //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
-  //media_filter_p->Release ();
-  //media_filter_p = NULL;
-#endif
+  //media_filter_p->Release (); media_filter_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
@@ -519,18 +515,8 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   // ---------------------------------------------------------------------------
 
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
-  ACE_ASSERT (!session_data_r.inputFormat);
-  session_data_r.inputFormat =
-    Stream_MediaFramework_DirectShow_Tools::copy (*configuration_p->inputFormat);
-  if (!session_data_r.inputFormat)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (session_data_r.inputFormat);
+  ACE_ASSERT (session_data_r.formats.empty ());
+  session_data_r.formats.push_back (*Stream_MediaFramework_DirectShow_Tools::copy (configuration_p->sourceFormat));
 
   // ---------------------------------------------------------------------------
 
@@ -580,11 +566,10 @@ error:
   ////  direct3D_manager_p->Release ();
   //if (session_data_r.direct3DDevice)
   //{
-  //  session_data_r.direct3DDevice->Release ();
-  //  session_data_r.direct3DDevice = NULL;
+  //  session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   //} // end IF
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
+  if (!session_data_r.formats.empty ())
+    session_data_r.formats.clear ();
   //session_data_r.resetToken = 0;
 
   //if (COM_initialized)
@@ -764,8 +749,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  struct Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+  Test_I_Target_MediaFoundation_SessionData& session_data_r =
+    const_cast<Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;
@@ -776,54 +761,33 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (configuration_p->inputFormat);
-  ACE_ASSERT (!session_data_r.inputFormat);
+  ACE_ASSERT (configuration_p->sourceFormat);
+  ACE_ASSERT (!session_data_r.sourceFormat);
 
-  HRESULT result_2 = E_FAIL;
-
-  session_data_r.inputFormat =
-    static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!session_data_r.inputFormat)
+  session_data_r.sourceFormat =
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_p->sourceFormat);
+  if (!session_data_r.sourceFormat)
   {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::copy(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  ACE_OS::memset (session_data_r.inputFormat, 0, sizeof (struct _AMMediaType));
-  ACE_ASSERT (!session_data_r.inputFormat->pbFormat);
-  result_2 = MFInitAMMediaTypeFromMFMediaType (configuration_p->inputFormat,
-                                               GUID_NULL,
-                                               session_data_r.inputFormat);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-
-    // clean up
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
-
-    goto error;
-  } // end IF
 #else
-  session_data_r.inputFormat = configuration_p->format;
-#endif
+  session_data_r.sourceFormat = configuration_p->format;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
   bool graph_loaded = false;
   bool COM_initialized = false;
   IMFTopology* topology_p = NULL;
-
   UINT32 item_count = 0;
   ULONG reference_count = 0;
-
-  result_2 = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED     |
-                              COINIT_DISABLE_OLE1DDE   |
-                              COINIT_SPEED_OVER_MEMORY));
+  HRESULT result_2 = CoInitializeEx (NULL,
+                                     (COINIT_MULTITHREADED     |
+                                      COINIT_DISABLE_OLE1DDE   |
+                                      COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -835,10 +799,10 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
   COM_initialized = true;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_p->inputFormat);
+  ACE_ASSERT (configuration_p->sourceFormat);
 
   if (!Stream_Module_Decoder_Tools::loadTargetRendererTopology (url_string,
-                                                                configuration_p->inputFormat,
+                                                                configuration_p->sourceFormat,
                                                                 NULL,
                                                                 //configuration_p->window,
                                                                 session_data_r.rendererNodeId,
@@ -855,8 +819,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: input format: \"%s\"\n"),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_p->inputFormat).c_str ()),
+              ACE_TEXT ("%s: source format: \"%s\"\n"),
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_p->sourceFormat).c_str ()),
               ACE_TEXT (stream_name_string_)));
 #endif // _DEBUG
 
@@ -927,8 +891,10 @@ error:
   {
     session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
   } // end IF
-  if (session_data_r.inputFormat)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (session_data_r.inputFormat);
+  if (session_data_r.sourceFormat)
+  {
+    session_data_r.sourceFormat->Release (); session_data_r.sourceFormat = NULL;
+  } // end IF
   session_data_r.direct3DManagerResetToken = 0;
 
   if (COM_initialized)

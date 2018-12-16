@@ -637,7 +637,6 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.pinConfiguration);
-  ACE_ASSERT (configuration_in.pinConfiguration->format);
 
   IPin* ipin_p = Stream_MediaFramework_DirectShow_Tools::pin (this,
                                                              PINDIR_OUTPUT);
@@ -680,7 +679,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<TimePolicyType,
     goto error;
   } // end IF
   // *TODO*: remove type inference
-  if (!iinitialize_2->initialize (*configuration_in.pinConfiguration->format))
+  if (!iinitialize_2->initialize (configuration_in.pinConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n"),

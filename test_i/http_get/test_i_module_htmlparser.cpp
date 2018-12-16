@@ -34,18 +34,17 @@
 #include "stream_macros.h"
 
 void
-errorCallback (void* userData_in,
-               const char* message_in,
-               ...)
+test_i_libxml2_sax_error_cb (void* userData_in,
+                             const char* message_in,
+                             ...)
 {
-  STREAM_TRACE (ACE_TEXT ("::errorCallback"));
+  //STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_error_cb"));
 
   int result = -1;
 
+  // sanity check(s)
   struct Test_I_SAXParserContext* data_p =
       static_cast<struct Test_I_SAXParserContext*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
 
   ACE_TCHAR buffer[BUFSIZ];
@@ -67,13 +66,13 @@ errorCallback (void* userData_in,
 }
 
 void
-structuredErrorCallback (void* userData_in,
-                         xmlErrorPtr error_in)
+test_i_libxml2_sax_structured_error_cb (void* userData_in,
+                                        xmlErrorPtr error_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::structuredErrorCallback"));
+  //STREAM_TRACE (ACE_TEXT ("::test_i_libxml2_sax_structured_error_cb"));
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("structuredErrorCallback: %s\n"),
+              ACE_TEXT ("structured error: %s\n"),
               ACE_TEXT (error_in->message)));
 }
 
@@ -83,6 +82,8 @@ Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser (ISTREAM_T* stream_in)
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser"));
 
 }
+
+//////////////////////////////////////////
 
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
@@ -164,17 +165,18 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
   inherited::SAXHandler_.comment = NULL;
   inherited::SAXHandler_.internalSubset = NULL;
   inherited::SAXHandler_.startDocument = NULL;
+  inherited::SAXHandler_.endDocument = NULL;
 
 //  inherited::SAXHandler_.getEntity = getEntity;
-//  inherited::SAXHandler_.startDocument = startDocument;
-//  inherited::SAXHandler_.endDocument = endDocument;
-  inherited::SAXHandler_.startElement = startElement;
-  inherited::SAXHandler_.endElement = endElement;
-  inherited::SAXHandler_.characters = characters;
+//  inherited::SAXHandler_.startDocument = test_i_libxml2_sax_start_document_cb;
+//  inherited::SAXHandler_.endDocument = test_i_libxml2_sax_start_document_cb;
+  inherited::SAXHandler_.startElement = test_i_libxml2_sax_start_element_cb;
+  inherited::SAXHandler_.endElement = test_i_libxml2_sax_end_element_cb;
+  inherited::SAXHandler_.characters = test_i_libxml2_sax_characters_cb;
   ///////////////////////////////////////
-  inherited::SAXHandler_.warning = errorCallback;
-  inherited::SAXHandler_.error = errorCallback;
-  inherited::SAXHandler_.fatalError = errorCallback;
+  inherited::SAXHandler_.warning = test_i_libxml2_sax_error_cb;
+  inherited::SAXHandler_.error = test_i_libxml2_sax_error_cb;
+  inherited::SAXHandler_.fatalError = test_i_libxml2_sax_error_cb;
 
   ACE_ASSERT (inherited::SAXHandler_.initialized);
 

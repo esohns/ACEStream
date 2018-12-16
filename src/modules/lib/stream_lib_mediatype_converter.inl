@@ -47,70 +47,17 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const struct _AMMediaType& mediaType_in,
-                                                                          struct _AMMediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
-
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
-                                                             &mediaType_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-}
-
-template <typename MediaType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const IMFMediaType*& mediaType_in,
-                                                                          struct _AMMediaType& mediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
-
-  // sanity check(s)
-  ACE_ASSERT (mediaType_in);
-
-  HRESULT result =
-    MFCreateAMMediaTypeFromMFMediaType (&const_cast<IMFMediaType&> (mediaType_in),
-                                        GUID_NULL,
-                                        &mediaType_out);
-  if (unlikely (FAILED (result)))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    return;
-  } // end IF
-}
-
-template <typename MediaType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
-                                                                          struct _AMMediaType& mediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
-
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
-template <typename MediaType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const struct _AMMediaType& mediaType_in,
-                                                                          struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
 
   mediaType_out.format =
-      Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (subtype_s,
+      Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype,
                                                                 STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
-  mediaType_out.frameRate =
+  mediaType_out.frameRate.num =
       Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in);
   mediaType_out.resolution =
       Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
@@ -118,10 +65,102 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const 
 
 template <typename MediaType>
 void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const IMFMediaType*& mediaType_in,
-                                                                          struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct _AMMediaType& mediaType_in,
+                                                                     IMFMediaType*& mediaType_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType_impl"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  if (mediaType_out)
+  {
+    mediaType_out->Release (); mediaType_out = NULL;
+  } // end IF
+
+  HRESULT result =
+    MFInitMediaTypeFromAMMediaType (mediaType_out,
+                                    &mediaType_in);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (mediaType_out);
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     IMFMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  if (mediaType_out)
+  {
+    mediaType_out->Release (); mediaType_out = NULL;
+  } // end IF
+  
+  HRESULT result = MFCreateMediaType (&mediaType_out);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (mediaType_out);
+  result =
+    const_cast<IMFMediaType*> (mediaType_in)->CopyAllItems (mediaType_out);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::CopyAllItems(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    mediaType_out->Release (); mediaType_out = NULL;
+    return;
+  } // end IF
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  // initialize return value(s)
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_inout);
+
+  struct _AMMediaType* media_type_p = NULL;
+  HRESULT result =
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
+                                        GUID_NULL,
+                                        &media_type_p);
+  if (unlikely (FAILED (result)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+  mediaType_inout = *media_type_p;
+
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMediaType* mediaType_in,
+                                                                     struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
 
@@ -129,12 +168,24 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType_impl (const 
   ACE_ASSERT (mediaType_in);
 
   struct _AMMediaType media_type_s;
-  getMediaType_impl (mediaType_in,
-                     media_type_s);
-  getMediaType_impl (media_type_s,
-                     mediaType_out);
+  getMediaType (mediaType_in,
+                media_type_s);
+  getMediaType (media_type_s,
+                mediaType_out);
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_in,
+                                                                     struct _AMMediaType& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
+
+  ACE_ASSERT (false); // *TODO*
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
 }
 #else
 //template <typename MediaType,

@@ -77,6 +77,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dec_tools.h"
 
+#include "stream_dev_directshow_tools.h"
 #include "stream_dev_tools.h"
 
 #include "stream_lib_directshow_tools.h"
@@ -555,7 +556,7 @@ bool
 do_initialize_directshow (const std::string& deviceIdentifier_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
-                          struct _AMMediaType*& mediaType_out,
+                          struct _AMMediaType& outputMediaType_out,
                           bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
@@ -592,6 +593,9 @@ continue_:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
   //Stream_Module_Device_Tools::initialize (true);
 
+  // initialize return value(s)
+  Stream_MediaFramework_DirectShow_Tools::free (outputMediaType_out);
+
   if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (deviceIdentifier_in,
                                                         CLSID_AudioInputDeviceCategory,
                                                         IGraphBuilder_out,
@@ -610,47 +614,6 @@ continue_:
 
   buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
-  if (!mediaType_out)
-  {
-    mediaType_out =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!mediaType_out)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
-                  sizeof (struct _AMMediaType)));
-      goto error;
-    } // end IF
-    ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
-  } // end IF
-  ACE_ASSERT (mediaType_out);
-
-  //mediaType_out->majortype = MEDIATYPE_Audio;
-  //mediaType_out->subtype = MEDIASUBTYPE_PCM;
-  //mediaType_out->bFixedSizeSamples = TRUE;
-  //mediaType_out->bTemporalCompression = FALSE;
-  //// *NOTE*: lSampleSize is set after pbFormat (see below)
-  ////mediaType_out->lSampleSize = waveformatex_p->;
-  //mediaType_out->formattype = FORMAT_WaveFormatEx;
-  //mediaType_out->cbFormat = sizeof (struct tWAVEFORMATEX);
-
-  //if (!mediaType_out->pbFormat)
-  //{
-  //  mediaType_out->pbFormat =
-  //    static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tWAVEFORMATEX)));
-  //  if (!mediaType_out->pbFormat)
-  //  {
-  //    ACE_DEBUG ((LM_CRITICAL,
-  //                ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
-  //                sizeof (struct tWAVEFORMATEX)));
-  //    goto error;
-  //  } // end IF
-  //  ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tWAVEFORMATEX));
-  //} // end IF
-  //ACE_ASSERT (mediaType_out->pbFormat);
-  //waveformatex_p =
-  //  reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_out->pbFormat);
-
   struct tWAVEFORMATEX waveformatex_s;
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   waveformatex_p = &waveformatex_s;
@@ -664,7 +627,7 @@ continue_:
   waveformatex_p->cbSize = 0;
 
   result = CreateAudioMediaType (waveformatex_p,
-                                 mediaType_out,
+                                 &outputMediaType_out,
                                  TRUE);
   if (FAILED (result))
   {
@@ -680,7 +643,7 @@ continue_:
 
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
                                                          CLSID_AudioInputDeviceCategory,
-                                                         *mediaType_out))
+                                                         outputMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
@@ -688,7 +651,7 @@ continue_:
   } // end IF
 
   union Stream_MediaFramework_DirectShow_AudioEffectOptions effect_options;
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (*mediaType_out,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (outputMediaType_out,
                                                             0,
                                                             IGraphBuilder_out,
                                                             GUID_NULL,
@@ -735,9 +698,7 @@ error:
   {
     IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
   } // end IF
-
-  if (mediaType_out)
-    Stream_MediaFramework_DirectShow_Tools::delete_ (mediaType_out);
+  Stream_MediaFramework_DirectShow_Tools::free (outputMediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -950,7 +911,7 @@ do_work (unsigned int bufferSize_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       allocator_configuration_p =
-        &mediaFoundationConfiguration.streamConfiguration.allocatorConfiguration_;
+        &mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_;
       break;
     }
     default:
@@ -1023,8 +984,12 @@ do_work (unsigned int bufferSize_in,
       ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
       (*directshow_modulehandler_iterator).second.second.audioOutput = 1;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
       (*directshow_modulehandler_iterator).second.second.surfaceLock =
         &directShowCBData_in.surfaceLock;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
       //directshow_configuration.moduleHandlerConfiguration.format =
       //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
       //ACE_ASSERT (directshow_configuration.moduleHandlerConfiguration.format);
@@ -1226,7 +1191,7 @@ do_work (unsigned int bufferSize_in,
                                      : NULL);
   configuration_in.streamConfiguration.configuration_.printFinalReport = true;
   configuration_in.streamConfiguration.configuration_.format =
-    &configuration_in.ALSAConfiguration.format;
+    configuration_in.ALSAConfiguration.format;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -1245,8 +1210,8 @@ do_work (unsigned int bufferSize_in,
       result =
         do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier,
                                   (*directshow_modulehandler_iterator).second.second.builder,
-                                  directShowConfiguration_in.streamConfiguration,
-                                  (*directshow_modulehandler_iterator).second.second.inputFormat,
+                                  directShowCBData_in.streamConfiguration,
+                                  directShowConfiguration_in.streamConfiguration.configuration_.format,
                                   true); // initialize COM ?
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
       ACE_ASSERT (directShowCBData_in.streamConfiguration);
@@ -1961,16 +1926,20 @@ ACE_TMAIN (int argc_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
+#if defined (GTK_USE)
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                   argv_in,
                                                                   &directshow_ui_definition);
+#endif // GTK_USE
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
+#if defined (GTK_USE)
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                   argv_in,
                                                                   &mediafoundation_ui_definition);
+#endif // GTK_USE
         break;
       }
       default:

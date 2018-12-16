@@ -428,10 +428,14 @@ template <typename ConfigurationType,
 Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
                                                                  FilterType,
                                                                  MediaType>::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT* result_out,
-                                                                                                                                               FilterType* parent_in,
+                                                                                                                                               FilterType* parentFilter_in,
                                                                                                                                                LPCWSTR pinName_in)
- : inherited (NAME (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in))), // object description
-              parent_in,                                                          // owning filter
+#if defined (UNICODE)
+ : inherited (pinName_in,
+#else
+ : inherited (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in)),
+#endif // UNICODE
+              parentFilter_in,                                                    // owning filter
               &lock_,                                                             // lock
               result_out,                                                         // OLE return code
               pinName_in,                                                         // pin name

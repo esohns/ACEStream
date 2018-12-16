@@ -23,15 +23,10 @@
 
 #include <deque>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+extern "C" {
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+} // extern "C"
 
 #include "common_ui_common.h"
 

@@ -216,7 +216,6 @@ if (GUI_SUPPORT)
   set (ui_definition_file ${EXECUTABLE}.xrc)
  endif ()
 endif (GUI_SUPPORT)
-message (STATUS "ui_definition_file: ${ui_definition_file}")
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}

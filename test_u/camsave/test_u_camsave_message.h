@@ -37,11 +37,14 @@ template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
-template <typename DataMessageType>
+          typename SessionMessageType>
+class Stream_MessageAllocatorHeapBase_T;
+template <typename DataMessageType,
+          typename SessionDataType>
 class Stream_CamSave_SessionMessage_T;
 
-template <typename DataType>
+template <typename DataType,
+          typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CamSave_Message_T
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
@@ -52,8 +55,11 @@ class Stream_CamSave_Message_T
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
-                                                 Stream_CamSave_Message_T<DataType>,
-                                                 Stream_CamSave_SessionMessage_T<Stream_CamSave_Message_T<DataType> > >;
+                                                 Stream_CamSave_Message_T<DataType,
+                                                                          SessionDataType>,
+                                                 Stream_CamSave_SessionMessage_T<Stream_CamSave_Message_T<DataType,
+                                                                                                          SessionDataType>,
+                                                                                 SessionDataType> >;
 
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
@@ -72,20 +78,21 @@ class Stream_CamSave_Message_T
 #else
   // insert this buffer back into the device incoming queue
   virtual ACE_Message_Block* release (void);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // implement Stream_MessageBase_T
   inline virtual int command () const { return ACE_Message_Block::MB_DATA; }
 
  protected:
+  // convenient types
+  typedef Stream_CamSave_Message_T<DataType,
+                                   SessionDataType> OWN_TYPE_T;
+
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Stream_CamSave_Message_T (const Stream_CamSave_Message_T&);
+  Stream_CamSave_Message_T (const OWN_TYPE_T&);
 
  private:
-  // convenient types
-  typedef Stream_CamSave_Message_T<DataType> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message_T ())
   // *NOTE*: to be used by message allocators
   Stream_CamSave_Message_T (Stream_SessionId_t,

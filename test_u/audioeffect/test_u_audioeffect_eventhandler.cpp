@@ -71,7 +71,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventH
 
 void
 Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_in,
-                                                   const struct Test_U_AudioEffect_DirectShow_SessionData& sessionData_in)
+                                                   const Test_U_AudioEffect_DirectShow_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::start"));
 
@@ -81,7 +81,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionId_
   ACE_ASSERT (!sessionData_);
 
   sessionData_ =
-    &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (sessionData_in);
+    &const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
   if (CBData_)
@@ -218,7 +218,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::Test_U_AudioEffect_MediaFoundat
 
 void
 Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessionId_in,
-                                                        const struct Test_U_AudioEffect_MediaFoundation_SessionData& sessionData_in)
+                                                        const Test_U_AudioEffect_MediaFoundation_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::start"));
 
@@ -228,7 +228,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
   ACE_ASSERT (!sessionData_);
 
   sessionData_ =
-    &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (sessionData_in);
+    &const_cast<Test_U_AudioEffect_MediaFoundation_SessionData&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
   if (CBData_)

@@ -126,7 +126,9 @@ class HTTPGet_Stream_T
 //////////////////////////////////////////
 
 typedef HTTPGet_Stream_T<HTTPGet_TCPConnector_t> HTTPGet_Stream_t;
+#if defined (SSL_SUPPORT)
 typedef HTTPGet_Stream_T<HTTPGet_SSLTCPConnector_t> HTTPGet_SSL_Stream_t;
+#endif // SSL_SUPPORT
 typedef HTTPGet_Stream_T<HTTPGet_TCPAsynchConnector_t> HTTPGet_AsynchStream_t;
 
 #endif
