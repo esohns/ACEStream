@@ -39,7 +39,7 @@
 struct Test_I_Source_DirectShow_UserData;
 struct Test_I_Source_MediaFoundation_UserData;
 #else
-struct Test_I_Source_V4L2_UserData;
+struct Test_I_Source_V4L_UserData;
 #endif // ACE_WIN32 || ACE_WIN64
 struct Test_I_Target_UserData;
 
@@ -82,13 +82,13 @@ typedef ACE_Singleton<Test_I_Target_MediaFoundation_InetConnectionManager_t,
 #else
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 Test_I_Source_V4L_ConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
+                                 struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_InetConnectionManager_t;
 
-typedef ACE_Singleton<Test_I_Source_V4L2_InetConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Source_V4L_InetConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,

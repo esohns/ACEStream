@@ -298,23 +298,23 @@ Test_I_Source_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_Comman
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
 #else
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (unsigned int size_in)
+Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (unsigned int size_in)
  : inherited (size_in)
  , inherited2 (1, false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message"));
 
 }
 
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (const Test_I_Source_V4L2_Stream_Message& message_in)
+Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (const Test_I_Source_V4L_Stream_Message& message_in)
  : inherited (message_in)
  , inherited2 (1, false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message"));
 
 }
 
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t sessionId_in,
+Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_SessionId_t sessionId_in,
                                                                       ACE_Data_Block* dataBlock_in,
                                                                       ACE_Allocator* messageAllocator_in,
                                                                       bool incrementMessageCounter_in)
@@ -324,36 +324,36 @@ Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (Stream_Ses
               incrementMessageCounter_in)
  , inherited2 (1, false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message"));
 
 }
 
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t sessionId_in,
+Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message (Stream_SessionId_t sessionId_in,
                                                                       ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
  , inherited2 (1, false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::Test_I_Source_V4L_Stream_Message"));
 
 }
 
 ACE_Message_Block*
-Test_I_Source_V4L2_Stream_Message::duplicate (void) const
+Test_I_Source_V4L_Stream_Message::duplicate (void) const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::duplicate"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::duplicate"));
 
-  Test_I_Source_V4L2_Stream_Message* message_p = NULL;
+  Test_I_Source_V4L_Stream_Message* message_p = NULL;
 
-  message_p = const_cast<Test_I_Source_V4L2_Stream_Message*> (this);
+  message_p = const_cast<Test_I_Source_V4L_Stream_Message*> (this);
   message_p->increase ();
 
   return message_p;
 }
 ACE_Message_Block*
-Test_I_Source_V4L2_Stream_Message::release (void)
+Test_I_Source_V4L_Stream_Message::release (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::release"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::release"));
 
   int result = -1;
   int error = 0;
@@ -361,8 +361,7 @@ Test_I_Source_V4L2_Stream_Message::release (void)
   // release any continuations first
   if (inherited::cont_)
   {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
+    inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
   unsigned int reference_count = inherited2::decrease ();
@@ -381,21 +380,21 @@ Test_I_Source_V4L2_Stream_Message::release (void)
   // *NOTE*: this is a device data buffer
   //         --> return it to the pool
 
-  struct v4l2_buffer buffer;
-  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
+  struct V4L_buffer buffer;
+  ACE_OS::memset (&buffer, 0, sizeof (struct V4L_buffer));
   buffer.index = inherited::data_.index;
-  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buffer.type = V4L_BUF_TYPE_VIDEO_CAPTURE;
   buffer.memory = inherited::data_.method;
   switch (inherited::data_.method)
   {
-  case V4L2_MEMORY_USERPTR:
+  case V4L_MEMORY_USERPTR:
   {
     buffer.m.userptr =
       reinterpret_cast<unsigned long> (inherited::rd_ptr ());
     buffer.length = inherited::size ();
     break;
   }
-  case V4L2_MEMORY_MMAP:
+  case V4L_MEMORY_MMAP:
     break;
   default:
   {
@@ -411,7 +410,7 @@ Test_I_Source_V4L2_Stream_Message::release (void)
     //         Unfortunately this does not work, the fields are 0-ed by the driver
     //         --> maintain a mapping: buffer index <--> buffer handle
     //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  result = v4l2_ioctl (inherited::data_.device,
+  result = V4L_ioctl (inherited::data_.device,
     VIDIOC_QBUF,
     &buffer);
   if (result == -1)
@@ -419,7 +418,7 @@ Test_I_Source_V4L2_Stream_Message::release (void)
     error = ACE_OS::last_error ();
     if (error != EINVAL) // 22
       ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+        ACE_TEXT ("failed to V4L_ioctl(%d,%s): \"%m\", continuing\n"),
         inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
   } // end IF
 
@@ -437,9 +436,9 @@ Test_I_Source_V4L2_Stream_Message::release (void)
 }
 
 std::string
-Test_I_Source_V4L2_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
+Test_I_Source_V4L_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::CommandTypeToString"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

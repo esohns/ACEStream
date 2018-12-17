@@ -222,7 +222,7 @@ class Test_I_Target_Stream
                                         Test_I_Target_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
-                                        Test_I_Target_Stream_SessionMessage,
+                                        Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t,
                                         struct Test_I_Target_UserData>
@@ -244,7 +244,7 @@ class Test_I_Target_Stream
                                         Test_I_Target_SessionData_t,
                                         Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
-                                        Test_I_Target_Stream_SessionMessage,
+                                        Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t,
                                         struct Test_I_Target_UserData> inherited;

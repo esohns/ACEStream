@@ -127,18 +127,18 @@ typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_S
 
 typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
-struct Test_I_Source_V4L2_ConnectionConfiguration;
-struct Test_I_Source_V4L2_ConnectionState;
-struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
-class Test_I_Source_V4L2_SessionData;
-struct Test_I_Source_V4L2_SocketHandlerConfiguration;
-class Test_I_Source_V4L2_Stream_Message;
-class Test_I_Source_V4L2_SessionMessage;
-struct Test_I_Source_V4L2_StreamConfiguration;
-struct Test_I_Source_V4L2_StreamState;
-struct Test_I_Source_V4L2_UserData;
+struct Test_I_Source_V4L_ConnectionConfiguration;
+struct Test_I_Source_V4L_ConnectionState;
+struct Test_I_Source_V4L_ModuleHandlerConfiguration;
+class Test_I_Source_V4L_SessionData;
+struct Test_I_Source_V4L_SocketHandlerConfiguration;
+class Test_I_Source_V4L_Stream_Message;
+class Test_I_Source_V4L_SessionMessage;
+struct Test_I_Source_V4L_StreamConfiguration;
+struct Test_I_Source_V4L_StreamState;
+struct Test_I_Source_V4L_UserData;
 
-typedef Stream_SessionData_T<Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Source_V4L_SessionData> Test_I_Source_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -328,11 +328,11 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  struct Test_I_Source_Stream_StatisticData,
                                  struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_InetConnectionManager_t;
 #else
-struct Test_I_Source_V4L2_ConnectionConfiguration;
-struct Test_I_Source_V4L2_SocketHandlerConfiguration
+struct Test_I_Source_V4L_ConnectionConfiguration;
+struct Test_I_Source_V4L_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
-  Test_I_Source_V4L2_SocketHandlerConfiguration ()
+  Test_I_Source_V4L_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
    , socketConfiguration_2 ()
@@ -343,36 +343,36 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
     socketConfiguration = &socketConfiguration_2;
   }
 
-  struct Net_TCPSocketConfiguration                  socketConfiguration_2;
-  struct Net_UDPSocketConfiguration                  socketConfiguration_3;
-  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
+  struct Net_TCPSocketConfiguration                 socketConfiguration_2;
+  struct Net_UDPSocketConfiguration                 socketConfiguration_3;
+  struct Test_I_Source_V4L_ConnectionConfiguration* connectionConfiguration;
 
-  struct Test_I_Source_V4L2_UserData*                userData;
+  struct Test_I_Source_V4L_UserData*                userData;
 };
 
 //extern const char stream_name_string_[];
-struct Test_I_Source_V4L2_StreamConfiguration;
-struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
+struct Test_I_Source_V4L_StreamConfiguration;
+struct Test_I_Source_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_AllocatorConfiguration,
-                               struct Test_I_Source_V4L2_StreamConfiguration,
+                               struct Test_I_Source_V4L_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
-                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_StreamConfiguration_t;
-struct Test_I_Source_V4L2_ConnectionConfiguration;
-typedef Net_ConnectionConfiguration_T<struct Test_I_Source_V4L2_ConnectionConfiguration,
+                               struct Test_I_Source_V4L_ModuleHandlerConfiguration> Test_I_Source_V4L_StreamConfiguration_t;
+struct Test_I_Source_V4L_ConnectionConfiguration;
+typedef Net_ConnectionConfiguration_T<struct Test_I_Source_V4L_ConnectionConfiguration,
                                       struct Stream_AllocatorConfiguration,
-                                      Test_I_Source_V4L2_StreamConfiguration_t> Test_I_Source_V4L2_ConnectionConfiguration_t;
+                                      Test_I_Source_V4L_StreamConfiguration_t> Test_I_Source_V4L_ConnectionConfiguration_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 Test_I_Source_V4L_ConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
-struct Test_I_Source_V4L2_UserData;
-struct Test_I_Source_V4L2_ConnectionConfiguration
+                                 struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_IInetConnectionManager_t;
+struct Test_I_Source_V4L_UserData;
+struct Test_I_Source_V4L_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
-  Test_I_Source_V4L2_ConnectionConfiguration ()
+  Test_I_Source_V4L_ConnectionConfiguration ()
    : Net_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
@@ -380,21 +380,21 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
    , userData (NULL)
   {}
 
-  Test_I_Source_V4L2_IInetConnectionManager_t*         connectionManager;
-  struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
+  Test_I_Source_V4L_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Source_V4L_SocketHandlerConfiguration socketHandlerConfiguration;
 
-  struct Test_I_Source_V4L2_UserData*                  userData;
+  struct Test_I_Source_V4L_UserData*                  userData;
 };
 typedef std::map<std::string,
-                 Test_I_Source_V4L2_ConnectionConfiguration_t> Test_I_Source_V4L2_ConnectionConfigurations_t;
-typedef Test_I_Source_V4L2_ConnectionConfigurations_t::iterator Test_I_Source_V4L2_ConnectionConfigurationIterator_t;
+                 Test_I_Source_V4L_ConnectionConfiguration_t> Test_I_Source_V4L_ConnectionConfigurations_t;
+typedef Test_I_Source_V4L_ConnectionConfigurations_t::iterator Test_I_Source_V4L_ConnectionConfigurationIterator_t;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 Test_I_Source_V4L_ConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
+                                 struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_InetConnectionManager_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -659,21 +659,21 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
-                                      struct Test_I_Source_V4L2_StreamState,
-                                      struct Test_I_Source_V4L2_StreamConfiguration,
+                                      struct Test_I_Source_V4L_StreamState,
+                                      struct Test_I_Source_V4L_StreamConfiguration,
                                       struct Test_I_Source_Stream_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Test_I_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
-                                      struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                                      Test_I_Source_V4L2_SessionData,
-                                      Test_I_Source_V4L2_SessionData_t,
+                                      struct Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                      Test_I_Source_V4L_SessionData,
+                                      Test_I_Source_V4L_SessionData_t,
                                       Test_I_ControlMessage_t,
-                                      Test_I_Source_V4L2_Stream_Message,
-                                      Test_I_Source_V4L2_SessionMessage,
+                                      Test_I_Source_V4L_Stream_Message,
+                                      Test_I_Source_V4L_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Source_V4L2_InetConnectionManager_t,
-                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_NetStream_t;
+                                      Test_I_Source_V4L_InetConnectionManager_t,
+                                      struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_NetStream_t;
 #endif
 
 //////////////////////////////////////////
@@ -750,18 +750,18 @@ struct Test_I_Target_MediaFoundation_ConnectionState
   struct Test_I_Target_UserData*                                userData;
 };
 #else
-struct Test_I_Source_V4L2_ConnectionState
+struct Test_I_Source_V4L_ConnectionState
  : Test_I_ConnectionState
 {
-  Test_I_Source_V4L2_ConnectionState ()
+  Test_I_Source_V4L_ConnectionState ()
    : Test_I_ConnectionState ()
    , configuration (NULL)
    , userData (NULL)
   {}
 
-  struct Test_I_Source_V4L2_ConnectionConfiguration* configuration;
+  struct Test_I_Source_V4L_ConnectionConfiguration* configuration;
 
-  struct Test_I_Source_V4L2_UserData*                userData;
+  struct Test_I_Source_V4L_UserData*                userData;
 };
 struct Test_I_Target_ConnectionState
   : Test_I_ConnectionState
@@ -799,9 +799,9 @@ typedef Net_IConnection_T<ACE_INET_Addr,
                           Test_I_Statistic_t> Test_I_Target_MediaFoundation_IConnection_t;
 #else
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_V4L2_ConnectionConfiguration_t,
-                          struct Test_I_Source_V4L2_ConnectionState,
-                          struct Test_I_Source_Stream_StatisticData> Test_I_Source_V4L2_IConnection_t;
+                          Test_I_Source_V4L_ConnectionConfiguration_t,
+                          struct Test_I_Source_V4L_ConnectionState,
+                          struct Test_I_Source_Stream_StatisticData> Test_I_Source_V4L_IConnection_t;
 typedef Net_IConnection_T<ACE_INET_Addr,
                           Test_I_Target_ConnectionConfiguration_t,
                           struct Test_I_Target_ConnectionState,
@@ -844,18 +844,18 @@ typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
 #else
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SOCK_STREAM,
-                               struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_TCPSocketHandler_t;
+                               struct Test_I_Source_V4L_SocketHandlerConfiguration> Test_I_Source_V4L_TCPSocketHandler_t;
 #if defined (SSL_SUPPORT)
 typedef Net_TCPSocketHandler_T<ACE_NULL_SYNCH,
                                ACE_SSL_SOCK_Stream,
-                               struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_SSLTCPSocketHandler_t;
+                               struct Test_I_Source_V4L_SocketHandlerConfiguration> Test_I_Source_V4L_SSLTCPSocketHandler_t;
 #endif // SSL_SUPPORT
-typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_AsynchTCPSocketHandler_t;
+typedef Net_AsynchTCPSocketHandler_T<struct Test_I_Source_V4L_SocketHandlerConfiguration> Test_I_Source_V4L_AsynchTCPSocketHandler_t;
 typedef Net_UDPSocketHandler_T<ACE_NULL_SYNCH,
                                Net_SOCK_Dgram,
-                               struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_UDPSocketHandler_t;
+                               struct Test_I_Source_V4L_SocketHandlerConfiguration> Test_I_Source_V4L_UDPSocketHandler_t;
 typedef Net_AsynchUDPSocketHandler_T<Net_SOCK_Dgram,
-                                     struct Test_I_Source_V4L2_SocketHandlerConfiguration> Test_I_Source_V4L2_AsynchUDPSocketHandler_t;
+                                     struct Test_I_Source_V4L_SocketHandlerConfiguration> Test_I_Source_V4L_AsynchUDPSocketHandler_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -960,54 +960,54 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_MediaFoundation_AsynchUDPSoc
                                       struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
-                                Test_I_Source_V4L2_TCPSocketHandler_t,
-                                Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                struct Test_I_Source_V4L2_ConnectionState,
+                                Test_I_Source_V4L_TCPSocketHandler_t,
+                                Test_I_Source_V4L_ConnectionConfiguration_t,
+                                struct Test_I_Source_V4L_ConnectionState,
                                 struct Test_I_Source_Stream_StatisticData,
-                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
+                                struct Test_I_Source_V4L_SocketHandlerConfiguration,
                                 struct Net_ListenerConfiguration,
-                                Test_I_Source_V4L2_NetStream_t,
+                                Test_I_Source_V4L_NetStream_t,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnection_t;
+                                struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_TCPConnection_t;
 #if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
-                                Test_I_Source_V4L2_SSLTCPSocketHandler_t,
-                                Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                struct Test_I_Source_V4L2_ConnectionState,
+                                Test_I_Source_V4L_SSLTCPSocketHandler_t,
+                                Test_I_Source_V4L_ConnectionConfiguration_t,
+                                struct Test_I_Source_V4L_ConnectionState,
                                 struct Test_I_Source_Stream_StatisticData,
-                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
+                                struct Test_I_Source_V4L_SocketHandlerConfiguration,
                                 struct Net_ListenerConfiguration,
-                                Test_I_Source_V4L2_NetStream_t,
+                                Test_I_Source_V4L_NetStream_t,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_SSLTCPConnection_t;
+                                struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_SSLTCPConnection_t;
 #endif // SSL_SUPPORT
-typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L2_AsynchTCPSocketHandler_t,
-                                      Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                      struct Test_I_Source_V4L2_ConnectionState,
+typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L_AsynchTCPSocketHandler_t,
+                                      Test_I_Source_V4L_ConnectionConfiguration_t,
+                                      struct Test_I_Source_V4L_ConnectionState,
                                       struct Test_I_Source_Stream_StatisticData,
-                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
+                                      struct Test_I_Source_V4L_SocketHandlerConfiguration,
                                       struct Net_ListenerConfiguration,
-                                      Test_I_Source_V4L2_NetStream_t,
+                                      Test_I_Source_V4L_NetStream_t,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_AsynchTCPConnection_t;
+                                      struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
-                                Test_I_Source_V4L2_UDPSocketHandler_t,
-                                Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                struct Test_I_Source_V4L2_ConnectionState,
+                                Test_I_Source_V4L_UDPSocketHandler_t,
+                                Test_I_Source_V4L_ConnectionConfiguration_t,
+                                struct Test_I_Source_V4L_ConnectionState,
                                 struct Test_I_Source_Stream_StatisticData,
-                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                Test_I_Source_V4L2_NetStream_t,
+                                struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                                Test_I_Source_V4L_NetStream_t,
                                 Common_Timer_Manager_t,
-                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPConnection_t;
-typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_V4L2_AsynchUDPSocketHandler_t,
-                                      Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                      struct Test_I_Source_V4L2_ConnectionState,
+                                struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_UDPConnection_t;
+typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_V4L_AsynchUDPSocketHandler_t,
+                                      Test_I_Source_V4L_ConnectionConfiguration_t,
+                                      struct Test_I_Source_V4L_ConnectionState,
                                       struct Test_I_Source_Stream_StatisticData,
-                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                      Test_I_Source_V4L2_NetStream_t,
+                                      struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                                      Test_I_Source_V4L_NetStream_t,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_AsynchUDPConnection_t;
+                                      struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_AsynchUDPConnection_t;
 #endif
 
 //////////////////////////////////////////
@@ -1019,7 +1019,7 @@ typedef Net_IConnector_T<ACE_INET_Addr,
                          Test_I_Source_MediaFoundation_ConnectionConfiguration_t> Test_I_Source_MediaFoundation_IInetConnector_t;
 #else
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         Test_I_Source_V4L2_ConnectionConfiguration_t> Test_I_Source_V4L2_IInetConnector_t;
+                         Test_I_Source_V4L_ConnectionConfiguration_t> Test_I_Source_V4L_IInetConnector_t;
 #endif
 
 //////////////////////////////////////////
@@ -1133,57 +1133,57 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchUDPConn
                                      struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_UDPAsynchConnector_t;
 #else
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
-                               Test_I_Source_V4L2_TCPConnection_t,
+                               Test_I_Source_V4L_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               Test_I_Source_V4L2_ConnectionConfiguration_t,
-                               struct Test_I_Source_V4L2_ConnectionState,
+                               Test_I_Source_V4L_ConnectionConfiguration_t,
+                               struct Test_I_Source_V4L_ConnectionState,
                                struct Test_I_Source_Stream_StatisticData,
                                struct Net_TCPSocketConfiguration,
-                               struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                               Test_I_Source_V4L2_NetStream_t,
-                               struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnector_t;
+                               struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                               Test_I_Source_V4L_NetStream_t,
+                               struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_TCPConnector_t;
 #if defined (SSL_SUPPORT)
-typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L2_SSLTCPConnection_t,
+typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
-                                   Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                   struct Test_I_Source_V4L2_ConnectionState,
+                                   Test_I_Source_V4L_ConnectionConfiguration_t,
+                                   struct Test_I_Source_V4L_ConnectionState,
                                    struct Test_I_Source_Stream_StatisticData,
-                                   struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                   Test_I_Source_V4L2_NetStream_t,
-                                   struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_SSLTCPConnector_t;
+                                   struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                                   Test_I_Source_V4L_NetStream_t,
+                                   struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_SSLTCPConnector_t;
 #endif // SSL_SUPPORT
-typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchTCPConnection_t,
+typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                     struct Test_I_Source_V4L2_ConnectionState,
+                                     Test_I_Source_V4L_ConnectionConfiguration_t,
+                                     struct Test_I_Source_V4L_ConnectionState,
                                      struct Test_I_Source_Stream_StatisticData,
                                      struct Net_TCPSocketConfiguration,
-                                     struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                     Test_I_Source_V4L2_NetStream_t,
-                                     struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPAsynchConnector_t;
+                                     struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                                     Test_I_Source_V4L_NetStream_t,
+                                     struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_TCPAsynchConnector_t;
 
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
-                               Test_I_Source_V4L2_UDPConnection_t,
+                               Test_I_Source_V4L_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
-                               Test_I_Source_V4L2_ConnectionConfiguration_t,
-                               struct Test_I_Source_V4L2_ConnectionState,
+                               Test_I_Source_V4L_ConnectionConfiguration_t,
+                               struct Test_I_Source_V4L_ConnectionState,
                                struct Test_I_Source_Stream_StatisticData,
                                struct Net_UDPSocketConfiguration,
-                               struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                               Test_I_Source_V4L2_NetStream_t,
-                               struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPConnector_t;
-typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchUDPConnection_t,
+                               struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                               Test_I_Source_V4L_NetStream_t,
+                               struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_UDPConnector_t;
+typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_V4L2_ConnectionConfiguration_t,
-                                     struct Test_I_Source_V4L2_ConnectionState,
+                                     Test_I_Source_V4L_ConnectionConfiguration_t,
+                                     struct Test_I_Source_V4L_ConnectionState,
                                      struct Test_I_Source_Stream_StatisticData,
                                      struct Net_UDPSocketConfiguration,
-                                     struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                     Test_I_Source_V4L2_NetStream_t,
-                                     struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPAsynchConnector_t;
+                                     struct Test_I_Source_V4L_SocketHandlerConfiguration,
+                                     Test_I_Source_V4L_NetStream_t,
+                                     struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_UDPAsynchConnector_t;
 #endif
 
 //////////////////////////////////////////

@@ -130,50 +130,50 @@ class Test_I_Source_MediaFoundation_SessionMessage
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_SessionMessage& operator= (const Test_I_Source_MediaFoundation_SessionMessage&))
 };
 #else
-class Test_I_Source_V4L2_SessionMessage
+class Test_I_Source_V4L_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
-                                      Test_I_Source_V4L2_SessionData_t,
-                                      struct Test_I_Source_V4L2_UserData>
+                                      Test_I_Source_V4L_SessionData_t,
+                                      struct Test_I_Source_V4L_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
-                                                 Test_I_Source_V4L2_Stream_Message,
-                                                 Test_I_Source_V4L2_SessionMessage>;
+                                                 Test_I_Source_V4L_Stream_Message,
+                                                 Test_I_Source_V4L_SessionMessage>;
 
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
-                                      Test_I_Source_V4L2_SessionData_t,
-                                      struct Test_I_Source_V4L2_UserData> inherited;
+                                      Test_I_Source_V4L_SessionData_t,
+                                      struct Test_I_Source_V4L_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_I_Source_V4L2_SessionMessage (Stream_SessionId_t,
+  Test_I_Source_V4L_SessionMessage (Stream_SessionId_t,
                                      enum Stream_SessionMessageType,
-                                     Test_I_Source_V4L2_SessionData_t*&,   // session data container handle
-                                     struct Test_I_Source_V4L2_UserData*);
-  inline virtual ~Test_I_Source_V4L2_SessionMessage () {}
+                                     Test_I_Source_V4L_SessionData_t*&,   // session data container handle
+                                     struct Test_I_Source_V4L_UserData*);
+  inline virtual ~Test_I_Source_V4L_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
   // copy ctor to be used by duplicate()
-  Test_I_Source_V4L2_SessionMessage (const Test_I_Source_V4L2_SessionMessage&);
+  Test_I_Source_V4L_SessionMessage (const Test_I_Source_V4L_SessionMessage&);
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_I_Source_V4L2_SessionMessage (Stream_SessionId_t,
+  Test_I_Source_V4L_SessionMessage (Stream_SessionId_t,
                                      ACE_Allocator*); // message allocator
-  Test_I_Source_V4L2_SessionMessage (Stream_SessionId_t,
+  Test_I_Source_V4L_SessionMessage (Stream_SessionId_t,
                                      ACE_Data_Block*, // data block to use
                                      ACE_Allocator*); // message allocator
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_SessionMessage ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_SessionMessage& operator= (const Test_I_Source_V4L2_SessionMessage&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_SessionMessage& operator= (const Test_I_Source_V4L_SessionMessage&))
 };
 #endif
 

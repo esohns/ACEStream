@@ -1173,7 +1173,7 @@ template <typename StreamStateType,
           typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Test_I_Source_V4L2_Stream_T<StreamStateType,
+Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
@@ -1183,10 +1183,10 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
-                            ConnectorType>::Test_I_Source_V4L2_Stream_T ()
+                            ConnectorType>::Test_I_Source_V4L_Stream_T ()
  : inherited ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::Test_I_Source_V4L2_Stream_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::Test_I_Source_V4L_Stream_T"));
 
 }
 
@@ -1201,7 +1201,7 @@ template <typename StreamStateType,
           typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Test_I_Source_V4L2_Stream_T<StreamStateType,
+Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
@@ -1211,9 +1211,9 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
-                            ConnectorType>::~Test_I_Source_V4L2_Stream_T ()
+                            ConnectorType>::~Test_I_Source_V4L_Stream_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::~Test_I_Source_V4L2_Stream_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::~Test_I_Source_V4L_Stream_T"));
 
   // *NOTE*: implements an ordered shutdown on destruction
   inherited::shutdown ();
@@ -1231,7 +1231,7 @@ template <typename StreamStateType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Test_I_Source_V4L2_Stream_T<StreamStateType,
+Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
@@ -1244,14 +1244,14 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConnectorType>::load (Stream_ModuleList_t& modules_out,
                                                   bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::load"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::load"));
 
   Stream_Module_t* module_p = NULL;
   // *TODO*: remove type inference
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_Display_Module (this,
+                  Test_I_Source_V4L_Display_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
@@ -1265,13 +1265,13 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_StatisticReport_Module (this,
+                  Test_I_Source_V4L_StatisticReport_Module (this,
                                                              ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_CamSource_Module (this,
+                  Test_I_Source_V4L_CamSource_Module (this,
                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
@@ -1293,7 +1293,7 @@ template <typename StreamStateType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Test_I_Source_V4L2_Stream_T<StreamStateType,
+Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
@@ -1305,7 +1305,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConnectionManagerType,
                             ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::initialize"));
 
 //  bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
@@ -1343,7 +1343,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Source_V4L2_CamSource* source_impl_p = NULL;
+  Test_I_Source_V4L_CamSource* source_impl_p = NULL;
 
   // ******************* Camera Source ************************
   typename inherited::MODULE_T* module_p =
@@ -1356,11 +1356,11 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     return false;
   } // end IF
   source_impl_p =
-    dynamic_cast<Test_I_Source_V4L2_CamSource*> (module_p->writer ());
+    dynamic_cast<Test_I_Source_V4L_CamSource*> (module_p->writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L2_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L_CamSource> failed, aborting\n")));
     return false;
   } // end IF
   source_impl_p->setP (&(inherited::state_));
@@ -1414,7 +1414,7 @@ template <typename StreamStateType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Test_I_Source_V4L2_Stream_T<StreamStateType,
+Test_I_Source_V4L_Stream_T<StreamStateType,
                             ConfigurationType,
                             StatisticHandlerType,
                             HandlerConfigurationType,
@@ -1426,7 +1426,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConnectionManagerType,
                             ConnectorType>::ping ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::ping"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::ping"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

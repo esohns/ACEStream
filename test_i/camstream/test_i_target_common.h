@@ -91,7 +91,7 @@ class Test_I_Target_MediaFoundation_SessionMessage;
 #else
 struct v4l2_window;
 class Test_I_Target_Stream_Message;
-class Test_I_Target_Stream_SessionMessage;
+class Test_I_Target_SessionMessage;
 #endif // ACE_WIN32 || ACE_WIN64
 template <typename ConfigurationType,
           typename ConnectionManagerType>
@@ -233,15 +233,15 @@ class Test_I_Target_MediaFoundation_SessionData
 typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
 class Test_I_Target_SessionData
- : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L2_SessionData,
-                                 struct Stream_MediaFramework_V4L_MediaType,
-                                 struct Test_I_Target_StreamState,
-                                 Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData>
+ : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
+                                        struct Stream_MediaFramework_V4L_MediaType,
+                                        struct Test_I_Target_StreamState,
+                                        Test_I_Statistic_t,
+                                        struct Test_I_Target_UserData>
 {
  public:
   Test_I_Target_SessionData ()
-   : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L2_SessionData,
+   : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                    struct Stream_MediaFramework_V4L_MediaType,
                                    struct Test_I_Target_StreamState,
                                    Test_I_Statistic_t,
@@ -252,7 +252,7 @@ class Test_I_Target_SessionData
   Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L2_SessionData,
+    Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                   struct Stream_MediaFramework_V4L_MediaType,
                                   struct Test_I_Target_StreamState,
                                   Test_I_Statistic_t,
@@ -266,7 +266,7 @@ class Test_I_Target_SessionData
 
   std::string targetFileName;
 };
-typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -453,7 +453,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
                                     Test_I_Target_Stream_Message,
-                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
+                                    Test_I_Target_SessionMessage> Test_I_Target_ISessionNotify_t;
 typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
 typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
 struct Test_I_Target_StreamConfiguration;
@@ -823,7 +823,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
-                                          Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
+                                          Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////

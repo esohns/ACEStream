@@ -874,7 +874,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (formatContext_->oformat);
 
       formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (format_)
+      switch (format_.format)
       {
         // RGB formats
         case AV_PIX_FMT_BGR24:

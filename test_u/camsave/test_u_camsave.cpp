@@ -1107,9 +1107,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   Stream_CamSave_V4L_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
-                                                  &CBData_in
+                                                      &CBData_in
 #endif // GUI_SUPPORT
-                                                 );
+                                                     );
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

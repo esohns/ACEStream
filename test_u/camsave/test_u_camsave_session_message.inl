@@ -41,8 +41,8 @@ Stream_CamSave_SessionMessage_T<DataMessageType,
 template <typename DataMessageType,
           typename SessionDataType>
 Stream_CamSave_SessionMessage_T<DataMessageType,
-                                SessionDataType>::Stream_CamSave_SessionMessage_T (const typename Stream_CamSave_SessionMessage_T<DataMessageType,
-                                                                                                                                  SessionDataType>& message_in)
+                                SessionDataType>::Stream_CamSave_SessionMessage_T (const Stream_CamSave_SessionMessage_T<DataMessageType,
+                                                                                                                         SessionDataType>& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage_T::Stream_CamSave_SessionMessage_T"));

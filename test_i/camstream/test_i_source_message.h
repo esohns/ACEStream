@@ -143,10 +143,10 @@ class Test_I_Source_MediaFoundation_Stream_Message
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message& operator= (const Test_I_Source_MediaFoundation_Stream_Message&))
 };
 #else
-class Test_I_Source_V4L2_Stream_Message
+class Test_I_Source_V4L_Stream_Message
  : public Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_V4L2_MessageData,
+                                   struct Test_I_V4L_MessageData,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
 {
@@ -154,12 +154,12 @@ class Test_I_Source_V4L2_Stream_Message
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
-                                                 Test_I_Source_V4L2_Stream_Message,
-                                                 Test_I_Source_V4L2_SessionMessage>;
+                                                 Test_I_Source_V4L_Stream_Message,
+                                                 Test_I_Source_V4L_SessionMessage>;
 
  public:
-  Test_I_Source_V4L2_Stream_Message (unsigned int); // size
-  inline virtual ~Test_I_Source_V4L2_Stream_Message () {};
+  Test_I_Source_V4L_Stream_Message (unsigned int); // size
+  inline virtual ~Test_I_Source_V4L_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -174,24 +174,24 @@ class Test_I_Source_V4L2_Stream_Message
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Test_I_Source_V4L2_Stream_Message (const Test_I_Source_V4L2_Stream_Message&);
+  Test_I_Source_V4L_Stream_Message (const Test_I_Source_V4L_Stream_Message&);
 
  private:
   typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_V4L2_MessageData,
+                                   struct Test_I_V4L_MessageData,
                                    Test_I_CommandType_t> inherited;
   typedef Common_ReferenceCounterBase inherited2;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_Message ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t,
-                                     ACE_Data_Block*, // data block
-                                     ACE_Allocator*,  // message allocator
-                                     bool = true);    // increment running message counter ?
-  Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t,
-                                     ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_Message& operator= (const Test_I_Source_V4L2_Stream_Message&))
+  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t,
+                                    ACE_Data_Block*, // data block
+                                    ACE_Allocator*,  // message allocator
+                                    bool = true);    // increment running message counter ?
+  Test_I_Source_V4L_Stream_Message (Stream_SessionId_t,
+                                    ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_Stream_Message& operator= (const Test_I_Source_V4L_Stream_Message&))
 };
 #endif
 
