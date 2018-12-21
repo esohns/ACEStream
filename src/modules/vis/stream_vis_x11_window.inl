@@ -275,8 +275,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                     DefaultDepth (display_, DefaultScreen (display_)),
                     XYPixmap,
                     0,
-                    (transform_image ? buffer_
-                                     : reinterpret_cast<uint8_t*> (message_inout->rd_ptr ())),
+                    (transform_image ? reinterpret_cast<char*> (buffer_)
+                                     : reinterpret_cast<char*> (message_inout->rd_ptr ())),
                     resolution_2.width, resolution_2.height,
                     32,
                     row_stride_2);
@@ -431,6 +431,31 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
+void
+Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::toggle ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::toggle"));
+
+  ACE_ASSERT (false); // *TODO*
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -480,33 +505,29 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       XSetErrorHandler (libacestream_vis_x11_error_handler_cb);
   ACE_UNUSED_ARG (error_handler_p);
 
+  ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
-  if (configuration_in.display)
+  ACE_TCHAR* display_p =
+      (!configuration_in.display.device.empty () ? ACE_TEXT (const_cast<char*> (configuration_in.display.device.c_str ()))
+                                                 : ACE_OS::getenv (ACE_TEXT (STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE)));
+  ACE_ASSERT (display_p);
+  display_ = XOpenDisplay (ACE_TEXT_ALWAYS_CHAR (display_p));
+  if (unlikely (!display_))
   {
-    display_ = configuration_in.display;
-  } // end IF
-  else
-  {
-    ACE_TCHAR* display_p =
-        ACE_OS::getenv (ACE_TEXT (STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE));
-    display_ = XOpenDisplay (ACE_TEXT_ALWAYS_CHAR (display_p));
-    if (unlikely (!display_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  display_p));
-      return false;
-    } // end IF
-#if defined (_DEBUG)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: opened X11 connection (display: \"%s\")\n"),
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 display_p));
+    return false;
+  } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: opened X11 connection (display: \"%s\")\n"),
+              inherited::mod_->name (),
+              display_p));
 #endif // _DEBUG
-    closeDisplay_ = true;
-    XSync (display_, False);
-  } // end ELSE
+  closeDisplay_ = true;
+  XSync (display_, False);
   ACE_ASSERT (display_);
   if (configuration_in.window)
     window_ = configuration_in.window;

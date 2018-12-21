@@ -41,15 +41,19 @@
 #define STREAM_VIS_FRAMEWORK_DEFAULT                                      STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
+#elif defined (WXWIDGETS_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D
 #else
-#if defined (GTK_SUPPORT)
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
+#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_X11
+#endif // ACE_WIN32 || ACE_WIN64
+#endif
 #else
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_NULL
-#endif // GTK_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // GUI_SUPPORT
 
 // renderers
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -33,6 +33,7 @@
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_CAMSAVE_UI_DEFINITION_FILE              "camsave.xrc"
 #endif // WXWIDGETS_USE
+#define TEST_U_STREAM_CAMSAVE_UI_CSS_FILE                     "camsave.css"
 
 //---------------------------------------
 #if defined (GTK_USE)

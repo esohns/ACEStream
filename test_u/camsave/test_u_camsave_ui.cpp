@@ -1,6 +1,11 @@
 #include "ace/Synch.h"
 #include "test_u_camsave_ui.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "gdk/gdkx.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "test_u_camsave_common.h"
 
 //////////////////////////////////////////
@@ -440,8 +445,8 @@ stream_processing_thread (void* arg_in)
   const Stream_CamSave_MediaFoundation_SessionData* mediafoundation_session_data_p =
     NULL;
 #else
-  const Stream_CamSave_SessionData_t* session_data_container_p = NULL;
-  const struct Stream_CamSave_SessionData* session_data_p = NULL;
+  const Stream_CamSave_V4L_SessionData_t* session_data_container_p = NULL;
+  const Stream_CamSave_V4L_SessionData* session_data_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IStreamControlBase* stream_p = NULL;
 
@@ -542,7 +547,7 @@ stream_processing_thread (void* arg_in)
   stream_p = cb_data_p->stream;
   session_data_container_p = &cb_data_p->stream->getR ();
   ACE_ASSERT (session_data_container_p);
-  session_data_p = &csession_data_container_p->getR ();
+  session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
   thread_data_p->sessionId = session_data_p->sessionId;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -813,13 +818,12 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   for (Stream_Device_ListIterator_t iterator = devices_a.begin ();
        iterator != devices_a.end ();
        ++iterator)
-  { ACE_ASSERT ((*iterator).identifierDiscriminator == Stream_Device_Identifier::STRING);
+  {
     client_data_p = NULL;
     ACE_NEW_NORETURN (client_data_p,
                       wxStringClientData ());
     ACE_ASSERT (client_data_p);
-    client_data_p->SetData ((*iterator).identifier._string);
-
+    client_data_p->SetData ((*iterator).identifier);
     index_i =
       choice_source->Append ((*iterator).description.c_str (),
                              client_data_p);
@@ -902,10 +906,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   application_->wait ();
 
   if (likely (activate_display_b))
-  { ACE_ASSERT (!(*stream_iterator_2).second.second.deviceIdentifier.identifier.empty ());
+  { ACE_ASSERT (!(*stream_iterator_2).second.second.display.device.empty ());
     index_i =
       (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_display,
-                                                                     (*stream_iterator_2).second.second.deviceIdentifier.identifier)
+                                                                     (*stream_iterator_2).second.second.display.device)
                      : 0);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_display->Select (index_i);
@@ -917,8 +921,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     wxCommandEvent event_2 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_display"));
 
-    event_2.SetInt ((*stream_iterator_2).second.second.deviceIdentifier.identifier.empty () ? 0
-                                                                                            : 1);
+    event_2.SetInt ((*stream_iterator_2).second.second.display.device.empty () ? 0
+                                                                               : 1);
     //togglebutton_display->GetEventHandler ()->ProcessEvent (event_2);
     this->AddPendingEvent (event_2);
     wxCommandEvent event_3 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
@@ -1687,9 +1691,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     area_s = panel_video->GetClientRect ();
     (*stream_iterator).second.second.area.left = area_s.GetLeft ();
     (*stream_iterator).second.second.area.top = area_s.GetTop ();
-    (*stream_iterator).second.second.area.width = area_s.GetWidth ();
-    (*stream_iterator).second.second.area.height = area_s.GetHeight ();
-    (*stream_iterator).second.second.window = panel_video;
+    (*stream_iterator).second.second.area.width =
+        static_cast<__u32> (area_s.GetWidth ());
+    (*stream_iterator).second.second.area.height =
+        static_cast<__u32> (area_s.GetHeight ());
+    GtkWidget* widget_p = panel_video->GetHandle ();
+    ACE_ASSERT (widget_p);
+    GdkWindow* window_p = gtk_widget_get_window (widget_p);
+//    ACE_ASSERT (window_p);
+//    (*stream_iterator).second.second.window = GDK_WINDOW_XID (window_p);
+//    ACE_ASSERT ((*stream_iterator).second.second.window);
     wxStringClientData* client_data_p =
       dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
     ACE_ASSERT (client_data_p);

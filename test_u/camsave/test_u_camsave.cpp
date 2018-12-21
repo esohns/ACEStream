@@ -33,7 +33,10 @@
 #include "gdk/gdkwin32.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#elif defined (WXWIDGETS_USE)
+#include "gdk/gdk.h"
+#include "gtk/gtk.h"
+#endif
 #endif // GUI_SUPPORT
 
 #include "ace/Get_Opt.h"
@@ -1108,6 +1111,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_CamSave_V4L_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                       &CBData_in
+#if defined (GTK_USE)
+#elif defined (WXWIDGETS_USE)
+                                                      ,iapplication_in
+#endif
 #endif // GUI_SUPPORT
                                                      );
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1334,6 +1341,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                    modulehandler_configuration,
                                                    configuration_in.streamConfiguration.allocatorConfiguration_,
                                                    configuration_in.streamConfiguration.configuration_);
+  modulehandler_configuration.display = displayDevice_in;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+                                                               std::make_pair (module_configuration,
+                                                                               modulehandler_configuration)));
   v4l_stream_iterator =
     configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
@@ -1493,6 +1504,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
 #else
     case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
 #endif // ACE_WIN32 || ACE_WIN64
       break;
 #if defined (GTK_USE)
@@ -2208,6 +2220,60 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #else
+  // *WORKAROUND*: this prevents crashing the wxGTK3 application in Fedora 29
+  GtkCssProvider* css_provider_p = gtk_css_provider_new ();
+  if (!css_provider_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_css_provider_new(), returning\n")));
+
+    Common_Log_Tools::finalizeLogging ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows, finalize ACE...
+    result = ACE::fini ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
+    return EXIT_FAILURE;
+  } // end IF
+  GError* error_p = NULL;
+  std::string css_profile_path = Common_File_Tools::getWorkingDirectory ();
+  css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
+  css_profile_path +=
+      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
+  css_profile_path +=ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_UI_CSS_FILE);
+  if (!gtk_css_provider_load_from_path (css_provider_p,
+                                        css_profile_path.c_str (),
+                                        &error_p))
+  { ACE_ASSERT (error_p);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_css_provider_load_from_path(\"%s\"): \"%s\", returning\n"),
+                ACE_TEXT (css_profile_path.c_str ()),
+                ACE_TEXT (error_p->message)));
+    g_error_free (error_p); error_p = NULL;
+
+    Common_Log_Tools::finalizeLogging ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *PORTABILITY*: on Windows, finalize ACE...
+    result = ACE::fini ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
+    return EXIT_FAILURE;
+  } // end IF
+  GdkDisplay* display_p = gdk_display_open (ACE_TEXT_ALWAYS_CHAR (":0"));
+  ACE_ASSERT (display_p);
+  gdk_display_manager_set_default_display (gdk_display_manager_get (),
+                                           display_p);
+  GdkScreen* screen_p = gdk_screen_get_default ();
+  ACE_ASSERT (screen_p);
+  gtk_style_context_add_provider_for_screen (screen_p,
+                                             GTK_STYLE_PROVIDER (css_provider_p),
+                                             GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
   ACE_NEW_NORETURN (iapplication_p,
                     Stream_CamSave_V4L_WxWidgetsApplication_t (toplevel_widget_name_string_,
                                                                argc_in,

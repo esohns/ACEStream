@@ -380,29 +380,29 @@ Test_I_Source_V4L_Stream_Message::release (void)
   // *NOTE*: this is a device data buffer
   //         --> return it to the pool
 
-  struct V4L_buffer buffer;
-  ACE_OS::memset (&buffer, 0, sizeof (struct V4L_buffer));
+  struct v4l2_buffer buffer;
+  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
   buffer.index = inherited::data_.index;
-  buffer.type = V4L_BUF_TYPE_VIDEO_CAPTURE;
+  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   buffer.memory = inherited::data_.method;
   switch (inherited::data_.method)
   {
-  case V4L_MEMORY_USERPTR:
-  {
-    buffer.m.userptr =
-      reinterpret_cast<unsigned long> (inherited::rd_ptr ());
-    buffer.length = inherited::size ();
-    break;
-  }
-  case V4L_MEMORY_MMAP:
-    break;
-  default:
-  {
-    ACE_DEBUG ((LM_ERROR,
-      ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
-      inherited::data_.method));
-    return NULL;
-  }
+    case V4L2_MEMORY_USERPTR:
+    {
+      buffer.m.userptr =
+          reinterpret_cast<unsigned long> (inherited::rd_ptr ());
+      buffer.length = inherited::size ();
+      break;
+    }
+    case V4L2_MEMORY_MMAP:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
+                  inherited::data_.method));
+      return NULL;
+    }
   } // end SWITCH
     // *NOTE*: in oder to retrieve the buffer instance handle from the device
     //         buffer when it has written the frame data, the address of the
@@ -410,16 +410,16 @@ Test_I_Source_V4L_Stream_Message::release (void)
     //         Unfortunately this does not work, the fields are 0-ed by the driver
     //         --> maintain a mapping: buffer index <--> buffer handle
     //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  result = V4L_ioctl (inherited::data_.device,
-    VIDIOC_QBUF,
-    &buffer);
+  result = v4l2_ioctl (inherited::data_.device,
+                       VIDIOC_QBUF,
+                       &buffer);
   if (result == -1)
   {
     error = ACE_OS::last_error ();
     if (error != EINVAL) // 22
       ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("failed to V4L_ioctl(%d,%s): \"%m\", continuing\n"),
-        inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+                  ACE_TEXT ("failed to V4L_ioctl(%d,%s): \"%m\", continuing\n"),
+                  inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
   } // end IF
 
     //  unsigned int done = 0;

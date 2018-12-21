@@ -1413,11 +1413,11 @@ unlock:
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
         opengl_instruction.color = backgroundColor_;
         opengl_instruction.type =
-          STREAM_VISUALIZATION_OPENGLINSTRUCTION_SET_COLOR_BG;
+          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG;
         OpenGLInstructions_->push_back (opengl_instruction);
         opengl_instruction.color = foregroundColor_;
         opengl_instruction.type =
-          STREAM_VISUALIZATION_OPENGLINSTRUCTION_SET_COLOR_FG;
+          STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG;
         OpenGLInstructions_->push_back (opengl_instruction);
       } // end lock scope
 #else

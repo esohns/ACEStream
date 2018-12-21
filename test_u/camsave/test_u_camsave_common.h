@@ -64,6 +64,7 @@ extern "C"
 #include "common_tools.h"
 
 #if defined (GUI_SUPPORT)
+#include "common_ui_common.h"
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_common.h"
@@ -433,7 +434,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (GTK_USE)
    , window (NULL)
 #elif defined (WXWIDGETS_USE)
-   , window (NULL)
+   , window (0)
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
@@ -456,7 +457,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (GTK_USE)
   GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
-  wxWindow*                       window;
+  Window                          window;
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
@@ -604,10 +605,12 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+#if defined (GUI_SUPPORT)
+   , display ()
+#endif // GUI_SUPPORT
    , fileDescriptor (-1)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
-   //, sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
   {
@@ -628,10 +631,12 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   __u32                                         buffers; // v4l device buffers
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
+#if defined (GUI_SUPPORT)
+  struct Common_UI_DisplayDevice                display; // display module
+#endif // GUI_SUPPORT
   int                                           fileDescriptor;
   enum v4l2_memory                              method; // v4l camera source
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
-  //struct Stream_MediaFramework_V4L_MediaType    sourceFormat;
   Stream_CamSave_V4L_ISessionNotify_t*          subscriber;
   Stream_CamSave_V4L_Subscribers_t*             subscribers;
 };

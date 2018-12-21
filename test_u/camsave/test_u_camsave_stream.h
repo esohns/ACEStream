@@ -268,6 +268,8 @@ class Stream_CamSave_V4L_Stream
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
+#elif defined (WXWIDGETS_USE)
+  Stream_CamSave_X11WindowDisplay_Module X11WindowDisplay_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   Stream_CamSave_V4L_AVIEncoder_Module  encoder_;

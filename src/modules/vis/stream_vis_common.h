@@ -21,7 +21,6 @@
 #ifndef STREAM_VISUALIZATION_COMMON_H
 #define STREAM_VISUALIZATION_COMMON_H
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
 #include <deque>
@@ -29,7 +28,6 @@
 
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #include "ace/config-lite.h"
 
@@ -94,7 +92,6 @@ enum Stream_Visualization_SpectrumAnalyzer_3DMode
   STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID
 };
 
-#if defined (GUI_SUPPORT)
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
 enum Stream_Visualization_OpenGL_InstructionType
@@ -124,6 +121,5 @@ typedef std::deque<struct Stream_Visualization_OpenGL_Instruction> Stream_Visual
 typedef Stream_Visualization_OpenGL_Instructions_t::const_iterator Stream_Visualization_OpenGL_InstructionsIterator_t;
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
-#endif // GUI_SUPPORT
 
 #endif

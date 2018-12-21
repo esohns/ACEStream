@@ -101,7 +101,8 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (&encoder_);
   switch (inherited::configuration_->configuration_.renderer)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+      break;
     //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     //  modules_out.push_back (&direct2DDisplay_);
     //  break;
@@ -114,12 +115,13 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     //case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
     //  modules_out.push_back (&mediaFoundationDisplay_);
     //  break;
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
       modules_out.push_back (&GTKCairoDisplay_);
       break;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -927,7 +929,8 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (&encoder_);
   switch (inherited::configuration_->configuration_.renderer)
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+      break;
     //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
     //  modules_out.push_back (&direct2DDisplay_);
     //  break;
@@ -941,12 +944,13 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
       modules_out.push_back (&mediaFoundationDisplay_);
       //modules_out.push_back (&mediaFoundationDisplayNull_);
       break;
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
       modules_out.push_back (&GTKCairoDisplay_);
       break;
 #endif // GTK_USE
+#endif // GUI_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1263,10 +1267,15 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
+#elif defined (WXWIDGETS_USE)
+ , X11WindowDisplay_ (this,
+                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+#endif
+#endif // GUI_SUPPORT
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -1298,9 +1307,13 @@ Stream_CamSave_V4L_Stream::load (Stream_ModuleList_t& modules_out,
   //         close()d
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&encoder_);
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   modules_out.push_back (&GTKCairoDisplay_);
+#elif defined (WXWIDGETS_USE)
+  modules_out.push_back (&X11WindowDisplay_);
 #endif // GTK_USE
+#endif // GUI_SUPPORT
   modules_out.push_back (&converter_);
   modules_out.push_back (&decoder_);
   modules_out.push_back (&statisticReport_);
@@ -1319,7 +1332,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  struct Stream_CamSave_SessionData* session_data_p = NULL;
+  Stream_CamSave_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_CamSave_V4L_Source* source_impl_p = NULL;
@@ -1343,7 +1356,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_CamSave_V4L_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 

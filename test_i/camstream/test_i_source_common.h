@@ -569,7 +569,7 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
    , userData (NULL)
   {
 #if defined (GUI_SUPPORT)
-    ACE_OS::memset (&area, 0, sizeof (struct V4L_rect));
+    ACE_OS::memset (&area, 0, sizeof (struct v4l2_rect));
 #endif // GUI_SUPPORT
 
     finishOnDisconnect = true;
@@ -962,10 +962,10 @@ struct Test_I_Source_V4L_UI_CBData
   {}
 
   struct Test_I_Source_V4L_Configuration* configuration;
-  int                                      fileDescriptor; // (capture) device file descriptor
+  int                                     fileDescriptor; // (capture) device file descriptor
   Test_I_Source_V4L_StreamBase_t*         stream;
   Test_I_Source_V4L_Subscribers_t         subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX                subscribersLock;
+  ACE_SYNCH_RECURSIVE_MUTEX               subscribersLock;
   Test_I_Source_V4L_StreamBase_t*         UDPStream;
 };
 #endif // ACE_WIN32 || ACE_WIN64

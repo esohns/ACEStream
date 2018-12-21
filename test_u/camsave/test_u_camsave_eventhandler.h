@@ -49,7 +49,7 @@ class Stream_CamSave_EventHandler_T
                                 );
 #elif defined (WXWIDGETS_USE)
                                  ,InterfaceType*);                // wxWidgets application handle
-#endif // GTK_USE
+#endif
 #else
   Stream_CamSave_EventHandler_T ();
 #endif // GUI_SUPPORT

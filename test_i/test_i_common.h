@@ -93,21 +93,21 @@ struct Test_I_MediaFoundation_MessageData
 };
 typedef Stream_DataBase_T<struct Test_I_MediaFoundation_MessageData> Test_I_MediaFoundation_MessageData_t;
 #else
-struct Test_I_V4L2_MessageData
+struct Test_I_V4L_MessageData
 {
-  Test_I_V4L2_MessageData ()
+  Test_I_V4L_MessageData ()
    : device (-1)
    , index (0)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
 
-  int         device; // (capture) device file descriptor
-  __u32       index;  // 'index' field of v4l2_buffer
-  v4l2_memory method;
-  bool        release;
+  int              device; // (capture) device file descriptor
+  __u32            index;  // 'index' field of V4L_buffer
+  enum v4l2_memory method;
+  bool             release;
 };
-typedef Stream_DataBase_T<struct Test_I_V4L2_MessageData> Test_I_V4L2_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_V4L_MessageData> Test_I_V4L_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //struct Test_I_UserData

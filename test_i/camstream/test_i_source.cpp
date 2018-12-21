@@ -828,7 +828,7 @@ do_work (const std::string& deviceIdentifier_in,
          struct Test_I_Source_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
          struct Test_I_Source_DirectShow_UI_CBData& directShowCBData_in,
 #else
-         struct Test_I_Source_V4L2_UI_CBData& v4l2CBData_in,
+         struct Test_I_Source_V4L_UI_CBData& v4l2CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -836,6 +836,8 @@ do_work (const std::string& deviceIdentifier_in,
          const sigset_t& previousSignalMask_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
+
+  ACE_UNUSED_ARG (useUncompressedFormat_in);
 
   bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -868,8 +870,8 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_Configuration v4l2_configuration;
-  camstream_configuration_p = &v4l2_configuration;
+  struct Test_I_Source_V4L_Configuration V4L_configuration;
+  camstream_configuration_p = &V4L_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
@@ -910,7 +912,7 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  allocator_configuration_p = &v4l2_configuration.allocatorConfiguration;
+  allocator_configuration_p = &V4L_configuration.allocatorConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_configuration_p);
   if (bufferSize_in)
@@ -948,7 +950,7 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+  Test_I_Source_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,     // heap allocator handle
                                                            true);               // block ?
   allocator_p = &message_allocator;
@@ -1049,16 +1051,16 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator;
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator;
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
 
-  Test_I_Source_V4L2_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
+  Test_I_Source_V4L_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  struct Test_I_Source_V4L2_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
 
-  Test_I_Source_V4L2_StreamConfiguration_t stream_configuration;
+  Test_I_Source_V4L_StreamConfiguration_t stream_configuration;
   stream_configuration.configuration_.format.format.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
   stream_configuration.configuration_.format.format.height =
@@ -1066,27 +1068,27 @@ do_work (const std::string& deviceIdentifier_in,
   stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                std::make_pair (module_configuration,
                                                                modulehandler_configuration)));
-  v4l2_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                  stream_configuration));
+  V4L_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 stream_configuration));
   stream_iterator =
-    v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
+    V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_configuration.streamConfigurations.end ());
   stream_iterator =
-    v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
+    V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  ACE_ASSERT (stream_iterator != V4L_configuration.streamConfigurations.end ());
   allocator_configuration_p =
     &(*stream_iterator).second.allocatorConfiguration_;
 
   stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                std::make_pair (module_configuration,
                                                                modulehandler_configuration)));
-  v4l2_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
-                                                                  stream_configuration));
+  V4L_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
+                                                                 stream_configuration));
   //stream_iterator =
-  //  v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  //ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
+  //  V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  //ACE_ASSERT (stream_iterator != V4L_configuration.streamConfigurations.end ());
 
-  v4l2CBData_in.configuration = &v4l2_configuration;
+  v4l2CBData_in.configuration = &V4L_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                    : NET_TRANSPORTLAYER_TCP);
@@ -1129,9 +1131,9 @@ do_work (const std::string& deviceIdentifier_in,
       } // end SWITCH
 #else
       ACE_NEW_NORETURN (v4l2CBData_in.stream,
-                        Test_I_Source_V4L2_TCPStream_t ());
+                        Test_I_Source_V4L_TCPStream_t ());
       ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
-                        Test_I_Source_V4L2_UDPStream_t ());
+                        Test_I_Source_V4L_UDPStream_t ());
       result = (v4l2CBData_in.stream &&
                 v4l2CBData_in.UDPStream);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1172,9 +1174,9 @@ do_work (const std::string& deviceIdentifier_in,
       } // end SWITCH
 #else
       ACE_NEW_NORETURN (v4l2CBData_in.stream,
-                        Test_I_Source_V4L2_AsynchTCPStream_t ());
+                        Test_I_Source_V4L_AsynchTCPStream_t ());
       ACE_NEW_NORETURN (v4l2CBData_in.UDPStream,
-                        Test_I_Source_V4L2_AsynchUDPStream_t ());
+                        Test_I_Source_V4L_AsynchUDPStream_t ());
       result = (v4l2CBData_in.stream &&
                 v4l2CBData_in.UDPStream);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1243,7 +1245,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Source_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
 #else
-  Test_I_Source_V4L2_EventHandler_t ui_event_handler (&v4l2CBData_in);
+  Test_I_Source_V4L_EventHandler_t ui_event_handler (&v4l2CBData_in);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1252,7 +1254,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_MediaFoundation_EventHandler* mediafoundation_event_handler_p =
     NULL;
 #else
-//  Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
+//  Test_I_Source_V4L_Module_EventHandler* module_event_handler_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
   timer_configuration.dispatch =
@@ -1314,17 +1316,17 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_ConnectionConfiguration_t connection_configuration;
+  Test_I_Source_V4L_ConnectionConfiguration_t connection_configuration;
 
   stream_iterator =
-    v4l2_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator != v4l2_configuration.streamConfigurations.end ());
+    V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  ACE_ASSERT (stream_iterator != V4L_configuration.streamConfigurations.end ());
 
   result =
-    connection_configuration.initialize (v4l2_configuration.allocatorConfiguration,
+    connection_configuration.initialize (V4L_configuration.allocatorConfiguration,
                                          (*stream_iterator).second);
   ACE_ASSERT (result);
-  v4l2_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+  V4L_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                       connection_configuration));
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1382,18 +1384,18 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t connection_iterator =
-    v4l2_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (connection_iterator != v4l2_configuration.connectionConfigurations.end ());
-  Test_I_Source_V4L2_InetConnectionManager_t* connection_manager_p =
-    TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Source_V4L_ConnectionConfigurationIterator_t connection_iterator =
+    V4L_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (connection_iterator != V4L_configuration.connectionConfigurations.end ());
+  Test_I_Source_V4L_InetConnectionManager_t* connection_manager_p =
+    TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator =
-    v4l2_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != v4l2_configuration.connectionConfigurations.end ());
+  Test_I_Source_V4L_ConnectionConfigurationIterator_t iterator =
+    V4L_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != V4L_configuration.connectionConfigurations.end ());
   connection_manager_p->set ((*iterator).second,
-                             &v4l2_configuration.userData);
+                             &V4L_configuration.userData);
   (*modulehandler_iterator).second.second.connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
@@ -1434,11 +1436,11 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_SignalHandler_t signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
+  Test_I_Source_V4L_SignalHandler_t signal_handler (((eventDispatchType_in == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                      &v4l2CBData_in.subscribersLock);
   event_handler_p =
-    dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (event_handler.writer ());
+    dynamic_cast<Test_I_Source_V4L_Module_EventHandler*> (event_handler.writer ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1552,7 +1554,7 @@ do_work (const std::string& deviceIdentifier_in,
     goto clean;
   } // end IF
   (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
-    bufferSize_in;
+    static_cast<int> (bufferSize_in);
   (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
     (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
   (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_3.writeOnly =
@@ -1563,11 +1565,11 @@ do_work (const std::string& deviceIdentifier_in,
   (*connection_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   (*connection_iterator).second.socketHandlerConfiguration.userData =
-    &v4l2_configuration.userData;
+    &V4L_configuration.userData;
 
   (*connection_iterator).second.messageAllocator = &message_allocator;
   (*connection_iterator).second.PDUSize = bufferSize_in;
-  (*connection_iterator).second.userData = &v4l2_configuration.userData;
+  (*connection_iterator).second.userData = &V4L_configuration.userData;
   (*connection_iterator).second.initialize (*allocator_configuration_p,
                                             (*stream_iterator).second);
 
@@ -1575,7 +1577,7 @@ do_work (const std::string& deviceIdentifier_in,
     &((*connection_iterator).second);
 
   connection_manager_p->set ((*connection_iterator).second,
-                             &v4l2_configuration.userData);
+                             &V4L_configuration.userData);
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1634,13 +1636,13 @@ do_work (const std::string& deviceIdentifier_in,
 
   (*modulehandler_iterator).second.second.connectionManager =
     connection_manager_p;
-  (*modulehandler_iterator).second.second.configuration = &v4l2_configuration;
+  (*modulehandler_iterator).second.second.configuration = &V4L_configuration;
   (*modulehandler_iterator).second.second.connectionConfigurations =
-      &v4l2_configuration.connectionConfigurations;
+      &V4L_configuration.connectionConfigurations;
   (*modulehandler_iterator).second.second.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
   //(*modulehandler_iterator).second.second.stream =
-  //    ((v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
+  //    ((V4L_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
   //                                                             : v4l2CBData_in.UDPStream);
 //  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
@@ -1659,14 +1661,6 @@ do_work (const std::string& deviceIdentifier_in,
   v4l2CBData_in.UIState = ui_state_p;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  (*modulehandler_iterator).second.second.sourceFormat.format.pixelformat =
-      STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT;
-  (*modulehandler_iterator).second.second.sourceFormat.format.height =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
-  (*modulehandler_iterator).second.second.sourceFormat.format.width =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  (*modulehandler_iterator).second.second.sourceFormat.frameRate.numerator =
-      STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE;
   (*modulehandler_iterator).second.second.outputFormat.format =
       STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
 //  (*modulehandler_iterator).second.second.method =
@@ -1737,15 +1731,15 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  v4l2_configuration.signalHandlerConfiguration.connectionManager =
-    TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
-  v4l2_configuration.signalHandlerConfiguration.dispatchState =
+  V4L_configuration.signalHandlerConfiguration.connectionManager =
+    TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
+  V4L_configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
-  v4l2_configuration.signalHandlerConfiguration.hasUI =
+  V4L_configuration.signalHandlerConfiguration.hasUI =
     !UIDefinitionFilename_in.empty ();
-  v4l2_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;
+  V4L_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;
   result =
-    signal_handler.initialize (v4l2_configuration.signalHandlerConfiguration);
+    signal_handler.initialize (V4L_configuration.signalHandlerConfiguration);
   event_handler_p = &signal_handler;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
@@ -1880,7 +1874,7 @@ do_work (const std::string& deviceIdentifier_in,
       }
     } // end SWITCH
 #else
-    if (v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+    if (V4L_configuration.protocol == NET_TRANSPORTLAYER_TCP)
     {
       stream_p = v4l2CBData_in.stream;
       result = v4l2CBData_in.stream->initialize ((*stream_iterator).second);
@@ -2262,10 +2256,10 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData v4l2_ui_cb_data;
-  //v4l2_ui_cb_data.progressData.state = &v4l2_ui_cb_data;
+  struct Test_I_Source_V4L_UI_CBData V4L_ui_cb_data;
+  //V4L_ui_cb_data.progressData.state = &V4L_ui_cb_data;
 #if defined (GUI_SUPPORT)
-  ui_cb_data_p = &v4l2_ui_cb_data;
+  ui_cb_data_p = &V4L_ui_cb_data;
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
@@ -2409,7 +2403,7 @@ ACE_TMAIN (int argc_in,
 #else
   Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
                                                       argv_in,
-                                                      &v4l2_ui_cb_data);
+                                                      &V4L_ui_cb_data);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!gtk_glade_filename.empty ())
   {
@@ -2512,7 +2506,7 @@ ACE_TMAIN (int argc_in,
            mediafoundation_ui_cb_data,
            directshow_ui_cb_data,
 #else
-           v4l2_ui_cb_data,
+           V4L_ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,
