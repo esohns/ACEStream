@@ -336,11 +336,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , dispatch (NULL)
    , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   , GdkWindow2D (NULL)
-#endif // GTK_USE
-#endif // GUI_SUPPORT
    , mute (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -363,6 +358,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
    , targetFileName ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   , window (NULL)
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   {}
 
 #if defined (GUI_SUPPORT)
@@ -379,11 +379,6 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   std::string                                       deviceIdentifier;
   Test_U_AudioEffect_IDispatch_t*                   dispatch;
   unsigned int                                      fps;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  GdkWindow*                                        GdkWindow2D;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   bool                                              mute;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -406,6 +401,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   bool                                              sinus;
   double                                            sinusFrequency;
   std::string                                       targetFileName;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  GdkWindow*                                        window;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];

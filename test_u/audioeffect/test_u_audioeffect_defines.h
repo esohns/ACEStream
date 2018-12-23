@@ -79,7 +79,9 @@
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                "drawingarea_2d"
-//#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME             "drawingarea_3d"
+#if defined (GTKGL_SUPPORT)
+#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME             "drawingarea_3d"
+#endif // GTKGL_SUPPORT
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME             "filefilter_wav"
@@ -87,7 +89,9 @@
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME               "frame_effect"
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                 "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
-//#define TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME                  "glarea"
+#if defined (GTKGL_SUPPORT)
+#define TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME                  "glarea"
+#endif // GTKGL_SUPPORT
 #define TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME                 "box_effect_2"
 #define TEST_U_STREAM_UI_GTK_BOX_OPTIONS_NAME                "box_options"
 #define TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME                   "box_save_2"

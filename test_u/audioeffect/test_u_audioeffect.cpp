@@ -891,6 +891,11 @@ do_work (unsigned int bufferSize_in,
   ACE_Time_Value one_second (1, 0);
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   int result_2 = -1;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -965,6 +970,7 @@ do_work (unsigned int bufferSize_in,
     goto error;
   } // end IF
   // ********************** module configuration data **************************
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -1011,10 +1017,6 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
-      Common_UI_GTK_Manager_t* gtk_manager_p =
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-      Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
       (*directshow_modulehandler_iterator).second.second.OpenGLInstructions =
         &directShowCBData_in.OpenGLInstructions;
       (*directshow_modulehandler_iterator).second.second.OpenGLInstructionsLock =
@@ -1061,10 +1063,6 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
-      Common_UI_GTK_Manager_t* gtk_manager_p =
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-      Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
       (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructions =
         &mediaFoundationCBData_in.OpenGLInstructions;
       (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructionsLock =
@@ -1116,12 +1114,10 @@ do_work (unsigned int bufferSize_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #if defined (GTKGL_SUPPORT)
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   (*modulehandler_iterator).second.second.OpenGLInstructions =
-    &CBData_in.OpenGLInstructions;
+      &CBData_in.OpenGLInstructions;
   (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
-    &state_r.lock;
+      &state_r.lock;
 #endif // GTKGL_SUPPORT
 #endif // GTK_USE
 #endif // GUI_SUPPORT

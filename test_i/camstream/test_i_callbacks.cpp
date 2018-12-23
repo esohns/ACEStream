@@ -1311,7 +1311,7 @@ load_rates (int fd_in,
 continue_:
   GtkTreeIter iterator;
   guint frame_rate = 0;
-  for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
+  for (std::set<struct v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
        iterator_2 != frame_intervals.end ();
        ++iterator_2)
   {
@@ -1396,13 +1396,13 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (CBData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (CBData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -1466,7 +1466,7 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
   g_value_unset (&value);
   unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
-  unsigned int framerate_i = 0;
+//  unsigned int framerate_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
   {
@@ -1623,13 +1623,13 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (CBData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (CBData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -1684,7 +1684,7 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-    (*modulehandler_iterator).second.second.sourceFormat.second.configuration_.format.sizeimage;
+      (*stream_iterator).second.configuration_.format.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (frame_size_i));
@@ -1784,23 +1784,23 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_ThreadData* v4l2_thread_data_p =
-    static_cast<struct Test_I_Source_V4L2_ThreadData*> (arg_in);
+  struct Test_I_Source_V4L_ThreadData* V4L_thread_data_p =
+    static_cast<struct Test_I_Source_V4L_ThreadData*> (arg_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_thread_data_p->CBData);
-  ACE_ASSERT (v4l2_thread_data_p->CBData->configuration);
+  ACE_ASSERT (V4L_thread_data_p->CBData);
+  ACE_ASSERT (V4L_thread_data_p->CBData->configuration);
 
   iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   lock_p = &state_r.lock;
-  protocol = v4l2_thread_data_p->CBData->configuration->protocol;
+  protocol = V4L_thread_data_p->CBData->configuration->protocol;
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_thread_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_thread_data_p->CBData->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_thread_data_p->CBData->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_thread_data_p->CBData->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1854,14 +1854,14 @@ stream_processing_function (void* arg_in)
           }
         } // end SWITCH
 #else
-        stream_p = v4l2_thread_data_p->CBData->stream;
+        stream_p = V4L_thread_data_p->CBData->stream;
         //(*iterator_2).second.second.stream = ui_cb_data_p->CBData->stream;
         result_2 =
-          v4l2_thread_data_p->CBData->stream->initialize ((*stream_iterator).second);
-        const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &v4l2_thread_data_p->CBData->stream->getR ();
+          V4L_thread_data_p->CBData->stream->initialize ((*stream_iterator).second);
+        const Test_I_Source_V4L_SessionData_t* session_data_container_p =
+          &V4L_thread_data_p->CBData->stream->getR ();
         session_ui_cb_data_p =
-          &const_cast<Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
+          &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
@@ -1905,14 +1905,14 @@ stream_processing_function (void* arg_in)
           }
         } // end SWITCH
 #else
-        stream_p = v4l2_thread_data_p->CBData->UDPStream;
+        stream_p = V4L_thread_data_p->CBData->UDPStream;
         //(*iterator_2).second.stream = ui_cb_data_p->CBData->UDPStream;
         result_2 =
-          v4l2_thread_data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
-        const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &v4l2_thread_data_p->CBData->UDPStream->getR ();
+          V4L_thread_data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
+        const Test_I_Source_V4L_SessionData_t* session_data_container_p =
+          &V4L_thread_data_p->CBData->UDPStream->getR ();
         session_ui_cb_data_p =
-          &const_cast<Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
+          &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
         break;
       }
@@ -2012,7 +2012,7 @@ done:
     } // end SWITCH
   } // end lock scope
 #else
-    v4l2_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
+    V4L_thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2089,15 +2089,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
+  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -2348,16 +2348,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_2 =
-    v4l2_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != v4l2_ui_cb_data_p->configuration->connectionConfigurations.end ());
+  Test_I_Source_V4L_ConnectionConfigurationIterator_t iterator_2 =
+    V4L_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != V4L_ui_cb_data_p->configuration->connectionConfigurations.end ());
   string_p =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
   port_number =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
-  protocol = v4l2_ui_cb_data_p->configuration->protocol;
+  protocol = V4L_ui_cb_data_p->configuration->protocol;
   use_reactor =
-          (v4l2_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
+          (V4L_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
   use_loopback =
     (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
   buffer_size =
@@ -2740,10 +2740,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator_3 != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t iterator_3 =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator_3 != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   ACE_ASSERT (!(*iterator_4).second.second.window);
@@ -2794,8 +2794,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   (*iterator_4).second.second.area.width =
       static_cast<__u32> (allocation.width);
 
-  ACE_ASSERT (!v4l2_ui_cb_data_p->pixelBuffer);
-  v4l2_ui_cb_data_p->pixelBuffer =
+  ACE_ASSERT (!V4L_ui_cb_data_p->pixelBuffer);
+  V4L_ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
       gdk_pixbuf_get_from_window ((*iterator_4).second.second.window,
                                   0, 0,
@@ -2807,13 +2807,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
 #endif
-  if (!v4l2_ui_cb_data_p->pixelBuffer)
+  if (!V4L_ui_cb_data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  (*iterator_4).second.second.pixelBuffer = v4l2_ui_cb_data_p->pixelBuffer;
+  (*iterator_4).second.second.pixelBuffer = V4L_ui_cb_data_p->pixelBuffer;
 #endif
 
   // step11: select default capture source (if any)
@@ -4163,37 +4163,37 @@ idle_finalize_source_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_UNUSED_ARG (userData_in);
 #else
-  struct Test_I_CamStream_UI_CBData* ui_cb_data_p =
+  struct Test_I_CamStream_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Test_I_CamStream_UI_CBData*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p);
-#endif
+  ACE_ASSERT (ui_cb_data_base_p);
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
   // clean up
   int result = -1;
-  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
+  if (ui_cb_data_p->fileDescriptor != -1)
   {
-    result = v4l2_close (v4l2_ui_cb_data_p->fileDescriptor);
+    result = v4l2_close (ui_cb_data_p->fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4l2_ui_cb_data_p->fileDescriptor));
-    v4l2_ui_cb_data_p->fileDescriptor = -1;
+                  ui_cb_data_p->fileDescriptor));
+    ui_cb_data_p->fileDescriptor = -1;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // leave GTK
   gtk_main_quit ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   CoUninitialize ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_REMOVE;
 }
@@ -4256,10 +4256,10 @@ idle_update_info_display_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
+  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
 #endif
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -4570,12 +4570,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -4608,9 +4608,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
+  struct Test_I_Source_V4L_ThreadData* thread_data_2 = NULL;
   ACE_thread_t thread_id = -1;
-  protocol = v4l2_ui_cb_data_p->configuration->protocol;
+  protocol = V4L_ui_cb_data_p->configuration->protocol;
 #endif
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
@@ -4641,7 +4641,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       }
     } // end SWITCH
 #else
-      stream_p = v4l2_ui_cb_data_p->stream;
+      stream_p = V4L_ui_cb_data_p->stream;
 #endif
       break;
     }
@@ -4665,7 +4665,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
         }
       } // end SWITCH
 #else
-      stream_p = v4l2_ui_cb_data_p->UDPStream;
+      stream_p = V4L_ui_cb_data_p->UDPStream;
 #endif
       break;
     }
@@ -4811,9 +4811,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
+  if (V4L_ui_cb_data_p->fileDescriptor != -1)
     (*modulehandler_iterator).second.second.fileDescriptor =
-      v4l2_ui_cb_data_p->fileDescriptor;
+      V4L_ui_cb_data_p->fileDescriptor;
 #endif
 
   // retrieve port number
@@ -4853,9 +4853,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_5 =
-    v4l2_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_5 != v4l2_ui_cb_data_p->configuration->connectionConfigurations.end ());
+  Test_I_Source_V4L_ConnectionConfigurationIterator_t iterator_5 =
+    V4L_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_5 != V4L_ui_cb_data_p->configuration->connectionConfigurations.end ());
   (*iterator_5).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
                                                                                                  1);
 #endif
@@ -4886,7 +4886,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  v4l2_ui_cb_data_p->configuration->protocol = protocol;
+  V4L_ui_cb_data_p->configuration->protocol = protocol;
 #endif
 
   // retrieve buffer
@@ -4931,8 +4931,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       //ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.sourceFormat);
       result_3 = true;
       //  Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_modulehandler_iterator).second.second.builder,
-      //                                                           CLSID_VideoInputDeviceCategory,
-      //                                                           *(*directshow_modulehandler_iterator).second.second.sourceFormat);
+      //                                                    CLSID_VideoInputDeviceCategory,
+      //                                                    *(*directshow_modulehandler_iterator).second.second.sourceFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4970,7 +4970,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.fileDescriptor,
-                                    (*modulehandler_iterator).second.second.sourceFormat.format);
+                                    (*stream_iterator).second.configuration_.format.format);
 #endif
   if (!result_3)
   {
@@ -5026,10 +5026,10 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     thread_data_p->mediaFramework = ui_cb_data_p->mediaFramework;
 #else
   ACE_NEW_NORETURN (thread_data_2,
-                    struct Test_I_Source_V4L2_ThreadData ());
+                    struct Test_I_Source_V4L_ThreadData ());
   if (thread_data_2)
   {
-    thread_data_2->CBData = v4l2_ui_cb_data_p;
+    thread_data_2->CBData = V4L_ui_cb_data_p;
     thread_data_p = thread_data_2;
   } // end ELSE
 #endif
@@ -6707,13 +6707,13 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -6964,29 +6964,29 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   } // end SWITCH
 #else
   int result_3 = -1;
-  if (v4l2_ui_cb_data_p->fileDescriptor != -1)
+  if (V4L_ui_cb_data_p->fileDescriptor != -1)
   {
-    result_3 = v4l2_close (v4l2_ui_cb_data_p->fileDescriptor);
+    result_3 = v4l2_close (V4L_ui_cb_data_p->fileDescriptor);
     if (result_3 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  v4l2_ui_cb_data_p->fileDescriptor));
-    v4l2_ui_cb_data_p->fileDescriptor = -1;
+                  V4L_ui_cb_data_p->fileDescriptor));
+    V4L_ui_cb_data_p->fileDescriptor = -1;
   } // end IFs
-  ACE_ASSERT (v4l2_ui_cb_data_p->fileDescriptor == -1);
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t iterator_3 =
-      v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T iterator_4 =
+  ACE_ASSERT (V4L_ui_cb_data_p->fileDescriptor == -1);
+  Test_I_Source_V4L_StreamConfigurationsIterator_t iterator_3 =
+      V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
       (*iterator_3).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != (*iterator_3).second.end ());
   int open_mode =
       (((*iterator_4).second.second.method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                 : O_RDONLY);
-  v4l2_ui_cb_data_p->fileDescriptor =
+  V4L_ui_cb_data_p->fileDescriptor =
     v4l2_open (device_identifier_string.c_str (),
                open_mode);
-  if (v4l2_ui_cb_data_p->fileDescriptor == -1)
+  if (V4L_ui_cb_data_p->fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
@@ -7022,7 +7022,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  result_2 = load_formats (v4l2_ui_cb_data_p->fileDescriptor,
+  result_2 = load_formats (V4L_ui_cb_data_p->fileDescriptor,
                            list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
@@ -7117,13 +7117,13 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7234,11 +7234,10 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.sourceFormat.second.configuration_.format.pixelformat =
-    format_i;
+  (*stream_iterator).second.configuration_.format.format.pixelformat = format_i;
 
   result =
-    load_resolutions (v4l2_ui_cb_data_p->fileDescriptor,
+    load_resolutions (V4L_ui_cb_data_p->fileDescriptor,
                       format_i,
                       list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7325,13 +7324,13 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7543,12 +7542,10 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.sourceFormat.second.configuration_.format.width =
-      width;
-  (*modulehandler_iterator).second.second.sourceFormat.second.configuration_.format.height =
-      height;
+  (*stream_iterator).second.configuration_.format.format.width = width;
+  (*stream_iterator).second.configuration_.format.format.height = height;
 
-  result = load_rates (v4l2_ui_cb_data_p->fileDescriptor,
+  result = load_rates (V4L_ui_cb_data_p->fileDescriptor,
                        format_i,
                        width, height,
                        list_store_p);
@@ -7637,13 +7634,13 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7779,9 +7776,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*modulehandler_iterator).second.second.sourceFormat.frameRate.numerator =
+  (*stream_iterator).second.configuration_.format.frameRate.numerator =
       frame_rate;
-  (*modulehandler_iterator).second.second.sourceFormat.frameRate.denominator =
+  (*stream_iterator).second.configuration_.format.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_p);
@@ -7856,15 +7853,15 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
+  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -8005,17 +8002,17 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L2_UI_CBData* ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
+  struct Test_I_Source_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
     ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -8147,15 +8144,15 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  struct Test_I_Source_V4L2_UI_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Source_V4L2_UI_CBData*> (userData_in);
-  ACE_ASSERT (v4l2_ui_cb_data_p);
-  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
+  struct Test_I_Source_V4L_UI_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Source_V4L_UI_CBData*> (userData_in);
+  ACE_ASSERT (V4L_ui_cb_data_p);
+  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
 
-  Test_I_Source_V4L2_StreamConfigurationsIterator_t stream_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (stream_iterator != v4l2_ui_cb_data_p->configuration->streamConfigurations.end ());
-  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+  Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_iterator != V4L_ui_cb_data_p->configuration->streamConfigurations.end ());
+  Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
 #endif
@@ -8272,14 +8269,14 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_V4L2_GTK_CBData* v4l2_ui_cb_data_p =
-    static_cast<struct Test_I_Target_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Target_V4L_GTK_CBData* V4L_ui_cb_data_p =
+    static_cast<struct Test_I_Target_V4L_GTK_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (v4l2_ui_cb_data_p);
-  ACE_ASSERT (v4l2_ui_cb_data_p->configuration);
-  Test_I_Target_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
-    v4l2_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != v4l2_ui_cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (V4L_ui_cb_data_p);
+  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
+  Test_I_Target_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    V4L_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != V4L_ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

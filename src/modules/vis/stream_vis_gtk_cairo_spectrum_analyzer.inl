@@ -254,7 +254,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer2DMode;
 
   // initialize cairo ?
-  if (!configuration_in.GdkWindow2D)
+  if (!configuration_in.window)
     goto continue_;
 
   surfaceLock_ = configuration_in.surfaceLock;
@@ -270,12 +270,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 #endif // GTK_CHECK_VERSION(3,10,0)
 
+  // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION(3,10,0)
-  if (unlikely (!initialize_Cairo (configuration_in.GdkWindow2D,
+  if (unlikely (!initialize_Cairo (configuration_in.window,
                                    cairoContext_,
                                    cairoSurface_)))
 #else
-  if (unlikely (!initialize_Cairo (configuration_in.GdkWindow2D,
+  if (unlikely (!initialize_Cairo (configuration_in.window,
                                    cairoContext_,
                                    pixelBuffer_)))
 #endif // GTK_CHECK_VERSION(3,10,0)
@@ -384,7 +385,7 @@ continue_:
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-  inherited2::getMediaType (configuration_in.sourceFormat,
+  inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   channels = media_type_s.channels;
   sample_rate = media_type_s.rate;

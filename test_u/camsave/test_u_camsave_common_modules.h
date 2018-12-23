@@ -373,7 +373,7 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
                                       Test_U_ControlMessage_t,
                                       Stream_CamSave_Message_t,
-                                      Stream_CamSave_SessionMessage_t,
+                                      Stream_CamSave_V4L_SessionMessage_t,
                                       Stream_CamSave_V4L_SessionData,
                                       Stream_CamSave_V4L_SessionData_t,
                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_GTKCairoDisplay;

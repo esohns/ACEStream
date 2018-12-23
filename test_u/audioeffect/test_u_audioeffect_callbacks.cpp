@@ -3382,7 +3382,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-  GError* error_p = NULL;
+//  GError* error_p = NULL;
   GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
   if (!gl_area_p)
   {
@@ -3390,8 +3390,15 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  ui_cb_data_base_p->OpenGLContexts.insert (std::make_pair (gl_area_p, ));
-  opengl_contexts_iterator = ui_cb_data_base_p->OpenGLContexts.find (gl_area_p);
+//  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (gl_area_p));
+//  ACE_ASSERT (window_p);
+  GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
+  ACE_ASSERT (context_p);
+  ACE_ASSERT (ui_cb_data_base_p->UIState);
+  ui_cb_data_base_p->UIState->OpenGLContexts.insert (std::make_pair (gl_area_p, context_p));
+  opengl_contexts_iterator =
+      ui_cb_data_base_p->UIState->OpenGLContexts.find (gl_area_p);
+  ACE_ASSERT (opengl_contexts_iterator != ui_cb_data_base_p->UIState->OpenGLContexts.end ());
 
   gint major_version, minor_version;
   gtk_gl_area_get_required_version (gl_area_p,
@@ -3696,8 +3703,9 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first);
 #if GTK_CHECK_VERSION(3,0,0)
+  GdkGLContext* gl_context_p = NULL;
 #if GTK_CHECK_VERSION(3,16,0)
-  error_p = gtk_gl_area_get_error ((*opengl_contexts_iterator).first);
+  GError* error_p = gtk_gl_area_get_error ((*opengl_contexts_iterator).first);
   if (error_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3707,8 +3715,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     goto continue_;
   } // end ELSE
 
-  GdkGLContext* gl_context_p =
-    gtk_gl_area_get_context ((*opengl_contexts_iterator).first);
+  gl_context_p = gtk_gl_area_get_context ((*opengl_contexts_iterator).first);
   ACE_ASSERT (gl_context_p);
   Common_UI_GTK_Tools::dumpGtkOpenGLInfo (gl_context_p);
 #else
@@ -3775,12 +3782,12 @@ continue_:
   } // end SWITCH
 #else
 //  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.OpenGLWindow);
-  (*modulehandler_configuration_iterator).second.second.OpenGLWindow =
+  (*modulehandler_configuration_iterator).second.second.window =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-    (*opengl_contexts_iterator).first;
+      gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
 #else
-    (*opengl_contexts_iterator).first;
+      gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
   (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
     gtk_widget_get_window (GTK_WIDGET (&(*opengl_contexts_iterator).first->darea));
@@ -3801,7 +3808,7 @@ continue_:
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
 #endif // GTKGLAREA_SUPPORT
 #endif // GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLWindow);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.window);
 #endif // ACE_WIN32 || ACE_WIN64
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -4103,11 +4110,11 @@ continue_:
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow2D);
-  (*modulehandler_configuration_iterator).second.second.GdkWindow2D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.window);
+  (*modulehandler_configuration_iterator).second.second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow2D);
-  window_p = (*modulehandler_configuration_iterator).second.second.GdkWindow2D;
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.window);
+  window_p = (*modulehandler_configuration_iterator).second.second.window;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
 
@@ -4848,15 +4855,15 @@ idle_update_display_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
       static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
 
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -4879,23 +4886,31 @@ idle_update_display_cb (gpointer userData_in)
 
 continue_:
   // step2: trigger refresh of the 3D OpenGL area
+  Common_UI_GTK_GLContextsIterator_t iterator_2;
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-  GtkGLArea* gl_area_p = NULL;
+  GtkGLArea* gl_area_p =
+    GTK_GL_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME)));
+  ACE_ASSERT (gl_area_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      gl_area_p =
-        (*directshow_modulehandler_configuration_iterator).second.second.OpenGLWindow;
+//      gl_area_p =
+//        (*directshow_modulehandler_configuration_iterator).second.second.window;
+      iterator_2 =
+          directshow_ui_cb_data_p->UIState->OpenGLContexts.find (gl_area_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      gl_area_p =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLWindow;
+//      gl_area_p =
+//        (*mediafoundation_modulehandler_configuration_iterator).second.second.window;
+      iterator_2 =
+          mediafoundation_ui_cb_data_p->UIState->OpenGLContexts.find (gl_area_p);
       break;
     }
     default:
@@ -4907,8 +4922,11 @@ continue_:
     }
   } // end SWITCH
 #else
-  gl_area_p =
-    (*modulehandler_configuration_iterator).second.second.OpenGLWindow;
+//  gl_area_p =
+//    (*modulehandler_configuration_iterator).second.second.window;
+  iterator_2 =
+      ui_cb_data_p->UIState->OpenGLContexts.find (gl_area_p);
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->UIState->OpenGLContexts.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (gl_area_p);
   gtk_gl_area_queue_render (gl_area_p);
@@ -5340,7 +5358,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->streamConfiguration.configuration_.format =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format =
     static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
 #endif
   g_value_unset (&value);
@@ -7629,7 +7647,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                   ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
                   ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("closed ALSA device...\n")));
+                ACE_TEXT ("closed ALSA device\n")));
     ACE_ASSERT (ui_cb_data_p->handle == (*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
     ui_cb_data_p->handle = NULL;
     (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
@@ -7692,18 +7710,18 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   snd_pcm_hw_params_free (format_p); format_p = NULL;
 
   if (!Stream_Device_Tools::getFormat (ui_cb_data_p->handle,
-                                       (*modulehandler_configuration_iterator).second.second.sourceFormat))
+                                       ui_cb_data_p->configuration->streamConfiguration.configuration_.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_Tools::getFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  (*modulehandler_configuration_iterator).second.second.sourceFormat.access =
+  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.access =
     STREAM_DEV_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
       load_formats (ui_cb_data_p->handle,
-                    (*modulehandler_configuration_iterator).second.second.sourceFormat,
+                    ui_cb_data_p->configuration->streamConfiguration.configuration_.format,
                     list_store_p);
 #endif
   if (!result_2)
@@ -8632,7 +8650,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_channels(%d), returning\n"),
-                data_p->handle));
+                ui_cb_data_p->handle));
     return;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
@@ -9040,26 +9058,24 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_U_AudioEffect_UI_CBData* data_p =
-    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
-
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-
+  struct Test_U_AudioEffect_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_U_AudioEffect_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  istream_p = dynamic_cast<Stream_IStream_t*> (data_p->stream);
+  istream_p = dynamic_cast<Stream_IStream_t*> (ui_cb_data_p->stream);
   mode =
     (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
   is_signed_format =
-      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second.sourceFormat.format);
+      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format);
   sample_size =
-      snd_pcm_format_physical_width ((*modulehandler_configuration_iterator).second.second.sourceFormat.format) / 8;
+      snd_pcm_format_physical_width (ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format) / 8;
   channels =
-    (*modulehandler_configuration_iterator).second.second.sourceFormat.channels;
+    ui_cb_data_p->configuration->streamConfiguration.configuration_.format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (istream_p);
 
@@ -10137,6 +10153,16 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   GLuint* texture_id_p = NULL;
   GtkAllocation allocation;
+  // set up light colors (ambient, diffuse, specular)
+  GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
+  GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
+  GLfloat light_specular[] = {1.0F, 1.0F, 1.0F, 1.0F};
+  // position the light in eye space
+  GLfloat light0_position[] = {0.0F,
+                               5.0F * 2,
+                               5.0F * 2,
+                               0.0F}; // --> directional light
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -10392,20 +10418,12 @@ glarea_realize_cb (GtkWidget* widget_in,
 //  glEnable (GL_LIGHTING);
 
   // set up light colors (ambient, diffuse, specular)
-  GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
   glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
   COMMON_GL_ASSERT;
-  GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
   glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
   COMMON_GL_ASSERT;
-  GLfloat light_specular[] = {1.0F, 1.0F, 1.0F, 1.0F};
   glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
   COMMON_GL_ASSERT;
-  // position the light in eye space
-  GLfloat light0_position[] = {0.0F,
-                               5.0F * 2,
-                               5.0F * 2,
-                               0.0F}; // --> directional light
   glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
   COMMON_GL_ASSERT;
   glEnable (GL_LIGHT0);
@@ -10533,7 +10551,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-  struct Stream_Visualization_OpenGLInstruction* instruction_p = NULL;
+  struct Stream_Visualization_OpenGL_Instruction* instruction_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
@@ -10697,7 +10715,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState.lock, FALSE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
     if (ui_cb_data_base_p->OpenGLInstructions.empty ())
       goto continue_;
     do
@@ -10705,7 +10723,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
       instruction_p = &ui_cb_data_base_p->OpenGLInstructions.front ();
       switch (instruction_p->type)
       {
-        case STREAM_VISUALIZATION_OPENGLINSTRUCTION_SET_COLOR_BG:
+        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG:
         {
           glClearColor (static_cast<GLclampf> (instruction_p->color.red),
                         static_cast<GLclampf> (instruction_p->color.green),
@@ -10713,7 +10731,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
                         1.0F);
           break;
         }
-        case STREAM_VISUALIZATION_OPENGLINSTRUCTION_SET_COLOR_FG:
+        case STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG:
         {
           glColor4f (static_cast<GLclampf> (instruction_p->color.red),
                      static_cast<GLclampf> (instruction_p->color.green),
