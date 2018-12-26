@@ -299,7 +299,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::handleDataMessage"));
 
   // sanity check(s)
-  if (unlikely (outputFormat_ == AV_PIX_FMT_NONE))
+  if (unlikely (inputFormat_ == outputFormat_))
     return; // nothing to do
 
   // initialize return value(s)
@@ -479,8 +479,6 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 #else
         ;
 #endif // _DEBUG
-      else
-        outputFormat_ = AV_PIX_FMT_NONE; // 'deactivate' module
 
       // initialize conversion context
       ACE_ASSERT (!context_);
@@ -510,7 +508,7 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
         setFormat (outputFormat_,
                    media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          session_data_r.formats.push_back (media_type_2);
+          session_data_r.formats.push_front (media_type_2);
         } // end lock scope
       } // end IF
 

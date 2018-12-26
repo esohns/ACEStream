@@ -440,7 +440,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
    , targetFileName ()
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+#else
+    concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
+#endif // ACE_WIN32 || ACE_WIN64
     hasHeader = true;
   }
 
@@ -608,7 +612,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
    , display ()
 #endif // GUI_SUPPORT
-   , fileDescriptor (-1)
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -634,7 +637,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
 #if defined (GUI_SUPPORT)
   struct Common_UI_DisplayDevice                display; // display module
 #endif // GUI_SUPPORT
-  int                                           fileDescriptor;
   enum v4l2_memory                              method; // v4l camera source
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
   Stream_CamSave_V4L_ISessionNotify_t*          subscriber;
@@ -793,10 +795,26 @@ struct Stream_CamSave_MediaFoundation_Configuration
 };
 #else
 struct Stream_CamSave_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
  : Test_U_Configuration
+#endif // GTK_USE
+#else
+ : Test_U_Configuration
+#endif // GUI_SUPPORT
 {
   Stream_CamSave_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
    : Test_U_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_U_Configuration ()
+#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -978,7 +996,6 @@ struct Stream_CamSave_V4L_UI_CBData
   Stream_CamSave_V4L_UI_CBData ()
    : Stream_CamSave_UI_CBData ()
    , configuration (NULL)
-   , fileDescriptor (-1)
 #if defined (GTK_USE)
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
@@ -992,7 +1009,6 @@ struct Stream_CamSave_V4L_UI_CBData
   }
 
   struct Stream_CamSave_Configuration* configuration;
-  int                                  fileDescriptor; // (capture) device file descriptor
 #if defined (GTK_USE)
   GdkPixbuf*                           pixelBuffer;
   ACE_SYNCH_MUTEX*                     pixelBufferLock;
@@ -1022,15 +1038,6 @@ struct Stream_CamSave_UI_ThreadData
 };
 
 #if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Stream_CamSave_DirectShow_UI_CBData> Stream_CamSave_DirectShow_GtkBuilderDefinition_t;
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Stream_CamSave_MediaFoundation_UI_CBData> Stream_CamSave_MediaFoundation_GtkBuilderDefinition_t;
-#else
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Stream_CamSave_V4L_UI_CBData> Stream_CamSave_GtkBuilderDefinition_t;
-#endif // ACE_WIN32 || ACE_WIN64
 #elif defined (WXWIDGETS_USE)
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,

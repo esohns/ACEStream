@@ -138,19 +138,32 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 };
 
 struct Stream_Filecopy_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
  : Test_U_Configuration
+#endif // GTK_USE
+#else
+ : Test_U_Configuration
+#endif // GUI_SUPPORT
 {
   Stream_Filecopy_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
    : Test_U_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_U_Configuration ()
+#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , streamConfiguration ()
-   , streamUserData ()
   {}
 
   struct Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
   Stream_Filecopy_StreamConfiguration_t             streamConfiguration;
-
-  struct Stream_UserData                            streamUserData;
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
@@ -246,12 +259,5 @@ struct Stream_Filecopy_ThreadData
   struct Stream_Filecopy_UI_CBData* CBData;
 #endif // GUI_SUPPORT
 };
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Stream_Filecopy_UI_CBData> Stream_Filecopy_GtkBuilderDefinition_t;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
 #endif

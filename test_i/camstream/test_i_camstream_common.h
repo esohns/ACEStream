@@ -283,10 +283,26 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 };
 
 struct Test_I_CamStream_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#else
  : Test_I_Configuration
+#endif // GTK_USE
+#else
+ : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_CamStream_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#else
    : Test_I_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {}
 

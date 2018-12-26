@@ -84,19 +84,34 @@ struct HTTPGet_SignalHandlerConfiguration
 };
 
 struct HTTPGet_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
+ : Test_U_Configuration
+#endif // GTK_USE
+#else
+ : Test_U_Configuration
+#endif // GUI_SUPPORT
 {
   HTTPGet_Configuration ()
-   : allocatorConfiguration ()
-   , dispatchConfiguration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
+   : Test_U_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_U_Configuration ()
+#endif // GUI_SUPPORT
+   , allocatorConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
-  struct Common_EventDispatchConfiguration       dispatchConfiguration;
   // **************************** signal data **********************************
   struct HTTPGet_SignalHandlerConfiguration      signalHandlerConfiguration;
   // **************************** socket data **********************************
@@ -104,8 +119,6 @@ struct HTTPGet_Configuration
   // **************************** stream data **********************************
   struct Common_ParserConfiguration              parserConfiguration;
   HTTPGet_StreamConfiguration_t                  streamConfiguration;
-
-  struct Stream_UserData                         userData;
 };
 
 //////////////////////////////////////////
@@ -130,25 +143,6 @@ struct HTTPGet_ProgressData
   struct Stream_Statistic statistic;
 };
 
-//static constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
-//typedef Stream_Base_T<ACE_MT_SYNCH,
-//                      Common_TimePolicy_t,
-//                      stream_name_string_,
-//                      enum Stream_ControlType,
-//                      enum Stream_SessionMessageType,
-//                      enum Stream_StateMachine_ControlState,
-//                      struct HTTPGet_StreamState,
-//                      struct HTTPGet_StreamConfiguration,
-//                      struct Stream_Statistic,
-//                      struct Stream_AllocatorConfiguration,
-//                      struct Stream_ModuleConfiguration,
-//                      struct HTTPGet_ModuleHandlerConfiguration,
-//                      struct HTTPGet_SessionData,
-//                      HTTPGet_SessionData_t,
-//                      HTTPGet_ControlMessage_t,
-//                      HTTPGet_Message,
-//                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_UI_CBData
 #if defined (GTK_USE)
  : Test_U_GTK_CBData
@@ -197,11 +191,6 @@ struct HTTPGet_UI_ThreadData
 
   struct HTTPGet_UI_CBData* CBData;
 };
-
-#if defined (GTK_USE)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct HTTPGet_UI_CBData> HTTPGet_GtkBuilderDefinition_t;
-#endif // GTK_USE
 #endif // GTK_SUPPORT
 
 #endif

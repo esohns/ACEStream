@@ -488,8 +488,10 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (gtk_manager_p);
     Common_UI_GTK_State_t& state_r =
       const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-    state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-    state_r.eventHooks.initHook = idle_initialize_UI_cb;
+    CBData_in.configuration->GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_UI_cb;
+    CBData_in.configuration->GTKConfiguration.eventHooks.initHook =
+        idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -847,18 +849,24 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
-  Stream_Filecopy_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                        argv_in,
-                                                        &ui_cb_data);
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
   if (!UI_definition_file.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              &ui_definition);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
+#endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;
   timer.start ();

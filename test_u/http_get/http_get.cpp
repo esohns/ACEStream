@@ -971,9 +971,7 @@ ACE_TMAIN (int argc_in,
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   lock_p = &state_r.subscribersLock;
-  HTTPGet_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                argv_in,
-                                                &ui_cb_data);
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   struct HTTPGet_Configuration configuration;
@@ -1190,16 +1188,17 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  state_r.argc = argc_in;
-  state_r.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_ui_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_ui_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
   state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
-  state_r.eventHooks.finiHook = idle_finalize_ui_cb;
-  state_r.eventHooks.initHook = idle_initialize_ui_cb;
-  //ui_cb_data.userData = &ui_cb_data;
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                            argv_in,
-                                                            &ui_definition);
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

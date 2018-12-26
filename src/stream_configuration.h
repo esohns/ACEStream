@@ -27,13 +27,6 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>
-#else
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
@@ -52,6 +45,8 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
+#else
+#include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 // forward declarations
@@ -182,10 +177,10 @@ struct Stream_V4L_ModuleHandlerConfiguration
 {
    Stream_V4L_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , outputFormat (AV_PIX_FMT_NONE)
+   , outputFormat ()
   {}
 
-  enum AVPixelFormat outputFormat;
+  struct Stream_MediaFramework_V4L_MediaType outputFormat;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

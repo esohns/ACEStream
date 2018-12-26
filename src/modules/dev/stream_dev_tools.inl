@@ -20,10 +20,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#include "libv4l2.h"
+
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
-
-#include <libv4l2.h>
 
 #include "stream_iallocator.h"
 #include "stream_macros.h"
@@ -102,10 +102,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), aborting\n"),
                       message_block_p));
-
-          // clean up
-          message_block_p->release ();
-
+          message_block_p->release (); message_block_p = NULL;
           goto error;
         } // end IF
         message_p->wr_ptr (format.fmt.pix.sizeimage);
@@ -115,7 +112,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         data_r.device = fd_in;
         data_r.index = i;
         data_r.method = method_in;
-
+        data_r.release = true;
         buffer.m.userptr =
             reinterpret_cast<unsigned long> (message_block_p->rd_ptr ());
         buffer.length = format.fmt.pix.sizeimage;
@@ -143,10 +140,12 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         } //IF end
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("allocated %d (user-pointer) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * format.fmt.pix.sizeimage));
+#endif // _DEBUG
       break;
     }
     case V4L2_MEMORY_MMAP:
@@ -169,22 +168,23 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                       fd_in, ACE_TEXT ("VIDIOC_QUERYBUF")));
           goto error;
         } // end IF
+        ACE_ASSERT (buffer.length >= format.fmt.pix.sizeimage);
 
         if (allocator_in)
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer.length));
+                static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                        buffer.length));
+                        format.fmt.pix.sizeimage));
             message_block_p = NULL;
           }
         } // end IF
         else
           ACE_NEW_NORETURN (message_block_p,
-                            ACE_Message_Block (buffer.length));
+                            ACE_Message_Block (format.fmt.pix.sizeimage));
         if (!message_block_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -197,10 +197,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<MessageType>(0x%@), aborting\n"),
                       message_block_p));
-
-          // clean up
-          message_block_p->release ();
-
+          message_block_p->release (); message_block_p = NULL;
           goto error;
         } // end IF
         // *TODO*: remove type inference
@@ -221,10 +218,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to v4l2_mmap(): \"%m\", aborting\n")));
-
-          // clean up
-          message_block_p->release ();
-
+          message_block_p->release (); message_block_p = NULL;
           goto error;
         } // end IF
         message_block_p->base (static_cast<char*> (mmap_p),
@@ -243,40 +237,25 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
                              &buffer);
         if (result == -1)
         {
-          int error = ACE_OS::last_error ();
-          if (error != EINVAL) // 22
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                        fd_in, ACE_TEXT ("VIDIOC_QBUF")));
-
-            // clean up
-            result = v4l2_munmap (message_block_p->base (),
-                                  buffer.length);
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
-            message_block_p->release ();
-
-            goto error;
-          } // end IF
-
-          // clean up
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                      fd_in, ACE_TEXT ("VIDIOC_QBUF")));
           result = v4l2_munmap (message_block_p->base (),
                                 buffer.length);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
-          message_block_p->release ();
-
-          goto no_support;
-        } //IF end
+          message_block_p->release (); message_block_p = NULL;
+          goto error;
+        } // end IF
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("allocated %d (memory-mapped) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * buffer.length));
+#endif // _DEBUG
       break;
     }
     default:
@@ -335,7 +314,7 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
     message_block_p = (*iterator).second;
     ACE_ASSERT (message_block_p);
 
-    if (buffer.type == V4L2_MEMORY_MMAP)
+    if (method_in == V4L2_MEMORY_MMAP)
     {
       result = v4l2_munmap (message_block_p->base (),
                             buffer.length);
@@ -349,17 +328,14 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), returning\n"),
                   message_block_p));
-
-      // clean up
-      message_block_p->release ();
-
+      message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
     // *TODO*: remove type inference
     typename MessageType::DATA_T& data_r =
         const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-    data_r.release = true;
-    message_block_p->release ();
+    data_r.release = false;
+    message_block_p->release (); message_block_p = NULL;
 
     ++counter;
 
@@ -369,8 +345,10 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
       break; // done
   } while (true);
   bufferMap_inout.clear ();
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("de-allocated %d device buffer(s)\n"),
               counter));
+#endif // _DEBUG
 }
 #endif // ACE_WIN32 || ACE_WIN64

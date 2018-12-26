@@ -33,6 +33,8 @@
 #include "ace/Synch_Traits.h"
 
 #include "common.h"
+#include "common_configuration.h"
+#include "common_istatistic.h"
 #include "common_statistic_handler.h"
 #include "common_time_common.h"
 

@@ -354,6 +354,8 @@ struct Test_U_Configuration
   struct Common_EventDispatchConfiguration dispatchConfiguration;
   struct Test_U_SignalHandlerConfiguration signalHandlerConfiguration;
 
+  ////////////////////////////////////////
+
   struct Stream_UserData                   userData;
 };
 

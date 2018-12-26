@@ -144,7 +144,7 @@ class Stream_Decoder_LibAVConverter_T
   void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
 #else
 //  inline void setFormat_impl (enum AVPixelFormat format_in, struct v4l2_pix_format& mediaType_inout) { mediaType_inout.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
-  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
 #endif // ACE_WIN32 || ACE_WIN64
 
   DataMessageType*   buffer_;

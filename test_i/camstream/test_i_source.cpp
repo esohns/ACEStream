@@ -1776,8 +1776,6 @@ do_work (const std::string& deviceIdentifier_in,
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     ACE_ASSERT (ui_state_p);
-    ui_state_p->eventHooks.finiHook = idle_finalize_source_UI_cb;
-    ui_state_p->eventHooks.initHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     ui_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -2256,10 +2254,10 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L_UI_CBData V4L_ui_cb_data;
-  //V4L_ui_cb_data.progressData.state = &V4L_ui_cb_data;
+  struct Test_I_Source_V4L_UI_CBData ui_cb_data;
+  //ui_cb_data.progressData.state = &ui_cb_data;
 #if defined (GUI_SUPPORT)
-  ui_cb_data_p = &V4L_ui_cb_data;
+  ui_cb_data_p = &ui_cb_data;
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
@@ -2391,69 +2389,22 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_source_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_source_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
   if (!gtk_rc_filename.empty ())
-    state_r.RCFiles.push_back (gtk_rc_filename);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
-                                                                            argv_in,
-                                                                            &directshow_ui_cb_data);
-  Test_I_Source_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
-                                                                                      argv_in,
-                                                                                      &mediafoundation_ui_cb_data);
-#else
-  Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                      argv_in,
-                                                      &V4L_ui_cb_data);
-#endif // ACE_WIN32 || ACE_WIN64
+    ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
   if (!gtk_glade_filename.empty ())
   {
     gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (media_framework_e)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        result_2 = gtk_manager_p->initialize (argc_in,
-                                              argv_in,
-                                              &directshow_ui_definition);
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        result_2 = gtk_manager_p->initialize (argc_in,
-                                              argv_in,
-                                              &mediafoundation_ui_definition);
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                    media_framework_e));
-
-        Common_Signal_Tools::finalize (((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                 : COMMON_SIGNAL_DISPATCH_PROACTOR),
-                                       signal_set,
-                                       previous_signal_actions,
-                                       previous_signal_mask);
-        Common_Log_Tools::finalizeLogging ();
-        Common_Tools::finalize ();
-        // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        result = ACE::fini ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-        return EXIT_FAILURE;
-      }
-    } // end SWITCH
-#else
-    result_2 = gtk_manager_p->initialize (argc_in,
-                                          argv_in,
-                                          &ui_definition);
-#endif // ACE_WIN32 || ACE_WIN64
+    result_2 = gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
     if (!result_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2506,7 +2457,7 @@ ACE_TMAIN (int argc_in,
            mediafoundation_ui_cb_data,
            directshow_ui_cb_data,
 #else
-           V4L_ui_cb_data,
+           ui_cb_data,
 #endif // ACE_WIN32 || ACE_WIN64
            signal_set,
            ignored_signal_set,

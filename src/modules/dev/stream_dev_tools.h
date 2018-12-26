@@ -145,7 +145,7 @@ class Stream_Device_Tools
   static std::string formatToString (int,    // file descriptor
                                      __u32); // format (fourcc)
 
-  static struct v4l2_pix_format ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
+  static __u32 ffmpegFormatToV4L2Format (enum AVPixelFormat); // format
   static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
 #endif // ACE_WIN32 || ACE_WIN64
 

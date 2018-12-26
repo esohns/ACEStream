@@ -250,7 +250,8 @@ Stream_Device_Tools::canOverlay (int fileDescriptor_in)
   return (device_capabilities.device_caps & V4L2_CAP_VIDEO_OVERLAY);
 }
 bool
-Stream_Device_Tools::canStream (int fileDescriptor_in)
+Stream_Device_Tools::canStream (int fileDescriptor_in)//,
+//                                enum v4l2_memory method_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::canStream"));
 
@@ -269,7 +270,25 @@ Stream_Device_Tools::canStream (int fileDescriptor_in)
     return false;
   } // end IF
 
-  return (device_capabilities.device_caps & V4L2_CAP_STREAMING);
+//  struct v4l2_requestbuffers request_buffers;
+//  ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
+//  request_buffers.count = 0;
+//  request_buffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//  request_buffers.memory = method_in;
+//  result = v4l2_ioctl (fileDescriptor_in,
+//                       VIDIOC_REQBUFS,
+//                       &request_buffers);
+//  if (result == -1)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+//                fileDescriptor_in, ACE_TEXT ("VIDIOC_REQBUFS")));
+//    return false;
+//  } // end IF
+
+  return ((device_capabilities.device_caps & V4L2_CAP_VIDEO_CAPTURE) &&
+          (device_capabilities.device_caps & V4L2_CAP_STREAMING));// &&
+//          (request_buffers.capabilities & V4L2_BUF_CAP_SUPPORTS_USERPTR));
 }
 
 Stream_Device_List_t
@@ -798,7 +817,7 @@ clean:
 
 bool
 Stream_Device_Tools::initializeCapture (int fileDescriptor_in,
-                                        v4l2_memory method_in,
+                                        enum v4l2_memory method_in,
                                         __u32& numberOfBuffers_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::initializeCapture"));
@@ -817,8 +836,7 @@ Stream_Device_Tools::initializeCapture (int fileDescriptor_in,
                        VIDIOC_REQBUFS,
                        &request_buffers);
   if (result == -1)
-  {
-    int error = ACE_OS::last_error ();
+  { int error = ACE_OS::last_error ();
     if (error != EINVAL) // 22
     {
       ACE_DEBUG ((LM_ERROR,
@@ -829,10 +847,12 @@ Stream_Device_Tools::initializeCapture (int fileDescriptor_in,
     goto no_support;
   } // end IF
   numberOfBuffers_inout = request_buffers.count;
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocated %d device buffer slots...\n"),
-              numberOfBuffers_inout));
-
+              ACE_TEXT ("allocated %d device (fd: %d) buffer slots\n"),
+              numberOfBuffers_inout,
+              fileDescriptor_in));
+#endif // _DEBUG
   return true;
 
 no_support:
@@ -1339,11 +1359,14 @@ Stream_Device_Tools::setFormat (int fileDescriptor_in,
   format_s.fmt.pix.width = format_in.width;
   format_s.fmt.pix.height = format_in.height;
 
+  format_s.fmt.pix.bytesperline = 0;
+//  format_s.fmt.pix.priv = 0;
+  format_s.fmt.pix.sizeimage = 0;
   result = v4l2_ioctl (fileDescriptor_in,
                        VIDIOC_S_FMT,
                        &format_s);
   if (result == -1)
-  {
+  {// int error = ACE_OS::last_error (); ACE_UNUSED_ARG (error);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
                 fileDescriptor_in, ACE_TEXT ("VIDIOC_S_FMT")));
@@ -1796,48 +1819,45 @@ Stream_Device_Tools::formatToString (const struct _snd_pcm_hw_params* format_in)
   return result;
 }
 
-struct v4l2_pix_format
+__u32
 Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::v4l2FormatToffmpegFormat"));
 
-  struct v4l2_pix_format result;
-  ACE_OS::memset (&result, 0, sizeof (struct v4l2_pix_format));
-
   switch (format_in)
   {
     case AV_PIX_FMT_YUV420P:
-      result.pixelformat = V4L2_PIX_FMT_YUV420; break;
+      return V4L2_PIX_FMT_YUV420;
     case AV_PIX_FMT_YUYV422:
-      result.pixelformat = V4L2_PIX_FMT_YUYV; break;
+      return V4L2_PIX_FMT_YUYV;
     case AV_PIX_FMT_RGB24:
-      result.pixelformat = V4L2_PIX_FMT_RGB24; break;
+      return V4L2_PIX_FMT_RGB24;
     case AV_PIX_FMT_BGR24:
-      result.pixelformat = V4L2_PIX_FMT_BGR24; break;
+      return V4L2_PIX_FMT_BGR24;
     case AV_PIX_FMT_YUV422P:
-      result.pixelformat = V4L2_PIX_FMT_YUV422P; break;
+      return V4L2_PIX_FMT_YUV422P;
     case AV_PIX_FMT_YUV444P:
-      result.pixelformat = V4L2_PIX_FMT_YUV444; break;
+      return V4L2_PIX_FMT_YUV444;
     case AV_PIX_FMT_YUV410P:
-      result.pixelformat = V4L2_PIX_FMT_YUV410; break;
+      return V4L2_PIX_FMT_YUV410;
     case AV_PIX_FMT_YUV411P:
-      result.pixelformat = V4L2_PIX_FMT_YUV411P; break;
+      return V4L2_PIX_FMT_YUV411P;
     case AV_PIX_FMT_GRAY8:
-      result.pixelformat = V4L2_PIX_FMT_GREY; break;
+      return V4L2_PIX_FMT_GREY;
 //    case AV_PIX_FMT_MONOWHITE:
 //    case AV_PIX_FMT_MONOBLACK:
     case AV_PIX_FMT_PAL8:
-      result.pixelformat = V4L2_PIX_FMT_PAL8; break;
+      return V4L2_PIX_FMT_PAL8;
 //    case AV_PIX_FMT_YUVJ420P:
     case AV_PIX_FMT_YUVJ422P:
       // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
-      result.pixelformat = V4L2_PIX_FMT_MJPEG; break;
+      return V4L2_PIX_FMT_MJPEG;
 //    case AV_PIX_FMT_YUVJ444P:
 //    case AV_PIX_FMT_XVMC_MPEG2_MC:
 //    case AV_PIX_FMT_XVMC_MPEG2_IDCT:
 //    case AV_PIX_FMT_XVMC:
     case AV_PIX_FMT_UYVY422:
-      result.pixelformat = V4L2_PIX_FMT_UYVY; break;
+      return V4L2_PIX_FMT_UYVY;
 //    case AV_PIX_FMT_UYYVYY411:
 //    case AV_PIX_FMT_BGR8:
 //    case AV_PIX_FMT_BGR4:
@@ -1846,25 +1866,25 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_RGB4:
 //    case AV_PIX_FMT_RGB4_BYTE:
     case AV_PIX_FMT_NV12:
-      result.pixelformat = V4L2_PIX_FMT_NV12; break;
+      return V4L2_PIX_FMT_NV12;
     case AV_PIX_FMT_NV21:
-      result.pixelformat = V4L2_PIX_FMT_NV21; break;
+      return V4L2_PIX_FMT_NV21;
     case AV_PIX_FMT_ARGB:
-      result.pixelformat = V4L2_PIX_FMT_ARGB32; break;
+      return V4L2_PIX_FMT_ARGB32;
     case AV_PIX_FMT_RGBA:
-      result.pixelformat = V4L2_PIX_FMT_RGB32; break;
+      return V4L2_PIX_FMT_RGB32;
     case AV_PIX_FMT_ABGR:
-      result.pixelformat = V4L2_PIX_FMT_ABGR32; break;
+      return V4L2_PIX_FMT_ABGR32;
     case AV_PIX_FMT_BGRA:
-      result.pixelformat = V4L2_PIX_FMT_BGR32; break;
+      return V4L2_PIX_FMT_BGR32;
     case AV_PIX_FMT_GRAY16BE:
-      result.pixelformat = V4L2_PIX_FMT_Y16_BE; break;
+      return V4L2_PIX_FMT_Y16_BE;
     case AV_PIX_FMT_GRAY16LE:
-      result.pixelformat = V4L2_PIX_FMT_Y16; break;
+      return V4L2_PIX_FMT_Y16;
 //    case AV_PIX_FMT_YUV440P:
 //    case AV_PIX_FMT_YUVJ440P:
     case AV_PIX_FMT_YUVA420P:
-      result.pixelformat = V4L2_PIX_FMT_YUV420; break;
+      return V4L2_PIX_FMT_YUV420;
 //    case AV_PIX_FMT_VDPAU_H264:
 //    case AV_PIX_FMT_VDPAU_MPEG1:
 //    case AV_PIX_FMT_VDPAU_MPEG2:
@@ -1873,13 +1893,13 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //     case AV_PIX_FMT_RGB48BE:
 //     case AV_PIX_FMT_RGB48LE:
      case AV_PIX_FMT_RGB565BE:
-      result.pixelformat = V4L2_PIX_FMT_RGB565X; break;
+      return V4L2_PIX_FMT_RGB565X;
     case AV_PIX_FMT_RGB565LE:
-     result.pixelformat = V4L2_PIX_FMT_RGB565; break;
+     return V4L2_PIX_FMT_RGB565;
     case AV_PIX_FMT_RGB555BE:
-     result.pixelformat = V4L2_PIX_FMT_RGB555X; break;
+     return V4L2_PIX_FMT_RGB555X;
     case AV_PIX_FMT_RGB555LE:
-     result.pixelformat = V4L2_PIX_FMT_RGB555; break;
+     return V4L2_PIX_FMT_RGB555;
 //    case AV_PIX_FMT_BGR565BE:
 //    case AV_PIX_FMT_BGR565LE:
 //    case AV_PIX_FMT_BGR555BE:
@@ -1898,7 +1918,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_DXVA2_VLD:
     case AV_PIX_FMT_RGB444LE:
     case AV_PIX_FMT_RGB444BE:
-      result.pixelformat = V4L2_PIX_FMT_RGB444; break;
+      return V4L2_PIX_FMT_RGB444;
 //    case AV_PIX_FMT_BGR444LE:
 //    case AV_PIX_FMT_BGR444BE:
 //    case AV_PIX_FMT_YA8:
@@ -1951,7 +1971,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_XYZ12LE:
 //    case AV_PIX_FMT_XYZ12BE:
     case AV_PIX_FMT_NV16:
-      result.pixelformat = V4L2_PIX_FMT_NV16; break;
+      return V4L2_PIX_FMT_NV16;
 //    case AV_PIX_FMT_NV20LE:
 //    case AV_PIX_FMT_NV20BE:
 //    case AV_PIX_FMT_RGBA64BE:
@@ -1959,7 +1979,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_BGRA64BE:
 //    case AV_PIX_FMT_BGRA64LE:
     case AV_PIX_FMT_YVYU422:
-      result.pixelformat = V4L2_PIX_FMT_YVYU; break;
+      return V4L2_PIX_FMT_YVYU;
 //    case AV_PIX_FMT_VDA:
 //    case AV_PIX_FMT_YA16BE:
 //    case AV_PIX_FMT_YA16LE:
@@ -1992,25 +2012,25 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
 //    case AV_PIX_FMT_GBRP14LE:
 //    case AV_PIX_FMT_YUVJ411P:
     case AV_PIX_FMT_BAYER_BGGR8:
-      result.pixelformat = V4L2_PIX_FMT_SBGGR8; break;
+      return V4L2_PIX_FMT_SBGGR8;
     case AV_PIX_FMT_BAYER_RGGB8:
-      result.pixelformat = V4L2_PIX_FMT_SRGGB8; break;
+      return V4L2_PIX_FMT_SRGGB8;
     case AV_PIX_FMT_BAYER_GBRG8:
-      result.pixelformat = V4L2_PIX_FMT_SGBRG8; break;
+      return V4L2_PIX_FMT_SGBRG8;
     case AV_PIX_FMT_BAYER_GRBG8:
-      result.pixelformat = V4L2_PIX_FMT_SGRBG8; break;
+      return V4L2_PIX_FMT_SGRBG8;
     case AV_PIX_FMT_BAYER_BGGR16LE:
     case AV_PIX_FMT_BAYER_BGGR16BE:
-      result.pixelformat = V4L2_PIX_FMT_SBGGR16; break;
+      return V4L2_PIX_FMT_SBGGR16;
     case AV_PIX_FMT_BAYER_RGGB16LE:
     case AV_PIX_FMT_BAYER_RGGB16BE:
-      result.pixelformat = V4L2_PIX_FMT_SRGGB16; break;
+      return V4L2_PIX_FMT_SRGGB16;
     case AV_PIX_FMT_BAYER_GBRG16LE:
     case AV_PIX_FMT_BAYER_GBRG16BE:
-      result.pixelformat = V4L2_PIX_FMT_SGBRG16; break;
+      return V4L2_PIX_FMT_SGBRG16;
     case AV_PIX_FMT_BAYER_GRBG16LE:
     case AV_PIX_FMT_BAYER_GRBG16BE:
-      result.pixelformat = V4L2_PIX_FMT_SGRBG16; break;
+      return V4L2_PIX_FMT_SGRBG16;
 ////     case AV_PIX_FMT_XVMC:
 //    case AV_PIX_FMT_YUV440P10LE:
 //    case AV_PIX_FMT_YUV440P10BE:
@@ -2049,7 +2069,7 @@ Stream_Device_Tools::ffmpegFormatToV4L2Format (enum AVPixelFormat format_in)
     }
   } // end SWITCH
 
-  return result;
+  return 0;
 }
 
 enum AVPixelFormat
@@ -2057,79 +2077,77 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::v4l2FormatToffmpegFormat"));
 
-  enum AVPixelFormat result = AV_PIX_FMT_NONE;
-
   switch (format_in)
   {
 //    case V4L2_PIX_FMT_RGB332:
     case V4L2_PIX_FMT_RGB444:
-      result = AV_PIX_FMT_RGB444; break;
+      return AV_PIX_FMT_RGB444;
     case V4L2_PIX_FMT_RGB555:
-      result = AV_PIX_FMT_RGB555; break;
+      return AV_PIX_FMT_RGB555;
     case V4L2_PIX_FMT_RGB565:
-      result = AV_PIX_FMT_RGB565; break;
+      return AV_PIX_FMT_RGB565;
     case V4L2_PIX_FMT_RGB555X:
-      result = AV_PIX_FMT_RGB555BE; break;
+      return AV_PIX_FMT_RGB555BE;
     case V4L2_PIX_FMT_RGB565X:
-      result = AV_PIX_FMT_RGB565BE; break;
+      return AV_PIX_FMT_RGB565BE;
     case V4L2_PIX_FMT_BGR666:
-      result = AV_PIX_FMT_BGR555; break; // *TODO*: this is wrong
+      return AV_PIX_FMT_BGR555; // *TODO*: this is wrong
     case V4L2_PIX_FMT_BGR24:
-      result = AV_PIX_FMT_BGR24; break;
+      return AV_PIX_FMT_BGR24;
     case V4L2_PIX_FMT_RGB24:
-      result = AV_PIX_FMT_RGB24; break;
+      return AV_PIX_FMT_RGB24;
     case V4L2_PIX_FMT_BGR32:
-      result = AV_PIX_FMT_BGR32; break;
+      return AV_PIX_FMT_BGR32;
     case V4L2_PIX_FMT_RGB32:
-      result = AV_PIX_FMT_RGB32; break;
+      return AV_PIX_FMT_RGB32;
     case V4L2_PIX_FMT_GREY:
-      result = AV_PIX_FMT_GRAY8; break;
+      return AV_PIX_FMT_GRAY8;
 //    case V4L2_PIX_FMT_Y4:
 //    case V4L2_PIX_FMT_Y6:
 //    case V4L2_PIX_FMT_Y10:
 //    case V4L2_PIX_FMT_Y12:
     case V4L2_PIX_FMT_Y16:
-      result = AV_PIX_FMT_GRAY16; break;
+      return AV_PIX_FMT_GRAY16;
 //    case V4L2_PIX_FMT_Y10BPACK:
     case V4L2_PIX_FMT_PAL8:
-      result = AV_PIX_FMT_PAL8; break;
+      return AV_PIX_FMT_PAL8;
 //    case V4L2_PIX_FMT_UV8:
     case V4L2_PIX_FMT_YVU410:
-      result = AV_PIX_FMT_YUV410P; break; // *TODO*: this is wrong
+      return AV_PIX_FMT_YUV410P; // *TODO*: this is wrong
     case V4L2_PIX_FMT_YVU420:
-      result = AV_PIX_FMT_YUV420P; break; // *TODO*: this is wrong
+      return AV_PIX_FMT_YUV420P; // *TODO*: this is wrong
     case V4L2_PIX_FMT_YUYV:
-      result = AV_PIX_FMT_YUYV422; break;
+      return AV_PIX_FMT_YUYV422;
 //    case V4L2_PIX_FMT_YYUV:
     case V4L2_PIX_FMT_YVYU:
-      result = AV_PIX_FMT_YVYU422; break;
+      return AV_PIX_FMT_YVYU422;
     case V4L2_PIX_FMT_UYVY:
-      result = AV_PIX_FMT_UYVY422; break;
+      return AV_PIX_FMT_UYVY422;
 //    case V4L2_PIX_FMT_VYUY:
     case V4L2_PIX_FMT_YUV422P:
-      result = AV_PIX_FMT_YUV422P; break;
+      return AV_PIX_FMT_YUV422P;
     case V4L2_PIX_FMT_YUV411P:
-      result = AV_PIX_FMT_YUV411P; break;
+      return AV_PIX_FMT_YUV411P;
     case V4L2_PIX_FMT_Y41P:
-      result = AV_PIX_FMT_YUV411P; break;
+      return AV_PIX_FMT_YUV411P;
     case V4L2_PIX_FMT_YUV444:
-      result = AV_PIX_FMT_YUV444P; break;
+      return AV_PIX_FMT_YUV444P;
 //    case V4L2_PIX_FMT_YUV555:
 //    case V4L2_PIX_FMT_YUV565:
 //    case V4L2_PIX_FMT_YUV32:
     case V4L2_PIX_FMT_YUV410:
-      result = AV_PIX_FMT_YUV410P; break;
+      return AV_PIX_FMT_YUV410P;
     case V4L2_PIX_FMT_YUV420:
-      result = AV_PIX_FMT_YUV420P; break;
+      return AV_PIX_FMT_YUV420P;
 //    case V4L2_PIX_FMT_HI240:
 //    case V4L2_PIX_FMT_HM12:
 //    case V4L2_PIX_FMT_M420:
     case V4L2_PIX_FMT_NV12:
-      result = AV_PIX_FMT_NV12; break;
+      return AV_PIX_FMT_NV12;
     case V4L2_PIX_FMT_NV21:
-      result = AV_PIX_FMT_NV21; break;
+      return AV_PIX_FMT_NV21;
     case V4L2_PIX_FMT_NV16:
-      result = AV_PIX_FMT_NV16; break;
+      return AV_PIX_FMT_NV16;
 //    case V4L2_PIX_FMT_NV61:
 //    case V4L2_PIX_FMT_NV24:
 //    case V4L2_PIX_FMT_NV42:
@@ -2142,13 +2160,13 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_YUV420M:
 //    case V4L2_PIX_FMT_YVU420M:
     case V4L2_PIX_FMT_SBGGR8:
-      result = AV_PIX_FMT_BAYER_BGGR8; break;
+      return AV_PIX_FMT_BAYER_BGGR8;
     case V4L2_PIX_FMT_SGBRG8:
-      result = AV_PIX_FMT_BAYER_GBRG8; break;
+      return AV_PIX_FMT_BAYER_GBRG8;
     case V4L2_PIX_FMT_SGRBG8:
-      result = AV_PIX_FMT_BAYER_GRBG8; break;
+      return AV_PIX_FMT_BAYER_GRBG8;
     case V4L2_PIX_FMT_SRGGB8:
-      result = AV_PIX_FMT_BAYER_RGGB8; break;
+      return AV_PIX_FMT_BAYER_RGGB8;
 //    case V4L2_PIX_FMT_SBGGR10:
 //    case V4L2_PIX_FMT_SGBRG10:
 //    case V4L2_PIX_FMT_SGRBG10:
@@ -2166,7 +2184,7 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
 //    case V4L2_PIX_FMT_SGRBG10DPCM8:
 //    case V4L2_PIX_FMT_SRGGB10DPCM8:
     case V4L2_PIX_FMT_SBGGR16:
-      result = AV_PIX_FMT_BAYER_BGGR16; break;
+      return AV_PIX_FMT_BAYER_BGGR16;
     case V4L2_PIX_FMT_MJPEG:
       // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
       //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
@@ -2178,7 +2196,7 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
       //         have any idea how to decompress the data. The exact table
       //         necessary is given in the OpenDML spec. ..."
       // *TODO*: libav doesn't specify a pixel format for MJPEG (it is a codec)
-      result = AV_PIX_FMT_YUVJ422P; break;
+      return AV_PIX_FMT_YUVJ422P;
 //    case V4L2_PIX_FMT_JPEG:
 //    case V4L2_PIX_FMT_DV:
 //    case V4L2_PIX_FMT_MPEG:
@@ -2230,6 +2248,6 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     }
   } // end SWITCH
 
-  return result;
+  return AV_PIX_FMT_NONE;
 }
 #endif // ACE_WIN32 || ACE_WIN64

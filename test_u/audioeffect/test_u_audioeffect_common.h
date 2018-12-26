@@ -609,10 +609,26 @@ struct Test_U_AudioEffect_SignalHandlerConfiguration
 };
 
 struct Test_U_AudioEffect_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
  : Test_U_Configuration
+#endif // GTK_USE
+#else
+ : Test_U_Configuration
+#endif // GUI_SUPPORT
 {
   Test_U_AudioEffect_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
    : Test_U_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_U_Configuration ()
+#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , ALSAConfiguration ()
@@ -892,19 +908,6 @@ struct Test_U_AudioEffect_ThreadData
   struct Test_U_AudioEffect_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_U_AudioEffect_DirectShow_UI_CBData> Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t;
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_U_AudioEffect_MediaFoundation_UI_CBData> Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t;
-#else
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_U_AudioEffect_UI_CBData> Test_U_AudioEffect_GtkBuilderDefinition_t;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
-
 #endif // GUI_SUPPORT
 
 #endif

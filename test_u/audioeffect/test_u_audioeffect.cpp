@@ -1371,8 +1371,6 @@ do_work (unsigned int bufferSize_in,
     } // end SWITCH
 #else
 #if defined (GTK_USE)
-    state_r.eventHooks.finiHook = idle_initialize_UI_cb;
-    state_r.eventHooks.initHook = idle_finalize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1770,10 +1768,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-#if GTK_CHECK_VERSION(3,0,0)
-  if (!UI_CSS_file.empty ())
-    state_r.CSSProviders[UI_CSS_file] = NULL;
-#endif // GTK_CHECK_VERSION(3,0,0)
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
@@ -1902,64 +1896,22 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
-                                                                                 argv_in,
-                                                                                 &directshow_ui_cb_data);
-  Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
-                                                                                           argv_in,
-                                                                                           &mediafoundation_ui_cb_data);
-#else
-  Test_U_AudioEffect_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                           argv_in,
-                                                           &ui_cb_data);
-#endif // ACE_WIN32 || ACE_WIN64
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
+#if GTK_CHECK_VERSION(3,0,0)
+  if (!UI_CSS_file.empty ())
+    ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+#endif // GTK_CHECK_VERSION(3,0,0)
 #endif // GTK_USE
   if (!UI_definition_file.empty ())
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (media_framework_e)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-#if defined (GTK_USE)
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                  argv_in,
-                                                                  &directshow_ui_definition);
-#endif // GTK_USE
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-#if defined (GTK_USE)
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                  argv_in,
-                                                                  &mediafoundation_ui_definition);
-#endif // GTK_USE
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    media_framework_e));
-
-        // *PORTABILITY*: on Windows, finalize ACE...
-        result = ACE::fini ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-        return EXIT_FAILURE;
-      }
-    } // end SWITCH
-#else
-#if defined (GTK_USE)
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                            argv_in,
-                                                            &ui_definition);
-#endif // GTK_USE
-#endif // ACE_WIN32 || ACE_WIN64
-  } // end IF
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;

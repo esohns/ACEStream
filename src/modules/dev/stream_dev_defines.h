@@ -69,7 +69,8 @@
 // *NOTE*: (on Linux,) a Lenovo (TM) ThinkPad T410 integrated camera buffers 32
 //         frames
 #define STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS                 32
-#define STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_USERPTR
+//#define STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_USERPTR
+#define STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD                      V4L2_MEMORY_MMAP
 
 #define STREAM_DEV_CAM_V4L_DEFAULT_PIXELFORMAT                    V4L2_PIX_FMT_RGB24
 #endif // ACE_WIN32 || ACE_WIN64

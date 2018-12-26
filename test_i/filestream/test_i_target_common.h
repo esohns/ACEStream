@@ -203,10 +203,26 @@ struct Test_I_Target_StreamConfiguration
 };
 
 struct Test_I_Target_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#else
  : Test_I_Configuration
+#endif // GTK_USE
+#else
+ : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_Target_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#else
    : Test_I_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
@@ -270,11 +286,6 @@ struct Test_I_Target_UI_CBData
   struct Test_I_Target_Configuration* configuration;
   Test_I_Target_Subscribers_t         subscribers;
 };
-
-#if defined (GTK_USE)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_I_Target_UI_CBData> Test_I_Target_GtkBuilderDefinition_t;
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #endif

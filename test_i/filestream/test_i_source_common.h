@@ -195,10 +195,26 @@ struct Test_I_Source_SignalHandlerConfiguration
 };
 
 struct Test_I_Source_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_I_GTK_Configuration
+#else
  : Test_I_Configuration
+#endif // GTK_USE
+#else
+ : Test_I_Configuration
+#endif // GUI_SUPPORT
 {
   Test_I_Source_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_I_GTK_Configuration ()
+#else
    : Test_I_Configuration ()
+#endif // GTK_USE
+#else
+   : Test_I_Configuration ()
+#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
@@ -297,11 +313,6 @@ struct Test_I_Source_UI_ThreadData
 
   struct Test_I_Source_UI_CBData* CBData;
 };
-
-#if defined (GTK_USE)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_I_Source_UI_CBData> Test_I_Source_GtkBuilderDefinition_t;
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #endif

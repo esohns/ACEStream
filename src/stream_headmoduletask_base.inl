@@ -320,10 +320,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // --> don't do anything, unless auto-starting
   if (unlikely (autoStart_))
   {
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: auto-starting\n"),
                 inherited::mod_->name ()));
-
+#endif // _DEBUG
     try {
       start ();
     } catch (...) {
@@ -419,8 +420,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // clean up
         if (unlikely (inherited::sessionData_))
         {
-          inherited::sessionData_->decrease ();
-          inherited::sessionData_ = NULL;
+          inherited::sessionData_->decrease (); inherited::sessionData_ = NULL;
         } // end IF
       } // end IF
 

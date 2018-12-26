@@ -58,8 +58,6 @@ extern "C"
 
 #include "common_file_tools.h"
 
-//#include "common_ui_common.h"
-
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
@@ -371,10 +369,6 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                 sizeof (struct _rifflist));
   if (unlikely (stream.fail ()))
     goto error;
-#else
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
 #endif // ACE_WIN32 || ACE_WIN64
 
   result = true;
@@ -717,9 +711,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // db (--> Uncompressed video frame)
   ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
   RIFF_chunk.fcc = FCC ('00db');
-  RIFF_chunk.cb = frameSize_;
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
+  RIFF_chunk.cb =
+      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? frameSize_
+                                             : ACE_SWAP_LONG (frameSize_));
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
 #else
@@ -732,9 +726,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  riff_chunk_size = frameSize_;
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    riff_chunk_size = ACE_SWAP_LONG (riff_chunk_size);
+  riff_chunk_size =
+      ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? frameSize_
+                                             : ACE_SWAP_LONG (frameSize_));
   result = message_block_p->copy (reinterpret_cast<char*> (&riff_chunk_size),
                                   4);
   if (unlikely (result == -1))

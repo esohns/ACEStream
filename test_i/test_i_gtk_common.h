@@ -23,20 +23,25 @@
 
 #include "gtk/gtk.h"
 
-#include "ace/Synch_Traits.h"
-
-#include "common_ilock.h"
-//#include "common_itaskcontrol.h"
-
 #include "common_ui_gtk_common.h"
 #if defined (GTKGL_SUPPORT)
 #include "common_ui_gtk_gl_common.h"
 #endif // GTKGL_SUPPORT
 
-#include "test_i_common.h"
+#include "test_i_configuration.h"
 
-// forward declarations
-struct Test_I_Configuration;
+struct Test_I_GTK_Configuration
+ : Test_I_Configuration
+{
+  Test_I_GTK_Configuration ()
+   : Test_I_Configuration ()
+   , GTKConfiguration ()
+  {}
+
+  Common_UI_GTK_Configuration_t GTKConfiguration;
+};
+
+//////////////////////////////////////////
 
 struct Test_I_GTK_ProgressData
  : Common_UI_GTK_ProgressData
@@ -76,8 +81,5 @@ struct Test_I_GTK_ThreadData
   struct Test_I_GTK_CBData* CBData;
   guint                     eventSourceId;
 };
-
-//typedef Common_ITaskControl_T<ACE_MT_SYNCH,
-//                              Common_ILock_T<ACE_MT_SYNCH> > Test_I_GTK_Manager_t;
 
 #endif

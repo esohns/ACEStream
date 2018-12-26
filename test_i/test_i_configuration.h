@@ -33,17 +33,13 @@
 #include "stream_configuration.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_istreamcontrol.h"
-#endif
-
-#include "stream_dec_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
-#include "net_configuration.h"
-
 #include "test_i_common.h"
-#include "test_i_connection_common.h"
+//#include "test_i_connection_common.h"
 #include "test_i_defines.h"
 
 struct Test_I_AllocatorConfiguration
@@ -56,47 +52,18 @@ struct Test_I_AllocatorConfiguration
   }
 };
 
-// forward declarations
-struct Test_I_Configuration;
-//typedef Stream_Base_T<ACE_MT_SYNCH,
-//                      ACE_MT_SYNCH,
-//                      Common_TimePolicy_t,
-//                      int,
-//                      Stream_SessionMessageType,
-//                      Stream_StateMachine_ControlState,
-//                      Test_I_Stream_State,
-//                      Test_I_Stream_Configuration,
-//                      Test_I_RuntimeStatistic_t,
-//                      Stream_ModuleConfiguration,
-//                      Test_I_Stream_ModuleHandlerConfiguration,
-//                      Test_I_Stream_SessionData,
-//                      Test_I_Stream_SessionData_t,
-//                      ACE_Message_Block,
-//                      Test_I_Stream_Message,
-//                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
   Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , configuration (NULL)
-   //, connectionConfigurations (NULL)
-   , inbound (false)
    , printProgressDot (false)
-   , pushStatisticMessages (true)
    , targetFileName ()
   {}
 
-  struct Test_I_Configuration*       configuration;
-  //Test_I_ConnectionConfigurations_t* connectionConfigurations;
-  bool                               inbound; // statistic/IO module
-  bool                               printProgressDot; // file writer module
-  bool                               pushStatisticMessages; // statistic module
-  std::string                        targetFileName; // file writer module
+  bool        printProgressDot;
+  std::string targetFileName; // file writer module
 };
-//typedef std::map<std::string,
-//                 struct Test_I_ModuleHandlerConfiguration> Test_I_ModuleHandlerConfigurations_t;
-//typedef Test_I_ModuleHandlerConfigurations_t::iterator Test_I_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_I_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -148,7 +115,6 @@ struct Test_I_Configuration
    : allocatorConfiguration ()
    , dispatchConfiguration ()
    , signalHandlerConfiguration ()
-   //, connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -158,11 +124,11 @@ struct Test_I_Configuration
   struct Common_EventDispatchConfiguration dispatchConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
-  // ************************** connection data ********************************
-  //Test_I_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Common_ParserConfiguration        parserConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
+
+  ////////////////////////////////////////
 
   struct Stream_UserData                   userData;
 };

@@ -78,6 +78,7 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_tools.h"
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
@@ -1382,8 +1383,8 @@ load_rates (int fd_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, frame_rate_string.c_str (),
-                        1, (*iterator_2).numerator,
-                        2, (*iterator_2).denominator,
+                        1, (*iterator_2).denominator,
+                        2, (*iterator_2).numerator,
                         -1);
   } // end FOR
 
@@ -1478,6 +1479,11 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID media_subtype = Common_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (media_subtype, GUID_NULL));
+#else
+  struct v4l2_pix_format pixel_format_s;
+  std::istringstream converter;
+  converter.str (format_string.c_str ());
+  converter >> pixel_format_s.pixelformat;
 #endif
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -1505,9 +1511,9 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  unsigned int width_i = g_value_get_uint (&value);
+  pixel_format_s.width = g_value_get_uint (&value);
   g_value_unset (&value);
-  unsigned int height_i = g_value_get_uint (&value_2);
+  pixel_format_s.height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -1520,12 +1526,17 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
-  g_value_init (&value, G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
-  unsigned int framerate_i = g_value_get_uint (&value);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            2, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
+  struct v4l2_fract framerate_s;
+  framerate_s.numerator = g_value_get_uint (&value);
+  framerate_s.denominator = g_value_get_uint (&value_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
   {
@@ -1613,7 +1624,10 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (false); // *TODO*
+//  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                  pixel_format_s);
+//  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                     framerate_s);
 #endif
 }
 
@@ -2159,6 +2173,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
+  resolution_s.width =
+      ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.width;
+  resolution_s.height =
+      ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.height;
+  framerate_i =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate.numerator;
+  ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate.denominator == 1);
   filename_string = (*iterator_2).second.second.targetFileName;
 #endif
   gtk_entry_set_text (entry_p,
@@ -2488,16 +2512,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += filename_string;
+//  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
+//  default_folder_uri += filename_string;
   gboolean result =
-    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                             default_folder_uri.c_str ());
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                         ACE_TEXT_ALWAYS_CHAR (ACE::dirname (filename_string.c_str ())));
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (default_folder_uri.c_str ())));
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (ACE::dirname (filename_string.c_str ()))));
     return G_SOURCE_REMOVE;
   } // end IF
 
@@ -2511,7 +2535,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
   GtkAllocation allocation;
-  ACE_OS::memset (&allocation, 0, sizeof (allocation));
+  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
@@ -2603,16 +2627,24 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
-  ACE_ASSERT (!(*iterator_2).second.second.window);
-  (*iterator_2).second.second.window =
+  ACE_ASSERT (!(*iterator_3).second.second.window);
+  (*iterator_3).second.second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*iterator_2).second.second.window);
-  (*iterator_2).second.second.area.height =
+  ACE_ASSERT ((*iterator_3).second.second.window);
+  (*iterator_3).second.second.area.height =
       static_cast<__u32> (allocation.height);
-  (*iterator_2).second.second.area.width =
+  (*iterator_3).second.second.area.width =
       static_cast<__u32> (allocation.width);
-  (*iterator_2).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
+  (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
 #endif
+
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  guint index_i =0;
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2635,10 +2667,25 @@ idle_initialize_UI_cb (gpointer userData_in)
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
-    gtk_combo_box_set_active (combo_box_p, 0);
+
+    g_value_init (&value, G_TYPE_STRING);
+    g_value_set_string (&value,
+                        (*iterator_2).second.second.deviceIdentifier.identifier.c_str ());
+    index_i =
+        Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
+                                           value,
+                                           1);
+    g_value_unset (&value);
+    ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+
+    // *NOTE*: this populates the other device settings widgets (see below)
+    while (gtk_events_pending ())
+      gtk_main_iteration ();
   } // end IF
 
   // select default capture format
+  std::ostringstream converter;
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
@@ -2647,27 +2694,29 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
-  GValue value = G_VALUE_INIT;
-#else
-  GValue value;
-  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   g_value_init (&value, G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   g_value_set_string (&value,
                       Common_Tools::GUIDToString (format_s).c_str ());
 #else
-  g_value_init (&value, G_TYPE_UINT);
-  g_value_set_uint (&value,
-                    ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.pixelformat);
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter << ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.pixelformat;
+  g_value_set_string (&value,
+                      converter.str ().c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
-  guint index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
-                                                     value,
-                                                     1);
-  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  g_value_reset (&value);
-  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+  index_i =
+      Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
+                                         value,
+                                         1);
+  g_value_unset (&value);
+  if (index_i != std::numeric_limits<unsigned int>::max ())
+  {
+    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+
+    // *NOTE*: this populates the other device settings widgets (see below)
+    while (gtk_events_pending ())
+      gtk_main_iteration ();
+  } // end IF
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -2682,13 +2731,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
   g_value_init (&value, G_TYPE_STRING);
-  std::ostringstream converter;
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   converter << resolution_s.cx;
 #else
   converter << resolution_s.width;
 #endif // ACE_WIN32 || ACE_WIN64
-  converter << ACE_TEXT_ALWAYS_CHAR (" x ");
+  converter << 'x';
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   converter << resolution_s.cy;
 #else
@@ -2699,9 +2749,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                                value,
                                                0);
-  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  g_value_reset (&value);
-  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+  g_value_unset (&value);
+  if (index_i != std::numeric_limits<unsigned int>::max ())
+  {
+    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
+
+    // *NOTE*: this populates the other device settings widgets (see below)
+    while (gtk_events_pending ())
+      gtk_main_iteration ();
+  } // end IF
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -2724,8 +2780,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                                value,
                                                0);
+  g_value_unset (&value);
   ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
-  g_value_reset (&value);
   gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
 
   return G_SOURCE_REMOVE;
@@ -2744,28 +2800,32 @@ idle_finalize_UI_cb (gpointer userData_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
+  struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   // clean up
   int result = -1;
-  if (cb_data_p->fileDescriptor != -1)
+  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor != -1)
   {
-    result = v4l2_close (cb_data_p->fileDescriptor);
+    result = v4l2_close ((*iterator_2).second.second.deviceIdentifier.fileDescriptor);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  cb_data_p->fileDescriptor));
-    cb_data_p->fileDescriptor = -1;
+                  (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+    (*iterator_2).second.second.deviceIdentifier.fileDescriptor = -1;
   } // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // leave GTK
   gtk_main_quit ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   CoUninitialize ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_REMOVE;
 }
@@ -3379,84 +3439,23 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
 
   // step2: update configuration
-  GtkComboBox* combo_box_p =
-    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
-  ACE_ASSERT (combo_box_p);
-  GtkTreeIter iterator_3;
-  if (gtk_combo_box_get_active_iter (combo_box_p,
-                                     &iterator_3))
-  {
-    GtkListStore* list_store_p =
-      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
-    ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
-    GValue value = G_VALUE_INIT;
-#else
-    GValue value;
-    ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-    g_value_init (&value, G_TYPE_STRING);
-#endif // GTK_CHECK_VERSION (2,30,0)
-    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                              &iterator_3,
-                              1, &value);
-    ACE_ASSERT (G_VALUE_HOLDS (&value, G_TYPE_STRING));
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      ACE_OS::strcpy ((*directshow_stream_iterator).second.second.deviceIdentifier.identifier._string,
-                      g_value_get_string (&value));
-      break;
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      ACE_OS::strcpy ((*mediafoundation_stream_iterator).second.second.deviceIdentifier.identifier._string,
-                      g_value_get_string (&value));
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-    (*iterator_2).second.second.deviceIdentifier.identifier =
-      g_value_get_string (&value);
-#endif
-    g_value_unset (&value);
-  } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  if (ui_cb_data_p->fileDescriptor != -1)
-    (*iterator_2).second.second.fileDescriptor = ui_cb_data_p->fileDescriptor;
-#endif
-
+  // *NOTE*: the source device configuration is kept up-to-date automatically
   GtkToggleAction* toggle_action_p =
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME)));
   ACE_ASSERT (toggle_action_p);
   GtkFileChooserButton* file_chooser_button_p = NULL;
   GError* error_p = NULL;
-  GFile* file_p = NULL;
   std::string filename_string;
   GtkEntry* entry_p = NULL;
-  char* filename_p = NULL;
   if (!gtk_toggle_action_get_active (toggle_action_p))
     goto continue_;
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  file_p =
-    gtk_file_chooser_get_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p));
-  ACE_ASSERT (file_p);
-  filename_p = g_file_get_path (file_p);
-  ACE_ASSERT (filename_p);
-  filename_string = filename_p;
-  g_free (filename_p); filename_p = NULL;
-  g_object_unref (G_OBJECT (file_p)); file_p = NULL;
+  filename_string =
+    gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
   ACE_ASSERT (Common_File_Tools::isDirectory (filename_string));
   ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
   entry_p =
@@ -3569,20 +3568,20 @@ continue_:
     }
   } // end SWITCH
 #else
-  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second.fileDescriptor,
-                                       ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.fileDescriptor,
-                                          ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
-    goto error;
-  } // end IF
+//  if (!Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                       ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+//    goto error;
+//  } // end IF
+//  if (!Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+//                                          ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Stream_Device_Tools::setFrameRate(), aborting\n")));
+//    goto error;
+//  } // end IF
 #endif
 
   // step3: start processing thread
@@ -4298,13 +4297,13 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
+  struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  stream_p = cb_data_p->stream;
-  ACE_ASSERT (cb_data_p->configuration);
+  stream_p = ui_cb_data_p->stream;
+  ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
   ACE_ASSERT (stream_p);
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -4565,37 +4564,41 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   int result_2 = -1;
-  if (cb_data_p->fileDescriptor != -1)
+  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor != -1)
   {
-    result_2 = v4l2_close (cb_data_p->fileDescriptor);
+    result_2 = v4l2_close ((*iterator_2).second.second.deviceIdentifier.fileDescriptor);
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  cb_data_p->fileDescriptor));
+                  (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("closed v4l2 device (fd was: %d)...\n"),
-                cb_data_p->fileDescriptor));
-    cb_data_p->fileDescriptor = -1;
+                ACE_TEXT ("closed v4l2 device (fd was: %d)\n"),
+                (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+#endif // _DEBUG
+    (*iterator_2).second.second.deviceIdentifier.fileDescriptor = -1;
   } // end IF
-  ACE_ASSERT (cb_data_p->fileDescriptor == -1);
+  ACE_ASSERT ((*iterator_2).second.second.deviceIdentifier.fileDescriptor == -1);
   int open_mode =
       (((*iterator_2).second.second.method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                 : O_RDONLY);
-  cb_data_p->fileDescriptor = v4l2_open (device_identifier_string.c_str (),
-                                         open_mode);
-  if (cb_data_p->fileDescriptor == -1)
+  (*iterator_2).second.second.deviceIdentifier.fileDescriptor =
+      v4l2_open (device_identifier_string.c_str (),
+                 open_mode);
+  if ((*iterator_2).second.second.deviceIdentifier.fileDescriptor == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
                 ACE_TEXT (device_identifier_string.c_str ()), open_mode));
     return;
   } // end IF
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
               ACE_TEXT (device_identifier_string.c_str ()),
-              cb_data_p->fileDescriptor));
-
-  result = load_formats (cb_data_p->fileDescriptor,
+              (*iterator_2).second.second.deviceIdentifier.fileDescriptor));
+#endif // _DEBUG
+  result = load_formats ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
                          list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
@@ -4819,9 +4822,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  result = load_resolutions (ui_cb_data_p->fileDescriptor,
-                             format_i,
-                             list_store_p);
+  result =
+      load_resolutions ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                        format_i,
+                        list_store_p);
 #endif
   if (!result)
   {
@@ -4832,7 +4836,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d,%u), returning\n"),
-                ui_cb_data_p->fileDescriptor,
+                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
                 format_i));
 #endif
     return;
@@ -5108,10 +5112,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  result = load_rates (ui_cb_data_p->fileDescriptor,
-                       format_i,
-                       width, height,
-                       list_store_p);
+  result =
+      load_rates ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                  format_i,
+                  width, height,
+                  list_store_p);
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result)
   {
@@ -5123,7 +5128,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(%d,%u,%u,%u), returning\n"),
-                ui_cb_data_p->fileDescriptor,
+                (*iterator_2).second.second.deviceIdentifier.fileDescriptor,
                 format_i,
                 width, height));
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5236,9 +5241,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  unsigned int frame_interval = g_value_get_uint (&value);
+  unsigned int frame_rate_numerator = g_value_get_uint (&value);
   g_value_unset (&value);
-  unsigned int frame_interval_denominator = g_value_get_uint (&value_2);
+  unsigned int frame_rate_denominator = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 
   bool result = false;
@@ -5312,9 +5317,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
   ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate.numerator =
-    frame_interval_denominator;
+      frame_rate_numerator;
   ui_cb_data_p->configuration->streamConfiguration.configuration_.format.frameRate.denominator =
-      frame_interval;
+      frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_base_p);
   update_buffer_size (ui_cb_data_base_p);
@@ -5475,7 +5480,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
@@ -5485,7 +5490,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
@@ -5502,7 +5507,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -5630,6 +5635,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     return;
   } // end IF
 #endif
+
+//  // *WORKAROUND*: gdk_pixbuf_get_from_window asserts in some cases
+//  cairo_surface_t* surface_p =
+//      GDK_WINDOW_IMPL_GET_CLASS (window_p->impl)->ref_cairo_surface (gdk_window_get_impl_window (window_p));
+//  ACE_ASSERT (surface_p);
+//  cairo_surface_flush (surface_p);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock);
     if (ui_cb_data_p->pixelBuffer)

@@ -1004,18 +1004,6 @@ struct Test_I_Source_V4L_ThreadData
   struct Test_I_Source_V4L_UI_CBData* CBData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_I_Source_DirectShow_UI_CBData> Test_I_Source_DirectShow_GtkBuilderDefinition_t;
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_I_Source_MediaFoundation_UI_CBData> Test_I_Source_MediaFoundation_GtkBuilderDefinition_t;
-#else
-typedef Common_UI_GtkBuilderDefinition_T<Common_UI_GTK_State_t,
-                                         struct Test_I_Source_V4L_UI_CBData> Test_I_Source_GtkBuilderDefinition_t;
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #endif

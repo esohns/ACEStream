@@ -973,7 +973,9 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
-  int open_mode = O_RDONLY;
+  int open_mode =
+      ((STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                  : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
       v4l2_open (deviceIdentifier_in.c_str (),
@@ -991,16 +993,15 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
       Stream_Device_Tools::defaultCaptureFormat (deviceIdentifier_in);
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("\"%s\": default capture format: \"%s\", resolution: %ux%u, framerate: %u/%u\n"),
-              ACE_TEXT (deviceIdentifier_in.c_str ()),
-              ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()),
+              ACE_TEXT ("\"%s\" (%d): default capture format: \"%s\" (%d), resolution: %ux%u, framerate: %u/%u\n"),
+              ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor,
+              ACE_TEXT (Stream_Device_Tools::formatToString (deviceIdentifier_out.fileDescriptor, captureFormat_out.format.pixelformat).c_str ()), captureFormat_out.format.pixelformat,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
 #endif // _DEBUG
   if (hasUI_in)
   {
-    outputFormat_out.format =
-        Stream_Device_Tools::v4l2FormatToffmpegFormat (captureFormat_out.format.pixelformat);
+    outputFormat_out.format = AV_PIX_FMT_RGB24;
     outputFormat_out.frameRate.num =
         static_cast<int> (captureFormat_out.frameRate.numerator);
     outputFormat_out.frameRate.den =
@@ -1081,6 +1082,20 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+    Common_UI_GTK_State_t& state_r =
+        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
+    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
+      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1136,8 +1151,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      //directshow_modulehandler_configuration.pixelBufferLock =
-      //  directShowCBData_in.pixelBufferLock;
+      directshow_modulehandler_configuration.pixelBufferLock = &state_r.lock;
 
       if (statisticReportingInterval_in)
       {
@@ -1161,8 +1175,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
-      //mediafoundation_modulehandler_configuration.pixelBufferLock =
-        //mediaFoundationCBData_in.pixelBufferLock;
+      mediafoundation_modulehandler_configuration.pixelBufferLock =
+          &state_r.lock;
 
       if (statisticReportingInterval_in)
       {
@@ -1196,7 +1210,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       captureinterfaceIdentifier_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.pixelBufferLock = CBData_in.pixelBufferLock;
+  modulehandler_configuration.pixelBufferLock = &state_r.lock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
@@ -1527,7 +1541,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Common_Timer_Manager_t* timer_manager_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
   int result = -1;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -1602,10 +1615,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   // step1a: start UI event loop ?
   if (!UIDefinitionFilename_in.empty ())
   {
-#if defined (GTK_USE)
-    gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-    ACE_ASSERT (gtk_manager_p);
-#endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (mediaFramework_in)
     {
@@ -1613,16 +1622,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       {
         directShowCBData_in.stream = &directshow_stream;
 #if defined (GTK_USE)
-        Common_UI_GTK_State_t& state_r =
-          const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-        state_r.eventHooks.initHook = idle_initialize_UI_cb;
-        //directShowCBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-        //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-          std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
-        directShowCBData_in.progressData.state = &state_r;
         directShowCBData_in.UIState = &state_r;
+        directShowCBData_in.progressData.state = &state_r;
+        directShowCBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -1635,16 +1637,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       {
         mediaFoundationCBData_in.stream = &mediafoundation_stream;
 #if defined (GTK_USE)
-        Common_UI_GTK_State_t& state_r =
-          const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-        state_r.eventHooks.initHook = idle_initialize_UI_cb;
-        //state_r.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-        //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-        state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-          std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
         mediaFoundationCBData_in.UIState = &state_r;
         mediaFoundationCBData_in.progressData.state = &state_r;
+        mediaFoundationCBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -1664,16 +1659,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #else
     CBData_in.stream = &stream;
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
-    state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-    state_r.eventHooks.initHook = idle_initialize_UI_cb;
     CBData_in.UIState = &state_r;
     CBData_in.progressData.state = &state_r;
+    CBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -2141,19 +2129,15 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
-                                                                             argv_in,
-                                                                             &directshow_ui_cb_data);
-  Stream_CamSave_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
-                                                                                       argv_in,
-                                                                                       &mediafoundation_ui_cb_data);
-#else
-  Stream_CamSave_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                       argv_in,
-                                                       &ui_cb_data);
-  ACE_ASSERT (gtk_manager_p);
-#endif // ACE_WIN32 || ACE_WIN64
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
   Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
@@ -2438,9 +2422,8 @@ ACE_TMAIN (int argc_in,
     } // end SWITCH
 #else
 #if defined (GTK_USE)
-    result_2 = gtk_manager_p->initialize (argc_in,
-                                          argv_in,
-                                          &ui_definition);
+    result_2 =
+        gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)

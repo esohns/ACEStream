@@ -724,8 +724,6 @@ do_work (unsigned int bufferSize_in,
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (GTK_USE)
-    state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-    state_r.eventHooks.initHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1186,17 +1184,21 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
-  state_r.RCFiles.push_back (gtk_rc_file);
-  Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
-                                                      argv_in,
-                                                      &ui_cb_data);
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_source_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
   if (!gtk_glade_file.empty ())
-    if (!gtk_manager_p->initialize (argc_in,
-                                    argv_in,
-                                    &ui_definition))
+    if (!gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
+                  ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
       Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
