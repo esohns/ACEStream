@@ -101,10 +101,6 @@ class Stream_Decoder_OpenCVDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T (const Stream_Decoder_OpenCVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_OpenCVDecoder_T& operator= (const Stream_Decoder_OpenCVDecoder_T&))
-
-  // helper methods
-  //DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
-  //                                  unsigned int);                       // requested size
 };
 
 // include template definition

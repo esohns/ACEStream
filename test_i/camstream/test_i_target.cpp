@@ -1206,13 +1206,13 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_EventHandler_Module directshow_event_handler (NULL,
-                                                                         ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_Target_MediaFoundation_EventHandler_Module mediafoundation_event_handler (NULL,
-                                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 #else
   Test_I_Target_EventHandler_t ui_event_handler (&CBData_in);
   Test_I_Target_Module_EventHandler_Module event_handler (NULL,
-                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

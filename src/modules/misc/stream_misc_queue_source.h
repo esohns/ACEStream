@@ -67,11 +67,26 @@ class Stream_Module_QueueReader_T
                                       StatisticHandlerType,
                                       UserDataType>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      StatisticHandlerType,
+                                      UserDataType> inherited;
+
  public:
   Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
                                bool = false,              // auto-start ?
                                bool = true);              // generate session messages ?
-  virtual ~Stream_Module_QueueReader_T ();
+  inline virtual ~Stream_Module_QueueReader_T () {}
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -90,47 +105,19 @@ class Stream_Module_QueueReader_T
                                     StatisticContainerType,
                                     StatisticHandlerType,
                                     UserDataType>::initialize;
-#endif
+#endif // __GNUG__ || _MSC_VER
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-  //// implement (part of) Stream_ITaskBase
-  //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-  //                                bool&);                // return value: pass message downstream ?
-  //virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-  //                                   bool&);               // return value: pass message downstream ?
-
-  // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
-
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      StatisticHandlerType,
-                                      UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T (const Stream_Module_QueueReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T& operator= (const Stream_Module_QueueReader_T&))
 
   // helper methods
   virtual int svc (void);
-//   Stream_Message* allocateMessage(const unsigned int&); // requested size
-  //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   ACE_Message_Queue_Base* queue_;
 };

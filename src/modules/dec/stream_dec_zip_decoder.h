@@ -97,9 +97,6 @@ class Stream_Decoder_ZIPDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))
 
-//  // helper methods
-//  DataMessageType* allocateMessage (unsigned int); // requested size
-
   ACE_Message_Block*                        buffer_; // <-- continuation chain
   bool                                      crunchMessages_;
   enum Stream_Decoder_CompressionFormatType format_;

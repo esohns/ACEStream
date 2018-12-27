@@ -217,7 +217,10 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 set (source_files
      stream_vis_common.h
      stream_vis_defines.h
-     stream_vis_exports.h
+#     stream_vis_exports.h
+     stream_vis_libav_resize.cpp
+     stream_vis_libav_resize.h
+     stream_vis_libav_resize.inl
      stream_vis_tools.cpp
      stream_vis_tools.h)
 if (GTK_SUPPORT)
@@ -323,11 +326,13 @@ if (WIN32)
  install (FILES
           stream_vis_common.h
           stream_vis_defines.h
-          stream_vis_exports.h
+#          stream_vis_exports.h
           stream_vis_gtk_cairo.h
           stream_vis_gtk_cairo.inl
           stream_vis_gtk_cairo_spectrum_analyzer.h
           stream_vis_gtk_cairo_spectrum_analyzer.inl
+          stream_vis_libav_resize.h
+          stream_vis_libav_resize.inl
           stream_vis_target_direct3d.h
           stream_vis_target_direct3d.inl
           stream_vis_target_directshow.h
@@ -343,13 +348,15 @@ else ()
  install (FILES
           stream_vis_common.h
           stream_vis_defines.h
-          stream_vis_exports.h
+#          stream_vis_exports.h
           stream_vis_gtk_cairo.h
           stream_vis_gtk_cairo.inl
           stream_vis_gtk_cairo_spectrum_analyzer.h
           stream_vis_gtk_cairo_spectrum_analyzer.inl
           stream_vis_gtk_pixbuf.h
           stream_vis_gtk_pixbuf.inl
+          stream_vis_libav_resize.h
+          stream_vis_libav_resize.inl
           stream_vis_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)

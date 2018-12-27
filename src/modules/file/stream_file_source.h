@@ -247,7 +247,6 @@ class Stream_Module_FileReader_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T& operator= (const Stream_Module_FileReader_Writer_T&))
 
   // helper methods
-  //DataMessageType* allocateMessage (unsigned int); // (requested) size
   virtual int svc (void);
 
   bool*         aborted_;

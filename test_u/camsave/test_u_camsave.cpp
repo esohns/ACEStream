@@ -1237,14 +1237,14 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                              true);               // block ?
   Stream_CamSave_DirectShow_Stream directshow_stream;
   Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
-                                                                              ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
   Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
   Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
-                                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1336,7 +1336,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                            true);               // block ?
   Stream_CamSave_V4L_Stream stream;
   Stream_CamSave_MessageHandler_Module message_handler (&stream,
-                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =

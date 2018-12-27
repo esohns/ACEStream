@@ -762,7 +762,7 @@ error_3:
     }
     default:
     {
-      ACE_DEBUG ((LM_WARNING,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
@@ -1059,7 +1059,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
     default:
     {
-      ACE_DEBUG ((LM_WARNING,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: received an unknown user message (type was: %d), continuing\n"),
                   inherited::mod_->name (),
                   messageBlock_in->msg_type ()));

@@ -22,6 +22,7 @@
 #define STREAM_MISC_AGGREGATOR_H
 
 #include <map>
+#include <string>
 #include <vector>
 
 #include "ace/Global_Macros.h"
@@ -159,8 +160,8 @@ class Stream_Module_Aggregator_WriterTask_T
   virtual ~Stream_Module_Aggregator_WriterTask_T ();
 
   // override ACE_Task_Base members
-  virtual int put (ACE_Message_Block*, // data chunk
-                   ACE_Time_Value*);   // timeout value
+  virtual int put (ACE_Message_Block*,      // data chunk
+                   ACE_Time_Value* = NULL); // timeout value
 
   // override ACE_Task members
   virtual TASK_T* next (void);

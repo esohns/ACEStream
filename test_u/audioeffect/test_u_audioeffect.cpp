@@ -940,14 +940,14 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
                                                                          );
   Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (istream_p,
-                                                                                     ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                                                     &mediaFoundationCBData_in
 #endif // GUI_SUPPORT
                                                                                    );
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (istream_p,
-                                                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
@@ -957,7 +957,7 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
                                                    );
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
-                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
 #endif // ACE_WIN32 || ACE_WIN64

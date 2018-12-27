@@ -20,9 +20,9 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_misc_parser.h"
+#include "stream_misc_distributor.h"
 
 #include "stream_misc_defines.h"
 
-const char libacestream_default_misc_parser_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_PARSER_DEFAULT_NAME_STRING);
+const char libacestream_default_misc_distributor_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING);

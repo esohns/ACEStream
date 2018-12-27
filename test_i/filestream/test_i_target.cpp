@@ -502,7 +502,7 @@ do_work (unsigned int bufferSize_in,
 //  cb_data_base_p->configuration = &configuration;
   Test_I_Target_EventHandler ui_event_handler (&CBData_in);
   Test_I_Stream_Target_EventHandler_Module event_handler (NULL,
-                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_Stream_Target_EventHandler* event_handler_p =
     dynamic_cast<Test_I_Stream_Target_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)

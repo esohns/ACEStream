@@ -118,24 +118,8 @@ class Stream_Decoder_LibAVConverter_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- private:
-  // convenient types
-  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataContainerType,
-                                          MediaType> OWN_TYPE_T;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T (const Stream_Decoder_LibAVConverter_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T& operator= (const Stream_Decoder_LibAVConverter_T&))
-
+ protected:
   // helper methods
-  DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
-                                    unsigned int);                       // requested size
   inline void setFormat (enum AVPixelFormat format_in, MediaType& mediaType_inout) { setFormat_impl (format_in, mediaType_inout); }
   inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
   inline void setResolution (const Common_UI_Resolution_t& resolution_in, MediaType& mediaType_inout) { setResolution_impl (resolution_in, mediaType_inout); }
@@ -159,6 +143,21 @@ class Stream_Decoder_LibAVConverter_T
 //#else
 //  static char        paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
 //#endif
+
+ private:
+  // convenient types
+  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          SessionDataContainerType,
+                                          MediaType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T (const Stream_Decoder_LibAVConverter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T& operator= (const Stream_Decoder_LibAVConverter_T&))
 };
 
 // include template definition

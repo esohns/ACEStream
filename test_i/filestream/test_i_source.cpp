@@ -542,7 +542,7 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
   Test_I_Source_EventHandler ui_event_handler (&CBData_in);
   Test_I_Stream_Source_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
-                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_Stream_Source_EventHandler* event_handler_p =
     dynamic_cast<Test_I_Stream_Source_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)

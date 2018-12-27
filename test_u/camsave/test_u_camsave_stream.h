@@ -262,9 +262,15 @@ class Stream_CamSave_V4L_Stream
 
   // modules
   Stream_CamSave_V4L_Source_Module      source_;
+  Stream_CamSave_StatisticReport_Module statisticReport_;
   Stream_CamSave_LibAVDecoder_Module    decoder_;
   Stream_CamSave_LibAVConverter_Module  converter_;
-  Stream_CamSave_StatisticReport_Module statisticReport_;
+  Stream_CamSave_Distributor_Module     distributor_;
+  ////////////////////////////////////////
+  Stream_CamSave_V4L_AVIEncoder_Module  encoder_;
+  Stream_CamSave_FileWriter_Module      fileWriter_;
+  ////////////////////////////////////////
+  Stream_CamSave_LibAVResize_Module     resizer_;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
@@ -272,8 +278,6 @@ class Stream_CamSave_V4L_Stream
   Stream_CamSave_X11WindowDisplay_Module X11WindowDisplay_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Stream_CamSave_V4L_AVIEncoder_Module  encoder_;
-  Stream_CamSave_FileWriter_Module      fileWriter_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

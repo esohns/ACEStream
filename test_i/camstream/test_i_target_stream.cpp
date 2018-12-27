@@ -88,7 +88,7 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Splitter_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
@@ -321,8 +321,8 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
 
   //// *TODO*: remove type inference
   //if (!Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (filter_p,
-  //                                                                     (configuration_in.moduleHandlerConfiguration->push ? MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
-  //                                                                                                                        : MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L),
+  //                                                                     (configuration_in.moduleHandlerConfiguration->push ? STREAM_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
+  //                                                                                                                        : STREAM_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L),
   //                                                                     configuration_in.moduleHandlerConfiguration->window,
   //                                                                     graphBuilder_,
   //                                                                     buffer_negotiation_p,
@@ -696,7 +696,7 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Splitter_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
   ACE_ASSERT (module_p);
   modules_out.push_back (module_p);
@@ -946,7 +946,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Splitter_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;

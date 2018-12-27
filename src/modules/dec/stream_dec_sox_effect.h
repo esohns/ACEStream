@@ -94,7 +94,6 @@ class Stream_Decoder_SoXEffect_T
 
  protected:
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  // *IMPORTANT NOTE*: callers must Stream_MediaFramework_DirectShow_Tools::free_() the return value
 //  template <typename MediaType2> AM_MEDIA_TYPE& getMediaType (const MediaType2 mediaType_in) { return getMediaType_impl (mediaType_in); }

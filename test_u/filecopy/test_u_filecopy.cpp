@@ -406,7 +406,7 @@ do_work (unsigned int bufferSize_in,
   Stream_Filecopy_Stream stream;
   struct Stream_ModuleConfiguration module_configuration;
   Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,
-                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_Filecopy_Module_EventHandler* event_handler_p =
     dynamic_cast<Stream_Filecopy_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)

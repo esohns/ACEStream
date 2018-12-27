@@ -376,7 +376,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVFormatContext* formatContext_;
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
  private:

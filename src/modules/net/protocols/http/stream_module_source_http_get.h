@@ -94,7 +94,6 @@ class Stream_Module_Net_Source_HTTP_Get_T
 
  protected:
   // helper methods
-  //DataMessageType* allocateMessage (unsigned int); // (requested) size
   bool send (const std::string&,    // URI
              const HTTP_Headers_t&, // headers
              const HTTP_Form_t&);   // form

@@ -965,9 +965,9 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
 
   Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler ((useUDP_in ? directShowCBData_in.UDPStream : directShowCBData_in.stream),
-    ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler ((useUDP_in ? mediaFoundationCBData_in.UDPStream : mediaFoundationCBData_in.stream),
-    ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   switch (mediaFramework_in)
   {
@@ -1055,7 +1055,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
 
   Test_I_Source_V4L_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
-                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;

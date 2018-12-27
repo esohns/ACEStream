@@ -18,21 +18,22 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_MODULE_MISC_DEFINES_H
-#define STREAM_MODULE_MISC_DEFINES_H
+#ifndef STREAM_STREAM_MISC_DEFINES_H
+#define STREAM_STREAM_MISC_DEFINES_H
 
 #include "ace/config-lite.h"
 
-#define MODULE_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
-#define MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
-#define MODULE_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"
-#define MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
+#define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
+#define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
+#define STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
+#define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"
+#define STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
-#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)
+#define STREAM_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)
 
-#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL           20 // ms
+#define STREAM_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL           20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
 //         supplies the sample buffers (instead of the (source) filter), and the
 //         stream message type does not implement IMediaSample, the 'push'
@@ -40,21 +41,21 @@
 //         (inbound) frame data
 // *NOTE*: the 'pull' strategy is implemented via IAsynchReader (Request/
 //         WaitForNext)
-#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH             false
+#define STREAM_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH             false
 
-#define MODULE_MISC_DS_WIN32_ALLOCATOR_NAME                         "ACEStream DirectShow Allocator"
-#define MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE              "ACEStream DirectShow Asynch Source"
-#define MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L            L"ACEStream DirectShow Asynch Source"
-#define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE                     "ACEStream DirectShow Source"
-#define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L                   L"ACEStream DirectShow Source"
-#define MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME                 L"Output"
+#define STREAM_MISC_DS_WIN32_ALLOCATOR_NAME                         "ACEStream DirectShow Allocator"
+#define STREAM_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE              "ACEStream DirectShow Asynch Source"
+#define STREAM_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L            L"ACEStream DirectShow Asynch Source"
+#define STREAM_MISC_DS_WIN32_FILTER_NAME_SOURCE                     "ACEStream DirectShow Source"
+#define STREAM_MISC_DS_WIN32_FILTER_NAME_SOURCE_L                   L"ACEStream DirectShow Source"
+#define STREAM_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME                 L"Output"
 
 // MediaFoundation
 // *NOTE*: #samples each stream tries to hold in its queue
-#define MODULE_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE         2;
+#define STREAM_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE         2;
 
-#define MODULE_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
-#define MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
+#define STREAM_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
+#define STREAM_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
 #endif
 
 #define STREAM_MISC_PARSER_DEFAULT_LEX_TRACE                        false

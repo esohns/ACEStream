@@ -73,10 +73,13 @@ set (source_files
      stream_misc_aggregator.inl
      stream_misc_common.h
      stream_misc_defines.h
+     stream_misc_distributor.cpp
+     stream_misc_distributor.h
+     stream_misc_distributor.inl
      stream_misc_dump.cpp
      stream_misc_dump.h
      stream_misc_dump.inl
-     stream_misc_exports.h
+#     stream_misc_exports.h
      stream_misc_messagehandler.cpp
      stream_misc_messagehandler.h
      stream_misc_messagehandler.inl
@@ -142,9 +145,11 @@ install (FILES
          stream_misc_aggregator.inl
          stream_misc_common.h
          stream_misc_defines.h
+         stream_misc_distributor.h
+         stream_misc_distributor.inl
          stream_misc_dump.h
          stream_misc_dump.inl
-         stream_misc_exports.h
+#         stream_misc_exports.h
          stream_misc_messagehandler.h
          stream_misc_messagehandler.inl
          stream_misc_parser.h

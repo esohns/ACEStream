@@ -1261,13 +1261,21 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
+ , statisticReport_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , converter_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , encoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
+ , fileWriter_ (this,
+                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
+ , resizer_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
@@ -1276,10 +1284,6 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif
 #endif // GUI_SUPPORT
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream"));
 

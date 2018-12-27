@@ -95,9 +95,6 @@ class Stream_Decoder_AVIDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
 
-  // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
-
   Stream_IAllocator* allocator_;
   ACE_Message_Block* buffer_; // <-- continuation chain
   bool               crunchMessages_;

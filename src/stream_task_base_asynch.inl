@@ -215,6 +215,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: control should never reach here; module_closed() hook
       //                   is implemented (see below)
       ACE_ASSERT (false);
+      ACE_NOTSUP_RETURN (-1);
       ACE_NOTREACHED (return -1;)
     }
     default:
@@ -287,7 +288,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
 
   // *TODO*: move this into svc()
-  if (messageBlock_in->msg_type () == ACE_Message_Block::MB_FLUSH)
+  if (unlikely (messageBlock_in->msg_type () == ACE_Message_Block::MB_FLUSH))
   {
     // *TODO*: support selective flushing via ControlMessageType
     int result = inherited::msg_queue_->flush ();

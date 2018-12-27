@@ -33,9 +33,9 @@ extern "C"
 #include "common_tools.h"
 
 #if defined (_DEBUG)
-#include "common_file_tools.h"
+//#include "common_file_tools.h"
 
-#include "common_image_tools.h"
+//#include "common_image_tools.h"
 #endif // _DEBUG
 
 #include "common_ui_common.h"
@@ -143,13 +143,13 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVConverter_T::~Stream_Decoder_LibAVConverter_T"));
 
-  if (likely (buffer_))
+  if (unlikely (buffer_))
     buffer_->release ();
 
-  if (likely (context_))
+  if (unlikely (context_))
     sws_freeContext (context_);
 
-  if (likely (frame_))
+  if (unlikely (frame_))
     av_frame_free (&frame_);
 }
 
@@ -602,10 +602,10 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-//      if (context_)
-//      {
-//        avcodec_free_context (&context_); context_ = NULL;
-//      } // end IF
+      if (context_)
+      {
+        sws_freeContext (context_); context_ = NULL;
+      } // end IF
 
       break;
     }

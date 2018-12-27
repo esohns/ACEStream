@@ -199,7 +199,7 @@ dispatch:
 
     // forward frame
     message_block_p = message_inout->duplicate ();
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
@@ -210,17 +210,13 @@ dispatch:
                            (buffered_bytes - frameSize_));
     ACE_ASSERT (buffer_->total_length () == frameSize_);
     result = inherited::put_next (buffer_, NULL);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-
-      // clean up
-      message_block_p->release ();
-      buffer_->release ();
-      buffer_ = NULL;
-
+      message_block_p->release (); message_block_p = NULL;
+      buffer_->release (); buffer_ = NULL;
       return;
     } // end IF
     message_block_p->rd_ptr (buffered_bytes - frameSize_);
@@ -236,8 +232,9 @@ dispatch:
     //     message->dump_state();
 
     // step1: get a new message buffer
-    DataMessageType* message_p = allocateMessage (STREAM_DEC_BUFFER_SIZE);
-    if (!message_p)
+    DataMessageType* message_p =
+        inherited::allocateMessage (STREAM_DEC_BUFFER_SIZE);
+    if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to allocate message(%u), returning\n"),
@@ -253,19 +250,15 @@ dispatch:
       ACE_ASSERT (message_block_p->length () <= message_p->space ());
       result = message_p->copy (message_block_p->rd_ptr (),
                                 message_block_p->length ());
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-
-        // clean up
-        message_p->release ();
-
+        message_p->release (); message_p = NULL;
         goto error;
       } // end IF
     } // end FOR
 
-    // clean up
     buffer_->release ();
     buffer_ = message_p;
   } // end IF
@@ -363,8 +356,7 @@ done:
   return;
 
 error:
-  buffer_->release ();
-  buffer_ = NULL;
+  buffer_->release (); buffer_ = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -407,61 +399,4 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     default:
       break;
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType>
-DataMessageType*
-Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::allocateMessage"));
-
-  // initialize return value(s)
-  DataMessageType* message_p = NULL;
-
-  if (allocator_)
-  {
-allocate:
-    try {
-      message_p =
-        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-                  requestedSize_in));
-      return NULL;
-    }
-
-    // keep retrying ?
-    if (!message_p && !allocator_->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_p)
-  {
-    if (allocator_)
-    {
-      if (allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-  } // end IF
-
-  return message_p;
 }

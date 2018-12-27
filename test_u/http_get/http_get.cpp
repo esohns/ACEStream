@@ -588,7 +588,7 @@ do_work (unsigned int bufferSize_in,
   HTTPGet_EventHandler event_handler (&CBData_in,
                                       interfaceDefinitionFile_in.empty ());
   HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
-                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_FlexParserAllocatorConfiguration> heap_allocator;

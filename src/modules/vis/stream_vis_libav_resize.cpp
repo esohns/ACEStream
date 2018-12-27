@@ -20,9 +20,9 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_misc_parser.h"
+#include "stream_vis_libav_resize.h"
 
-#include "stream_misc_defines.h"
+#include "stream_vis_defines.h"
 
-const char libacestream_default_misc_parser_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_PARSER_DEFAULT_NAME_STRING);
+const char libacestream_default_vis_libav_resize_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING);

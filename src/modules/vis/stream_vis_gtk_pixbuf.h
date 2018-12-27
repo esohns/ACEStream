@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_VIS_GTK_PIXBUF_H
-#define STREAM_MODULE_VIS_GTK_PIXBUF_H
+#ifndef STREAM_VIS_GTK_PIXBUF_H
+#define STREAM_VIS_GTK_PIXBUF_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>

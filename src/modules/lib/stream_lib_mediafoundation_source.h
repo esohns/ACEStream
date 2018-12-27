@@ -149,7 +149,6 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T& operator= (const Stream_MediaFramework_MediaFoundation_Source_T&))
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
   bool initialize_MediaFoundation (HWND,                           // (target) window handle [NULL: NullRenderer]
                                    const IMFMediaType*,            // media type handle
                                    IMFMediaSource*&,               // media source handle (in/out)
