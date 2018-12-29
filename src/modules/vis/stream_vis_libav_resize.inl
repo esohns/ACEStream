@@ -285,9 +285,9 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                    media_type_s.resolution.cx, media_type_s.resolution.cy,
+                    media_type_2.resolution.cx, media_type_2.resolution.cy,
 #else
-                    media_type_s.resolution.width, media_type_s.resolution.height,
+                    media_type_2.resolution.width, media_type_2.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
                     inherited::configuration_->area.width, inherited::configuration_->area.height));
 #endif // _DEBUG
@@ -299,9 +299,9 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                media_type_s.resolution.cx, media_type_s.resolution.cy, inherited::inputFormat_,
+                                media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
 #else
-                                media_type_s.resolution.width, media_type_s.resolution.height, inherited::inputFormat_,
+                                media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
 #endif // ACE_WIN32 || ACE_WIN64
                                 inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
                                 flags_i,                      // flags

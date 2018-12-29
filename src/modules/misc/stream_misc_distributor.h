@@ -60,6 +60,7 @@ class Stream_Miscellaneous_Distributor_T
                                   Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
+ , public Stream_IDistributorModule
  , public Stream_IModuleLinkCB
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
@@ -99,6 +100,11 @@ class Stream_Miscellaneous_Distributor_T
 //  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
 //                                     bool&);               // return value: pass message downstream ?
 
+  // implement Stream_IDistributorModule
+  virtual bool push (Stream_Module_t*);
+  virtual bool pop (Stream_Module_t*);
+  virtual Stream_ModuleList_t next ();
+
  protected:
   // convenient types
   typedef std::map<ACE_thread_t,
@@ -118,7 +124,8 @@ class Stream_Miscellaneous_Distributor_T
 //    inline bool operator() (const QUEUE_TO_MODULE_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
 //  };
 
-  mutable ACE_SYNCH_MUTEX_T lock_;
+  // *NOTE*: use Common_TaskBase_Ts' lock_
+//  mutable ACE_SYNCH_MUTEX_T lock_;
   THREAD_TO_QUEUE_MAP_T     queues_;
   QUEUE_TO_MODULE_MAP_T     branches_;
 
@@ -136,9 +143,8 @@ class Stream_Miscellaneous_Distributor_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T (const Stream_Miscellaneous_Distributor_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T& operator= (const Stream_Miscellaneous_Distributor_T&))
 
-  // implement Stream_IModuleLinkCB
-  virtual void onLink (ACE_Module_Base*);
-  virtual void onUnlink (ACE_Module_Base*);
+  // override ACE_Task_Base members
+  virtual int svc (void);
 
   // override Common_ITaskControl_T members
   virtual void stop (bool = true,  // wait for completion ?
@@ -146,8 +152,9 @@ class Stream_Miscellaneous_Distributor_T
   virtual void idle ();
   virtual void wait (bool = true) const; // wait for the message queue(s) ? : worker thread(s) only
 
-  // override ACE_Task_Base members
-  virtual int svc (void);
+  // implement Stream_IModuleLinkCB
+  virtual void onLink (ACE_Module_Base*);
+  virtual void onUnlink (ACE_Module_Base*);
 };
 
 // include template definition

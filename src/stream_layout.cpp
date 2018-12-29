@@ -17,39 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_ILINK_H
-#define STREAM_ILINK_H
-
-#include "ace/Module.h"
-
-#include "stream_common.h"
-
-class Stream_IDistributorModule
-{
- public:
-  virtual bool push (Stream_Module_t*) = 0;
-  virtual bool pop (Stream_Module_t*) = 0;
-
-  virtual Stream_ModuleList_t next () = 0;
-};
-
-//////////////////////////////////////////
-
-class Stream_ILinkCB
-{
- public:
-  virtual void onLink () = 0;
-  virtual void onUnlink () = 0;
-};
-
-class Stream_IModuleLinkCB
-{
- public:
-  // *NOTE*: invoked after (!) the module has been (re-)linked
-  virtual void onLink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
-  // *NOTE*: invoked just before (!) the module is unlinked
-  virtual void onUnlink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
-};
-
-#endif
+#include "ace/Synch.h"
+#include "stream_layout.h"

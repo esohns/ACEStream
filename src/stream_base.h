@@ -46,6 +46,8 @@
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
+#include "stream_misc_distributor.h"
+
 #include "stream_stat_statistic_report.h"
 
 // forward declaration(s)
@@ -103,8 +105,15 @@ class Stream_Base_T
  : public ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType>
  , public Stream_Base
- , public Stream_IStream_T<ACE_SYNCH_USE,
-                           TimePolicyType>
+ , public Stream_IStreamLayout_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                                                    TimePolicyType,
+                                                                    HandlerConfigurationType,
+                                                                    ControlMessageType,
+                                                                    DataMessageType,
+                                                                    SessionMessageType,
+                                                                    SessionDataType> >
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
                                   StatusType,
@@ -141,6 +150,17 @@ class Stream_Base_T
                            TimePolicyType,
                            ModuleConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
+  typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                             TimePolicyType,
+                                             HandlerConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             SessionDataType> DISTRIBUTOR_MODULE_T;
+  typedef Stream_Layout_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          DISTRIBUTOR_MODULE_T> LAYOUT_T;
+  typedef typename LAYOUT_T::ITERATOR_T LAYOUT_ITERATOR_T;
   typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
                               TimePolicyType> ITERATOR_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -207,7 +227,7 @@ class Stream_Base_T
   virtual StatusType status () const;
   inline virtual const StateType& state () const { return state_; }
 
-  // implement Stream_IStream_T
+  // implement Stream_IStreamLayout_T
   // *WARNING*: handle with care
   virtual bool lock (bool = true,  // block ?
                      bool = true); // recurse upstream (if any) ?
@@ -216,7 +236,6 @@ class Stream_Base_T
   virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // recurse upstream (if any) ?
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
-  inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
@@ -230,6 +249,8 @@ class Stream_Base_T
   //            --> grab the lock() first and/or really know what you are doing
   virtual typename ISTREAM_T::STREAM_T* downstream () const;
   virtual typename ISTREAM_T::STREAM_T* upstream (bool = false) const; // recurse (if any) ?
+
+  inline virtual bool load (LAYOUT_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {}
@@ -258,8 +279,8 @@ class Stream_Base_T
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
   //         at once
-  // *NOTE*: this also close()s/reset()s any trailing modules
   bool remove (MODULE_T*,    // module handle
+               bool = true,  // lock ?
                bool = true); // close()/reset() removed module(s) for re-use ?
   // *NOTE*: make sure the original API is not hidden
   using inherited::remove;
@@ -329,9 +350,9 @@ class Stream_Base_T
   //         otherwise the dtor will NOT join any worker threads before
   //         close()ing the modules
   bool                              isInitialized_;
+  LAYOUT_T                          layout_;
   mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
   MESSAGE_QUEUE_T                   messageQueue_; // 'outbound' queue
-  typename ISTREAM_T::MODULE_LIST_T modules_;
   SessionDataContainerType*         sessionData_;
   ACE_SYNCH_MUTEX_T                 sessionDataLock_;
   StateType                         state_;

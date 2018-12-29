@@ -306,9 +306,9 @@ if (WIN32)
    target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/cairo.lib)
   endif (GTK3_SUPPORT)
  endif (GTK_SUPPORT)
-
- target_link_libraries (${PROJECT_NAME}_Visualization Common)
 endif (WIN32)
+target_link_libraries (${PROJECT_NAME}_Visualization Common)
+target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

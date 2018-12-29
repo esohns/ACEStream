@@ -90,7 +90,9 @@ add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_HTML ${ACE_LIBRARY})
-endif ()
+endif (WIN32)
+target_link_libraries (${PROJECT_NAME}_HTML Common)
+target_link_libraries (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_HTML PROPERTIES DEFINE_SYMBOL STREAM_HTML_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

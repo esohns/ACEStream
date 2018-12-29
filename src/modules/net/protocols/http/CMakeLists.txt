@@ -93,7 +93,10 @@ add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME}_Netwo
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${ACE_LIBRARY})
-endif ()
+endif (WIN32)
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet Common)
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME})
+target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME}_Network)
 
 set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES DEFINE_SYMBOL STREAM_NET_HTTP_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

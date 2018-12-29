@@ -281,9 +281,9 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
-
- target_link_libraries (${PROJECT_NAME}_Decoder Common)
 endif ()
+target_link_libraries (${PROJECT_NAME}_Decoder Common)
+target_link_libraries (${PROJECT_NAME}_Decoder ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

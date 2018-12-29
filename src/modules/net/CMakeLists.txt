@@ -104,7 +104,9 @@ add_dependencies (${PROJECT_NAME}_Network ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Network ${ACE_LIBRARY})
-endif ()
+endif (WIN32)
+target_link_libraries (${PROJECT_NAME}_Network Common)
+target_link_libraries (${PROJECT_NAME}_Network ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

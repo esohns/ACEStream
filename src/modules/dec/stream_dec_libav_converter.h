@@ -121,15 +121,7 @@ class Stream_Decoder_LibAVConverter_T
  protected:
   // helper methods
   inline void setFormat (enum AVPixelFormat format_in, MediaType& mediaType_inout) { setFormat_impl (format_in, mediaType_inout); }
-  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
   inline void setResolution (const Common_UI_Resolution_t& resolution_in, MediaType& mediaType_inout) { setResolution_impl (resolution_in, mediaType_inout); }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
-  void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
-#else
-//  inline void setFormat_impl (enum AVPixelFormat format_in, struct v4l2_pix_format& mediaType_inout) { mediaType_inout.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
-  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
-#endif // ACE_WIN32 || ACE_WIN64
 
   DataMessageType*   buffer_;
   struct SwsContext* context_;
@@ -158,6 +150,17 @@ class Stream_Decoder_LibAVConverter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T (const Stream_Decoder_LibAVConverter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T& operator= (const Stream_Decoder_LibAVConverter_T&))
+
+  // helper methods
+  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
+  void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
+#else
+  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+
+  inline void setResolution_impl (const Common_UI_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition

@@ -127,6 +127,8 @@ if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Database ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Database ${MYSQL_LIBRARY})
 endif ()
+target_link_libraries (${PROJECT_NAME}_Database Common)
+target_link_libraries (${PROJECT_NAME}_Database ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Database PROPERTIES DEFINE_SYMBOL STREAM_DB_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Database PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

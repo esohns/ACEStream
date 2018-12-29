@@ -21,20 +21,10 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
-#include <deque>
+#include <list>
 #include <map>
 
 #include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavutil/pixfmt.h"
-//}
-//#endif /* __cplusplus */
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
@@ -310,7 +300,7 @@ typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
-typedef std::deque<Stream_Module_t*> Stream_ModuleList_t;
+typedef std::list<Stream_Module_t*> Stream_ModuleList_t;
 typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
 typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t;
 

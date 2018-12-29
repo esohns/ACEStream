@@ -44,7 +44,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    SessionDataType>::Stream_Miscellaneous_Distributor_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , lock_ ()
+// , lock_ ()
  , queues_ ()
  , branches_ ()
 {
@@ -113,7 +113,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -154,6 +154,107 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     messageBlock_in->release ();
 
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::push (Stream_Module_t* module_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::push"));
+
+  // sanity check(s)
+  ACE_ASSERT (module_in);
+
+  ACE_thread_t thread_id = 0;
+  ACE_Message_Queue_Base* queue_p = NULL;
+  ACE_NEW_NORETURN (queue_p,
+                    typename inherited::MESSAGE_QUEUE_T ());
+  if (unlikely (!queue_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+    thread_id = inherited::start ();
+    if (!thread_id)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Common_ITask_T::start(), aborting\n"),
+                  inherited::mod_->name ()));
+      delete queue_p; queue_p = NULL;
+      return false;
+    } // end IF
+    queues_.insert (std::make_pair (thread_id, queue_p));
+    branches_.insert (std::make_pair (queue_p, module_in));
+  } // end lock scope
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::pop (Stream_Module_t* module_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::pop"));
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_ModuleList_t
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::next ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::next"));
+
+  // initialize return value(s)
+  Stream_ModuleList_t return_value;
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, return_value);
+
+  } // end lock scope
+
+  return return_value;
 }
 
 template <ACE_SYNCH_DECL,
@@ -395,7 +496,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_Time_Value one_second (1, 0);
 
 retry:
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -447,7 +548,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     this_p->idle ();
 
 retry:
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     if (!queues_.empty ())
       goto wait;
   } // end lock scope
@@ -506,7 +607,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // retrieve queue/successor module handles
   THREAD_TO_QUEUE_ITERATOR_T iterator;
   QUEUE_TO_MODULE_MAP_ITERATOR_T iterator_2;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     message_queue_p = (*iterator).second;
@@ -562,7 +663,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } while (true);
 
 done:
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     ACE_ASSERT ((*iterator).second);

@@ -101,11 +101,15 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
 endif ()
 target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/tree>)
+target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/lib>)
+target_include_directories (${PROJECT_NAME} PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/misc>)
 target_include_directories (${PROJECT_NAME} PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/stat>)
 
@@ -152,7 +156,7 @@ set (source_files
      stream_datablockallocatorheap.h
      stream_datablockallocatorheap.inl
      stream_defines.h
-     stream_exports.h
+#     stream_exports.h
      stream_head_task.cpp
      stream_head_task.h
      stream_head_task.inl
@@ -170,6 +174,9 @@ set (source_files
      stream_isessionnotify.h
      stream_istreamcontrol.h
      stream_itask.h
+     stream_layout.cpp
+     stream_layout.h
+     stream_layout.inl
      stream_macros.h
      stream_message_base.cpp
      stream_message_base.h
@@ -310,7 +317,7 @@ install (FILES
          stream_datablockallocatorheap.h
          stream_datablockallocatorheap.inl
          stream_defines.h
-         stream_exports.h
+#         stream_exports.h
          stream_head_task.h
          stream_head_task.inl
          stream_headmoduletask_base.h
@@ -326,6 +333,8 @@ install (FILES
          stream_isessionnotify.h
          stream_istreamcontrol.h
          stream_itask.h
+         stream_layout.h
+         stream_layout.inl
          stream_macros.h
          stream_message_base.h
          stream_message_base.inl

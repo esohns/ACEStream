@@ -26,7 +26,6 @@
 #include "stream_iallocator.h"
 #include "stream_imessagequeue.h"
 #include "stream_macros.h"
-//#include "stream_session_message_base.h"
 #include "stream_tools.h"
 
 #include "stream_stat_defines.h"
@@ -71,9 +70,9 @@ Stream_Base_T<ACE_SYNCH_USE,
  , configuration_ (NULL)
  , finishOnDisconnect_ (false)
  , isInitialized_ (false)
+ , layout_ ()
  , lock_ ()
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
- , modules_ ()
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
@@ -204,20 +203,17 @@ Stream_Base_T<ACE_SYNCH_USE,
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
     if (unlikely (state_.module))
     {
-      MODULE_T* module_p = inherited::find (state_.module->name ());
-      if (module_p)
+      MODULE_T* module_p =
+          layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
+      if (likely (module_p))
       {
-        if (!remove (module_p,
-                     false)) // reset ?
+        if (unlikely (!remove (module_p,
+                               false,    // lock ?
+                               false)))  // reset ? (see above)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                       ACE_TEXT (StreamName),
                       state_.module->name ()));
-//        else
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("%s: removed module \"%s\"\n"),
-//                      ACE_TEXT (StreamName),
-//                      state_.module->name ()));
       } // end IF
 
       if (state_.deleteModule)
@@ -275,25 +271,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
     if (state_.module)
     {
-      MODULE_T* module_p = inherited::find (state_.module->name ());
-      if (module_p)
+      MODULE_T* module_p =
+          layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
+      if (likely (module_p))
       {
         if (unlikely (!remove (module_p,
-                               false)))   // reset ?
+                               false,    // lock ?
+                               false)))  // reset ? (see above)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                       ACE_TEXT (StreamName),
                       state_.module->name ()));
-//        else
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("%s: removed module \"%s\"\n"),
-//                      ACE_TEXT (StreamName),
-//                      state_.module->name ()));
       } // end IF
-
-      ACE_ASSERT (ACE_OS::strcmp (modules_.front ()->name (),
-                                  state_.module->name ()) == 0);
-      modules_.pop_front ();
     } // end IF
   } // end lock scope
 
@@ -350,26 +339,19 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
 
-  int result = -1;
-
-  // step1: reset pipeline
-  try {
-    result = inherited::open (NULL,                // argument to push()
-                              inherited::head (),  // head
-                              inherited::tail ()); // tail
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in ACE_Stream::open(), aborting\n"),
-                ACE_TEXT (StreamName)));
-    result = -1;
-  }
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", aborting\n"),
-                ACE_TEXT (StreamName)));
-    return false;
-  } // end IF
+  // step1: setup layout
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
+    if (!layout_.setup (*this))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Layout::setup(): \"%m\", aborting\n"),
+                  ACE_TEXT (StreamName)));
+      return false;
+    } // end IF
+  } // end lock scope
+#if defined (_DEBUG)
+  layout_.dump_state ();
+#endif // _DEBUG
 
   // step2: set notification strategy ?
   if (notificationStrategy_in)
@@ -390,41 +372,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT (StreamName)));
       return false;
     } // end IF
-    //QUEUE_T* queue_p = task_p->msg_queue ();
-    //if (unlikely (!queue_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: no head module reader task queue found, aborting\n"),
-    //              ACE_TEXT (StreamName)));
-    //  return false;
-    //} // end IF
     task_p->msg_queue_->notification_strategy (notificationStrategy_in);
   } // end IF
-
-  // step3: push all available modules
-  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
-         ++iterator)
-    {
-      result = inherited::push (*iterator);
-      if (unlikely (result == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
-        return false;
-      } // end IF
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: pushed \"%s\"\n"),
-      //            ACE_TEXT (StreamName),
-      //            (*iterator)->name ()));
-    } // end FOR
-  } // end lock scope
-//#if defined (_DEBUG)
-//  dump_state ();
-//#endif
 
   return true;
 }
@@ -505,13 +454,10 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                   ACE_TEXT (StreamName)));
-
-      // clean up
       { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
         state_.sessionData = NULL;
       } // end lock scope
-      delete session_data_p;
-
+      delete session_data_p; session_data_p = NULL;
       return;
     } // end IF
   } // end IF
@@ -522,26 +468,25 @@ Stream_Base_T<ACE_SYNCH_USE,
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
   typename CONFIGURATION_T::ITERATOR_T iterator_2;
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    if (unlikely (!load (modules_,
+    if (unlikely (!load (layout_,
                          delete_)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_IStreamControlBase::load(), returning\n"),
+                  ACE_TEXT ("%s: failed to Stream_IStreamLayout_T::load(), returning\n"),
                   ACE_TEXT (StreamName)));
       return;
     } // end IF
 
-    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
-         iterator++)
+    for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
+         iterator != layout_.end ();
+         ++iterator)
     {
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (unlikely (!imodule_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
         return;
       } // end IF
       imodule_p->reset ();
@@ -550,19 +495,18 @@ Stream_Base_T<ACE_SYNCH_USE,
       iterator_2 = configuration_->find ((*iterator)->name ());
       if (iterator_2 == configuration_->end ())
         iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
+#endif // _DEBUG
       ACE_ASSERT (iterator_2 != configuration_->end ());
-      //ACE_ASSERT (!(*iterator_2).second.first.sessionData);
       if (unlikely (!imodule_p->initialize ((*iterator_2).second.first)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
         return;
       } // end IF
 
@@ -582,8 +526,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
-                      ACE_TEXT (StreamName),
-                      (*iterator)->name ()));
+                      ACE_TEXT (StreamName), (*iterator)->name ()));
           continue;
         } // end IF
       } // end IF
@@ -591,8 +534,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                                                     configuration_->configuration_.messageAllocator)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
+                    ACE_TEXT (StreamName), (*iterator)->name ()));
     } // end FOR
   } // end lock scope
 
@@ -673,8 +615,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
     // *NOTE*: ACE_Stream::close() resets the task handles of all modules
     //         --> reset them manually
-    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
+    for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
+         iterator != layout_.end ();
          iterator++)
     {
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
@@ -698,13 +640,12 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     if (delete_)
     {
-      for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-           iterator != modules_.end ();
+      for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
+           iterator != layout_.end ();
            ++iterator)
         delete *iterator;
     } // end IF
-
-    modules_.clear ();
+    layout_.clear ();
   } // end lock scope
 
   return (result == 0);
@@ -1310,7 +1251,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType>::flush (bool flushInbound_in,
                                           bool flushSessionMessages_in,
-                                          bool flushupstream_in)
+                                          bool flushUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
@@ -1318,7 +1259,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // forward upstream ?
   if (unlikely (upstream_ &&
-                flushupstream_in))
+                flushUpstream_in))
   {
     ISTREAM_CONTROL_T* istreamcontrol_p =
         dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
@@ -1334,7 +1275,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     try {
       return istreamcontrol_p->flush (flushInbound_in,
                                        flushSessionMessages_in,
-                                       flushupstream_in);
+                                       flushUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1344,18 +1285,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  typename ISTREAM_T::MODULE_LIST_T modules;
-  const MODULE_T* module_p = NULL;
+  Stream_ModuleList_t modules_a = layout_.list (false);
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
   int result_2 = -1;
-
-  for (ITERATOR_T iterator (*this);
-       (iterator.next (module_p) != 0);
-       iterator.advance ())
-    modules.push_front (const_cast<MODULE_T*> (module_p));
-  modules.pop_back (); // discard head
-  modules.pop_front (); // discard tail
 
   // *TODO*: implement a dedicated control message to push this functionality
   //         into the task object
@@ -1363,8 +1296,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     goto continue_;
 
   // writer (inbound) side
-  for (typename ISTREAM_T::MODULE_LIST_REVERSE_ITERATOR_T iterator = modules.rbegin ();
-       iterator != modules.rend ();
+  for (Stream_ModuleListIterator_t iterator = modules_a.begin ();
+       iterator != modules_a.end ();
        ++iterator)
   {
     task_p = const_cast<MODULE_T*> (*iterator)->writer ();
@@ -1385,26 +1318,26 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (StreamName),
-                  (*iterator)->name ()));
+                  ACE_TEXT (StreamName), (*iterator)->name ()));
     } // end IF
     else if (likely (result_2))
     {
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s writer: flushed %d message(s)\n"),
-                  ACE_TEXT (StreamName),
-                  (*iterator)->name (),
+                  ACE_TEXT (StreamName), (*iterator)->name (),
                   result_2));
+#endif // _DEBUG
       result += result_2;
     } // end ELSE IF
   } // end FOR
 
 continue_:
   // reader (outbound) side
-  modules.push_back (const_cast<MODULE_T*> (inherited::head ())); // append head
-  for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules.begin ();
-       iterator != modules.end ();
-       iterator++)
+  modules_a.push_front (const_cast<MODULE_T*> (inherited::head ())); // prepend head
+  for (Stream_ModuleListReverseIterator_t iterator = modules_a.rbegin ();
+       iterator != modules_a.rend ();
+       ++iterator)
   {
     task_p = (*iterator)->reader ();
     if (unlikely (!task_p))
@@ -1424,16 +1357,16 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (StreamName),
-                  (*iterator)->name ()));
+                  ACE_TEXT (StreamName), (*iterator)->name ()));
     } // end IF
     else if (likely (result))
     {
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s reader: flushed %d message(s)\n"),
-                  ACE_TEXT (StreamName),
-                  (*iterator)->name (),
+                  ACE_TEXT (StreamName), (*iterator)->name (),
                   result_2));
+#endif // _DEBUG
       result += result_2;
     } // end ELSE IF
   } // end FOR
@@ -1729,10 +1662,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   //        flush
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
+  Stream_ModuleList_t modules_a;
   ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (lock_);
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
+    modules_a = layout_.list ();
+    for (Stream_ModuleListIterator_t iterator = modules_a.begin ();
+         iterator != modules_a.end ();
          ++iterator)
     {
       task_p = (*iterator)->writer ();
@@ -1777,6 +1712,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step2: wait for outbound processing (i.e. the 'reader' side) pipeline to
   //        flush
+  // *TODO*: this is incomplete
   messageQueue_.waitForIdleState ();
 }
 
@@ -1828,8 +1764,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (upstream_ &&
       waitForupstream_in)
   {
-    istreamcontrol_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
+    istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istreamcontrol_p))
     {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
@@ -1841,8 +1776,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->wait (waitForThreads_in,
-                             waitForupstream_in,
-                             waitForDownStream_in);
+                              waitForupstream_in,
+                              waitForDownStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1855,8 +1790,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *NOTE*: the procedure here is this:
   //         step1: wait for (message source) processing to finish
   //         step2: wait for any upstreamed messages to 'flush' (message sink)
-  typename ISTREAM_T::MODULE_LIST_T modules;
-  modules.push_front (this_p->inherited::head ());
 
   // step1a: get head module (skip over ACE_Stream_Head)
   ITERATOR_T iterator (*this);
@@ -1888,14 +1821,17 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // ... and wait for the state switch (xxx --> FINISHED) (/ any head module
   // thread(s))
+  // *TODO*: in 'concurrent' scenarios(, or if the head module is a queue),
+  //         messages are enqueued by 'third parties' (e.g. the kernel, or
+  //         external threads); transitioning to the FINISHED state must
+  //         prevent more data from 'leaking' in beyond this point
   istreamcontrol_p =
       dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<MODULE_T*> (module_p)->writer ());
   if (unlikely (!istreamcontrol_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (StreamName),
-                module_p->name ()));
+                ACE_TEXT (StreamName), module_p->name ()));
     return;
   } // end IF
   try {
@@ -1905,53 +1841,34 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl::wait(), returning\n"),
-                ACE_TEXT (StreamName),
-                module_p->name ()));
+                ACE_TEXT (StreamName), module_p->name ()));
     return;
   }
-
   // --> no new messages will be dispatched from the head module
-  // *IMPORTANT NOTE*: in 'concurrent' scenarios, messages are dispatched by
-  //                   'third parties' (i.e. external threads); the FINISHED
-  //                   state must prevent more data from 'leaking' in beyond
-  //                   this point
 
-  // step1b: wait for inbound processing (i.e. the 'writer' side) pipeline to
-  //         flush (/ any worker(s) to idle)
-  // *NOTE*: 'final' trailing modules are remove()d from the stream by the
-  //         shutdown logic (see: shutdown()).
-  //         --> grab the lock to freeze the pipeline layout and prevent a race
-  //             condition
-  //         Note that this also removes them from the module configuration
-  //         stack 'modules_'; alas, this fact effectively prevents proper
-  //         flushing of messages here
-  // *TODO*: handle this scenario by e.g. holding on to the stream lock while
-  //         waiting (see: line 1766)
+  // step1b: wait for inbound processing (i.e. the 'writer' side) to complete
+  //         --> grab the lock to freeze the layout
   ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
 
-  typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator_2 = modules_.begin ();
+  Stream_ModuleList_t modules_a = layout_.list (false);
+  Stream_ModuleList_t main_modules_a = layout_.list (true);
+  modules_a.push_front (this_p->inherited::head ());
   TASK_T* task_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
   ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (lock_);
-  do
-  {
-    // *WARNING*: if the stream is link()ed, and 'this' is 'upstream', the
-    //            tail() module will not be hit
-
-    // sanity check(s)
-    ACE_ASSERT (module_p);
-
+  for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
+       iterator_2 != modules_a.end ();
+       ++iterator_2)
+  { ACE_ASSERT (*iterator_2);
     // skip stream tail (i.e. last module)
-    if (!ACE_OS::strcmp (module_p->name (),
+    if (!ACE_OS::strcmp ((*iterator_2)->name (),
                          ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
-        !ACE_OS::strcmp (module_p->name (),
+        !ACE_OS::strcmp ((*iterator_2)->name (),
                          ACE_TEXT ("ACE_Stream_Tail")))
       break;
 
-    modules.push_front (const_cast<MODULE_T*> (module_p));
-
-    task_p = const_cast<MODULE_T*> (module_p)->writer ();
+    task_p = const_cast<MODULE_T*> (*iterator_2)->writer ();
     if (unlikely (!task_p))
       continue; // close()d already ?
     ACE_ASSERT (task_p->msg_queue_);
@@ -1961,20 +1878,20 @@ Stream_Base_T<ACE_SYNCH_USE,
       message_count = task_p->msg_queue_->message_count ();
       if (likely (!message_count))
         break;
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s/%s writer: waiting to process %d byte(s) in %u message(s)...\n"),
+                  ACE_TEXT (StreamName), (*iterator_2)->name (),
+                  task_p->msg_queue_->message_bytes (), message_count));
+#endif // _DEBUG
 
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s/%s writer: waiting to process ~%d byte(s) in %u message(s)...\n"),
-      //            ACE_TEXT (StreamName),
-      //            module_p->name (),
-      //            task_p->msg_queue_->message_bytes (), message_count));
       { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
       } // end lock scope
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    ACE_TEXT (StreamName),
-                    module_p->name (),
+                    ACE_TEXT (StreamName), (*iterator_2)->name (),
                     &one_second));
     } while (true);
 
@@ -1992,34 +1909,22 @@ Stream_Base_T<ACE_SYNCH_USE,
 #endif
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                      ACE_TEXT (StreamName),
-                      module_p->name ()));
+                      ACE_TEXT (StreamName), (*iterator_2)->name ()));
       } // end IF
     } // end IF
 
     if (!waitForDownStream_in &&
-        (module_p == *iterator_2))
+        (*iterator_2 == main_modules_a.back ()))
       break;
+  } // end FOR
 
-    iterator.advance ();
-    module_p = NULL;
-    result = iterator.next (module_p);
-    if (unlikely (!result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Stream_Iterator::next(): \"%m\", returning\n"),
-                  ACE_TEXT (StreamName)));
-      return;
-    } // end IF
-  } while (true);
-
-  // step2: wait for outbound/upstream processing (i.e. 'reader') pipeline to
-  //        flush (/ any worker(s) to idle)
-  for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator2 = modules.begin ();
-       iterator2 != modules.end ();
-       iterator2++)
+  // step2: wait for outbound/upstream processing (i.e. 'reader') stream to
+  //        complete (/ any worker(s) to idle)
+  for (Stream_ModuleListReverseIterator_t iterator_2 = modules_a.rbegin ();
+       iterator_2 != modules_a.rend ();
+       ++iterator_2)
   {
-    task_p = (*iterator2)->reader ();
+    task_p = (*iterator_2)->reader ();
     if (unlikely (!task_p))
       continue; // close()d already ?
     ACE_ASSERT (task_p->msg_queue_);
@@ -2029,19 +1934,20 @@ Stream_Base_T<ACE_SYNCH_USE,
       message_count = task_p->msg_queue_->message_count ();
       if (!message_count)
         break;
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s/%s reader: waiting to process ~%d byte(s) in %u message(s)...\n"),
-      //            ACE_TEXT (StreamName),
-      //            (*iterator2)->name (),
-      //            task_p->msg_queue_->message_bytes (), message_count));
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s/%s reader: waiting to process %d byte(s) in %u message(s)...\n"),
+                  ACE_TEXT (StreamName), (*iterator_2)->name (),
+                  task_p->msg_queue_->message_bytes (), message_count));
+#endif // _DEBUG
+
       { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
         result = ACE_OS::sleep (one_second);
       } // end lock scope
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator2)->name (),
+                    ACE_TEXT (StreamName), (*iterator_2)->name (),
                     &one_second));
     } while (true);
 
@@ -2053,8 +1959,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s reader: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator2)->name ()));
+                    ACE_TEXT (StreamName), (*iterator_2)->name ()));
     } // end IF
   } // end FOR
 }
@@ -2097,60 +2002,24 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType>::find (const std::string& name_in,
                                          bool sanitizeModuleNames_in,
-                                         bool recurseupstream_in) const
+                                         bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
   if (upstream_ &&
-      recurseupstream_in)
+      recurseUpstream_in)
   {
     ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
     if (istream_p)
       return istream_p->find (name_in,
                               sanitizeModuleNames_in,
-                              recurseupstream_in);
+                              recurseUpstream_in);
   } // end IF
 
-  STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
-  std::string module_name_string =
-      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in)
-                              : name_in);
-  std::string module_name_string_2;
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, NULL);
-    // step1: search for the module on the stream
-    const MODULE_T* module_p = NULL;
-    for (ITERATOR_T iterator (*stream_p);
-         iterator.next (module_p);
-         iterator.advance ())
-    {
-      module_name_string_2 =
-          (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ()))
-                                  : ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
-      if (!ACE_OS::strcmp (module_name_string.c_str (),
-                           module_name_string_2.c_str ()))
-        return module_p;
-    } // end FOR
-
-    // step2: search (loaded) module configuration stack
-    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
-         iterator++)
-    {
-      module_name_string_2 =
-          (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()))
-                                  : ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()));
-      if (!ACE_OS::strcmp (module_name_string.c_str (),
-                           module_name_string_2.c_str ()))
-        return *iterator;
-    } // end FOR
+    return layout_.find (name_in,
+                         sanitizeModuleNames_in);
   } // end lock scope
-
-//  ACE_DEBUG ((LM_ERROR,
-//              ACE_TEXT ("%s: module not found (name was: \"%s\"), aborting\n"),
-//              ACE_TEXT (StreamName),
-//              ACE_TEXT (name_in.c_str ())));
-
-  return NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -3037,25 +2906,18 @@ Stream_Base_T<ACE_SYNCH_USE,
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
       if (state_.module)
       {
-        MODULE_T* module_p = inherited::find (state_.module->name ());
-        if (module_p)
+        MODULE_T* module_p =
+            layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
+        if (likely (module_p))
         {
           if (unlikely (!remove (module_p,
-                                 false)))  // reset ?
+                                 false,    // lock ?
+                                 false)))  // reset ? (see above)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
                         state_.module->name ()));
-//          else
-//            ACE_DEBUG ((LM_DEBUG,
-//                        ACE_TEXT ("%s: removed module \"%s\"\n"),
-//                        ACE_TEXT (StreamName),
-//                        state_.module->name ()));
         } // end IF
-
-        ACE_ASSERT (!ACE_OS::strcmp (modules_.front ()->name (),
-                                     state_.module->name ()));
-        modules_.pop_front ();
 
         if (state_.deleteModule)
         {
@@ -3102,8 +2964,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                      ACE_TEXT (StreamName),
-                      configuration_->configuration_.module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_.module->name ()));
           return false;
         } // end IF
 
@@ -3112,15 +2973,13 @@ Stream_Base_T<ACE_SYNCH_USE,
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: caught exception in Stream_IModule_T::clone(), aborting\n"),
-                      ACE_TEXT (StreamName),
-                      configuration_->configuration_.module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_.module->name ()));
         }
         if (unlikely (!state_.module))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: failed to Stream_IModule_T::clone(), aborting\n"),
-                      ACE_TEXT (StreamName),
-                      configuration_->configuration_.module->name ()));
+                      ACE_TEXT (StreamName), configuration_->configuration_.module->name ()));
           return false;
         } // end IF
         state_.deleteModule = true;
@@ -3154,7 +3013,14 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end ELSE
       ACE_ASSERT (state_.module);
 
-      modules_.push_front (state_.module);
+      if (!layout_.append_main (state_.module))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Layout_T::append_main(\"%s\"), aborting\n"),
+                    ACE_TEXT (StreamName),
+                    state_.module->name ()));
+        return false;
+      } // end IF
     } // end lock scope
   } // end IF
 
@@ -3771,92 +3637,83 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::remove (MODULE_T* module_in,
+                                           bool lock_in,
                                            bool reset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
 
-  int result = -1;
-
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  // *NOTE*: start with any trailing module(s), proceeding upstream
+  int result = -1;
+  IMODULE_T* imodule_p = NULL;
+  Stream_ModuleList_t prev_a, next_a;
+  MODULE_T* next_p = NULL, *tail_p = inherited::tail ();
 
-  // step1: retrieve head/tail modules
-  MODULE_T* head_p = inherited::head ();
-  MODULE_T* tail_p = inherited::tail ();
-  ACE_ASSERT ((head_p &&
-               (!ACE_OS::strcmp (head_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) ||
-                !ACE_OS::strcmp (head_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)))) &&
-              (tail_p &&
-               (!ACE_OS::strcmp (tail_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) ||
-                !ACE_OS::strcmp (tail_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_TAIL_NAME)))));
-  if (unlikely (!ACE_OS::strcmp (head_p->name (),
-                                 module_in->name ()) ||
-                !ACE_OS::strcmp (tail_p->name (),
-                                 module_in->name ())))
+  if (likely (lock_in))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: cannot remove head or tail module (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (StreamName),
-                module_in->name ()));
-    return false;
+    result = lock_.acquire ();
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (StreamName)));
+      return false;
+    } // end IF
   } // end IF
 
-  // step2: remove module(s) (back-to-front)
-  std::deque<MODULE_T*> modules;
-  MODULE_T* previous_p = NULL;
-  MODULE_T* module_p = head_p;
-  while (ACE_OS::strcmp (module_in->name (),
-                         module_p->name ()))
-  {
-    previous_p = module_p;
-    module_p = module_p->next ();
-  } // end WHILE
-  module_p = module_in;
-  while (ACE_OS::strcmp (tail_p->name (),
-                         module_p->name ()))
-  {
-    modules.push_front (module_p);
-    module_p = module_p->next ();
-  } // end WHILE
+  prev_a = layout_.prev (ACE_TEXT_ALWAYS_CHAR (module_in->name ()));
+  next_a = layout_.next (ACE_TEXT_ALWAYS_CHAR (module_in->name ()));
+  // sanity check(s)
+  ACE_ASSERT (next_a.size () <= 1); // *TODO*: handle distributors
+  ACE_ASSERT (tail_p);
 
-  IMODULE_T* imodule_p = NULL;
-  while (!modules.empty ())
-  {
-    module_p = modules.front ();
+  for (Stream_ModuleListIterator_t iterator = prev_a.begin ();
+       iterator != prev_a.end ();
+       ++iterator)
+  { ACE_ASSERT (*iterator);
+    next_p = (next_a.empty () ? tail_p : *next_a.begin ());
+    ACE_ASSERT (next_p);
+    (*iterator)->link (next_p);
+  } // end FOR
 
-    if (reset_in)
+  layout_.remove (ACE_TEXT_ALWAYS_CHAR (module_in->name ()));
+
+  if (likely (lock_in))
+  {
+    result = lock_.release ();
+    if (unlikely (result == -1))
     {
-      result = module_p->close (ACE_Module_Base::M_DELETE_NONE);
-      if (unlikely (result == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", aborting\n"),
-                    ACE_TEXT (StreamName),
-                    module_p->name ()));
-        return false;
-      } // end IF
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", aborting\n"),
+                  ACE_TEXT (StreamName)));
+      return false;
+    } // end IF
+  } // end IF
 
-      // *NOTE*: ACE_Module::close() resets the modules' task handles
-      //         --> call reset() so it can be reused
-      imodule_p = dynamic_cast<IMODULE_T*> (module_p);
-      if (imodule_p)
-        imodule_p->reset ();
+  if (reset_in)
+  {
+    result = module_in->close (ACE_Module_Base::M_DELETE_NONE);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s/%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", aborting\n"),
+                  ACE_TEXT (StreamName), module_in->name ()));
+      return false;
     } // end IF
 
-    modules.pop_front ();
-  } // end WHILE
-  previous_p->link (tail_p);
-
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: removed module \"%s\"\n"),
-//              ACE_TEXT (StreamName),
-//              module_in->name ()));
+    // *NOTE*: ACE_Module::close() resets the modules' task handles
+    //         --> call reset() so it can be reused
+    imodule_p = dynamic_cast<IMODULE_T*> (module_in);
+    if (imodule_p)
+      imodule_p->reset ();
+  } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: removed module \"%s\"\n"),
+              ACE_TEXT (StreamName),
+              module_in->name ()));
+#endif // _DEBUG
 
   return true;
 }
@@ -4043,32 +3900,24 @@ Stream_Base_T<ACE_SYNCH_USE,
     { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
       if (state_.module)
       {
-        module_p = inherited::find (state_.module->name ());
-        if (module_p)
+        MODULE_T* module_p =
+            layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
+        if (likely (module_p))
         {
           if (unlikely (!remove (module_p,
-                                 true)))
+                                 false,   // lock ?
+                                 true)))  // reset ? (see above)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
                         state_.module->name ()));
-//          else
-//            ACE_DEBUG ((LM_DEBUG,
-//                        ACE_TEXT ("%s: removed module \"%s\"\n"),
-//                        ACE_TEXT (StreamName),
-//                        state_.module->name ()));
         } // end IF
-
-        ACE_ASSERT (ACE_OS::strcmp (modules_.front ()->name (),
-                                    state_.module->name ()) == 0);
-        modules_.pop_front ();
 
         if (state_.deleteModule)
         {
           delete state_.module;
           state_.deleteModule = false;
         } // end IF
-
         state_.module = NULL;
       } // end IF
     } // end lock scope

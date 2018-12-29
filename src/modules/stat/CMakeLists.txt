@@ -57,7 +57,7 @@ target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
 set (source_files
      stream_stat_common.h
      stream_stat_defines.h
-     stream_stat_exports.h
+#     stream_stat_exports.h
      stream_stat_statistic_analysis.cpp
      stream_stat_statistic_analysis.h
      stream_stat_statistic_analysis.inl
@@ -102,7 +102,9 @@ add_dependencies (${PROJECT_NAME}_Statistic ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Statistic ${ACE_LIBRARY})
-endif ()
+endif (WIN32)
+target_link_libraries (${PROJECT_NAME}_Statistic Common)
+target_link_libraries (${PROJECT_NAME}_Statistic ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES DEFINE_SYMBOL STREAM_STAT_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

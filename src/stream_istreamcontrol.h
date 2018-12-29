@@ -35,6 +35,7 @@
 #include "stream_common.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
+#include "stream_layout.h"
 
 class Stream_IStreamControlBase
 {
@@ -105,23 +106,11 @@ class Stream_IStream_T
                    TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  // *NOTE*: see also: stream_common.h:257
-  typedef std::deque<MODULE_T*> MODULE_LIST_T;
-  typedef typename MODULE_LIST_T::const_iterator MODULE_LIST_ITERATOR_T;
-  typedef typename MODULE_LIST_T::reverse_iterator MODULE_LIST_REVERSE_ITERATOR_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
 
   virtual std::string name () const = 0;
 
-  // *IMPORTANT NOTE*: the module list is currently a stack
-  //                   --> derived classes push_back() the modules in
-  //                       'back-to-front' sequence, i.e. trailing module first)
-  // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
-  //                   derived classes need not synchronize this, and should not
-  //                   block in this method
-  virtual bool load (MODULE_LIST_T&, // return value: module list
-                     bool&) = 0;     // return value: delete modules ?
   // *WARNING*: this APIs is not thread-safe
   virtual const MODULE_T* find (const std::string&,      // module name
                                 bool = false,            // sanitize module names ?
@@ -134,6 +123,28 @@ class Stream_IStream_T
   // *WARNING*: these APIs are not thread-safe
   virtual STREAM_T* downstream () const = 0;
   virtual STREAM_T* upstream (bool = false) const = 0; // recurse (if any) ?
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename DistributorModuleType>
+class Stream_IStreamLayout_T
+ : public Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType>
+{
+ public:
+  // convenient types
+  typedef Stream_Layout_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          DistributorModuleType> LAYOUT_T;
+
+  inline virtual ~Stream_IStreamLayout_T () {}
+
+  // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
+  //                   derived classes need not synchronize this, and should not
+  //                   block in this method
+  virtual bool load (LAYOUT_T&,  // return value: layout
+                     bool&) = 0; // return value: delete modules ?
 };
 
 #endif
