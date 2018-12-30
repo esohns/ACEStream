@@ -1235,6 +1235,7 @@ do_work (unsigned int bufferSize_in,
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_Target_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
+  ACE_thread_t thread_id = 0;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p = NULL;
@@ -1624,7 +1625,8 @@ do_work (unsigned int bufferSize_in,
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
   if (statisticReportingInterval_in)
   {
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
@@ -1764,7 +1766,9 @@ do_work (unsigned int bufferSize_in,
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    gtk_manager_p->start ();
+    ACE_thread_t thread_id = 0;
+    gtk_manager_p->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -2325,7 +2329,9 @@ do_work (unsigned int bufferSize_in,
         } // end ELSE
       } // end SWITCH
 #else
-      CBData_in.configuration->signalHandlerConfiguration.listener->start ();
+      ACE_thread_t thread_id = 0;
+      CBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
+      ACE_UNUSED_ARG (thread_id);
       result_2 =
         CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
 #endif // ACE_WIN32 || ACE_WIN64

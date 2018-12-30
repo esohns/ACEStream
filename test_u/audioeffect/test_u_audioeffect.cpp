@@ -843,6 +843,7 @@ do_work (unsigned int bufferSize_in,
   Common_ITaskControl_t* itask_control_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
+  ACE_thread_t thread_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
@@ -1194,7 +1195,8 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread
@@ -1382,7 +1384,9 @@ do_work (unsigned int bufferSize_in,
 #if defined (GTK_USE)
     itask_control_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (itask_control_p);
-    itask_control_p->start ();
+    ACE_thread_t thread_id = 0;
+    itask_control_p->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result_2 = ACE_OS::sleep (timeout);

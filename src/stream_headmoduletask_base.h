@@ -109,6 +109,8 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
+  using inherited::TASK_BASE_T::start;
+
   // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&,

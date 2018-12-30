@@ -641,7 +641,9 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   struct Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  ACE_thread_t thread_id = 0;
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
   Test_I_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                connection_manager_p,
                                                false);
@@ -719,7 +721,9 @@ do_work (unsigned int bufferSize_in,
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 
-    gtk_manager_p->start ();
+    ACE_thread_t thread_id = 0;
+    gtk_manager_p->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     result = ACE_OS::sleep (timeout);
@@ -943,7 +947,9 @@ do_work (unsigned int bufferSize_in,
         timer_manager_p->stop ();
         return;
       } // end IF
-      CBData_in.configuration->signalHandlerConfiguration.listener->start ();
+      ACE_thread_t thread_id = 0;
+      CBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
+      ACE_UNUSED_ARG (thread_id);
       if (!CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ())
       {
         ACE_DEBUG ((LM_ERROR,

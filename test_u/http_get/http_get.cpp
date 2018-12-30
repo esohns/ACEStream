@@ -574,6 +574,8 @@ do_work (unsigned int bufferSize_in,
   // sanity check(s)
   ACE_ASSERT (CBData_in.configuration);
 
+  ACE_thread_t thread_id = 0;
+
   // step0a: initialize configuration and stream
   Stream_IStreamControlBase* istream_base_p = NULL;
   Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p = NULL;
@@ -764,7 +766,8 @@ do_work (unsigned int bufferSize_in,
 
   // intialize timers
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
 
   // step1a: start UI event loop ?
   if (!interfaceDefinitionFile_in.empty ())
@@ -773,7 +776,8 @@ do_work (unsigned int bufferSize_in,
 #if defined (GTK_USE)
     gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
-    gtk_manager_p->start ();
+    gtk_manager_p->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     int result = ACE_OS::sleep (timeout);

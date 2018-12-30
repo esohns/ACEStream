@@ -43,7 +43,8 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::dump_state"));
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("# currently queued objects: %d\n"),
-              const_cast<OWN_TYPE_T*> (this)->message_count ()));
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("%d queued message(s) in %u byte(s)\n"),
+              const_cast<OWN_TYPE_T*> (this)->message_count (),
+              const_cast<OWN_TYPE_T*> (this)->message_bytes ()));
 }

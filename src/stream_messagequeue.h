@@ -49,14 +49,14 @@ class Stream_MessageQueue_T
   virtual void waitForIdleState () const;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
-
   // convenient types
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
 };
 
 // include template definition

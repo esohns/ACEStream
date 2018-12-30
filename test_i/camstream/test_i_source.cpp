@@ -843,6 +843,7 @@ do_work (const std::string& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool is_running = false;
 #endif
+  ACE_thread_t thread_id = 0;
 
   // step0a: initialize event dispatch
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
@@ -1671,7 +1672,8 @@ do_work (const std::string& deviceIdentifier_in,
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
   if (statisticReportingInterval_in)
   {
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
@@ -1781,7 +1783,10 @@ do_work (const std::string& deviceIdentifier_in,
     ui_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    gtk_manager_p->start ();
+    ACE_ASSERT (gtk_manager_p);
+    ACE_thread_t thread_id = 0;
+    gtk_manager_p->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION);
     int result = ACE_OS::sleep (timeout);

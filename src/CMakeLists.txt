@@ -276,8 +276,9 @@ if (WIN32)
 # endif ()
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 
- target_link_libraries (${PROJECT_NAME} ${Common_LIBRARIES})
 endif ()
+target_link_libraries (${PROJECT_NAME} Common)
+target_link_libraries (${PROJECT_NAME} ${PROJECT_NAME}_Miscellaneous)
 
 # add PCH
 set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

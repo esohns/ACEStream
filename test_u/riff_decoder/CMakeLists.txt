@@ -176,6 +176,7 @@ target_link_libraries (${EXECUTABLE} CommonTimer)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)

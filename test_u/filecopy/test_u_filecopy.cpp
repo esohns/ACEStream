@@ -501,7 +501,9 @@ do_work (unsigned int bufferSize_in,
     //CBData_in.userData = &CBData_in;
 
 #if defined (GTK_USE)
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    ACE_thread_t thread_id = 0;
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start (thread_id);
+    ACE_UNUSED_ARG (thread_id);
     ACE_Time_Value timeout (0,
                             COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
     int result = ACE_OS::sleep (timeout);

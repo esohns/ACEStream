@@ -20,7 +20,6 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
-//#include "ace/OS.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -91,7 +90,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
           inherited::cur_bytes_ -= bytes;
           inherited::cur_length_ -= length;
           --inherited::cur_count_;
-          temp_p->release ();
+          temp_p->release (); temp_p = NULL;
 
           ++result;
 
@@ -99,9 +98,11 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
         }
         default:
         {
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("retaining message (type was: %d)\n"),
-          //            message_block_p->msg_type ()));
+#if defined (_DEBUG)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("retaining message (type was: %d)\n"),
+                      message_block_p->msg_type ()));
+#endif // _DEBUG
           break;
         }
       } // end SWITCH
@@ -114,7 +115,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
                   (inherited::cur_bytes_ <= inherited::low_water_mark_)))
     {
       result_2 = inherited::signal_enqueue_waiters ();
-      if (result_2 == -1)
+      if (unlikely (result_2 == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Message_Queue::signal_enqueue_waiters(): \"%m\", continuing\n")));
     } // end IF
@@ -134,7 +135,7 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::waitForIdleState"));
 
   ACE_Time_Value one_second (1, 0);
-  size_t number_of_messages;
+  size_t number_of_messages = 0;
   int result = -1;
 
   do
@@ -142,12 +143,14 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
     number_of_messages = const_cast<OWN_TYPE_T*> (this)->message_count ();
     if (unlikely (number_of_messages > 0))
     {
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("waiting (count: %u message(s))...\n"),
                   number_of_messages));
+#endif // _DEBUG
 
       result = ACE_OS::sleep (one_second);
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                     &one_second));

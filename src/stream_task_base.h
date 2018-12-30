@@ -76,12 +76,15 @@ class Stream_TaskBase_T
 
  public:
   // convenient types
+  typedef Common_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE> > TASK_BASE_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
 
   virtual ~Stream_TaskBase_T ();
 
-  using inherited::finished;
+//  using inherited::finished;
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations

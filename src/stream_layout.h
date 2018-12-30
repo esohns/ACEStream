@@ -31,6 +31,7 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
+//#include "stream_istreamcontrol.h"
 
 // *IMPORTANT NOTE*: the current implementation uses an n-ary tree ADT as model;
 //                   this has the following implications:
@@ -82,6 +83,9 @@
 
 // forward declarations
 class Stream_IDistributorModule;
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+class Stream_IStream_T;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -125,18 +129,21 @@ class Stream_Layout_T
   virtual void dump_state () const;
 
  private:
-//  // convenient types
+  // convenient types
 //  typedef Stream_Layout_T<ACE_SYNCH_USE,
 //                          TimePolicyType,
 //                          DistributorModuleType> OWN_TYPE_T;
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
 
 //  ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T (const Stream_Layout_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T& operator= (const Stream_Layout_T&))
 
   // helper methods
-  bool setup (typename inherited::tree_node&,       // branch
-              Stream_IDistributorModule*); // corresponding branch distributor handle
+  bool setup (typename inherited::tree_node&, // branch
+              ISTREAM_T*,                     // stream handle
+              Stream_IDistributorModule*);    // corresponding branch distributor handle
 
   void prev (typename inherited::tree_node&, // branch
              const std::string&,             // name

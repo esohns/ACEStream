@@ -61,7 +61,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , configuration_ (NULL)
  , isInitialized_ (false)
  , linked_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
  , sessionData_ (NULL)
  , sessionDataLock_ (NULL)
 // , stream_ (stream_in)

@@ -107,13 +107,22 @@ class Stream_Base_T
  , public Stream_Base
  , public Stream_IStreamLayout_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                                                    TimePolicyType,
-                                                                    HandlerConfigurationType,
-                                                                    ControlMessageType,
-                                                                    DataMessageType,
-                                                                    SessionMessageType,
-                                                                    SessionDataType> >
+                                 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
+                                                                TimePolicyType,
+                                                                Stream_SessionId_t,
+                                                                SessionDataType,
+                                                                NotificationType,
+                                                                ModuleConfigurationType,
+                                                                HandlerConfigurationType,
+                                                                libacestream_default_misc_distributor_module_name_string,
+                                                                Stream_INotify_T<NotificationType>,
+                                                                Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                                                                                   TimePolicyType,
+                                                                                                   HandlerConfigurationType,
+                                                                                                   ControlMessageType,
+                                                                                                   DataMessageType,
+                                                                                                   SessionMessageType,
+                                                                                                   SessionDataType> > >
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
                                   StatusType,
@@ -135,6 +144,25 @@ class Stream_Base_T
                      TimePolicyType> inherited;
   typedef Stream_Base inherited2;
 
+  // convenient types
+  typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                             TimePolicyType,
+                                             HandlerConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             SessionDataType> DISTRIBUTOR_TASK_T;
+  typedef Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
+                                         TimePolicyType,
+                                         Stream_SessionId_t,
+                                         SessionDataType,
+                                         NotificationType,
+                                         ModuleConfigurationType,
+                                         HandlerConfigurationType,
+                                         libacestream_default_misc_distributor_module_name_string,
+                                         Stream_INotify_T<NotificationType>,
+                                         DISTRIBUTOR_TASK_T> DISTRIBUTOR_MODULE_T;
+
  public:
   // convenient types
   typedef ACE_Task<ACE_SYNCH_USE,
@@ -150,13 +178,6 @@ class Stream_Base_T
                            TimePolicyType,
                            ModuleConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
-  typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                             TimePolicyType,
-                                             HandlerConfigurationType,
-                                             ControlMessageType,
-                                             DataMessageType,
-                                             SessionMessageType,
-                                             SessionDataType> DISTRIBUTOR_MODULE_T;
   typedef Stream_Layout_T<ACE_SYNCH_USE,
                           TimePolicyType,
                           DISTRIBUTOR_MODULE_T> LAYOUT_T;

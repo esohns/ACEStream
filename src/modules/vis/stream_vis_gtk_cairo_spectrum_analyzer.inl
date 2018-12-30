@@ -653,7 +653,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                     renderHandlerTimerId_));
 #endif // _DEBUG
 
-        inherited::start ();
+        ACE_thread_t thread_id = 0;
+        inherited::start (thread_id);
+        ACE_UNUSED_ARG (thread_id);
         shutdown = true;
       } // end IF
 

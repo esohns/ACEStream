@@ -2600,12 +2600,14 @@ action_listen_activate_cb (GtkAction* action_in,
         if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (ui_cb_data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
+        ACE_thread_t thread_id = 0;
         try {
-          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->start ();
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->start (thread_id);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
         } // end catch
+        ACE_UNUSED_ARG (thread_id);
 
         break;
       }

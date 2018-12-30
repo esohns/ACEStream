@@ -728,6 +728,7 @@ do_work (const std::string& bootstrapFileName_in,
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
+  ACE_thread_t thread_id = 0;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_FlexParserAllocatorConfiguration> heap_allocator;
@@ -905,7 +906,8 @@ do_work (const std::string& bootstrapFileName_in,
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start ();
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
   stop_timers = true;
   //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
   //                                                                connection_manager_p,

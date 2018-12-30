@@ -45,11 +45,11 @@ class Stream_MessageQueueBase_T
  public:
   Stream_MessageQueueBase_T (unsigned int,                       // maximum # of queued messages
                              ACE_Notification_Strategy* = NULL); // notification callback handle
-  inline virtual ~Stream_MessageQueueBase_T () {};
+  inline virtual ~Stream_MessageQueueBase_T () {}
 
   // implement Stream_IMessageQueue
-  inline virtual unsigned int flush (bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) };
-  inline virtual void waitForIdleState () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual unsigned int flush (bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual void waitForIdleState () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -64,7 +64,7 @@ class Stream_MessageQueueBase_T
   // *IMPORTANT NOTE*: override so that the queue considers the # of enqueued
   //                   messages (instead of the amount of enqueued bytes) to
   //                   determine its' water mark
-  inline virtual bool is_full_i (void) { return (inherited::cur_count_ >= inherited::high_water_mark_); };
+  inline virtual bool is_full_i (void) { return (inherited::cur_count_ >= inherited::high_water_mark_); }
 
  private:
   // convenient types

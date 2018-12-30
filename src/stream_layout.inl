@@ -30,6 +30,8 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
+#include "stream_misc_defines.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename DistributorModuleType>
@@ -55,6 +57,10 @@ Stream_Layout_T<ACE_SYNCH_USE,
   int result = -1;
   MODULE_T* module_p = NULL;
   Stream_IDistributorModule* idistributor_p = NULL;
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&stream_in);
+
+  // sanity check(s)
+  ACE_ASSERT (istream_p);
 
   // step1: reset stream
   result = stream_in.close (STREAM_T::M_DELETE);
@@ -93,7 +99,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
     ACE_ASSERT (!inherited::is_valid (inherited::sibling (iterator, inherited::index (iterator) + 1)));
     module_p = NULL;
     ACE_NEW_NORETURN (module_p,
-                      DistributorModuleType ());
+                      DistributorModuleType (istream_p,
+                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)));
     if (unlikely (!module_p))
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -125,6 +132,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // step3: set up any sub-branches
   if (unlikely (idistributor_p))
     if (unlikely (!setup (*(iterator.node),
+                          istream_p,
                           idistributor_p)))
       goto error;
 
@@ -461,6 +469,7 @@ bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
                 DistributorModuleType>::setup (typename inherited::tree_node& node_in,
+                                               ISTREAM_T* istream_in,
                                                Stream_IDistributorModule* distributor_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::setup"));
@@ -468,6 +477,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // sanity check(s)
   typename inherited::iterator_base base_iterator (&node_in);
   ACE_ASSERT (base_iterator.number_of_children () > 0);
+  ACE_ASSERT (istream_in);
   ACE_ASSERT (distributor_in);
 
   MODULE_T* module_p = NULL;
@@ -488,7 +498,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
     // --> sub-branch
     module_p = NULL;
     ACE_NEW_NORETURN (module_p,
-                      DistributorModuleType ());
+                      DistributorModuleType (istream_in,
+                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)));
     if (unlikely (!module_p))
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -501,7 +512,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
         dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (distributor_p);
 
-    if (unlikely (!setup (*iterator,
+    if (unlikely (!setup (*(iterator.node),
+                          istream_in,
                           distributor_p)))
       return false;
   } // end FOR
@@ -528,7 +540,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   {
     if (unlikely (inherited::number_of_children (iterator)))
     {
-      prev ((*iterator).node,
+      prev (*(iterator.node),
             name_in,
             list_inout);
       continue;

@@ -22,6 +22,7 @@
 #include "ace/Message_Queue.h"
 #include "ace/Task.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 #include "stream_tools.h"
 
@@ -180,7 +181,8 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_thread_t thread_id = 0;
   ACE_Message_Queue_Base* queue_p = NULL;
   ACE_NEW_NORETURN (queue_p,
-                    typename inherited::MESSAGE_QUEUE_T ());
+                    typename inherited::MESSAGE_QUEUE_T (STREAM_QUEUE_MAX_SLOTS, // max # slots
+                                                         NULL));                 // notification handle
   if (unlikely (!queue_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -190,7 +192,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } // end IF
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
-    thread_id = inherited::start ();
+    inherited::start (thread_id);
     if (!thread_id)
     {
       ACE_DEBUG ((LM_ERROR,

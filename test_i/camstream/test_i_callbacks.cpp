@@ -5549,12 +5549,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         } // end IF
         ACE_ASSERT (itask_p);
 
+        ACE_thread_t thread_id = 0;
         try {
-          itask_p->start ();
+          itask_p->start (thread_id);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Common_ITask_T::start(): \"%m\", continuing\n")));
         } // end catch
+        ACE_UNUSED_ARG (thread_id);
 
         break;
       }
@@ -6094,8 +6096,8 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+//  Common_UI_GTK_State_t& state_r =
+//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
@@ -6221,8 +6223,8 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
+//  Common_UI_GTK_State_t& state_r =
+//    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
