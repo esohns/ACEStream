@@ -1461,9 +1461,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                    modulehandler_configuration,
                                                    configuration_in.streamConfiguration.allocatorConfiguration_,
                                                    configuration_in.streamConfiguration.configuration_);
-  modulehandler_configuration.deviceIdentifier.identifier =
-      displayDevice_in.device;
+  modulehandler_configuration.display = displayDevice_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+                                                               std::make_pair (module_configuration,
+                                                                               modulehandler_configuration)));
+  // *NOTE*: apparently, the ffmpeg AVI encoder expects 32-bit RGB
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
+  configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
   v4l_stream_iterator =

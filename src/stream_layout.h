@@ -113,14 +113,18 @@ class Stream_Layout_T
   bool setup (STREAM_T&);
   void unset (STREAM_T&);
 
-  Stream_Module_t* find (const std::string&,  // name
+  Stream_Module_t* find (const std::string&,  // nodule name
                          bool = false) const; // sanitize module names ?
-  Stream_ModuleList_t prev (const std::string&) const; // name
-  Stream_ModuleList_t next (const std::string&) const; // name
+  Stream_ModuleList_t prev (const std::string&) const; // nodule name
+  Stream_ModuleList_t next (const std::string&) const; // nodule name
 
-  // *NOTE*: appends a module to the 'main' branch
-  bool append_main (MODULE_T*); // module handle
-  bool remove (const std::string&); // name
+  // append a module to a branch
+  bool append (MODULE_T*,         // module handle
+               MODULE_T* = NULL,  // distributor module handle {NULL: 'main' branch}
+               unsigned int = 0); // distributor sub-branch index, if any (zero-based)
+  bool append (MODULE_T*,           // module handle
+               const std::string&); // branch name {"": 'main' branch}
+  bool remove (const std::string&); // nodule name
 
   // *NOTE*: returns the layout sorted depth-first (aka 'pre-order', or
   //         'element-before-children')
@@ -130,24 +134,26 @@ class Stream_Layout_T
 
  private:
   // convenient types
-//  typedef Stream_Layout_T<ACE_SYNCH_USE,
-//                          TimePolicyType,
-//                          DistributorModuleType> OWN_TYPE_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
+  typedef typename inherited::iterator_base BASE_ITERATOR_T;
 
-//  ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T (const Stream_Layout_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T& operator= (const Stream_Layout_T&))
 
   // helper methods
-  bool setup (typename inherited::tree_node&, // branch
+  bool setup (typename inherited::tree_node&, // distributor node
               ISTREAM_T*,                     // stream handle
-              Stream_IDistributorModule*);    // corresponding branch distributor handle
+              MODULE_T*);                     // stream tail handle
 
-  void prev (typename inherited::tree_node&, // branch
-             const std::string&,             // name
+  BASE_ITERATOR_T find (MODULE_T*) const;
+  void prev (typename inherited::tree_node&, // distributor node
+             const std::string&,             // module name
              Stream_ModuleList_t&) const;    // return value
+
+  inline bool is_distributor (typename inherited::tree_node& node_in) const { return dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ()); }
+  bool has_branch (typename inherited::tree_node&, // distributor node
+                   const std::string&) const;      // branch name
 };
 
 // include template definition

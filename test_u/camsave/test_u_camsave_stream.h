@@ -250,8 +250,8 @@ class Stream_CamSave_V4L_Stream
   virtual ~Stream_CamSave_V4L_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (typename inherited::LAYOUT_T&, // return value: layout
+                     bool&);                        // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
@@ -263,14 +263,11 @@ class Stream_CamSave_V4L_Stream
   // modules
   Stream_CamSave_V4L_Source_Module      source_;
   Stream_CamSave_StatisticReport_Module statisticReport_;
-  Stream_CamSave_LibAVDecoder_Module    decoder_;
-  Stream_CamSave_LibAVConverter_Module  converter_;
-  Stream_CamSave_Distributor_Module     distributor_;
+  Stream_CamSave_LibAVDecoder_Module    decoder_; // --> RGB
+  Stream_CamSave_Distributor_Module     distributor_; // (sub-)branch ?
   ////////////////////////////////////////
-  Stream_CamSave_V4L_AVIEncoder_Module  encoder_;
-  Stream_CamSave_FileWriter_Module      fileWriter_;
-  ////////////////////////////////////////
-  Stream_CamSave_LibAVResize_Module     resizer_;
+  Stream_CamSave_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
+  Stream_CamSave_LibAVResize_Module     resizer_; // --> window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
@@ -278,6 +275,10 @@ class Stream_CamSave_V4L_Stream
   Stream_CamSave_X11WindowDisplay_Module X11WindowDisplay_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
+  ////////////////////////////////////////
+  Stream_CamSave_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
+  Stream_CamSave_V4L_AVIEncoder_Module  encoder_; // --> AVI
+  Stream_CamSave_FileWriter_Module      fileWriter_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

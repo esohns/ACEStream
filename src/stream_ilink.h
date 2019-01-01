@@ -21,17 +21,26 @@
 #ifndef STREAM_ILINK_H
 #define STREAM_ILINK_H
 
+#include <string>
+
 #include "ace/Module.h"
+
+#include "common_iinitialize.h"
 
 #include "stream_common.h"
 
 class Stream_IDistributorModule
+ : public Common_IInitialize_T<Stream_Branches_t>
 {
  public:
-  virtual bool push (Stream_Module_t*) = 0;
-  virtual bool pop (Stream_Module_t*) = 0;
+  virtual bool push (Stream_Module_t*) = 0; // module handle
+  virtual bool pop (Stream_Module_t*) = 0; // module handle
 
-  virtual Stream_ModuleList_t next () = 0;
+  virtual Stream_Module_t* head (const std::string&) const = 0; // branch name
+  virtual std::string branch (Stream_Module_t*) const = 0; // 'head' module handle
+
+  virtual bool has (const std::string&) const = 0; // branch name
+  virtual Stream_ModuleList_t next () = 0; // return value: branch 'head's
 };
 
 //////////////////////////////////////////

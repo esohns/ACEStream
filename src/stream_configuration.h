@@ -204,7 +204,8 @@ struct Stream_ModuleConfiguration
 struct Stream_Configuration
 {
   Stream_Configuration ()
-   : cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
+   : branches ()
+   , cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -221,6 +222,7 @@ struct Stream_Configuration
    , userData (NULL)
   {}
 
+  Stream_Branches_t               branches; // distributor(s) *TODO*
   bool                            cloneModule; // final-
   bool                            deleteModule; // final-
   bool                            finishOnDisconnect; // (network) i/o streams

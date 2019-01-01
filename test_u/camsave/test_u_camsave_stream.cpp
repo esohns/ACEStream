@@ -1265,17 +1265,13 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
- , converter_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , distributor_ (this,
                  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
+ , converter_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
- #if defined (GUI_SUPPORT)
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
@@ -1284,6 +1280,12 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif
 #endif // GUI_SUPPORT
+ , converter_2 (this,
+                std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")))
+ , encoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
+ , fileWriter_ (this,
+                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream"));
 
@@ -1298,7 +1300,7 @@ Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream ()
 }
 
 bool
-Stream_CamSave_V4L_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::load"));
@@ -1306,22 +1308,68 @@ Stream_CamSave_V4L_Stream::load (Stream_ModuleList_t& modules_out,
   // initialize return value(s)
   delete_out = false;
 
-  // *NOTE*: one problem is that any module that was NOT enqueued onto the
-  //         stream (e.g. because initialize() failed) needs to be explicitly
-  //         close()d
-  modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&encoder_);
+  // sanity check(s)
+  ACE_ASSERT (layout_inout.empty ());
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_INVALID);
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_->end ());
+  bool display_b = configuration_->configuration_.renderer !=
+      STREAM_VISUALIZATION_VIDEORENDERER_NULL;
+  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
+  ACE_ASSERT ((display_b && (*iterator).second.second.window) || (!display_b && !(*iterator).second.second.window));
+
+  // *NOTE*: this processing stream may have branches, depending on:
+  //         - whether the output is displayed on a screen
+  //         - whether the output is saved to file
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+
+  layout_inout.append (&source_, NULL, 0);
+  layout_inout.append (&statisticReport_, NULL, 0);
+  if (display_b || save_to_file_b)
+  {
+    layout_inout.append (&decoder_, NULL, 0); // output is uncompressed RGB
+    if (display_b && save_to_file_b)
+    {
+      layout_inout.append (&distributor_, NULL, 0);
+      branch_p = &distributor_;
+      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      Stream_IDistributorModule* idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+      ACE_ASSERT (idistributor_p);
+      idistributor_p->initialize (configuration_->configuration_.branches);
+    } // end IF
+
+    if (display_b)
+    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
+      //            native endianness)
+      layout_inout.append (&converter_, branch_p, 0); // output is uncompressed 24-bit RGB
+      layout_inout.append (&resizer_, branch_p, 0); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modules_out.push_back (&GTKCairoDisplay_);
+      layout_inout.append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
-  modules_out.push_back (&X11WindowDisplay_);
-#endif // GTK_USE
+      layout_inout.append (&X11WindowDisplay_, branch_p, 0);
+#endif
+#else
+      ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());
+      ACE_ASSERT (false); // *TODO*
 #endif // GUI_SUPPORT
-  modules_out.push_back (&converter_);
-  modules_out.push_back (&decoder_);
-  modules_out.push_back (&statisticReport_);
-  modules_out.push_back (&source_);
+      ++index_i;
+    } // end IF
+    if (save_to_file_b)
+    { // *NOTE*: AVI encoder needs 32-bit RGB
+      layout_inout.append (&converter_2, branch_p, index_i); // output is uncompressed 32-bit RGB
+      layout_inout.append (&encoder_, branch_p, index_i); // output is AVI
+      layout_inout.append (&fileWriter_, branch_p, index_i);
+    } // end IF
+  } // end IF
+#if defined (_DEBUG)
+  layout_inout.dump_state ();
+#endif // _DEBUG
 
   return true;
 }

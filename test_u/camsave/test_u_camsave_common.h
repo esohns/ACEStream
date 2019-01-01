@@ -422,8 +422,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
-#if defined (GUI_SUPPORT)
+   , display ()
    , fullScreen (false)
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
@@ -448,9 +449,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
     hasHeader = true;
   }
 
-  struct Stream_Device_Identifier deviceIdentifier; // display-
-#if defined (GUI_SUPPORT)
+  struct Stream_Device_Identifier deviceIdentifier; // source module
+  struct Common_UI_DisplayDevice  display; // display module
   bool                            fullScreen;
+#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   GdkPixbuf*                      pixelBuffer;
   ACE_SYNCH_MUTEX*                pixelBufferLock;
@@ -609,9 +611,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
    , buffers (STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
-#if defined (GUI_SUPPORT)
-   , display ()
-#endif // GUI_SUPPORT
    , method (STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , outputFormat ()
    , subscriber (NULL)
@@ -634,9 +633,6 @@ struct Stream_CamSave_V4L_ModuleHandlerConfiguration
   __u32                                         buffers; // v4l device buffers
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
-#if defined (GUI_SUPPORT)
-  struct Common_UI_DisplayDevice                display; // display module
-#endif // GUI_SUPPORT
   enum v4l2_memory                              method; // v4l camera source
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
   Stream_CamSave_V4L_ISessionNotify_t*          subscriber;

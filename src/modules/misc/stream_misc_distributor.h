@@ -83,7 +83,8 @@ class Stream_Miscellaneous_Distributor_T
 #endif
   inline virtual ~Stream_Miscellaneous_Distributor_T () {}
 
-  // override ACE_Task_Base members
+  // override some ACE_Task_Base members
+  inline virtual int open (void* = NULL) { return 0; }
   virtual int put (ACE_Message_Block*,      // data chunk
                    ACE_Time_Value* = NULL); // timeout value
 
@@ -101,8 +102,12 @@ class Stream_Miscellaneous_Distributor_T
 //                                     bool&);               // return value: pass message downstream ?
 
   // implement Stream_IDistributorModule
-  virtual bool push (Stream_Module_t*);
+  virtual bool initialize (const Stream_Branches_t&);
+  virtual bool push (Stream_Module_t*); // branch head module
   virtual bool pop (Stream_Module_t*);
+  virtual Stream_Module_t* head (const std::string&) const;
+  virtual std::string branch (Stream_Module_t*) const;
+  inline virtual bool has (const std::string& branchName_in) const { return ((std::find (branches_.begin (), branches_.end (), branchName_in) != branches_.end ()) || (heads_.find (branchName_in) != heads_.end ())); }
   virtual Stream_ModuleList_t next ();
 
  protected:
@@ -114,20 +119,26 @@ class Stream_Miscellaneous_Distributor_T
                      TimePolicyType> MODULE_T;
   typedef std::map<ACE_Message_Queue_Base*,
                    MODULE_T*> QUEUE_TO_MODULE_MAP_T;
-  typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_MAP_ITERATOR_T;
-//  typedef std::pair<ACE_Message_Queue_Base*, MODULE_T*> QUEUE_TO_MODULE_PAIR_T;
-//  struct QUEUE_TO_MODULE_MAP_FIND_S
-//   : public std::binary_function<QUEUE_TO_MODULE_PAIR_T,
-//                                 MODULE_T*,
-//                                 bool>
-//  {
-//    inline bool operator() (const QUEUE_TO_MODULE_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
-//  };
+  typedef typename QUEUE_TO_MODULE_MAP_T::const_iterator QUEUE_TO_MODULE_ITERATOR_T;
+  typedef std::map<std::string,
+                   MODULE_T*> BRANCH_TO_HEAD_MAP_T;
+  typedef typename BRANCH_TO_HEAD_MAP_T::iterator BRANCH_TO_HEAD_ITERATOR_T;
+  typedef typename BRANCH_TO_HEAD_MAP_T::const_iterator BRANCH_TO_HEAD_CONST_ITERATOR_T;
+  typedef std::pair<std::string, MODULE_T*> BRANCH_TO_HEAD_PAIR_T;
+  struct BRANCH_TO_HEAD_MAP_FIND_S
+   : public std::binary_function<BRANCH_TO_HEAD_PAIR_T,
+                                 MODULE_T*,
+                                 bool>
+  {
+    inline bool operator() (const BRANCH_TO_HEAD_PAIR_T& entry_in, MODULE_T* module_in) const { return !ACE_OS::strcmp (entry_in.second->name (), module_in->name ()); }
+  };
 
   // *NOTE*: use Common_TaskBase_Ts' lock_
 //  mutable ACE_SYNCH_MUTEX_T lock_;
-  THREAD_TO_QUEUE_MAP_T     queues_;
-  QUEUE_TO_MODULE_MAP_T     branches_;
+  Stream_Branches_t     branches_;
+  THREAD_TO_QUEUE_MAP_T queues_;
+  QUEUE_TO_MODULE_MAP_T modules_;
+  BRANCH_TO_HEAD_MAP_T  heads_;
 
  private:
   // convenient types

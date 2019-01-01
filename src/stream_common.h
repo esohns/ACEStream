@@ -21,8 +21,10 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
+#include <deque>
 #include <list>
 #include <map>
+#include <string>
 
 #include "ace/config-lite.h"
 #include "ace/Message_Block.h"
@@ -300,9 +302,12 @@ typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
+
 typedef std::list<Stream_Module_t*> Stream_ModuleList_t;
 typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
 typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t;
+typedef std::deque<std::string> Stream_Branches_t;
+typedef Stream_Branches_t::const_iterator Stream_BranchesIterator_t;
 
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_INotify_t;
 typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_IStateMachine_t;

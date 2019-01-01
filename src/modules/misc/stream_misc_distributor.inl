@@ -46,8 +46,10 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 #endif
  : inherited (stream_in)
 // , lock_ ()
- , queues_ ()
  , branches_ ()
+ , queues_ ()
+ , modules_ ()
+ , heads_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::Stream_Miscellaneous_Distributor_T"));
 
@@ -114,7 +116,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -144,17 +146,50 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       } // end IF
       message_block_p = NULL;
     } // end FOR
-  } // end lock scope
+//  } // end lock scope
+
+  result_2 = inherited::put_next (messageBlock_in,
+                                  timeValue_in);
+  if (unlikely (result_2 == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task_Base::put_next(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    result = -1;
+  } // end IF
 
   if (unlikely (stop_processing))
     stop (false, // wait for completion ?
           true); // locked access ?
 
-  // clean up
-  if (likely (!result))
-    messageBlock_in->release ();
-
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::initialize (const Stream_Branches_t& branches_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::initialize"));
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+    // sanity check(s)
+    ACE_ASSERT (branches_.empty ());
+    branches_ = branches_in;
+  } // end lock scope
+
+  return true;
 }
 
 template <ACE_SYNCH_DECL,
@@ -202,7 +237,20 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       return false;
     } // end IF
     queues_.insert (std::make_pair (thread_id, queue_p));
-    branches_.insert (std::make_pair (queue_p, module_in));
+    modules_.insert (std::make_pair (queue_p, module_in));
+    ACE_ASSERT (!branches_.empty ());
+    std::pair<BRANCH_TO_HEAD_ITERATOR_T, bool> result_s =
+        heads_.insert (std::make_pair (branches_.front (),
+                                       module_in));
+    ACE_ASSERT (result_s.second);
+    branches_.pop_front ();
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: pushed branch \"%s\" head module \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT ((*(result_s.first)).first.c_str ()),
+                module_in->name ()));
+#endif // _DEBUG
   } // end lock scope
 
   return true;
@@ -227,8 +275,71 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::pop"));
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
-
+    ACE_ASSERT (false); // *TODO*
   } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_Module_t*
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::head (const std::string& branchName_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::head"));
+
+  BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, NULL);
+    iterator = heads_.find (branchName_in);
+    ACE_ASSERT (iterator != heads_.end ());
+    return (*iterator).second;
+  } // end lock scope
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+std::string
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::branch (Stream_Module_t* headModule_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::branch"));
+
+  // initialize return value(s)
+  std::string return_value;
+
+  // sanity check(s)
+  ACE_ASSERT (headModule_in);
+
+  BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, return_value);
+    iterator =
+        std::find_if (heads_.begin (), heads_.end (),
+                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                    headModule_in));
+    if (likely (iterator != heads_.end ()))
+      return_value = (*iterator).first;
+  } // end lock scope
+
+  return return_value;
 }
 
 template <ACE_SYNCH_DECL,
@@ -253,7 +364,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   Stream_ModuleList_t return_value;
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, return_value);
-
+    ACE_ASSERT (false); // *TODO*
   } // end lock scope
 
   return return_value;
@@ -592,36 +703,45 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      0);
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread (id: %t, group: %d) starting\n"),
-              inherited::mod_->name (),
-              inherited::grp_id_));
-#endif // _DEBUG
 
   ACE_Message_Block*      message_block_p = NULL;
   int                     result          = 0;
   int                     result_2        = -1;
   ACE_Message_Queue_Base* message_queue_p = NULL;
   MODULE_T*               module_p        = NULL;
+  std::string             branch_string;
   ACE_Task_Base*          task_p          = NULL;
 
-  // retrieve queue/successor module handles
+  // sanity check(s)
   THREAD_TO_QUEUE_ITERATOR_T iterator;
-  QUEUE_TO_MODULE_MAP_ITERATOR_T iterator_2;
+  QUEUE_TO_MODULE_ITERATOR_T iterator_2;
+  BRANCH_TO_HEAD_ITERATOR_T iterator_3;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     message_queue_p = (*iterator).second;
 
-    iterator_2 = branches_.find (message_queue_p);
-    ACE_ASSERT (iterator_2 != branches_.end ());
+    iterator_2 = modules_.find (message_queue_p);
+    ACE_ASSERT (iterator_2 != modules_.end ());
     module_p = (*iterator_2).second;
+    iterator_3 =
+        std::find_if (heads_.begin (), heads_.end (),
+                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                    (*iterator_2).second));
+    ACE_ASSERT (iterator_3 != heads_.end ());
+    branch_string = (*iterator_3).first;
   } // end lock scope
   ACE_ASSERT (message_queue_p);
   ACE_ASSERT (module_p);
   task_p = module_p->writer ();
   ACE_ASSERT (task_p);
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: worker thread (id: %t, group: %d, branch: \"%s\") starting\n"),
+              inherited::mod_->name (),
+              inherited::grp_id_,
+              ACE_TEXT (branch_string.c_str ())));
+#endif // _DEBUG
 
   do
   {
@@ -669,9 +789,15 @@ done:
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     ACE_ASSERT ((*iterator).second);
-    iterator_2 = branches_.find ((*iterator).second);
-    ACE_ASSERT (iterator_2 != branches_.end ());
-    branches_.erase (iterator_2);
+    iterator_2 = modules_.find ((*iterator).second);
+    ACE_ASSERT (iterator_2 != modules_.end ());
+    iterator_3 =
+        std::find_if (heads_.begin (), heads_.end (),
+                      std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
+                                    (*iterator_2).second));
+    ACE_ASSERT (iterator_3 != heads_.end ());
+    heads_.erase (iterator_3);
+    modules_.erase (iterator_2);
     queues_.erase (iterator);
   } // end lock scope
 

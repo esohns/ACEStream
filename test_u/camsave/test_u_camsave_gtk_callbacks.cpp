@@ -2627,10 +2627,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
+  ACE_ASSERT (!(*iterator_2).second.second.window);
   ACE_ASSERT (!(*iterator_3).second.second.window);
   (*iterator_3).second.second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT ((*iterator_3).second.second.window);
+  (*iterator_2).second.second.window =
+      (*iterator_3).second.second.window;
   (*iterator_3).second.second.area.height =
       static_cast<__u32> (allocation.height);
   (*iterator_3).second.second.area.width =

@@ -477,6 +477,18 @@ Stream_Base_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
+    if (state_.module)
+      if (!layout_.append (state_.module,
+                           ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Layout_T::append(\"%s\",\"%s\"), returning\n"),
+                    ACE_TEXT (StreamName),
+                    state_.module->name (),
+                    ACE_TEXT (STREAM_SUBSTREAM_DISPLAY_NAME)));
+        return;
+      } // end IF
+
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
          ++iterator)
@@ -3012,15 +3024,6 @@ Stream_Base_T<ACE_SYNCH_USE,
         state_.deleteModule = configuration_->configuration_.deleteModule;
       } // end ELSE
       ACE_ASSERT (state_.module);
-
-      if (!layout_.append_main (state_.module))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Layout_T::append_main(\"%s\"), aborting\n"),
-                    ACE_TEXT (StreamName),
-                    state_.module->name ()));
-        return false;
-      } // end IF
     } // end lock scope
   } // end IF
 

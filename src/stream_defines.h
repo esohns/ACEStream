@@ -58,9 +58,13 @@
 #define STREAM_STATEMACHINE_CONTROL_NAME                 "StreamStateMachineControl"
 
 // stream
+#define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL 10 // ms
+
+#define STREAM_SUBSTREAM_DISPLAY_NAME                    "display"
+#define STREAM_SUBSTREAM_SAVE_NAME                       "save to file"
+
+// statistic
 #define STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL     500 // ms [0: off]
 #define STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL      0 // second(s) [0: off]
-
-#define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL 10 // ms
 
 #endif
