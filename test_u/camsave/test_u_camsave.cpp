@@ -1001,7 +1001,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 #endif // _DEBUG
   if (hasUI_in)
   {
-    outputFormat_out.format = AV_PIX_FMT_RGB24;
+    outputFormat_out.format = AV_PIX_FMT_ARGB;
     outputFormat_out.frameRate.num =
         static_cast<int> (captureFormat_out.frameRate.numerator);
     outputFormat_out.frameRate.den =
@@ -1351,21 +1351,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   configuration_in.streamConfiguration.configuration_.renderer =
     renderer_in;
 
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
-                                                   configuration_in.streamConfiguration.configuration_);
-  modulehandler_configuration.display = displayDevice_in;
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
-  v4l_stream_iterator =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
-  v4l_stream_iterator_2 =
-    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()));
-  ACE_ASSERT (v4l_stream_iterator_2 != configuration_in.streamConfiguration.end ());
-
   if (!heap_allocator.initialize (configuration_in.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1465,8 +1450,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
-  // *NOTE*: apparently, the ffmpeg AVI encoder expects 32-bit RGB
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
+  // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
+  //         content (see also avienc.c:448)
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB555LE;
   configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));

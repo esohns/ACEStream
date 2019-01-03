@@ -21,16 +21,6 @@
 #ifndef STREAM_MODULE_VIS_GTK_CAIRO_H
 #define STREAM_MODULE_VIS_GTK_CAIRO_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfobjects.h>
-#include <strmif.h>
-#endif
-
-extern "C"
-{
-#include "libswscale/swscale.h"
-}
-
 #include "gtk/gtk.h"
 
 #include "ace/Global_Macros.h"
@@ -122,13 +112,14 @@ class Stream_Module_Vis_GTK_Cairo_T
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 
+#if GTK_CHECK_VERSION(3,0,0)
+  cairo_surface_t*   buffer_; // target-
+#elif GTK_CHECK_VERSION(2,0,0)
+  GdkPixbuf*         buffer_; // target-
+#endif // GTK_CHECK_VERSION
+  cairo_t*           context_;
   bool               isFirst_;
-//  cairo_t*           cairoContext_;
-//  cairo_surface_t*   cairoSurface_;
-  ACE_SYNCH_MUTEX_T* lock_;
-  struct SwsContext* scaleContext_;
-  unsigned int       scaleContextHeight_;
-  unsigned int       scaleContextWidth_;
+  ACE_SYNCH_MUTEX_T* lock_; // surface-
 };
 
 // include template definition

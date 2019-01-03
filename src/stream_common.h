@@ -251,10 +251,22 @@ struct Stream_SessionData
    , statistic ()
    , userData (NULL)
   {}
+  // *NOTE*: the idea is to 'copy' the data
+  Stream_SessionData (const struct Stream_SessionData& data_in)
+   : aborted (data_in.aborted)
+   , connectionStates (data_in.connectionStates)
+   , lastCollectionTimeStamp (data_in.lastCollectionTimeStamp)
+   , lock (data_in.lock)
+   , sessionId (data_in.sessionId)
+   , startOfSession (data_in.startOfSession)
+   , state (data_in.state)
+   , statistic (data_in.statistic)
+   , userData (data_in.userData)
+  {}
 
+  // *NOTE*: the idea is to 'merge' the data
   struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)
   {
-    // *NOTE*: the idea is to 'merge' the data
     aborted = (aborted ? aborted : rhs_in.aborted);
     connectionStates.insert (rhs_in.connectionStates.begin (),
                              rhs_in.connectionStates.end ());

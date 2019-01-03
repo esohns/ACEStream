@@ -20,6 +20,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#include "linux/videodev2.h"
+
 #include "libv4l2.h"
 
 #include "ace/Log_Msg.h"
@@ -138,6 +140,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
           } // end IF
           goto no_support;
         } //IF end
+        ACE_ASSERT ((buffer.flags & V4L2_BUF_FLAG_QUEUED) && !(buffer.flags & V4L2_BUF_FLAG_MAPPED) && !(buffer.flags & V4L2_BUF_FLAG_DONE));
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
 #if defined (_DEBUG)
@@ -248,6 +251,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
           message_block_p->release (); message_block_p = NULL;
           goto error;
         } // end IF
+        ACE_ASSERT ((buffer.flags & V4L2_BUF_FLAG_QUEUED) && (buffer.flags & V4L2_BUF_FLAG_MAPPED) && !(buffer.flags & V4L2_BUF_FLAG_DONE));
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
 #if defined (_DEBUG)

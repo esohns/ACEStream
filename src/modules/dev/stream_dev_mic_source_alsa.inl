@@ -607,13 +607,13 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
-//      if (inherited::timerID_ != -1)
+//      if (inherited::timerId_ != -1)
 //      {
 //        const void* act_p = NULL;
 //        result =
@@ -622,7 +622,7 @@ error:
 //        if (result == -1)
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-//                      inherited::timerID_));
+//                      inherited::timerId_));
 //        inherited::timerID_ = -1;
 //      } // end IF
 

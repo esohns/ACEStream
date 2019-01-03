@@ -93,6 +93,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::handleDataMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   if (unlikely (!inherited::context_))
     return; // nothing to do
 
@@ -135,7 +136,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
                                                        inherited::frame_->width, inherited::frame_->height, inherited::inputFormat_,
                                                        data_a,
-                                                       inherited::frame_->width, inherited::frame_->height, inherited::inputFormat_,
+                                                       inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
                                                        inherited::frame_->data)))
   {
     ACE_DEBUG ((LM_ERROR,

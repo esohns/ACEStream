@@ -616,9 +616,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       // schedule the renderer
       if (inherited::configuration_->fps)
       {
-        ACE_ASSERT (inherited::msg_queue_ == &(inherited::queue_));
         result = inherited::msg_queue_->activate ();
-        if (result == -1)
+        if (unlikely (result == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
@@ -670,7 +669,7 @@ error:
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (renderHandlerTimerId_,
                                                  &act_p);
-        if (result <= 0)
+        if (unlikely (result <= 0))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),

@@ -42,7 +42,8 @@ Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        SessionControlType,
                        SessionEventType,
                        UserDataType>::Stream_TaskBaseSynch_T (typename TASK_BASE_T::ISTREAM_T* stream_in)
- : inherited (stream_in)
+ : inherited (stream_in,
+              NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
 

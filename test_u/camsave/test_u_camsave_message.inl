@@ -147,6 +147,11 @@ Stream_CamSave_Message_T<DataType,
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
+  // *NOTE*: duplicates may reuse the device buffer memory, but only the
+  //         original message will requeue it (see release() below)
+  DataType& data_r = const_cast<DataType&> (message_p->getR ());
+  data_r.device = -1;
+
   return message_p;
 }
 
@@ -166,36 +171,35 @@ Stream_CamSave_Message_T<DataType,
     inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
-  int reference_count = inherited::reference_count ();
-  if ((reference_count > 1)           || // not the last reference
-      (inherited::data_.device == -1) || // not a device data buffer
-      inherited::data_.release)          // clean up (device data)
-    return inherited::release ();
+  if (inherited::data_.device != -1) // requeue device data buffers
+    goto requeue;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::data_block_);
+  return inherited::release ();
 
-  // *IMPORTANT NOTE*: handle race condition here
-  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
-    if (inherited::size ()) // is device-data ?
-      goto continue_;
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::data_block_);
 
-    return NULL; // nothing to do
-  } // end lock scope
+//  // *IMPORTANT NOTE*: handle race condition here
+//  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
+//    if (inherited::size ()) // is device-data ?
+//      goto requeue;
 
-continue_:
-  struct v4l2_buffer buffer;
-  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
-  buffer.index = inherited::data_.index;
-  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer.memory = inherited::data_.method;
+//    return NULL; // nothing to do
+//  } // end lock scope
+
+requeue:
+  struct v4l2_buffer buffer_s;
+  ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
+  buffer_s.index = inherited::data_.index;
+  buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buffer_s.memory = inherited::data_.method;
   switch (inherited::data_.method)
   {
     case V4L2_MEMORY_USERPTR:
     {
-      buffer.m.userptr =
+      buffer_s.m.userptr =
           reinterpret_cast<unsigned long> (inherited::rd_ptr ());
-      buffer.length = inherited::size ();
+      buffer_s.length = inherited::size ();
       break;
     }
     case V4L2_MEMORY_MMAP:
@@ -219,8 +223,8 @@ continue_:
 //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
   int result = v4l2_ioctl (inherited::data_.device,
                            VIDIOC_QBUF,
-                           &buffer);
-  if (result == -1)
+                           &buffer_s);
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                 inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));

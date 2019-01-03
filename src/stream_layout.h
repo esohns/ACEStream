@@ -151,9 +151,13 @@ class Stream_Layout_T
              const std::string&,             // module name
              Stream_ModuleList_t&) const;    // return value
 
-  inline bool is_distributor (typename inherited::tree_node& node_in) const { return dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ()); }
+  inline bool is_distributor (MODULE_T* module_in) const { return dynamic_cast<Stream_IDistributorModule*> (module_in->writer ()); }
+  // *NOTE*: the return index value is correct as long as:
+  //         - the module has been initialize()d
+  //         - the corresponding head module has not been push()ed yet
   bool has_branch (typename inherited::tree_node&, // distributor node
-                   const std::string&) const;      // branch name
+                   const std::string&,             // branch name
+                   unsigned int&) const;           // return value: index (iff any; see above)
 };
 
 // include template definition

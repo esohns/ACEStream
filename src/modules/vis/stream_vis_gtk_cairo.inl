@@ -22,18 +22,14 @@
 extern "C"
 {
 #include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
 
-#include "common_tools.h"
-
-#include "stream_dec_tools.h"
+#include "stream_lib_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -59,11 +55,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif
  : inherited (stream_in)
  , inherited2 ()
+ , buffer_ (NULL)
+ , context_ (NULL)
  , isFirst_ (true)
  , lock_ (NULL)
- , scaleContext_ (NULL)
- , scaleContextHeight_ (0)
- , scaleContextWidth_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::Stream_Module_Vis_GTK_Cairo_T"));
 
@@ -90,13 +85,14 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::~Stream_Module_Vis_GTK_Cairo_T"));
 
-//  if (cairoSurface_)
-//    cairo_surface_destroy (cairoSurface_);
-//  if (cairoContext_)
-//    cairo_destroy (cairoContext_);
-
-  if (scaleContext_)
-    sws_freeContext (scaleContext_);
+  if (buffer_)
+#if GTK_CHECK_VERSION(3,0,0)
+    cairo_surface_destroy (buffer_);
+#elif GTK_CHECK_VERSION(2,0,0)
+    g_object_unref (buffer_);
+#endif // GTK_CHECK_VERSION
+  if (context_)
+    cairo_destroy (context_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -125,14 +121,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  if (!inherited::configuration_->window)
+  if (unlikely (!context_))
     return; // done
-  ACE_ASSERT (inherited::configuration_->pixelBuffer);
-  ACE_ASSERT (inherited::sessionData_);
-
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-    inherited::sessionData_->getR ();
+  ACE_ASSERT (buffer_);
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
@@ -146,75 +137,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     return;
   }
 
-  //  const MediaType& media_type_r = session_data_r.formats.front ();
-  unsigned int image_size = 0;
-  unsigned int row_stride = 0;
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  inherited2::getMediaType (inherited::configuration_->outputFormat,
-                            media_type_s);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  image_size =
-//      Stream_MediaFramework_DirectShow_Tools::toFramesize (media_type_s);
-//  pixel_format =
-//    Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (session_data_r.inputFormat->subtype);
-//  //  struct _GUID sub_type = GUID_NULL;
-//  //  HRESULT result_3 = session_data_r.format->GetGUID (MF_MT_SUBTYPE,
-//  //                                                     &sub_type);
-//  //  if (FAILED (result_3))
-//  //  {
-//  //    ACE_DEBUG ((LM_ERROR,
-//  //                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-//  //                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//  //    return;
-//  //  } // end IF
-//  //  result_3 = MFGetAttributeSize (session_data_r.format,
-//  //                                 MF_MT_FRAME_SIZE,
-//  //                                 &width, &height);
-//  //  if (FAILED (result_3))
-//  //  {
-//  //    ACE_DEBUG ((LM_ERROR,
-//  //                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", returning\n"),
-//  //                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//  //    return;
-//  //  } // end IF
-//  //  result_3 = MFCalculateImageSize (sub_type,
-//  //                                   width, height,
-//  //                                   &image_size);
-//  //  if (FAILED (result_3))
-//  //  {
-//  //    ACE_DEBUG ((LM_ERROR,
-//  //                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
-//  //                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
-//  //                width, height,
-//  //                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//  //    return;
-//  //  } // end IF
-//#else
-  image_size =
-    av_image_get_buffer_size (media_type_s.format,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              media_type_s.resolution.cx,
-                              media_type_s.resolution.cy,
-#else
-                              media_type_s.resolution.width,
-                              media_type_s.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                              1); // *TODO*: linesize alignment
-  row_stride = av_image_get_linesize (media_type_s.format,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                      media_type_s.resolution.cx,
-#else
-                                      media_type_s.resolution.width,
-#endif // ACE_WIN32 || ACE_WIN64
-                                      0);
-  ACE_UNUSED_ARG (row_stride);
-//#endif // ACE_WIN32 || ACE_WIN64
-
+  int result = -1;
   //  bool leave_gdk = false;
   bool release_lock = false;
-  int result = -1;
-  guchar* data_2 = NULL;
-  enum AVPixelFormat pixel_format_2 = AV_PIX_FMT_RGB24;
 
   if (likely (lock_))
   {
@@ -229,149 +154,16 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     release_lock = true;
   } // end IF
 
-    //gdk_threads_enter ();
-    //leave_gdk = true;
+  //gdk_threads_enter ();
+  //leave_gdk = true;
 
-  // sanity check(s)
-  ACE_ASSERT (GDK_IS_PIXBUF (inherited::configuration_->pixelBuffer));
-  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (inherited::configuration_->pixelBuffer) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_colorspace (inherited::configuration_->pixelBuffer) == GDK_COLORSPACE_RGB);
-  if (unlikely (gdk_pixbuf_get_has_alpha (inherited::configuration_->pixelBuffer) ||
-                (gdk_pixbuf_get_n_channels (inherited::configuration_->pixelBuffer) == 4)))
-    pixel_format_2 = AV_PIX_FMT_RGBA;
-  data_2 = gdk_pixbuf_get_pixels (inherited::configuration_->pixelBuffer);
-  ACE_ASSERT (data_2);
-
-  int pixbuf_height =
-    gdk_pixbuf_get_height (inherited::configuration_->pixelBuffer);
-  int pixbuf_width =
-    gdk_pixbuf_get_width (inherited::configuration_->pixelBuffer);
-//  int pixbuf_row_stride =
-//    gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
-  bool transform_image =
-    ((media_type_s.format != pixel_format_2) ||
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-     ((static_cast<int> (media_type_s.resolution.cx) != pixbuf_width) ||
-      (static_cast<int> (media_type_s.resolution.cy) != pixbuf_height)));
-#else
-     ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) ||
-      (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
-#endif // ACE_WIN32 || ACE_WIN64
-  uint8_t* in_data[AV_NUM_DATA_POINTERS];
-  uint8_t* out_data[AV_NUM_DATA_POINTERS];
-
-  if (likely (!transform_image))
-    goto next;
-
-  if ((pixbuf_height != static_cast<int> (scaleContextHeight_)) ||
-      (pixbuf_width  != static_cast<int> (scaleContextWidth_)))
-  {
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_); scaleContext_ = NULL;
-    } // end IF
-    int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
-    //                 SWS_LANCZOS | SWS_ACCURATE_RND);
-    scaleContext_ =
-      sws_getCachedContext (NULL,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            media_type_s.resolution.cx,
-                            media_type_s.resolution.cy,
-#else
-                            media_type_s.resolution.width,
-                            media_type_s.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                            media_type_s.format,
-                            pixbuf_width, pixbuf_height, pixel_format_2,
-                            flags,                             // flags
-                            NULL, NULL,
-                            0);                                // parameters
-    if (!scaleContext_)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      result = -1;
-      goto unlock;
-    } // end IF
-    scaleContextHeight_ = pixbuf_height;
-    scaleContextWidth_ = pixbuf_width;
-#if defined (_DEBUG)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
-                inherited::mod_->name (),
-                media_type_s.resolution.cx, media_type_s.resolution.cy,
-                pixbuf_width, pixbuf_height));
-#else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
-                inherited::mod_->name (),
-                media_type_s.resolution.width, media_type_s.resolution.height,
-                pixbuf_width, pixbuf_height));
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
-  } // end IF
-
-  // step3: transform image?
-  ACE_OS::memset (in_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  out_data[0] = static_cast<uint8_t*> (data_2);
-  if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                             media_type_s.resolution.cx, media_type_s.resolution.cy,
-#else
-                                             media_type_s.resolution.width, media_type_s.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                                             media_type_s.format,
-                                             in_data,
-                                             pixbuf_width, pixbuf_height, pixel_format_2,
-                                             out_data))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
-                inherited::mod_->name ()));
-    result = -1;
-    goto unlock;
-  } // end IF
-
-next:
-  result = 0;
-
-unlock:
-  if (likely (release_lock))
-  {
-    ACE_ASSERT (lock_);
-    result = lock_->release ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-  } // end IF
-
-  if (unlikely (result == -1))
-    goto error;
-
-  //  gdk_threads_enter ();
-
-  //  pixelBuffer_ =
-  //      gdk_pixbuf_new_from_data (data_p,                               // data
-  //                                GDK_COLORSPACE_RGB,                   // color space
-  //                                false,                                // has alpha channel ?
-  //                                bits_per_sample,                      // bits per sample
-  //                                session_data_r.format->fmt.pix.width,  // width
-  //                                session_data_r.format->fmt.pix.height, // height
-  //                                row_stride,                           // row stride
-  //                                NULL,                                 // destroy function
-  //                                NULL);                                // destroy function act
-  //  if (!pixelBuffer_)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to gdk_pixbuf_new_from_data(), returning\n")));
-  //    gdk_threads_leave ();
-  //    return;
-  //  } // end IF
+#if GTK_CHECK_VERSION(3,0,0)
+  ACE_OS::memcpy (cairo_image_surface_get_data (buffer_),
+#elif GTK_CHECK_VERSION(2,0,0)
+  ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
+#endif // GTK_CHECK_VERSION
+                  message_inout->rd_ptr (),
+                  message_inout->length ());
 
   // step3: draw pixbuf to widget
   //  gint width, height;
@@ -386,6 +178,17 @@ unlock:
   //                   pixelBuffer_,
   //                   0, 0, 0, 0, width, height,
   //                   GDK_RGB_DITHER_NONE, 0, 0);
+  cairo_fill (context_);
+
+  if (likely (release_lock))
+  {
+    ACE_ASSERT (lock_);
+    result = lock_->release ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+  } // end IF
 
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
@@ -409,12 +212,23 @@ unlock:
   //                              allocation.x, allocation.y,
   //                              allocation.width, allocation.height);
 
+  //  if (leave_gdk)
+  //    gdk_threads_leave ();
+
   return;
 
 error:
+  if (likely (release_lock))
+  { ACE_ASSERT (lock_);
+    result = lock_->release ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+  } // end IF
+
   //  if (leave_gdk)
   //    gdk_threads_leave ();
-  return;
 }
 
 template <ACE_SYNCH_DECL,
@@ -446,15 +260,84 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+      const MediaType& media_type_r = session_data_r.formats.front ();
+      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+      inherited2::getMediaType (media_type_r,
+                                media_type_s);
+      unsigned int frame_size_i =
+          av_image_get_buffer_size (media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                    media_type_s.resolution.cx,
+                                    media_type_s.resolution.cy,
+#else
+                                    media_type_s.resolution.width,
+                                    media_type_s.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                                    1); // *TODO*: linesize alignment
+      ACE_UNUSED_ARG (frame_size_i);
+      unsigned int row_stride_i =
+          av_image_get_linesize (media_type_s.format,
+    #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                 media_type_s.resolution.cx,
+    #else
+                                 media_type_s.resolution.width,
+    #endif // ACE_WIN32 || ACE_WIN64
+                                 0);
+//      ACE_UNUSED_ARG (row_stride_i);
+      ACE_ASSERT (buffer_);
+#if GTK_CHECK_VERSION(3,0,0)
+      ACE_ASSERT (cairo_surface_status (buffer_) == CAIRO_STATUS_SUCCESS);
+      ACE_ASSERT (cairo_surface_get_type (buffer_) == CAIRO_SURFACE_TYPE_IMAGE);
+      int width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
+      cairo_format_t format_e = CAIRO_FORMAT_INVALID;
+      width_2 = cairo_image_surface_get_width (buffer_);
+      height_2 = cairo_image_surface_get_height (buffer_);
+      row_stride_2 =
+          cairo_image_surface_get_stride (buffer_);
+      format_e = cairo_image_surface_get_format (buffer_);
+#elif GTK_CHECK_VERSION(2,0,0)
+      gint width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
+      ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
+      g_object_get (G_OBJECT (buffer_),
+                    ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,
+                    ACE_TEXT_ALWAYS_CHAR ("height"),     &height_2,
+                    ACE_TEXT_ALWAYS_CHAR ("rowstride"),  &row_stride_2,
+                    ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
+                    NULL);
+#endif // GTK_CHECK_VERSION
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT ((media_type_s.resolution.cx == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.cy == static_cast<unsigned int> (height_2)));
+#else
+      ACE_ASSERT ((media_type_s.resolution.width == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height == static_cast<unsigned int> (height_2)));
+#endif // ACE_WIN32 || ACE_WIN64
+      ACE_ASSERT (row_stride_i == static_cast<unsigned int> (row_stride_2));
+#if GTK_CHECK_VERSION(3,0,0)
+//      ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
+#elif GTK_CHECK_VERSION(2,0,0)
+      ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
+      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
+//      ACE_ASSERT (n_channels_i == 4);
+//      ACE_ASSERT (!gdk_pixbuf_get_has_alpha (buffer_));
+#endif // GTK_CHECK_VERSION
+      if (n_channels_i == 3)
+        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
+      else
+        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_ARGB); // CAIRO_FORMAT_ARGB32
+
       break;
 
-//error:
-//      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
+    {
       break;
+    }
     default:
       break;
   } // end SWITCH
@@ -512,24 +395,110 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (buffer_)
+    {
+#if GTK_CHECK_VERSION(3,0,0)
+      cairo_surface_destroy (buffer_); buffer_ = NULL;
+#elif GTK_CHECK_VERSION(2,0,0)
+      g_object_unref (buffer_); buffer_ = NULL;
+#endif // GTK_CHECK_VERSION
+    } // end IF
+    if (context_)
+    {
+      cairo_destroy (context_); context_ = NULL;
+    } // end IF
     isFirst_ = true;
     lock_ = NULL;
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_); scaleContext_ = NULL;
-    } // end IF
-    scaleContextHeight_ = 0;
-    scaleContextWidth_ = 0;
   } // end IF
 
-  lock_ = configuration_in.pixelBufferLock;
-  if (!configuration_in.pixelBuffer)
-  {
-    // *TODO*: remove type inference
-    if (configuration_in.window)
-    {
-//      gdk_threads_enter ();
+  // sanity check(s)
+  if (!configuration_in.window)
+    return true; // nothing to do
 
+  context_ = gdk_cairo_create (configuration_in.window);
+  if (unlikely (!context_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(%@), aborting\n"),
+                configuration_in.window));
+    return false;
+  } // end IF
+
+//  int scale_i = 0, width_i = 0, height_i = 0;
+  GdkRectangle clip_area_s;
+  ACE_OS::memset (&clip_area_s, 0, sizeof (GdkRectangle));
+  if (!gdk_cairo_get_clip_rectangle (context_,
+                                     &clip_area_s))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_get_clip_rectangle(%@), aborting\n"),
+                context_));
+    goto error;
+  } // end IF
+
+  // *TODO*: remove type inferences
+  lock_ = configuration_in.pixelBufferLock;
+
+  if (configuration_in.pixelBuffer)
+  {
+    // sanity check(s)
+#if GTK_CHECK_VERSION(3,0,0)
+    ACE_ASSERT (cairo_surface_status (configuration_in.pixelBuffer) == CAIRO_STATUS_SUCCESS);
+    ACE_ASSERT (cairo_surface_get_type (configuration_in.pixelBuffer) == CAIRO_SURFACE_TYPE_IMAGE);
+    int width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
+    cairo_format_t format_e = CAIRO_FORMAT_INVALID;
+    width_2 = cairo_image_surface_get_width (configuration_in.pixelBuffer);
+    height_2 = cairo_image_surface_get_height (configuration_in.pixelBuffer);
+    row_stride_i =
+        cairo_image_surface_get_stride (configuration_in.pixelBuffer);
+    format_e = cairo_image_surface_get_format (configuration_in.pixelBuffer);
+//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
+    ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
+
+    cairo_surface_reference (configuration_in.pixelBuffer);
+#elif GTK_CHECK_VERSION(2,0,0)
+    ACE_ASSERT (GDK_IS_PIXBUF (configuration_in.pixelBuffer));
+    gint width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
+    g_object_get (G_OBJECT (configuration_in.pixelBuffer),
+                  ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,
+                  ACE_TEXT_ALWAYS_CHAR ("height"),     &height_2,
+                  ACE_TEXT_ALWAYS_CHAR ("rowstride"),  &row_stride_i,
+                  ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
+                  NULL);
+//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
+    ACE_ASSERT (gdk_pixbuf_get_colorspace (configuration_in.pixelBuffer) == GDK_COLORSPACE_RGB);
+    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (configuration_in.pixelBuffer) == 8);
+    ACE_ASSERT (n_channels_i == 4);
+//    ACE_ASSERT (!gdk_pixbuf_get_has_alpha (configuration_in.pixelBuffer));
+
+    g_object_ref (configuration_in.pixelBuffer);
+#else
+    ACE_ASSERT (false);
+#endif // GTK_CHECK_VERSION
+    buffer_ = configuration_in.pixelBuffer;
+  } // end IF
+  else
+  {
+#if GTK_CHECK_VERSION(3,0,0)
+    //  scale_i = gdk_window_get_scale_factor (configuration_in.window);
+    //  width_i = gdk_window_get_width (configuration_in.window) * scale_i;
+    //  height_i = gdk_window_get_height (configuration_in.window) * scale_i;
+    //  cairoSurface_ =
+    //      gdk_window_create_similar_image_surface (configuration_in.window,
+    //                                               CAIRO_FORMAT_RGB24,
+    //                                               width_i, height_i, scale_i);
+    ////                                               clip_area.width, clip_area.height,
+    ////                                               0); // scale {0: same as window}
+    //  if (!cairoSurface_)
+    //  {
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+    //                configuration_in.window));
+    //    goto error;
+    //  } // end IF
+#elif GTK_CHECK_VERSION(2,0,0)
+    // *TODO*: remove type inference
+//      gdk_threads_enter ();
       // *TODO*: remove type inference
 //      pixelBuffer_ =
 //#if GTK_CHECK_VERSION (3,0,0)
@@ -551,20 +520,36 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //        return false;
 //      } // end IF
 //      gdk_threads_leave ();
-    } // end IF
-  } // end IF
-  else
-  {
-//    g_object_ref (configuration_in.pixelBuffer);
-//    pixelBuffer_ = configuration_in.pixelBuffer;
+#endif // GTK_CHECK_VERSION
   } // end ELSE
-//  if (!pixelBuffer_)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to obtain pixel buffer, aborting\n")));
-//    return false;
-//  } // end IF
+  ACE_ASSERT (buffer_);
+
+#if GTK_CHECK_VERSION(3,0,0)
+  cairo_set_source_surface (context_,
+                            buffer_,
+                            0, 0);
+#elif GTK_CHECK_VERSION(2,0,0)
+  gdk_cairo_set_source_pixbuf (context_,
+                               buffer_,
+                               0, 0);
+#endif // GTK_CHECK_VERSION
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+
+error:
+  if (buffer_)
+  {
+    g_object_unref (buffer_); buffer_ = NULL;
+  } // end IF
+  if (context_)
+  {
+    cairo_destroy (context_); context_ = NULL;
+  } // end IF
+//  if (surface_)
+//  {
+//    cairo_surface_destroy (surface_); surface_ = NULL;
+//  } // end IF
+
+  return false;
 }

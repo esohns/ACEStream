@@ -30,6 +30,7 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -40,6 +41,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -47,27 +49,26 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionIdType,
                   SessionControlType,
                   SessionEventType,
-                  UserDataType>::Stream_TaskBase_T (ISTREAM_T* stream_in)
+                  UserDataType>::Stream_TaskBase_T (ISTREAM_T* stream_in,
+                                                    MESSAGE_QUEUE_T* queue_in)
+
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                      // group id
               1,                                                // # thread(s)
               false,                                            // auto-start ?
               ////////////////////////////
-              //NULL)                                           // queue handle
-              // *TODO*: this looks dodgy, but seems to work nonetheless...
-              &queue_)                                          // queue handle
+              queue_in)                                         // queue handle
  , aggregate_ (false)
  , allocator_ (NULL)
  , configuration_ (NULL)
  , isInitialized_ (false)
  , linked_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
  , sessionData_ (NULL)
- , sessionDataLock_ (NULL)
 // , stream_ (stream_in)
  /////////////////////////////////////////
  , freeSessionData_ (true)
+ , sessionData_2 (NULL)
+ , sessionDataLock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
@@ -76,6 +77,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -86,6 +88,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -97,38 +100,16 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
-  int result = -1;
-
   if (freeSessionData_ &&
       sessionData_)
     sessionData_->decrease ();
-
-  //   // *TODO*: check whether this sequence works
-  //   queue_.deactivate ();
-  //   queue_.wait ();
-
-  // *NOTE*: deactivate the queue so it does not accept new data
-  result = queue_.deactivate ();
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
-
-  result = queue_.flush ();
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-  else if (result)
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: flushed %d message(s)\n"),
-                inherited::mod_->name (),
-                result));
-  } // end ELSE IF
-  inherited::msg_queue (NULL);
+  if (unlikely (sessionData_2))
+    sessionData_2->decrease ();
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -140,6 +121,7 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -162,12 +144,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
     freeSessionData_ = true;
+    if (unlikely (sessionData_2))
+    {
+      sessionData_2->decrease (); sessionData_2 = NULL;
+    } // end IF
     sessionDataLock_ = NULL;
 
     if (aggregate_)
       goto continue_;
-
-    queue_.flush ();
   } // end IF
 
   linked_ = 0;
@@ -184,6 +168,7 @@ continue_:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -195,6 +180,7 @@ template <ACE_SYNCH_DECL,
 const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -255,6 +241,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -266,6 +253,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -318,7 +306,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: although reuse of the upstream session data is
       //                   warranted, it may not be safe (e.g. connection might
       //                   close unexpectedly, ...)
-      //                   --> use 'this' streams' session data lock instead
+      //                   --> use downstreams' session data lock instead
       // *TODO*: this precaution may be completely unnecessary. Points to
       //         consider:
       //         - linking/unlinking code may have to be synchronized
@@ -330,15 +318,18 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
 
       // 'upstream' ? --> nothing to do
-      // *TODO*: writing this from a 'downstream' perspective may result in
+      // *TODO*: writing this from an 'upstream' perspective may result in
       //         better code
       if (session_data_p == session_data_2)
-        goto continue_;
+      {
+        session_data_container_p->decrease (); session_data_container_p = NULL;
+        goto continue_; // <-- 'upstream'
+      } // end IF
 
-      ACE_ASSERT (session_data_p->lock);
-      ACE_ASSERT (session_data_2->lock);
+      // --> 'downstream'
+      ACE_ASSERT (session_data_p->lock && session_data_2->lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-        if (session_data_p->lock != session_data_2->lock)
+        if (likely (session_data_p->lock != session_data_2->lock))
         {
           result = session_data_2->lock->acquire ();
           if (unlikely (result == -1))
@@ -347,15 +338,23 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
           release_lock = true;
         } // end IF
-        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_p)->lock =
-          session_data_2->lock;
+        sessionData_2 = sessionData_;
+        sessionDataLock_ = session_data_2->lock; // retain handle to originals
+        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_2)->lock =
+          session_data_p->lock;
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: stream has been linked, using downstream session data lock (is: %@)\n"),
+                  inherited::mod_->name (),
+                  session_data_p->lock));
+#endif // _DEBUG
 
         // *NOTE*: the idea here is to 'merge' the two datasets
         *session_data_2 += *session_data_p;
 
         if (release_lock)
         {
-          result = session_data_2->lock->release ();
+          result = sessionDataLock_->release ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
@@ -364,8 +363,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
 
       // switch session data
-      sessionData_->decrease ();
       sessionData_ = session_data_container_p;
+      session_data_container_p = NULL;
 
 continue_:
       Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
@@ -389,6 +388,9 @@ continue_:
         break;
       --linked_;
 
+      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
+
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
       //                   processed at this point ('concurrent' scenario)
@@ -398,14 +400,46 @@ continue_:
         goto continue_2;
 
       session_data_p = &sessionData_->getR ();
-      { ACE_ASSERT (sessionDataLock_);
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
-        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_p)->lock =
+      // *TODO*: avoid race condition here; get() should add a reference
+      session_data_container_p =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
+      session_data_container_p->increase ();
+      session_data_2 =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
+
+      // 'upstream' ? --> nothing to do
+      // *TODO*: writing this from an 'upstream' perspective may result in
+      //         better code
+      if (session_data_p == session_data_2)
+      {
+        session_data_container_p->decrease (); session_data_container_p = NULL;
+        goto continue_2; // <-- 'upstream'
+      } // end IF
+
+      // --> 'downstream'
+      ACE_ASSERT (session_data_p->lock && session_data_2->lock);
+      ACE_ASSERT (session_data_p->lock == session_data_2->lock);
+      ACE_ASSERT (sessionDataLock_);
+      ACE_ASSERT (session_data_p->lock != sessionDataLock_);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
+        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *sessionDataLock_);
+        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_2)->lock =
           sessionDataLock_;
       } // end lock scope
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: stream has been unlinked, reset session data lock\n"),
-      //            inherited::mod_->name ()));
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: stream has been unlinked, reset upstream session data lock (is: %@)\n"),
+                  inherited::mod_->name (),
+                  sessionDataLock_));
+#endif // _DEBUG
+      sessionDataLock_ = NULL;
+      session_data_container_p->decrease (); session_data_container_p = NULL;
+
+      // switch session data
+      ACE_ASSERT (sessionData_2);
+      sessionData_->decrease (); sessionData_ = NULL;
+      sessionData_ = sessionData_2;
+      sessionData_2 = NULL;
 
 continue_2:
       Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
@@ -508,6 +542,7 @@ error:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -519,6 +554,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -538,6 +574,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -549,6 +586,7 @@ template <ACE_SYNCH_DECL,
 DataMessageType*
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -604,6 +642,7 @@ allocate:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -615,6 +654,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -764,7 +804,7 @@ error_3:
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
+                  ACE_TEXT ("%s: invalid/unknown message (type was: \"%s\"), continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       messageBlock_in->release ();
@@ -793,6 +833,7 @@ error_3:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -804,6 +845,7 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -875,6 +917,7 @@ allocate:
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -886,6 +929,7 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -921,8 +965,8 @@ allocate:
     }
 
     // keep retrying ?
-    if (!session_message_p &&
-        !allocator_->block ())
+    if (unlikely (!session_message_p &&
+                  !allocator_->block ()))
       goto allocate;
   } // end IF
   else
@@ -959,7 +1003,7 @@ allocate:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task_Base::put(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-    session_message_p->release ();
+    session_message_p->release (); session_message_p = NULL;
     goto error;
   } // end IF
 
@@ -976,6 +1020,7 @@ error:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -987,6 +1032,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
@@ -1070,6 +1116,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1081,6 +1128,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
+                  LockType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,

@@ -63,7 +63,6 @@ extern "C"
 
 // forward declaration(s)
 struct AVFormatContext;
-struct SwsContext;
 class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
@@ -259,7 +258,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   struct AVFormatContext*                       formatContext_;
 #endif // ACE_WIN32 || ACE_WIN64
   unsigned int                                  frameSize_; // output-
-  struct SwsContext*                            transformContext_;
 
   typedef std::vector<unsigned int> FRAMEOFFSETS_T;
   typedef FRAMEOFFSETS_T::const_iterator FRAMEOFFSETSITERATOR_T;
@@ -278,114 +276,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 };
-
-//////////////////////////////////////////
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-// partial specialization (for V4L2)
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          ////////////////////////////////
-          typename ConfigurationType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          ////////////////////////////////
-          typename UserDataType>
-class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
-                                             TimePolicyType,
-                                             ConfigurationType,
-                                             ControlMessageType,
-                                             DataMessageType,
-                                             SessionMessageType,
-                                             SessionDataContainerType,
-                                             SessionDataType,
-                                             struct Stream_MediaFramework_V4L_MediaType,
-                                             UserDataType>
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType>
- , public Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    >
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T>
-#endif // ACE_WIN32 || ACE_WIN64
-{
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 UserDataType> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<struct Stream_MediaFramework_V4L_MediaType
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                    > inherited2;
-#else
-                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
-#endif // ACE_WIN32 || ACE_WIN64
-
- public:
-  Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
-
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL);
-
-  // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
-
- protected:
-  // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
-  //         fields with information about the length of the consecutive,
-  //         linearly structured bulk data.
-  //         Note how in a (streaming) scenario continuously generating data,
-  //         this information often is not available during initial processing
-  //         and may therefore have to be filled in in a post-processing step
-  //         after the stream ends, potentially requiring reparsing of (written)
-  //         data. This means that, unless configuration data (duration[,
-  //         format]) is supplied externally - either through session
-  //         data/and or module configuration, the encoding process must be
-  //         split into two separate phases (or distinct processing modules -
-  //         more adequate for pipelined processing), in order to generate
-  //         standard-compliant files. This implementation fills in the size
-  //         information upon reception of completion event messages sent
-  //         upstream by trailing modules of the processing stream (i.e. reader-
-  //         side processing)
-  bool             isFirst_;
-  AVFormatContext* formatContext_;
-
-  // helper methods
-  virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
-
-  bool generateIndex (ACE_Message_Block*); // message buffer handle
-};
-#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 

@@ -282,7 +282,7 @@ error:
       int toggle = 0;
       //bool shutdown = true;
 
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;
@@ -832,6 +832,7 @@ continue_:
                   captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQBUF")));
       break;
     } // end IF
+//    ACE_ASSERT (buffer_s.flags & V4L2_BUF_FLAG_DONE);
     if (unlikely (buffer_s.flags & V4L2_BUF_FLAG_ERROR))
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: streaming error (fd: %d, index: %d), continuing\n"),

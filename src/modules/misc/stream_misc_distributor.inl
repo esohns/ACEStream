@@ -47,12 +47,14 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
  : inherited (stream_in)
 // , lock_ ()
  , branches_ ()
- , queues_ ()
- , modules_ ()
+ , data_ ()
  , heads_ ()
+ , modules_ ()
+ , queues_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::Stream_Miscellaneous_Distributor_T"));
 
+  inherited::threadCount_ = 0;
 }
 
 template <ACE_SYNCH_DECL,
@@ -62,107 +64,203 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-int
+void
 Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                    TimePolicyType,
                                    ConfigurationType,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
-                                   SessionDataType>::put (ACE_Message_Block* messageBlock_in,
-                                                          ACE_Time_Value* timeValue_in)
+                                   SessionDataType>::forward (ACE_Message_Block* messageBlock_in,
+                                                              bool dispose_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::put"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::forward"));
 
   // sanity check(s)
   ACE_ASSERT (!queues_.empty ());
   ACE_ASSERT (messageBlock_in);
 
-  int result = 0, result_2 = -1;
+  int result = -1;
   ACE_Message_Block* message_block_p = NULL;
-  bool stop_processing = false;
 
-  switch (messageBlock_in->msg_type ())
-  {
-    case ACE_Message_Block::MB_DATA:
-    case ACE_Message_Block::MB_PROTO:
-      break;
-    case ACE_Message_Block::MB_USER:
-    { // *NOTE*: currently, all of these are 'session' messages
-      SessionMessageType* session_message_p =
-          dynamic_cast<SessionMessageType*> (messageBlock_in);
-      if (unlikely (!session_message_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    messageBlock_in->msg_type ()));
-        return -1;
-      } // end IF
-      if (session_message_p->type () == STREAM_SESSION_MESSAGE_END)
-        stop_processing = true;
-      break;
-    }
-    case STREAM_MESSAGE_CONTROL:
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), aborting\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-      return -1;
-    }
-  } // end SWITCH
-
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
-    {
+    { ACE_ASSERT ((*iterator).second);
       ACE_ASSERT (!message_block_p);
       message_block_p = messageBlock_in->duplicate ();
       if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
-        result = -1;
-        break;
+        goto continue_;
       } // end IF
 
-      ACE_ASSERT ((*iterator).second);
-      result_2 = (*iterator).second->enqueue (message_block_p,
-                                              timeValue_in);
-      if (unlikely (result_2 == -1))
+      // iff this is a session message, update its' data
+      switch (messageBlock_in->msg_type ())
+      {
+        case ACE_Message_Block::MB_DATA:
+        case ACE_Message_Block::MB_PROTO:
+          break;
+        case ACE_Message_Block::MB_USER:
+        {
+          // retrieve branch session data
+          QUEUE_TO_MODULE_ITERATOR_T iterator_2 =
+              modules_.find ((*iterator).second);
+          ACE_ASSERT (iterator_2 != modules_.end ());
+          ACE_ASSERT ((*iterator_2).second);
+          HEAD_TO_SESSIONDATA_CONST_ITERATOR_T iterator_3 =
+              data_.find ((*iterator_2).second);
+          ACE_ASSERT (iterator_3 != data_.end ());
+          ACE_ASSERT ((*iterator_3).second);
+
+          // *NOTE*: currently, all of these are 'session' messages
+          SessionMessageType* session_message_p =
+            dynamic_cast<SessionMessageType*> (messageBlock_in);
+          if (unlikely (!session_message_p))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), returning\n"),
+                        inherited::mod_->name (),
+                        messageBlock_in,
+                        messageBlock_in->msg_type ()));
+            goto continue_;
+          } // end IF
+          (*iterator_3).second->increase ();
+          session_message_p->setP ((*iterator_3).second);
+          break;
+        }
+        case STREAM_MESSAGE_CONTROL:
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown message (type was: \"%s\"), returning\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+          goto continue_;
+        }
+      } // end SWITCH
+
+      result = (*iterator).second->enqueue (message_block_p,
+                                            NULL);
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue(): \"%m\", continuing\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::enqueue(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
         message_block_p->release (); message_block_p = NULL;
-        result = -1;
-        break;
+        goto continue_;
       } // end IF
       message_block_p = NULL;
     } // end FOR
-//  } // end lock scope
+  } // end lock scope
 
-  result_2 = inherited::put_next (messageBlock_in,
-                                  timeValue_in);
-  if (unlikely (result_2 == -1))
+continue_:
+  if (unlikely (dispose_in))
+    messageBlock_in->release ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+void
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  switch (message_inout->type ())
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task_Base::put_next(): \"%m\", continuing\n"),
-                inherited::mod_->name ()));
-    result = -1;
-  } // end IF
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      ACE_ASSERT (inherited::sessionData_);
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          inherited::sessionData_->getR ();
+      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
-  if (unlikely (stop_processing))
-    stop (false, // wait for completion ?
-          true); // locked access ?
+      // *NOTE*: clone the session data for each processing branch
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+        for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
+             iterator != heads_.end ();
+             ++iterator)
+        {
+          ACE_NEW_NORETURN (session_data_p,
+                            typename SessionMessageType::DATA_T::DATA_T (session_data_r));
+          if (unlikely (!session_data_p))
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                        inherited::mod_->name ()));
+            goto error;
+          } // end IF
+          ACE_NEW_NORETURN (session_data_container_p,
+                            typename SessionMessageType::DATA_T (session_data_p));
+          if (unlikely (!session_data_container_p))
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                        inherited::mod_->name ()));
+            delete session_data_p; session_data_p = NULL;
+            goto error;
+          } // end IF
+          session_data_p = NULL;
 
-  return result;
+          ACE_ASSERT ((*iterator).second);
+          data_.insert (std::make_pair ((*iterator).second,
+                                        session_data_container_p));
+          session_data_container_p = NULL;
+        } // end FOR
+      } // end lock scope
+
+      break;
+
+error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      stop (false, // wait for completion ?
+            true); // locked access ?
+
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+        for (HEAD_TO_SESSIONDATA_MAP_T iterator = data_.begin ();
+             iterator != data_.end ();
+             ++iterator)
+        { ACE_ASSERT ((*iterator).second);
+          (*iterator).second->decrease ();
+        } // end FOR
+        data_.clear ();
+      } // end lock scope
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  forward (message_inout, false);
 }
 
 template <ACE_SYNCH_DECL,
@@ -183,10 +281,14 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::initialize"));
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+  // sanity check(s)
+  ACE_ASSERT (!branches_in.empty ());
+
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, false);
     // sanity check(s)
     ACE_ASSERT (branches_.empty ());
     branches_ = branches_in;
+    inherited::threadCount_ = branches_.size ();
   } // end lock scope
 
   return true;
@@ -226,7 +328,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, false);
     inherited::start (thread_id);
     if (!thread_id)
     {
@@ -274,7 +376,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::pop"));
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, false);
     ACE_ASSERT (false); // *TODO*
   } // end lock scope
 }
@@ -298,7 +400,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::head"));
 
   BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, NULL);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, NULL);
     iterator = heads_.find (branchName_in);
     ACE_ASSERT (iterator != heads_.end ());
     return (*iterator).second;
@@ -330,7 +432,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_ASSERT (headModule_in);
 
   BRANCH_TO_HEAD_CONST_ITERATOR_T iterator;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, return_value);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, return_value);
     iterator =
         std::find_if (heads_.begin (), heads_.end (),
                       std::bind2nd (BRANCH_TO_HEAD_MAP_FIND_S (),
@@ -340,6 +442,41 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } // end lock scope
 
   return return_value;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataType>::has (const std::string& branchName_in,
+                                                          unsigned int& index_out) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::has"));
+
+  // initialize return value(s)
+  index_out = 0;
+
+  ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, false);
+
+  Stream_BranchesIterator_t iterator =
+      std::find (branches_.begin (), branches_.end (), branchName_in);
+  if (iterator != branches_.end ())
+  {
+    index_out = std::distance (branches_.begin (), iterator);
+    return true;
+  } // end IF
+
+  return (heads_.find (branchName_in) != heads_.end ());
 }
 
 template <ACE_SYNCH_DECL,
@@ -363,8 +500,11 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // initialize return value(s)
   Stream_ModuleList_t return_value;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, return_value);
-    ACE_ASSERT (false); // *TODO*
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, return_value);
+    for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
+         iterator != heads_.end ();
+         ++iterator)
+      return_value.push_back ((*iterator).second);
   } // end lock scope
 
   return return_value;
@@ -549,7 +689,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (!queues_.empty ());
 
-  int result = -1;
   ACE_Message_Block* message_block_p = NULL;
 
   // enqueue a control message
@@ -573,15 +712,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  result = put (message_block_p, NULL);
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Miscellaneous_Distributor_T::put(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    message_block_p->release (); message_block_p = NULL;
-    return;
-  } // end IF
+  forward (message_block_p, true); message_block_p = NULL;
 
   if (waitForCompletion_in)
     wait (true);
@@ -609,7 +740,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_Time_Value one_second (1, 0);
 
 retry:
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+  { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
     for (THREAD_TO_QUEUE_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -661,7 +792,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
     this_p->idle ();
 
 retry:
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
+  { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
     if (!queues_.empty ())
       goto wait;
   } // end lock scope
@@ -716,7 +847,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   THREAD_TO_QUEUE_ITERATOR_T iterator;
   QUEUE_TO_MODULE_ITERATOR_T iterator_2;
   BRANCH_TO_HEAD_ITERATOR_T iterator_3;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     message_queue_p = (*iterator).second;
@@ -785,7 +916,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   } while (true);
 
 done:
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+  { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, -1);
     iterator = queues_.find (ACE_OS::thr_self ());
     ACE_ASSERT (iterator != queues_.end ());
     ACE_ASSERT ((*iterator).second);

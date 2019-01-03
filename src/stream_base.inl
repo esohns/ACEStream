@@ -23,6 +23,7 @@
 #include "ace/Log_Msg.h"
 
 #include "stream_data_base.h"
+#include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_imessagequeue.h"
 #include "stream_macros.h"
@@ -72,7 +73,8 @@ Stream_Base_T<ACE_SYNCH_USE,
  , isInitialized_ (false)
  , layout_ ()
  , lock_ ()
- , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
+ , messageQueue_ (STREAM_QUEUE_MAX_SLOTS,
+                  NULL)
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
@@ -98,7 +100,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_p; delete reader_p;
+    delete writer_p; writer_p = NULL;
+    delete reader_p; reader_p = NULL;
     return;
   } // end IF
   ACE_NEW_NORETURN (module_p,
@@ -111,7 +114,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_p; delete reader_p;
+    delete writer_p; writer_p = NULL;
+    delete reader_p; reader_p = NULL;
     return;
   } // end IF
 
@@ -124,7 +128,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete module_p;
+    delete module_p; module_p = NULL;
     return;
   } // end IF
   ACE_NEW_NORETURN (module_2,
@@ -137,7 +141,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete writer_2; delete reader_2;
+    delete writer_2; writer_2 = NULL;
+    delete reader_2; reader_2 = NULL;
     return;
   } // end IF
 
@@ -147,7 +152,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::close(): \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete module_p; delete module_2;
+    delete module_p; module_p = NULL;
+    delete module_2; module_2 = NULL;
     return;
   } // end IF
   result = inherited::open (NULL,      // argument passed to module open()
@@ -158,7 +164,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", returning\n"),
                 ACE_TEXT (StreamName)));
-    delete module_p; delete module_2;
+    delete module_p; module_p = NULL;
+    delete module_2; module_2 = NULL;
     return;
   } // end IF
 }
@@ -351,6 +358,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end lock scope
 #if defined (_DEBUG)
   layout_.dump_state ();
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("----------------------");
+  dump_state ();
 #endif // _DEBUG
 
   // step2: set notification strategy ?
@@ -2607,12 +2616,12 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getLock (bool recurseupstream_in)
+              SessionMessageType>::getLock (bool recurseUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
   if (upstream_ &&
-      recurseupstream_in)
+      recurseUpstream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
     if (!ilock_p)
@@ -2626,7 +2635,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       return dummy;
     } // end IF
     try {
-      return ilock_p->getLock (recurseupstream_in);
+      return ilock_p->getLock (recurseUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2790,23 +2799,28 @@ Stream_Base_T<ACE_SYNCH_USE,
   std::string stream_layout_string;
 
   const MODULE_T* module_p = NULL;
-  //const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
-  //ACE_ASSERT (tail_p);
+  std::vector<Stream_IDistributorModule*> distributors_a;
+  Stream_IDistributorModule* idistributor_p = NULL;
   for (ITERATOR_T iterator (*this);
        iterator.next (module_p);
        iterator.advance ())
   {
-    // omit head/tail
-    if ((!ACE_OS::strcmp (module_p->name (),
-                          ACE_TEXT (STREAM_MODULE_HEAD_NAME)) ||
-         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Head"))) ||
-        (!ACE_OS::strcmp (module_p->name (),
-                          ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
-         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail"))))
+    if (!ACE_OS::strcmp (module_p->name (),
+                         ACE_TEXT (STREAM_MODULE_HEAD_NAME)) ||
+        !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Head")))
+    {
+      stream_layout_string.append (ACE_TEXT ("| "));
       continue;
+    } // end IF
+    if (!ACE_OS::strcmp (module_p->name (),
+                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+        !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
+    {
+      stream_layout_string.append (ACE_TEXT (" |"));
+      continue;
+    } // end IF
 
     stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
-
     ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
     if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
                         ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
@@ -2814,10 +2828,82 @@ Stream_Base_T<ACE_SYNCH_USE,
                         ACE_TEXT ("ACE_Stream_Tail")))
       stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
+    idistributor_p =
+        dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
+    if (idistributor_p)
+      distributors_a.push_back (idistributor_p);
+
     module_p = NULL;
   } // end FOR
 
-  ACE_DEBUG ((LM_DEBUG,
+  Stream_ModuleList_t heads_a;
+  unsigned int indentation_i = 1;
+  for (std::vector<Stream_IDistributorModule*>::const_iterator iterator = distributors_a.begin ();
+       iterator != distributors_a.end ();
+       ++iterator)
+  {
+    heads_a = (*iterator)->next ();
+    stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+    stream_layout_string.append (indentation_i, '\t');
+    for (Stream_ModuleListIterator_t iterator_2 = heads_a.begin ();
+         iterator_2 != heads_a.end ();
+         ++iterator_2)
+    {
+next:
+      ++indentation_i;
+
+      std::vector<Stream_IDistributorModule*> distributors_2;
+      module_p = *iterator_2;
+      do {
+        ACE_ASSERT (module_p);
+        stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
+        if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                            ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
+            ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                            ACE_TEXT ("ACE_Stream_Tail")))
+          stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
+
+        if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                             ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+            !ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                             ACE_TEXT ("ACE_Stream_Tail")))
+        {
+          stream_layout_string.append (ACE_TEXT (" |"));
+          Stream_ModuleListIterator_t iterator_3 = iterator_2;
+          if (++iterator_3 != heads_a.end ())
+          {
+            stream_layout_string.append (ACE_TEXT ("\n"));
+            stream_layout_string.append (indentation_i, '\t');
+          } // end IF
+          break;
+        } // end IF
+
+        idistributor_p =
+            dynamic_cast<Stream_IDistributorModule*> ((*iterator_2)->writer ());
+        if (idistributor_p)
+          distributors_2.push_back (idistributor_p);
+
+        module_p = const_cast<MODULE_T*> (module_p)->next ();
+      } while (true);
+
+      Stream_ModuleList_t heads_2;
+      for (std::vector<Stream_IDistributorModule*>::const_iterator iterator_3 = distributors_2.begin ();
+           iterator_3 != distributors_2.end ();
+           ++iterator_3)
+      {
+        heads_2 = (*iterator_3)->next ();
+        stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
+        stream_layout_string.insert (std::string::npos, indentation_i, '\t');
+        for (Stream_ModuleListIterator_t iterator_2 = heads_2.begin ();
+             iterator_2 != heads_2.end ();
+             ++iterator_2)
+          goto next;
+      } // end FOR
+      --indentation_i;
+    } // end FOR
+  } // end FOR
+
+  ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("%s: \"%s\"\n"),
               ACE_TEXT (StreamName),
               ACE_TEXT (stream_layout_string.c_str ())));

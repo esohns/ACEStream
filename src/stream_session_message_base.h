@@ -21,7 +21,6 @@
 #ifndef STREAM_SESSION_MESSAGE_BASE_H
 #define STREAM_SESSION_MESSAGE_BASE_H
 
-#include <limits>
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -30,6 +29,7 @@
 #include "common_idumpstate.h"
 #include "common_iget.h"
 
+#include "stream_common.h"
 #include "stream_imessage.h"
 
 // forward declarations
@@ -55,7 +55,8 @@ class Stream_SessionMessageBase_T
  : public ACE_Message_Block
  , public Stream_IMessage_T<SessionMessageType>
  , public Common_IGetR_T<SessionDataType>
-// , public Common_IGet_T<UserDataType>
+ , public Common_ISetP_T<SessionDataType>
+ , public Common_IGetR_2_T<UserDataType>
  , public Common_IDumpState
 {
   typedef ACE_Message_Block inherited;
@@ -98,7 +99,7 @@ class Stream_SessionMessageBase_T
 
   // initialization-after-construction
   // *IMPORTANT NOTE*: fire-and-forget API (third argument)
-  //                   --> caller increase()s the argument, if applicable
+  //                   --> caller increase()s the argument iff applicable
   void initialize (Stream_SessionId_t,
                    SessionMessageType,
                    SessionDataType*&, // in/out
@@ -108,9 +109,15 @@ class Stream_SessionMessageBase_T
   inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
   inline virtual SessionMessageType type () const { return type_; }
 
-  // implement Common_IGet_T
+  // implement Common_IGet_T/Common_ISetP_T
   virtual const SessionDataType& getR () const;
-  const UserDataType& data () const;
+  // *NOTE*: re-sets the session data; Notice how this really makes sense only
+  //         after initialize()
+  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
+  // *NOTE*: this will 'merge' any existing session data to the replacement
+  //         using the (overloaded) operator+= first
+  virtual void setP (SessionDataType*); // session data handle
+  inline virtual const UserDataType& getR_2 () const { ACE_ASSERT (userData_); return *userData_; }
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -120,11 +127,14 @@ class Stream_SessionMessageBase_T
                                    std::string&);      // corresp. string
 
  protected:
+  // convenient types
+  typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                                      SessionMessageType,
+                                      SessionDataType,
+                                      UserDataType> OWN_TYPE_T;
+
   // (copy) ctor to be used by duplicate()
-  Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                                                 SessionMessageType,
-                                                                 SessionDataType,
-                                                                 UserDataType>&);
+  Stream_SessionMessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
   Stream_SessionMessageBase_T (Stream_SessionId_t, // session id
@@ -140,12 +150,6 @@ class Stream_SessionMessageBase_T
   UserDataType*      userData_;
 
  private:
-  // convenient types
-  typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                      SessionMessageType,
-                                      SessionDataType,
-                                      UserDataType> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))
 

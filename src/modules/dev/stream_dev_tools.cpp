@@ -2096,10 +2096,16 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
       return AV_PIX_FMT_BGR24;
     case V4L2_PIX_FMT_RGB24:
       return AV_PIX_FMT_RGB24;
+    case V4L2_PIX_FMT_ARGB32:
+    case V4L2_PIX_FMT_XRGB32:
+      return AV_PIX_FMT_ARGB;
+    case V4L2_PIX_FMT_ABGR32:
+    case V4L2_PIX_FMT_XBGR32:
+      return AV_PIX_FMT_ABGR;
     case V4L2_PIX_FMT_BGR32:
-      return AV_PIX_FMT_BGR32;
+      return AV_PIX_FMT_BGRA;
     case V4L2_PIX_FMT_RGB32:
-      return AV_PIX_FMT_RGB32;
+      return AV_PIX_FMT_RGBA;
     case V4L2_PIX_FMT_GREY:
       return AV_PIX_FMT_GRAY8;
 //    case V4L2_PIX_FMT_Y4:
@@ -2242,8 +2248,8 @@ Stream_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown v4l2 pixel format (was: %d), aborting\n"),
-                  format_in));
+                  ACE_TEXT ("invalid/unknown v4l2 pixel format (was: \"%s\" [%d]), aborting\n"),
+                  ACE_TEXT (Stream_Device_Tools::formatToString (format_in).c_str ()), format_in));
       break;
     }
   } // end SWITCH

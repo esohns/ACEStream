@@ -44,16 +44,118 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* stream_in)
- : inherited (stream_in)
+ : inherited (stream_in,
+              // *TODO*: this looks dodgy, but seems to work nonetheless...
+              &queue_)   // queue handle
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
   // *TODO*: pass this in from outside
   inherited::threadCount_ = 1;
 
-  // set group ID for worker thread(s)
+  // set group id for worker thread(s)
   // *TODO*: pass this in from outside
   inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
+}
+
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionControlType,
+                        SessionEventType,
+                        UserDataType>::~Stream_TaskBaseAsynch_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
+
+  int result = -1;
+
+  //   // *TODO*: check whether this sequence works
+  //   queue_.deactivate ();
+  //   queue_.wait ();
+
+  // *NOTE*: deactivate the queue so it does not accept new data
+  result = queue_.deactivate ();
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+
+  result = queue_.flush ();
+  if (unlikely (result == -1))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
+  else if (result)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: flushed %d message(s)\n"),
+                inherited::mod_->name (),
+                result));
+  } // end ELSE IF
+  inherited::msg_queue (NULL);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+bool
+Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionControlType,
+                        SessionEventType,
+                        UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                   Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::initialize"));
+
+  int result = -1;
+
+  if (unlikely (inherited::isInitialized_))
+  {
+    queue_.flush ();
+  } // end IF
+
+  if (unlikely (queue_.deactivated ()))
+  {
+    result = queue_.activate ();
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      return false;
+    } // end IF
+  } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -92,7 +194,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   //         will have been deactivated in the process, and getq() (see svc()
   //         below) will fail (ESHUTDOWN)
   //         --> (re-)activate() the queue
-  result = inherited::queue_.activate ();
+  result = queue_.activate ();
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -111,11 +213,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   //for (unsigned int i = 0;
-  //     i < inherited::threadIDs_.size ();
+  //     i < inherited::threadIds_.size ();
   //     ++i)
   //  string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
   //                << ACE_TEXT_ALWAYS_CHAR (" ")
-  //                << inherited::threadIDs_[i].thread_id ()
+  //                << inherited::threadIds_[i].thread_id ()
   //                << ACE_TEXT_ALWAYS_CHAR ("\n");
   //if (inherited::mod_)
   //  ACE_DEBUG ((LM_DEBUG,
@@ -134,7 +236,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   goto done;
 
 error:
-  result = inherited::queue_.deactivate ();
+  result = queue_.deactivate ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n"),

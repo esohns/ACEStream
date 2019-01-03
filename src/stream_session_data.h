@@ -56,6 +56,8 @@ class Stream_SessionDataMediaBase_T
                                         UserDataType> OWN_TYPE_T;
 
   Stream_SessionDataMediaBase_T ();
+  // *NOTE*: the idea is to 'copy' the data
+  Stream_SessionDataMediaBase_T (const OWN_TYPE_T&);
   inline virtual ~Stream_SessionDataMediaBase_T () {}
 
   // *NOTE*: the idea is to 'merge' the data
@@ -73,7 +75,6 @@ class Stream_SessionDataMediaBase_T
   UserDataType*                   userData;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataMediaBase_T (const Stream_SessionDataMediaBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataMediaBase_T& operator= (const Stream_SessionDataMediaBase_T&))
 };
 
@@ -83,6 +84,7 @@ template <typename DataType> // inherits Stream_SessionData
 class Stream_SessionData_T
  : public Common_ReferenceCounterBase
  , public Common_IGetSetR_T<DataType>
+// , public Common_ISetP_T<DataType>
  , public Common_IDumpState
 {
   typedef Common_ReferenceCounterBase inherited;
@@ -91,8 +93,7 @@ class Stream_SessionData_T
   // convenient types
   typedef DataType DATA_T;
 
-  Stream_SessionData_T ();
-  // *IMPORTANT NOTE*: fire-and-forget API
+  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   Stream_SessionData_T (DataType*&); // session data handle
   virtual ~Stream_SessionData_T ();
 
@@ -105,6 +106,12 @@ class Stream_SessionData_T
   // *NOTE*: merge-sets the session data (operator+=)
   virtual void setR (const DataType&);
 
+  // implement Common_ISetP_T
+  // *NOTE*: re-sets the session data
+  // *WARNING*: 'delete's data_; handle with care
+  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
+//  virtual void setP (DataType*); // session data handle
+
   // implement Common_IDumpState
   virtual void dump_state () const;
 
@@ -112,6 +119,7 @@ class Stream_SessionData_T
   DataType* data_;
 
  private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
 };

@@ -57,10 +57,10 @@ Stream_Layout_T<ACE_SYNCH_USE,
   int result = -1;
   MODULE_T* module_p = NULL;
   Stream_ModuleList_t main_branch_a;
-  typename inherited::fixed_depth_iterator iterator;
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&stream_in);
+  std::vector<typename inherited::tree_node*> distributors_a;
 
   // sanity check(s)
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&stream_in);
   ACE_ASSERT (istream_p);
 
   // step1: reset stream
@@ -85,16 +85,20 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // step2: set up 'main' branch
   // *IMPORTANT NOTE*: ACE_Stream modules must be push()ed back-to-front
   //                   --> extract 'main' branch first
-  for (iterator = inherited::begin_fixed (inherited::begin (), 0);
+  for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
 //       iterator != inherited::end_fixed (inherited::begin (), 0);
        inherited::is_valid (iterator);
        ++iterator)
+  {
     main_branch_a.push_back (*iterator);
-  for (Stream_ModuleListReverseIterator_t iterator_2 = main_branch_a.rbegin ();
-       iterator_2 != main_branch_a.rend ();
-       ++iterator_2)
-  { ACE_ASSERT (*iterator_2);
-    result = stream_in.push (*iterator_2);
+    if (unlikely (is_distributor (*iterator)))
+      distributors_a.push_back (iterator.node);
+  } // end FOR
+  for (Stream_ModuleListReverseIterator_t iterator = main_branch_a.rbegin ();
+       iterator != main_branch_a.rend ();
+       ++iterator)
+  { ACE_ASSERT (*iterator);
+    result = stream_in.push (*iterator);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -107,20 +111,13 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // step3: set up any sub-branches
   module_p = stream_in.tail ();
   ACE_ASSERT (module_p);
-  for (Stream_ModuleListIterator_t iterator_2 = main_branch_a.begin ();
-       iterator_2 != main_branch_a.end ();
-       ++iterator_2)
-    if (unlikely (is_distributor (*(iterator.node))))
-      if (unlikely (!setup (*(iterator.node),
-                            istream_p,
-                            module_p)))
-        goto error;
-
-  // step4: 'terminate' all leaf nodes
-  for (typename inherited::leaf_iterator iterator = inherited::begin_leaf ();
-       iterator != inherited::end_leaf ();
+  for (typename std::vector<typename inherited::tree_node*>::const_iterator iterator = distributors_a.begin ();
+       iterator != distributors_a.end ();
        ++iterator)
-    (*iterator)->link (module_p);
+    if (unlikely (!setup (*(*iterator),
+                          istream_p,
+                          module_p)))
+      goto error;
 
   return true;
 
@@ -423,35 +420,19 @@ Stream_Layout_T<ACE_SYNCH_USE,
     return (inherited::is_valid (iterator));
   } // end IF
 
-  Stream_IDistributorModule* idistributor_p = NULL;
   unsigned int index_i = 0;
-  MODULE_T* module_p = NULL;
-  bool found_b = false;
   for (typename inherited::iterator iterator = inherited::begin ();
        iterator != inherited::end ();
        ++iterator)
   {
-    if (likely (!is_distributor (*(iterator.node)) ||
+    if (likely (!is_distributor (*iterator)) ||
                 !has_branch (*(iterator.node),
-                             branchName_in)))
+                             branchName_in,
+                             index_i))
       continue;
-    idistributor_p = dynamic_cast<Stream_IDistributorModule*> (*iterator);
-    ACE_ASSERT (idistributor_p);
-    module_p = idistributor_p->head (branchName_in);
-    ACE_ASSERT (module_p);
-    for (typename inherited::sibling_iterator iterator_2 = iterator.begin ();
-         iterator_2 != iterator.end ();
-         ++iterator_2)
-      if (*iterator_2 == module_p)
-      {
-        index_i = inherited::index (iterator_2);
-        found_b = true;
-        break;
-      } // end IF
-    if (likely (found_b))
-      return append (module_in,
-                     *iterator,
-                     index_i);
+    return append (module_in,
+                   *iterator,
+                   index_i);
   } // end FOR
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("branch (was: \"%s\") not found, aborting\n"),
@@ -505,7 +486,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   if (unlikely (mainBranchOnly_in))
   {
     for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
-         iterator != inherited::end_fixed (inherited::begin (), 0);
+         inherited::is_valid (iterator);
+//         iterator != inherited::end_fixed (inherited::begin (), 0);
          ++iterator)
       return_value.push_back (*iterator);
     return return_value;
@@ -569,7 +551,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   typename inherited::iterator_base base_iterator (&node_in);
-  ACE_ASSERT (is_distributor (node_in));
+  ACE_ASSERT (is_distributor (node_in.data));
   ACE_ASSERT (istream_in);
   ACE_ASSERT (tail_in);
   Stream_IDistributorModule* idistributor_p =
@@ -594,7 +576,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
       prev_p->link (*iterator_2);
       prev_p = *iterator_2;
 
-      if (unlikely (is_distributor (*(iterator_2.node))))
+      if (unlikely (is_distributor (*iterator_2)))
         sub_distributors_a.push_back (iterator_2);
     } // end FOR
     ACE_ASSERT (prev_p);
@@ -675,17 +657,22 @@ bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
                 DistributorModuleType>::has_branch (typename inherited::tree_node& node_in,
-                                                    const std::string& branchName_in) const
+                                                    const std::string& branchName_in,
+                                                    unsigned int& index_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::has_branch"));
 
+  // initialize return value(s)
+  index_out = 0;
+
   // sanity check(s)
-  if (unlikely (!is_distributor (node_in)))
+  if (unlikely (!is_distributor (node_in.data)))
     return false;
 
   Stream_IDistributorModule* idistributor_p = NULL;
   idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
   ACE_ASSERT (idistributor_p);
-  return idistributor_p->has (branchName_in);
+  return idistributor_p->has (branchName_in,
+                              index_out);
 }

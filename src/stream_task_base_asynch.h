@@ -24,6 +24,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
+
+#include "stream_messagequeue.h"
 #include "stream_task_base.h"
 
 // forward declarations
@@ -50,6 +53,7 @@ class Stream_TaskBaseAsynch_T
 // *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -61,6 +65,7 @@ class Stream_TaskBaseAsynch_T
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -71,9 +76,9 @@ class Stream_TaskBaseAsynch_T
                             UserDataType> inherited;
 
  public:
-  inline virtual ~Stream_TaskBaseAsynch_T () {}
+  virtual ~Stream_TaskBaseAsynch_T ();
 
-  // override some ACE_Task_Base members
+  // override (part of) ACE_Task_Base
   virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
@@ -81,19 +86,25 @@ class Stream_TaskBaseAsynch_T
   virtual int put (ACE_Message_Block*,
                    ACE_Time_Value* = NULL);
 
-  virtual int svc (void);
+  // override (part of) Common_ITask_T
+  inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
 
-  // implement (part of) Common_ITask_T
-  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); }
-
-  // implement (part of) Stream_ITaskBase
+  // override (part of) Stream_ITaskBase
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
  protected:
   // convenient types
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -105,10 +116,15 @@ class Stream_TaskBaseAsynch_T
 
   Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* = NULL); // stream handle
 
+  MESSAGE_QUEUE_T queue_;
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
+
+  // override (part of) ACE_Task_Base
+  virtual int svc (void);
 };
 
 // include template definition

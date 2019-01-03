@@ -28,6 +28,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
+#include "common_ilock.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
@@ -35,7 +36,7 @@
 #include "stream_ilock.h"
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
-//#include "stream_session_message_base.h"
+#include "stream_messagequeue.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
 
@@ -66,6 +67,7 @@ template <ACE_SYNCH_DECL, // state machine-/task
 class Stream_HeadModuleTaskBase_T
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -86,6 +88,7 @@ class Stream_HeadModuleTaskBase_T
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -123,7 +126,7 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // N/A
   virtual bool isRunning () const;
   inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); }
-  inline virtual void idle () const { inherited::queue_.waitForIdleState (); }
+  inline virtual void idle () const { queue_.waitForIdleState (); }
   virtual void wait (bool = true,         // wait for any worker thread(s) ?
                      bool = false,        // N/A
                      bool = false) const; // N/A
@@ -167,8 +170,12 @@ class Stream_HeadModuleTaskBase_T
   typedef ACE_Singleton<TimerManagerType,
                         ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
   typedef Common_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_IRecursiveLock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -230,6 +237,8 @@ class Stream_HeadModuleTaskBase_T
   //         --> disable only if absolutely necessary
   bool                              hasReentrantSynchronousSubDownstream_;
 
+  MESSAGE_QUEUE_T                   queue_;
+
   bool                              sessionEndProcessed_;
   bool                              sessionEndSent_;
   ACE_SYNCH_MUTEX_T                 stateMachineLock_;
@@ -265,7 +274,7 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
   // implement (part of) Stream_ITask_T
-  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); }
+  inline virtual void waitForIdleState () const { queue_.waitForIdleState (); }
 
   // implement Stream_ILinkCB
   virtual void onLink ();

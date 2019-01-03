@@ -350,35 +350,36 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   OWN_TYPE_T* message_p = NULL;
 
-  // create a new Stream_MessageBase that contains unique copies of
-  // the message block fields, but a (reference counted) shallow duplicate of
-  // the ACE_Data_Block
+  // create a new <Stream_MessageBase_T> that contains unique copies of
+  // the message block fields, but a 'shallow' duplicate of the <ACE_Data_Block>
 
-  // if there is no allocator, use the standard new and delete calls
-  if (inherited::message_block_allocator_ == NULL)
-    ACE_NEW_NORETURN (message_p,
-                      OWN_TYPE_T (*this));
-  else // otherwise, use the existing message_block_allocator
+  // if there is no message allocator, use the standard new and delete calls
+retry:
+  if (likely (inherited::message_block_allocator_))
   {
     // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
     //         a "shallow" copy which just references the same data block
+    // *NOTE*: 'placement new' invokes the copy ctor on the allocated memory
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
-  } // end ELSE
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (*this));
   if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    if (allocator_p && !allocator_p->block ())
+      goto retry;
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
-    // increment the reference counts of any continuation messages
+  // increment the reference counts of any continuation messages
   if (inherited::cont_)
   {
     message_p->cont_ = inherited::cont_->duplicate ();

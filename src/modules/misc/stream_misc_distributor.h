@@ -30,6 +30,8 @@
 #include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
+
 #include "stream_common.h"
 #include "stream_ilink.h"
 #include "stream_task_base_asynch.h"
@@ -62,6 +64,8 @@ class Stream_Miscellaneous_Distributor_T
                                   struct Stream_UserData>
  , public Stream_IDistributorModule
  , public Stream_IModuleLinkCB
+ , public Common_IGetP_2_T<ACE_Module<ACE_SYNCH_USE,
+                                      TimePolicyType>*>
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -85,29 +89,23 @@ class Stream_Miscellaneous_Distributor_T
 
   // override some ACE_Task_Base members
   inline virtual int open (void* = NULL) { return 0; }
-  virtual int put (ACE_Message_Block*,      // data chunk
-                   ACE_Time_Value* = NULL); // timeout value
 
   // override (part of) Common_ITask_T
   inline virtual void waitForIdleState () const { OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this); this_p->idle (); }
 
-//  // override (part of) Stream_IModuleHandler_T
-//  virtual bool initialize (const ConfigurationType&,   // configuration handle
-//                           Stream_IAllocator* = NULL); // allocator handle
-
-//  // implement (part of) Stream_ITaskBase_T
-//  virtual void handleDataMessage (DataMessageType*&, // message handle
-//                                  bool&);            // return value: pass message downstream ?
-//  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-//                                     bool&);               // return value: pass message downstream ?
+  // implement (part of) Stream_ITaskBase_T
+  inline virtual void handleDataMessage (DataMessageType*& message_inout, bool& passMessageDownstream_out) { /*passMessageDownstream_out = true;*/ forward (message_inout, false); }
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
   // implement Stream_IDistributorModule
   virtual bool initialize (const Stream_Branches_t&);
-  virtual bool push (Stream_Module_t*); // branch head module
+  virtual bool push (Stream_Module_t*);
   virtual bool pop (Stream_Module_t*);
   virtual Stream_Module_t* head (const std::string&) const;
   virtual std::string branch (Stream_Module_t*) const;
-  inline virtual bool has (const std::string& branchName_in) const { return ((std::find (branches_.begin (), branches_.end (), branchName_in) != branches_.end ()) || (heads_.find (branchName_in) != heads_.end ())); }
+  virtual bool has (const std::string&,
+                    unsigned int&) const;
   virtual Stream_ModuleList_t next ();
 
  protected:
@@ -135,10 +133,10 @@ class Stream_Miscellaneous_Distributor_T
 
   // *NOTE*: use Common_TaskBase_Ts' lock_
 //  mutable ACE_SYNCH_MUTEX_T lock_;
-  Stream_Branches_t     branches_;
-  THREAD_TO_QUEUE_MAP_T queues_;
-  QUEUE_TO_MODULE_MAP_T modules_;
-  BRANCH_TO_HEAD_MAP_T  heads_;
+  Stream_Branches_t         branches_;
+  BRANCH_TO_HEAD_MAP_T      heads_;
+  QUEUE_TO_MODULE_MAP_T     modules_;
+  THREAD_TO_QUEUE_MAP_T     queues_;
 
  private:
   // convenient types
@@ -149,10 +147,18 @@ class Stream_Miscellaneous_Distributor_T
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType> OWN_TYPE_T;
+  typedef std::map<MODULE_T*,
+                   SessionDataType*> HEAD_TO_SESSIONDATA_MAP_T;
+  typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T (const Stream_Miscellaneous_Distributor_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T& operator= (const Stream_Miscellaneous_Distributor_T&))
+
+  // helper methods
+  virtual const MODULE_T* const getP_2 () const; // return value: head module handle
+  void forward (ACE_Message_Block*, // message handle
+                bool = false);      // dispose of original message ?
 
   // override ACE_Task_Base members
   virtual int svc (void);
@@ -166,6 +172,8 @@ class Stream_Miscellaneous_Distributor_T
   // implement Stream_IModuleLinkCB
   virtual void onLink (ACE_Module_Base*);
   virtual void onUnlink (ACE_Module_Base*);
+
+  HEAD_TO_SESSIONDATA_MAP_T data_; // branch session-
 };
 
 // include template definition

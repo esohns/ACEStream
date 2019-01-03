@@ -44,6 +44,7 @@ class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType, // implements Common_ILock_T/Common_IRecursiveLock_T
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -59,7 +60,7 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE> >
+                            LockType>
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
@@ -72,13 +73,13 @@ class Stream_TaskBase_T
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE> > inherited;
+                            LockType> inherited;
 
  public:
   // convenient types
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE> > TASK_BASE_T;
+                            LockType> TASK_BASE_T;
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
 
@@ -112,13 +113,14 @@ class Stream_TaskBase_T
                      TimePolicyType> STREAM_T;
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE> > COMMON_TASK_BASE_T;
+                            LockType> COMMON_TASK_BASE_T;
   typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> MESSAGE_QUEUE_T;
 
-  Stream_TaskBase_T (ISTREAM_T* = NULL); // stream handle
+  Stream_TaskBase_T (ISTREAM_T* = NULL,        // stream handle
+                     MESSAGE_QUEUE_T* = NULL); // queue handle
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
@@ -151,17 +153,13 @@ class Stream_TaskBase_T
   bool                                 isInitialized_;
   unsigned int                         linked_;
 
-  // *TODO*: synchronous tasks don't need this
-  //         --> move to stream_task_base_asynch
-  MESSAGE_QUEUE_T                      queue_;
-
   typename SessionMessageType::DATA_T* sessionData_;
-  ACE_SYNCH_MUTEX*                     sessionDataLock_;
 
  private:
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -183,6 +181,9 @@ class Stream_TaskBase_T
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;
+  // *NOTE*: these apply to 'downstream', iff linked, only
+  typename SessionMessageType::DATA_T* sessionData_2; // backup 'downstream' session data
+  ACE_SYNCH_MUTEX*                     sessionDataLock_; // backup 'upstream' lock
 };
 
 // include template definition

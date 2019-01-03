@@ -44,7 +44,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::Stream_DataBlockAllocatorHeap_T"));
 
   // *NOTE*: NULL --> use heap (== default allocator !)
-  if (!heapAllocator_)
+  if (unlikely (!heapAllocator_))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("using default (== heap) message buffer allocation strategy\n")));
 }
@@ -126,7 +126,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                             : bytes_in)
                           : 0)));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
@@ -135,18 +135,15 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                           : 0)));
     return NULL;
   } // end IF
-  if (bytes_in)
+  if (likely (bytes_in))
   {
     result = data_block_p->size (bytes_in);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Data_Block::size(%u): \"%m\", aborting\n"),
                   bytes_in));
-
-      // clean up
-      data_block_p->release ();
-
+      data_block_p->release (); data_block_p = NULL;
       return NULL;
     } // end IF
   } // end IF
@@ -187,7 +184,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::cache_depth"));
 
-  if (heapAllocator_)
+  if (likely (heapAllocator_))
     return heapAllocator_->cache_size (); // *TODO*: this doesn't look quite right
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -205,7 +202,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
-  ACE_DEBUG ((LM_DEBUG,
+  ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("# data fragments in flight: %u\n"),
               poolSize_.value ()));
 }

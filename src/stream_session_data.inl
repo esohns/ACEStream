@@ -55,6 +55,29 @@ Stream_SessionDataMediaBase_T<BaseType,
                               MediaFormatType,
                               StreamStateType,
                               StatisticType,
+                              UserDataType>::Stream_SessionDataMediaBase_T (const OWN_TYPE_T& data_in)
+ : inherited (data_in)
+ , formats (data_in.formats)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , mediaFramework (data_in.mediaFramework)
+#endif // ACE_WIN32 || ACE_WIN64
+ , state (data_in.state)
+ , statistic (data_in.statistic)
+ , userData (data_in.userData)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::Stream_SessionDataMediaBase_T"));
+
+}
+
+template <typename BaseType,
+          typename MediaFormatType,
+          typename StreamStateType,
+          typename StatisticType,
+          typename UserDataType>
+Stream_SessionDataMediaBase_T<BaseType,
+                              MediaFormatType,
+                              StreamStateType,
+                              StatisticType,
                               UserDataType>&
 Stream_SessionDataMediaBase_T<BaseType,
                               MediaFormatType,
@@ -83,15 +106,15 @@ Stream_SessionDataMediaBase_T<BaseType,
 
 //////////////////////////////////////////
 
-template <typename DataType>
-Stream_SessionData_T<DataType>::Stream_SessionData_T ()
- : inherited (1,    // initial count
-              true) // delete 'this' on zero ?
- , data_ (NULL)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
+//template <typename DataType>
+//Stream_SessionData_T<DataType>::Stream_SessionData_T ()
+// : inherited (1,    // initial count
+//              true) // delete 'this' on zero ?
+// , data_ (NULL)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
 
-}
+//}
 template <typename DataType>
 Stream_SessionData_T<DataType>::Stream_SessionData_T (DataType*& data_inout)
  : inherited (1,    // initial count
@@ -118,7 +141,7 @@ Stream_SessionData_T<DataType>::getR () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::getR"));
 
-  if (data_)
+  if (likely (data_))
     return *data_;
 
   ACE_ASSERT (false);
@@ -137,18 +160,27 @@ Stream_SessionData_T<DataType>::setR (const DataType& data_in)
 
   *data_ += data_in;
 }
+
 //template <typename DataType>
 //void
-//Stream_SessionData_T<DataType>::set (DataType*& data_inout)
+//Stream_SessionData_T<DataType>::setP (DataType* data_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
-//
+
+//  // sanity check(s)
+//  ACE_ASSERT (data_in);
+
 //  // clean up
-//  if (data_)
+//#if defined (_DEBUG)
+//  if (unlikely (data_ && (inherited::refcount_ != 1)))
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("resetting session (id: %d) data on-the-fly\n"),
+//                data_->sessionId));
+//#endif // _DEBUG
+//  if (likely (data_))
 //    delete data_;
-//
-//  data_ = data_inout;
-//  data_inout = NULL;
+
+//  data_ = data_in;
 //}
 
 template <typename DataType>
@@ -161,7 +193,7 @@ Stream_SessionData_T<DataType>::dump_state () const
   ACE_ASSERT (data_);
 
   // *TODO*: remove type inferences
-  ACE_DEBUG ((LM_DEBUG,
+  ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),
               data_->userData,
               ACE_TEXT (Stream_Tools::timeStampToLocalString (data_->startOfSession).c_str ()),

@@ -2603,29 +2603,55 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   ACE_ASSERT (!ui_cb_data_p->pixelBuffer);
+
+#if GTK_CHECK_VERSION(3,0,0)
+  GdkPixbuf* pixbuf_p =
+      gdk_pixbuf_get_from_window (window_p,
+                                  0, 0,
+                                  allocation.width, allocation.height);
+  if (!pixbuf_p)
+  { // *NOTE*: most probable reason: window is not mapped
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+#endif // GTK_CHECK_VERSION
   ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION(3,0,0)
+      gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
+                                            0,
+                                            window_p);
+#elif GTK_CHECK_VERSION(2,0,0)
       gdk_pixbuf_get_from_window (window_p,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
-    gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (window_p),
-                                  NULL,
-                                  0, 0,
-                                  0, 0, allocation.width, allocation.height);
-#endif
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (window_p),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
+#endif // GTK_CHECK_VERSION
   if (!ui_cb_data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
 #if GTK_CHECK_VERSION(3,0,0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_surface_create_from_pixbuf(), aborting\n")));
+#elif GTK_CHECK_VERSION(2,0,0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
-#endif
+#endif // GTK_CHECK_VERSION
+#if GTK_CHECK_VERSION(3,0,0)
+  g_object_unref (pixbuf_p); pixbuf_p = NULL;
+#endif // GTK_CHECK_VERSION
     return G_SOURCE_REMOVE;
   } // end IF
+#if GTK_CHECK_VERSION(3,0,0)
+  g_object_unref (pixbuf_p); pixbuf_p = NULL;
+#endif // GTK_CHECK_VERSION
 
   ACE_ASSERT (!(*iterator_2).second.second.window);
   ACE_ASSERT (!(*iterator_3).second.second.window);
@@ -2638,8 +2664,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       static_cast<__u32> (allocation.height);
   (*iterator_3).second.second.area.width =
       static_cast<__u32> (allocation.width);
+  (*iterator_2).second.second.area =
+      (*iterator_3).second.second.area;
   (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -5357,15 +5385,18 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     return TRUE; // --> widget has not been realized yet
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock, FALSE);
-    gdk_cairo_set_source_pixbuf (context_in,
-                                 ui_cb_data_p->pixelBuffer,
-                                 0.0, 0.0);
+//    gdk_cairo_set_source_pixbuf (context_in,
+//                                 ui_cb_data_p->pixelBuffer,
+//                                 0.0, 0.0);
+    cairo_set_source_surface (context_in,
+                              ui_cb_data_p->pixelBuffer,
+                              0.0, 0.0);
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  // *NOTE*: media foundation capture frames are v-flipped
 //  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
 //#endif
-    cairo_paint (context_in);
+    cairo_fill (context_in);
   } // end lock scope
 #endif
 
@@ -5449,10 +5480,10 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
   // sanity check(s)
-  if (!window_p)
-    return; // window is not (yet) realized, nothing to do
-  if (!gdk_window_is_viewable (window_p))
-    return; // window is not (yet) mapped, nothing to do
+//  if (!window_p)
+//    return; // window is not (yet) realized, nothing to do
+//  if (!gdk_window_is_viewable (window_p))
+//    return; // window is not (yet) mapped, nothing to do
 
   // sanity check(s)
   ACE_ASSERT (allocation_in);
@@ -5510,9 +5541,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   //GtkToggleAction* toggle_action_p =
@@ -5617,12 +5651,15 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   } // end SWITCH
 #else
   // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p->pixelBuffer == (*iterator_2).second.second.pixelBuffer);
-  ACE_ASSERT (ui_cb_data_p->pixelBufferLock == (*iterator_2).second.second.pixelBufferLock);
+  ACE_ASSERT (ui_cb_data_p->pixelBuffer);
+  ACE_ASSERT (ui_cb_data_p->pixelBuffer == (*iterator_3).second.second.pixelBuffer);
   ACE_ASSERT (ui_cb_data_p->pixelBufferLock);
+  ACE_ASSERT (ui_cb_data_p->pixelBufferLock == (*iterator_3).second.second.pixelBufferLock);
 
   (*iterator_2).second.second.area.height = allocation_in->height;
   (*iterator_2).second.second.area.width = allocation_in->width;
+  (*iterator_3).second.second.area.height = allocation_in->height;
+  (*iterator_3).second.second.area.width = allocation_in->width;
 
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -5637,13 +5674,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gdk_pixbuf_new(), returning\n")));
     return;
   } // end IF
-#endif
-
-//  // *WORKAROUND*: gdk_pixbuf_get_from_window asserts in some cases
-//  cairo_surface_t* surface_p =
-//      GDK_WINDOW_IMPL_GET_CLASS (window_p->impl)->ref_cairo_surface (gdk_window_get_impl_window (window_p));
-//  ACE_ASSERT (surface_p);
-//  cairo_surface_flush (surface_p);
+#endif // GTK_CHECK_VERSION
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock);
     if (ui_cb_data_p->pixelBuffer)
@@ -5668,10 +5699,29 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 //      }
 //    } // end SWITCH
 //#else
-    (*iterator_2).second.second.pixelBuffer = NULL;
+    (*iterator_3).second.second.pixelBuffer = NULL;
 //#endif
+
+#if GTK_CHECK_VERSION (3,0,0)
+    GdkPixbuf* pixbuf_p =
+        gdk_pixbuf_get_from_window (window_p,
+                                    0, 0,
+                                    allocation_in->width, allocation_in->height);
+    if (!pixbuf_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
+                  window_p));
+      return;
+    } // end IF
+#endif // GTK_CHECK_VERSION
+
     ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
+        gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
+                                              0,
+                                              window_p);
+#elif GTK_CHECK_VERSION (2,0,0)
       gdk_pixbuf_get_from_window (window_p,
                                   0, 0,
                                   allocation_in->width, allocation_in->height);
@@ -5681,10 +5731,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
                                     NULL,
                                     0, 0,
                                     0, 0, allocation_in->width, allocation_in->height);
-#endif
+#endif // GTK_CHECK_VERSION
     if (!ui_cb_data_p->pixelBuffer)
     {
 #if GTK_CHECK_VERSION (3,0,0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gdk_cairo_surface_create_from_pixbuf(%@), returning\n"),
+                  window_p));
+#elif GTK_CHECK_VERSION (2,0,0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
                   window_p));
@@ -5693,9 +5747,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
                   ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), returning\n"),
                   GDK_DRAWABLE (window_p)));
       gdk_pixbuf_unref (pixbuf_p); pixbuf_p = NULL;
-#endif
+#endif // GTK_CHECK_VERSION
       return;
     } // end IF
+#if GTK_CHECK_VERSION(3,0,0)
+  g_object_unref (pixbuf_p); pixbuf_p = NULL;
+#endif // GTK_CHECK_VERSION
 
     //    GHashTable* hash_table_p = gdk_pixbuf_get_options (cb_data_p->pixelBuffer);
     //    GHashTableIter iterator;
@@ -5711,10 +5768,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     //                  static_cast<gchar*> (value)));
 
     // sanity check(s)
+#if GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (cairo_surface_status (ui_cb_data_p->pixelBuffer) == CAIRO_STATUS_SUCCESS);
+  ACE_ASSERT (cairo_surface_get_type (ui_cb_data_p->pixelBuffer) == CAIRO_SURFACE_TYPE_IMAGE);
+  ACE_ASSERT (cairo_image_surface_get_format (ui_cb_data_p->pixelBuffer) == CAIRO_FORMAT_ARGB32);
+#elif GTK_CHECK_VERSION (2,0,0)
     ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (ui_cb_data_p->pixelBuffer) == 8);
     ACE_ASSERT (gdk_pixbuf_get_colorspace (ui_cb_data_p->pixelBuffer) == GDK_COLORSPACE_RGB);
-//    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_base_p->pixelBuffer) == 3);
-
+    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_base_p->pixelBuffer) == 4);
 //    if (!gdk_pixbuf_get_has_alpha (data_p->pixelBuffer))
 //    { ACE_ASSERT (gdk_pixbuf_get_n_channels (data_p->pixelBuffer) == 3);
 //      GdkPixbuf* pixbuf_p =
@@ -5726,7 +5787,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 //    } // end IF
 //    // sanity check(s)
 //    ACE_ASSERT (gdk_pixbuf_get_has_alpha (data_p->pixelBuffer));
-    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_p->pixelBuffer) == 4);
+#endif // GTK_CHECK_VERSION
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    switch (ui_cb_data_base_p->mediaFramework)
@@ -5748,10 +5809,10 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 //      }
 //    } // end SWITCH
 //#else
-    (*iterator_2).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
+    (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
 //#endif
   } // end lock scope
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 } // drawingarea_size_allocate_cb
 
 void

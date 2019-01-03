@@ -24,6 +24,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
+
 #include "stream_task_base.h"
 
 // forward declaration(s)
@@ -48,6 +50,7 @@ class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -59,6 +62,7 @@ class Stream_TaskBaseSynch_T
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -87,6 +91,7 @@ class Stream_TaskBaseSynch_T
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE>,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,

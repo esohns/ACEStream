@@ -111,8 +111,6 @@ class Stream_Module_CamSource_V4L_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
-  //virtual void handleDataMessage (MessageType*&, // data message handle
-  //                                bool&);        // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

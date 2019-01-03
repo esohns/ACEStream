@@ -103,12 +103,10 @@ Stream_CamSave_SessionMessage_T<DataMessageType,
                          NULL);
 
   // increment the reference counts of all the continuation messages
-  if (inherited::cont_)
+  if (unlikely (inherited::cont_))
   {
     message_p->cont_ = inherited::cont_->duplicate ();
-
-    // when things go wrong, release all resources and return
-    if (message_p->cont_ == 0)
+    if (unlikely (!message_p->cont_))
     {
       message_p->release (); message_p = NULL;
     } // end IF

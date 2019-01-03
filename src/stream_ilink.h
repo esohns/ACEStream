@@ -39,7 +39,11 @@ class Stream_IDistributorModule
   virtual Stream_Module_t* head (const std::string&) const = 0; // branch name
   virtual std::string branch (Stream_Module_t*) const = 0; // 'head' module handle
 
-  virtual bool has (const std::string&) const = 0; // branch name
+  // *NOTE*: the return index value is correct as long as:
+  //         - the module has been initialize()d
+  //         - the corresponding head module has not been push()ed yet
+  virtual bool has (const std::string&,       // branch name
+                    unsigned int&) const = 0; // return value: index (iff any; see above)
   virtual Stream_ModuleList_t next () = 0; // return value: branch 'head's
 };
 

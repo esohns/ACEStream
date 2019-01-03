@@ -73,6 +73,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  , concurrency_ (concurrency_in)
  , finishOnDisconnect_ (false)
  , hasReentrantSynchronousSubDownstream_ (true)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
+           NULL)                   // notification handle
  , sessionEndProcessed_ (false)
  , sessionEndSent_ (false)
  , stateMachineLock_ (NULL, // name
@@ -307,7 +309,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         the queue will have been deactivate()d in the process, and getq()
   //         (see svc()) would fail (ESHUTDOWN)
   //         --> (re-)activate() the queue
-  result = inherited::queue_.activate ();
+  result = queue_.activate ();
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -713,8 +715,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //         to 'flush'
         if (unlikely (sessionEndProcessed_ && result))
         {
-          result_2 =
-            inherited::queue_.flush (true); // flush session messages ?
+          result_2 = queue_.flush (true); // flush session messages ?
           if (result_2 == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_IMessageQueue::flush(true): \"%m\", aborting\n"),
@@ -868,7 +869,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         if (unlikely (sessionEndProcessed_))
           break; // done
         sessionEndProcessed_ = true;
@@ -1463,12 +1464,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (forwardUpstream_in);
 
   int result = -1;
-  ACE_SYNCH_MUTEX_T& lock_r = inherited::queue_.lock ();
+  ACE_SYNCH_MUTEX_T& lock_r = queue_.lock ();
 
   result = (block_in ? lock_r.acquire () : lock_r.tryacquire ());
   if (unlikely (result == -1))
-  {
-    int error = ACE_OS::last_error ();
+  { int error = ACE_OS::last_error ();
     if (error == EBUSY)
       return false;
   } // end IF
@@ -1511,7 +1511,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (forwardUpstream_in);
 
   int result = -1;
-  ACE_SYNCH_MUTEX_T& lock_r = inherited::queue_.lock ();
+  ACE_SYNCH_MUTEX_T& lock_r = queue_.lock ();
   ACE_thread_mutex_t& mutex_r = lock_r.lock ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1593,7 +1593,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-  ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited::lock_);
+  ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T> reverse_lock (inherited::lock_);
 
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
@@ -1630,7 +1630,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+  ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
 
   // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
   //         thread to join
@@ -1645,7 +1645,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
     {
-      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+      { ACE_GUARD (ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T>, aGuard_2, reverse_lock);
         inherited::wait ();
       } // end lock scope
       break;
@@ -1678,7 +1678,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #else
       if (likely (static_cast<int> (thread_id) != -1))
       {
-        { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
         this_p->inherited::threads_[0].id (-1);
@@ -1840,7 +1840,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (newState_in)
   {
     case STREAM_STATE_INITIALIZED:
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+    { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
       sessionEndSent_ = false;
       sessionEndProcessed_ = false;
 
@@ -1886,7 +1886,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               // task object not active --> resume the borrowed thread
 
               ACE_hthread_t handle;
-              { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+              { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
                 handle = inherited::threads_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
@@ -2072,7 +2072,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           std::ostringstream string_stream;
           ACE_Thread_ID thread_id;
-          { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+          { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
             for (unsigned int i = 0;
                  i < inherited::threadCount_;
                  ++i)
@@ -2111,7 +2111,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited2::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
+          { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
             // sanity check(s)
             ACE_ASSERT (inherited::threads_.empty ());
 
@@ -2232,7 +2232,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         } // end IF
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
+        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
           // task object not active --> suspend the borrowed thread
           ACE_hthread_t handle = inherited::threads_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2277,7 +2277,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 break;
               } // end IF
               case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-              { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
+              { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
                 ACE_hthread_t handle = inherited::threads_[0].handle ();
@@ -2325,7 +2325,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
+        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard_2, inherited::lock_);
           ACE_ASSERT (!inherited::threads_.empty ());
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
                                   inherited::threads_[0].id ()))
@@ -2452,7 +2452,7 @@ continue_:
       //                   --> ensure that only a single 'session end' message
       //                       is generated and processed per session
       bool send_end_message = false;
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         if (!sessionEndSent_ &&
             !sessionEndProcessed_) // already processed upstream 'session end' ?
         {
