@@ -22,6 +22,7 @@
 #define STREAM_MODULE_LIBREOFFCE_DOCUMENT_WRITER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 // *IMPORTANT NOTE*: the SAL_THROW macro appears to be missing from recent
 //                   libreoffice/openoffice distributions
@@ -32,11 +33,10 @@
 #include "com/sun/star/uno/Reference.h"
 #include "com/sun/star/uno/XComponentContext.hpp"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
-
-//#include "stream_document_exports.h"
 
 extern const char libacestream_default_doc_libreoffice_writer_module_name_string[];
 
@@ -62,25 +62,27 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_LibreOffice_Document_Writer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

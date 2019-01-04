@@ -417,7 +417,7 @@ class Stream_StreamModuleInputOnlyA_T
                                  NOTIFICATION_TYPE,\
                                  READER_TYPE,\
                                  WRITER_TYPE,\
-                                 CLASS_NAME) typedef Stream_StreamModule_T<ACE_MT_SYNCH,\
+                                 CLASS_NAME) typedef Stream_StreamModule_T<WRITER_TYPE::SYNCH_T,\
                                                                            Common_TimePolicy_t,\
                                                                            Stream_SessionId_t,\
                                                                            SESSION_DATA_TYPE,\
@@ -432,7 +432,7 @@ class Stream_StreamModuleInputOnlyA_T
 //                                     SESSION_EVENT_TYPE,\
 //                                     HANDLER_CONFIGURATION_TYPE,\
 //                                     NOTIFICATION_TYPE,\
-//                                     TASK_TYPE) typedef Stream_StreamModule_T<ACE_MT_SYNCH,\
+//                                     TASK_TYPE) typedef Stream_StreamModule_T<TASK_TYPE::SYNCH_T,\
 //                                                                              Common_TimePolicy_t,\
 //                                                                              Stream_SessionId_t,\
 //                                                                              SESSION_DATA_TYPE,\
@@ -446,7 +446,7 @@ class Stream_StreamModuleInputOnlyA_T
 //                                       HANDLER_CONFIGURATION_TYPE,\
 //                                       NOTIFICATION_TYPE,\
 //                                       TASK_TYPE,\
-//                                       NAME) typedef Stream_StreamModule_T<ACE_MT_SYNCH,\
+//                                       NAME) typedef Stream_StreamModule_T<TASK_TYPE::SYNCH_T,\
 //                                                                           Common_TimePolicy_t,\
 //                                                                           Stream_SessionId_t,\
 //                                                                           SESSION_DATA_TYPE,\
@@ -460,7 +460,7 @@ class Stream_StreamModuleInputOnlyA_T
                                      HANDLER_CONFIGURATION_TYPE,\
                                      MODULE_NAME,\
                                      NOTIFICATION_TYPE,\
-                                     TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,\
+                                     TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<typename TASK_TYPE::SYNCH_T,\
                                                                                        Common_TimePolicy_t,\
                                                                                        Stream_SessionId_t,\
                                                                                        SESSION_DATA_TYPE,\
@@ -476,7 +476,7 @@ class Stream_StreamModuleInputOnlyA_T
                                        MODULE_NAME,\
                                        NOTIFICATION_TYPE,\
                                        TASK_TYPE,\
-                                       CLASS_NAME) typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,\
+                                       CLASS_NAME) typedef Stream_StreamModuleInputOnly_T<TASK_TYPE::SYNCH_T,\
                                                                                           Common_TimePolicy_t,\
                                                                                           Stream_SessionId_t,\
                                                                                           SESSION_DATA_TYPE,\
@@ -492,7 +492,7 @@ class Stream_StreamModuleInputOnlyA_T
                                       HANDLER_CONFIGURATION_TYPE,\
                                       MODULE_NAME,\
                                       NOTIFICATION_TYPE,\
-                                      TASK_TYPE) typedef Stream_StreamModuleOutputOnly_T<ACE_MT_SYNCH,\
+                                      TASK_TYPE) typedef Stream_StreamModuleOutputOnly_T<TASK_TYPE::SYNCH_T,\
                                                                                          Common_TimePolicy_t,\
                                                                                          Stream_SessionId_t,\
                                                                                          SESSION_DATA_TYPE,\
@@ -512,7 +512,7 @@ class Stream_StreamModuleInputOnlyA_T
                                    NOTIFICATION_TYPE,\
                                    READER_TYPE,\
                                    WRITER_TYPE,\
-                                   CLASS_NAME) typedef Stream_StreamModuleA_T<ACE_MT_SYNCH,\
+                                   CLASS_NAME) typedef Stream_StreamModuleA_T<WRITER_TYPE::SYNCH_T,\
                                                                               Common_TimePolicy_t,\
                                                                               Stream_SessionId_t,\
                                                                               SESSION_DATA_TYPE,\
@@ -529,7 +529,7 @@ class Stream_StreamModuleInputOnlyA_T
                                        HANDLER_CONFIGURATION_TYPE,\
                                        MODULE_NAME,\
                                        NOTIFICATION_TYPE,\
-                                       TASK_TYPE) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
+                                       TASK_TYPE) typedef Stream_StreamModuleInputOnlyA_T<TASK_TYPE::SYNCH_T,\
                                                                                           Common_TimePolicy_t,\
                                                                                           Stream_SessionId_t,\
                                                                                           SESSION_DATA_TYPE,\
@@ -545,7 +545,7 @@ class Stream_StreamModuleInputOnlyA_T
                                          MODULE_NAME,\
                                          NOTIFICATION_TYPE,\
                                          TASK_TYPE,\
-                                         CLASS_NAME) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
+                                         CLASS_NAME) typedef Stream_StreamModuleInputOnlyA_T<TASK_TYPE::SYNCH_T,\
                                                                                              Common_TimePolicy_t,\
                                                                                              Stream_SessionId_t,\
                                                                                              SESSION_DATA_TYPE,\

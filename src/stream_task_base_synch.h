@@ -34,6 +34,7 @@ class ACE_Time_Value;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType, // implements Common_ILock_T/Common_IRecursiveLock_T
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -47,10 +48,13 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename UserDataType>
 class Stream_TaskBaseSynch_T
-// *TODO*: figure out how to use ACE_NULL_SYNCH in this case
+// *TODO*: figure out how to use ACE_NULL_SYNCH in this case; the problem starts
+//         when specifying different synchronization between modules, as the
+//         ACE_Stream class currently uses a single template parameter for all
+//         modules
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE>,
+                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -62,7 +66,7 @@ class Stream_TaskBaseSynch_T
 {
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE>,
+                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
@@ -91,7 +95,7 @@ class Stream_TaskBaseSynch_T
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            Common_ILock_T<ACE_SYNCH_USE>,
+                            LockType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,

@@ -1913,9 +1913,9 @@ ACE_TMAIN (int argc_in,
   if (!UI_CSS_file.empty ())
     ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
-#endif // GTK_USE
   if (!UI_definition_file.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
+#endif // GTK_USE
 #endif // GUI_SUPPORT
 
   ACE_High_Res_Timer timer;

@@ -95,19 +95,19 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
         {
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_messages_session"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_messages_session"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (1);
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_messages_data"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_messages_data"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (0);
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_data"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_data"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (0);
@@ -117,13 +117,13 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
         {
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_messages_data"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_messages_data"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (spin_control_p->GetValue () + 1);
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_data"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_data"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (CBData_in->progressData.statistic.bytes);
@@ -133,7 +133,7 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
         {
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_messages_session"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_messages_session"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (spin_control_p->GetValue () + 1);
@@ -144,23 +144,23 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
                      wxToggleButton);
           ACE_ASSERT (toggle_button_p);
           toggle_button_p->Enable (true);
-          wxBitmapButton* button_p =
+          wxButton* button_p =
             XRCCTRL (*dialog_p,
                      ACE_TEXT_ALWAYS_CHAR ("button_snapshot"),
-                     wxBitmapButton);
+                     wxButton);
           ACE_ASSERT (button_p);
           button_p->Enable (false);
           button_p =
             XRCCTRL (*dialog_p,
                      ACE_TEXT_ALWAYS_CHAR ("button_cut"),
-                     wxBitmapButton);
+                     wxButton);
           ACE_ASSERT (button_p);
           button_p->Enable (false);
 #if defined (_DEBUG)
           button_p =
             XRCCTRL (*dialog_p,
                      ACE_TEXT_ALWAYS_CHAR ("button_report"),
-                     wxBitmapButton);
+                     wxButton);
           ACE_ASSERT (button_p);
           button_p->Enable (false);
 #endif // _DEBUG
@@ -191,8 +191,8 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
           choice_p->Enable (true);
           button_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("button_reset_format"),
-                     wxBitmapButton);
+                     ACE_TEXT_ALWAYS_CHAR ("button_reset"),
+                     wxButton);
           ACE_ASSERT (button_p);
           button_p->Enable (true);
 
@@ -204,16 +204,16 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
           toggle_button_p->Enable (true);
           wxTextCtrl* text_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("textcontrol_filename"),
+                     ACE_TEXT_ALWAYS_CHAR ("textctrl_filename"),
                      wxTextCtrl);
           ACE_ASSERT (text_p);
           text_p->Enable (true);
-          wxDirPickerCtrl* picker_p =
-            XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("directorypicker_save"),
-                     wxDirPickerCtrl);
-          ACE_ASSERT (picker_p);
-          picker_p->Enable (true);
+//          wxDirPickerCtrl* picker_p =
+//            XRCCTRL (*dialog_p,
+//                     ACE_TEXT_ALWAYS_CHAR ("directorypicker_save"),
+//                     wxDirPickerCtrl);
+//          ACE_ASSERT (picker_p);
+//          picker_p->Enable (true);
 
           toggle_button_p =
             XRCCTRL (*dialog_p,
@@ -269,7 +269,7 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
           ACE_ASSERT (toggle_button_p);
           choice_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("choice_display"),
+                     ACE_TEXT_ALWAYS_CHAR ("choice_screen"),
                      wxChoice);
           ACE_ASSERT (choice_p);
           choice_p->Enable (toggle_button_p->GetValue ());
@@ -370,20 +370,20 @@ process_stream_events (struct Stream_CamSave_UI_CBData* CBData_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_frames_captured"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_frames_captured"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (CBData_in->progressData.statistic.capturedFrames);
 #endif // ACE_WIN32 || ACE_WIN64
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_frames_dropped"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_frames_dropped"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (CBData_in->progressData.statistic.droppedFrames);
           spin_control_p =
             XRCCTRL (*dialog_p,
-                     ACE_TEXT_ALWAYS_CHAR ("spincontrol_messages_session"),
+                     ACE_TEXT_ALWAYS_CHAR ("spinctrl_messages_session"),
                      wxSpinCtrl);
           ACE_ASSERT (spin_control_p);
           spin_control_p->SetValue (spin_control_p->GetValue () + 1);
@@ -622,62 +622,62 @@ Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::wxCreateObject ()
 
 wxBEGIN_EVENT_TABLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t, dialog_main)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
- EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_snapshot_click_cb)
- EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_cut_click_cb)
+ EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_snapshot_clicked_cb)
+ EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_cut_clicked_cb)
 #if defined (_DEBUG)
- EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_report_click_cb)
+ EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_report_clicked_cb)
 #endif // _DEBUG
- EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_source_selected_cb)
- EVT_BUTTON (XRCID ("button_hardware_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_hardware_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_format_selected_cb)
- EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_selected_cb)
- EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_framerate_selected_cb)
- EVT_BUTTON (XRCID ("button_reset_format"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_reset_format_click_cb)
+ EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_source_changed_cb)
+ EVT_BUTTON (XRCID ("button_camera_properties"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_format_changed_cb)
+ EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_changed_cb)
+ EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_framerate_changed_cb)
+ EVT_BUTTON (XRCID ("button_reset"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_reset_clicked_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
  EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
- EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_adapter_selected_cb)
- EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_display_selected_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_display_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
- EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_about_click_cb)
- EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_quit_click_cb)
+ EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
+ EVT_CHOICE (XRCID ("choice_screen"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_screen_changed_cb)
+ EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+ EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_about_clicked_cb)
+ EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_DirectShow_WxWidgetsDialog_t::button_quit_clicked_cb)
  EVT_IDLE (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_idle_cb)
  EVT_CHAR_HOOK (Stream_CamSave_DirectShow_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 
 wxBEGIN_EVENT_TABLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t, dialog_main)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
- EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_snapshot_click_cb)
- EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_cut_click_cb)
+ EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_snapshot_clicked_cb)
+ EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_cut_clicked_cb)
 #if defined (_DEBUG)
- EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_report_click_cb)
+ EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_report_clicked_cb)
 #endif // _DEBUG
- EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_source_selected_cb)
- EVT_BUTTON (XRCID ("button_hardware_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_hardware_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_format_selected_cb)
- EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_selected_cb)
- EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_framerate_selected_cb)
- EVT_BUTTON (XRCID ("button_reset_format"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_reset_format_click_cb)
+ EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_source_changed_cb)
+ EVT_BUTTON (XRCID ("button_camera_properties"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_format_changed_cb)
+ EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_changed_cb)
+ EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_framerate_changed_cb)
+ EVT_BUTTON (XRCID ("button_reset"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_reset_clicked_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
  EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::picker_directory_save_changed_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
  EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
- EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_adapter_selected_cb)
- EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_display_selected_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
- EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_about_click_cb)
- EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_quit_click_cb)
+ EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
+ EVT_CHOICE (XRCID ("choice_screen"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_screen_changed_cb)
+ EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+ EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+ EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_about_clicked_cb)
+ EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::button_quit_clicked_cb)
  EVT_IDLE (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_idle_cb)
  EVT_CHAR_HOOK (Stream_CamSave_MediaFoundation_WxWidgetsDialog_t::dialog_main_keydown_cb)
 wxEND_EVENT_TABLE ()
 #else
-//wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_V4L_WxWidgetsDialog_t, dialog_main)
+//wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_V4L_WxWidgetsDialog_t, wxDialog_main)
 wxClassInfo
 Stream_CamSave_V4L_WxWidgetsDialog_t::ms_classInfo (L"Stream_CamSave_V4L_WxWidgetsDialog_t",
-                                                    &dialog_main::ms_classInfo,
+                                                    &wxDialog_main::ms_classInfo,
                                                     NULL,
                                                     (int) sizeof (Stream_CamSave_V4L_WxWidgetsDialog_t),
                                                     Stream_CamSave_V4L_WxWidgetsDialog_t::wxCreateObject);
@@ -693,32 +693,32 @@ Stream_CamSave_V4L_WxWidgetsDialog_t::wxCreateObject ()
   return new Stream_CamSave_V4L_WxWidgetsDialog_t;
 }
 
-wxBEGIN_EVENT_TABLE (Stream_CamSave_V4L_WxWidgetsDialog_t, dialog_main)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
- EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_snapshot_click_cb)
- EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_cut_click_cb)
-#if defined (_DEBUG)
- EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_report_click_cb)
-#endif // _DEBUG
- EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_source_selected_cb)
- EVT_BUTTON (XRCID ("button_hardware_settings"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_hardware_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_format_selected_cb)
- EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_resolution_selected_cb)
- EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_framerate_selected_cb)
- EVT_BUTTON (XRCID ("button_reset_format"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_reset_format_click_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
- EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_V4L_WxWidgetsDialog_t::picker_directory_save_changed_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
- EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
- EVT_CHOICE (XRCID ("choice_adapter"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_adapter_selected_cb)
- EVT_CHOICE (XRCID ("choice_display"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_display_selected_cb)
- EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_display_settings_click_cb)
- EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_resolution_2_selected_cb)
- EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_about_click_cb)
- EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_quit_click_cb)
- EVT_IDLE (Stream_CamSave_V4L_WxWidgetsDialog_t::dialog_main_idle_cb)
- EVT_CHAR_HOOK (Stream_CamSave_V4L_WxWidgetsDialog_t::dialog_main_keydown_cb)
-wxEND_EVENT_TABLE ()
+//wxBEGIN_EVENT_TABLE (Stream_CamSave_V4L_WxWidgetsDialog_t, wxDialog_main)
+// EVT_TOGGLEBUTTON (XRCID ("togglebutton_record"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_record_toggled_cb)
+// EVT_BUTTON (XRCID ("button_snapshot"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_snapshot_clicked_cb)
+// EVT_BUTTON (XRCID ("button_cut"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_cut_clicked_cb)
+//#if defined (_DEBUG)
+// EVT_BUTTON (XRCID ("button_report"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_report_clicked_cb)
+//#endif // _DEBUG
+// EVT_CHOICE (XRCID ("choice_source"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_source_changed_cb)
+// EVT_BUTTON (XRCID ("button_camera_properties"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_camera_properties_clicked_cb)
+// EVT_CHOICE (XRCID ("choice_format"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_format_changed_cb)
+// EVT_CHOICE (XRCID ("choice_resolution"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_resolution_changed_cb)
+// EVT_CHOICE (XRCID ("choice_framerate"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_framerate_changed_cb)
+// EVT_BUTTON (XRCID ("button_reset"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_reset_clicked_cb)
+// EVT_TOGGLEBUTTON (XRCID ("togglebutton_save"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_save_toggled_cb)
+// EVT_DIRPICKER_CHANGED (XRCID ("directorypicker_save"), Stream_CamSave_V4L_WxWidgetsDialog_t::picker_directory_save_changed_cb)
+// EVT_TOGGLEBUTTON (XRCID ("togglebutton_display"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_display_toggled_cb)
+// EVT_TOGGLEBUTTON (XRCID ("togglebutton_fullscreen"), Stream_CamSave_V4L_WxWidgetsDialog_t::togglebutton_fullscreen_toggled_cb)
+// EVT_CHOICE (XRCID ("choice_displayadapter"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_displayadapter_changed_cb)
+// EVT_CHOICE (XRCID ("choice_screen"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_screen_changed_cb)
+// EVT_BUTTON (XRCID ("button_display_settings"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_display_settings_clicked_cb)
+// EVT_CHOICE (XRCID ("choice_resolution_2"), Stream_CamSave_V4L_WxWidgetsDialog_t::choice_resolution_2_changed_cb)
+// EVT_BUTTON (XRCID ("button_about"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_about_clicked_cb)
+// EVT_BUTTON (XRCID ("button_quit"), Stream_CamSave_V4L_WxWidgetsDialog_t::button_quit_clicked_cb)
+// EVT_IDLE (Stream_CamSave_V4L_WxWidgetsDialog_t::dialog_main_idle_cb)
+// EVT_CHAR_HOOK (Stream_CamSave_V4L_WxWidgetsDialog_t::dialog_main_keydown_cb)
+//wxEND_EVENT_TABLE ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -727,7 +727,7 @@ wxEND_EVENT_TABLE ()
 
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::Stream_CamSave_WxWidgetsDialog_T (wxWindow* parent_in)
- : inherited (parent_in)
+ : inherited (parent_in, wxID_ANY, wxEmptyString)
  , application_ (NULL)
  , initializing_ (true)
  , untoggling_ (false)
@@ -750,35 +750,33 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   ACE_ASSERT (application_);
 
   togglebutton_record = XRCCTRL (*this, "togglebutton_record", wxToggleButton);
-  button_snapshot = XRCCTRL (*this, "button_snapshot", wxBitmapButton);
-  button_cut = XRCCTRL (*this, "button_cut", wxBitmapButton);
-  button_report = XRCCTRL (*this, "button_report", wxBitmapButton);
-  button_snapshot = XRCCTRL (*this, "button_snapshot", wxBitmapButton);
-  spincontrol_frames_captured = XRCCTRL (*this, "spincontrol_frames_captured", wxSpinCtrl);
-  spincontrol_frames_dropped = XRCCTRL (*this, "spincontrol_frames_dropped", wxSpinCtrl);
-  spincontrol_messages_session = XRCCTRL (*this, "spincontrol_messages_session", wxSpinCtrl);
-  spincontrol_messages_data = XRCCTRL (*this, "spincontrol_messages_data", wxSpinCtrl);
-  spincontrol_data = XRCCTRL (*this, "spincontrol_data", wxSpinCtrl);
-  spincontrol_buffer = XRCCTRL (*this, "spincontrol_buffer", wxSpinCtrl);
+  button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
+  button_cut = XRCCTRL (*this, "button_cut", wxButton);
+  button_report = XRCCTRL (*this, "button_report", wxButton);
+  spinctrl_control = XRCCTRL (*this, "spinctrl_control", wxSpinCtrl);
+  spinctrl_session = XRCCTRL (*this, "spinctrl_session", wxSpinCtrl);
+  spinctrl_data = XRCCTRL (*this, "spinctrl_data", wxSpinCtrl);
+  spinctrl_payload = XRCCTRL (*this, "spinctrl_payload", wxSpinCtrl);
+  spinctrl_framesize = XRCCTRL (*this, "spinctrl_framesize", wxSpinCtrl);
+  button_reset_camera = XRCCTRL (*this, "button_reset_camera", wxButton);
   choice_source = XRCCTRL (*this, "choice_source", wxChoice);
-  button_hardware_settings = XRCCTRL (*this, "button_hardware_settings", wxBitmapButton);
+  button_camera_properties = XRCCTRL (*this, "button_camera_properties", wxButton);
   choice_format = XRCCTRL (*this, "choice_format", wxChoice);
   choice_resolution = XRCCTRL (*this, "choice_resolution", wxChoice);
   choice_framerate = XRCCTRL (*this, "choice_framerate", wxChoice);
-  button_reset_format = XRCCTRL (*this, "button_reset_format", wxBitmapButton);
-  togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
-  textcontrol_filename = XRCCTRL (*this, "textcontrol_filename", wxTextCtrl);
-  directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
   togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
-  choice_adapter = XRCCTRL (*this, "choice_adapter", wxChoice);
-  choice_display = XRCCTRL (*this, "choice_display", wxChoice);
-  button_display_settings = XRCCTRL (*this, "button_display_settings", wxBitmapButton);
+  choice_displayadapter = XRCCTRL (*this, "choice_displayadapter", wxChoice);
+  choice_screen = XRCCTRL (*this, "choice_screen", wxChoice);
+//  button_display_settings = XRCCTRL (*this, "button_display_settings", wxButton);
   choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
+  togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
+  textctrl_filename = XRCCTRL (*this, "textctrl_filename", wxTextCtrl);
+//  directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
   panel_video = XRCCTRL (*this, "panel_video", wxPanel);
-  button_about = XRCCTRL (*this, "button_about", wxBitmapButton);
-  button_quit = XRCCTRL (*this, "button_quit", wxBitmapButton);
   gauge_progress = XRCCTRL (*this, "gauge_progress", wxGauge);
+  button_about = XRCCTRL (*this, "button_about", wxButton);
+  button_quit = XRCCTRL (*this, "button_quit", wxButton);
 
   this->SetDefaultItem (togglebutton_record);
 
@@ -787,17 +785,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 #else
   button_report->Show (false);
 #endif // _DEBUG
-  spincontrol_frames_captured->SetRange (0,
-                                         std::numeric_limits<int>::max ());
-  spincontrol_frames_dropped->SetRange (0,
-                                        std::numeric_limits<int>::max ());
-  spincontrol_messages_session->SetRange (0,
-                                          std::numeric_limits<int>::max ());
-  spincontrol_messages_data->SetRange (0,
-                                       std::numeric_limits<int>::max ());
-  spincontrol_data->SetRange (0,
+  spinctrl_control->SetRange (0,
                               std::numeric_limits<int>::max ());
-  spincontrol_buffer->SetRange (0,
+  spinctrl_session->SetRange (0,
+                              std::numeric_limits<int>::max ());
+  spinctrl_data->SetRange (0,
+                           std::numeric_limits<int>::max ());
+  spinctrl_payload->SetRange (0,
+                              std::numeric_limits<int>::max ());
+  spinctrl_framesize->SetRange (0,
                                 std::numeric_limits<int>::max ());
 
   bool activate_source_b = true, activate_display_b = true;
@@ -835,12 +831,12 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 
   togglebutton_save->Enable (!(*stream_iterator).second.second.targetFileName.empty ());
   togglebutton_save->SetValue (!(*stream_iterator).second.second.targetFileName.empty ());
-  textcontrol_filename->Enable (togglebutton_save->GetValue ());
-  textcontrol_filename->SetValue (ACE_TEXT_ALWAYS_CHAR (ACE::basename ((*stream_iterator).second.second.targetFileName.c_str (),
-                                                                       ACE_DIRECTORY_SEPARATOR_CHAR)));
-  directorypicker_save->Enable (togglebutton_save->GetValue ());
-  directorypicker_save->SetPath (ACE_TEXT_ALWAYS_CHAR (ACE::dirname ((*stream_iterator).second.second.targetFileName.c_str (),
-                                                                     ACE_DIRECTORY_SEPARATOR_CHAR)));
+  textctrl_filename->Enable (togglebutton_save->GetValue ());
+  textctrl_filename->SetValue (ACE_TEXT_ALWAYS_CHAR (ACE::basename ((*stream_iterator).second.second.targetFileName.c_str (),
+                                                                    ACE_DIRECTORY_SEPARATOR_CHAR)));
+//  directorypicker_save->Enable (togglebutton_save->GetValue ());
+//  directorypicker_save->SetPath (ACE_TEXT_ALWAYS_CHAR (ACE::dirname ((*stream_iterator).second.second.targetFileName.c_str (),
+//                                                                     ACE_DIRECTORY_SEPARATOR_CHAR)));
 
   Common_UI_DisplayAdapters_t display_adapters_a =
     Common_UI_Tools::getAdapters ();
@@ -855,8 +851,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     client_data_p->SetData ((*iterator).device);
 
     index_i =
-      choice_adapter->Append ((*iterator).description.c_str (),
-                              client_data_p);
+      choice_displayadapter->Append ((*iterator).description.c_str (),
+                                     client_data_p);
   } // end FOR
 
   Common_UI_DisplayDevices_t display_devices_a =
@@ -872,7 +868,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     client_data_p->SetData ((*iterator).device);
 
     index_i =
-      choice_display->Append ((*iterator).description.c_str (),
+      choice_screen->Append ((*iterator).description.c_str (),
                               client_data_p);
   } // end FOR
   if (likely (!display_devices_a.empty ()))
@@ -887,7 +883,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   if (unlikely (devices_a.empty ()))
     activate_display_b = false;
   else
-    choice_display->Enable (true);
+    choice_screen->Enable (true);
 
   if (likely (activate_source_b))
   { ACE_ASSERT (!(*stream_iterator).second.second.deviceIdentifier.identifier.empty ());
@@ -908,15 +904,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   if (likely (activate_display_b))
   { ACE_ASSERT (!(*stream_iterator_2).second.second.display.device.empty ());
     index_i =
-      (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_display,
+      (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_screen,
                                                                      (*stream_iterator_2).second.second.display.device)
                      : 0);
     ACE_ASSERT (index_i != wxNOT_FOUND);
-    choice_display->Select (index_i);
+    choice_screen->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                            XRCID ("choice_display"));
+                            XRCID ("choice_screen"));
     event_s.SetInt (index_i);
-    //choice_display->GetEventHandler ()->ProcessEvent (event_s);
+    //choice_screen->GetEventHandler ()->ProcessEvent (event_s);
     this->AddPendingEvent (event_s);
     wxCommandEvent event_2 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_display"));
@@ -1116,10 +1112,10 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   // step2: update configuration
   // step2a: update capture device configuration
   configuration_r.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-    spincontrol_buffer->GetValue ();
+    spinctrl_framesize->GetValue ();
 
   // *NOTE*: the capture format has been updated already (see:
-  //         choice_framerate_selected_cb())
+  //         choice_framerate_changed_cb())
   //wxStringClientData* client_data_p =
   //  dynamic_cast<wxStringClientData*> (choice_source->GetClientObject (choice_source->GetSelection ()));
   //ACE_ASSERT (client_data_p);
@@ -1154,11 +1150,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   std::string filename_string;
   if (!togglebutton_save->GetValue ())
     goto continue_;
-  filename_string = directorypicker_save->GetPath ();
+  filename_string =
+//      directorypicker_save->GetPath ();
+      Common_File_Tools::getTempDirectory ();
   ACE_ASSERT (Common_File_Tools::isDirectory (filename_string));
   ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += textcontrol_filename->GetValue ();
+  filename_string += textctrl_filename->GetValue ();
   ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
 continue_:
   (*stream_iterator).second.second.targetFileName = filename_string;
@@ -1176,7 +1174,7 @@ continue_:
   //  (*stream_iterator_2).second.second.area =
   //    (*stream_iterator).second.second.area;
   //  client_data_p =
-  //    dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
+  //    dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (choice_screen->GetSelection ()));
   //  ACE_ASSERT (client_data_p);
   //  (*stream_iterator_2).second.second.deviceIdentifier =
   //    client_data_p->GetData ().ToStdString ();
@@ -1257,19 +1255,19 @@ continue_:
   choice_format->Enable (false);
   choice_resolution->Enable (false);
   choice_framerate->Enable (false);
-  button_reset_format->Enable (false);
+  button_reset_camera->Enable (false);
   togglebutton_save->Enable (false);
-  textcontrol_filename->Enable (false);
-  directorypicker_save->Enable (false);
+  textctrl_filename->Enable (false);
+//  directorypicker_save->Enable (false);
   togglebutton_display->Enable (false);
-  choice_display->Enable (false);
+  choice_screen->Enable (false);
   gauge_progress->Enable (true);
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_snapshot_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_snapshot_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1282,25 +1280,23 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_cut_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_cut_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
-#if defined (_DEBUG)
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_report_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_report_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
-#endif // _DEBUG
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_source_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_source_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_source_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1318,35 +1314,46 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   device_identifier = client_data_p->GetData ().ToStdString ();
   ACE_ASSERT (!device_identifier.empty ());
 
-  if ((*stream_iterator).second.second.fileDescriptor != -1)
+  if ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor != -1)
   {
-    int result = v4l2_close ((*stream_iterator).second.second.fileDescriptor);
+    int result = v4l2_close ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", returning\n"),
-                  (*stream_iterator).second.second.fileDescriptor));
+                  (*stream_iterator).second.second.deviceIdentifier.fileDescriptor));
       return;
     } // end IF
-    (*stream_iterator).second.second.fileDescriptor = -1;
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed video device (fd was: %d)\n"),
+                (*stream_iterator).second.second.deviceIdentifier.fileDescriptor));
+#endif // _DEBUG
+    (*stream_iterator).second.second.deviceIdentifier.fileDescriptor = -1;
   } // end IF
-  ACE_ASSERT ((*stream_iterator).second.second.fileDescriptor == -1);
+  ACE_ASSERT ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor == -1);
   int open_mode = O_RDONLY;
-  (*stream_iterator).second.second.fileDescriptor =
+  (*stream_iterator).second.second.deviceIdentifier.fileDescriptor =
       v4l2_open (device_identifier.c_str (),
                  open_mode);
-  if (unlikely ((*stream_iterator).second.second.fileDescriptor == -1))
+  if (unlikely ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%d): \"%m\", returning\n"),
                 ACE_TEXT (device_identifier.c_str ()), open_mode));
     return;
   } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("opened video device \"%s\" (fd: %d)\n"),
+              ACE_TEXT (device_identifier.c_str ()),
+              (*stream_iterator).second.second.deviceIdentifier.fileDescriptor));
+#endif // _DEBUG
 
   choice_format->SetSelection (wxNOT_FOUND);
   choice_format->Clear ();
   Stream_MediaFramework_V4L_CaptureFormats_t subformats_a =
-    Stream_Device_Tools::getCaptureSubFormats ((*stream_iterator).second.second.fileDescriptor);
+    Stream_Device_Tools::getCaptureSubFormats ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor);
   ACE_ASSERT (!subformats_a.empty ());
   std::stringstream converter;
   int index_i = -1;
@@ -1382,13 +1389,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 
-  button_hardware_settings->Enable (true);
+  button_camera_properties->Enable (true);
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_hardware_settings_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_hardware_settings_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1402,9 +1409,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_format_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_format_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_format_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1426,7 +1433,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   converter >> format_i;
   index_i = wxNOT_FOUND;
   Common_UI_Resolutions_t resolutions_a =
-    Stream_Device_Tools::getCaptureResolutions ((*stream_iterator).second.second.fileDescriptor,
+    Stream_Device_Tools::getCaptureResolutions ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor,
                                                 format_i);
   ACE_ASSERT (!resolutions_a.empty ());
 
@@ -1473,9 +1480,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_resolution_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1503,7 +1510,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   converter >> resolution_s.width;
   converter >> resolution_s.height;
   Common_UI_Framerates_t framerates_a =
-    Stream_Device_Tools::getCaptureFramerates ((*stream_iterator).second.second.fileDescriptor,
+    Stream_Device_Tools::getCaptureFramerates ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor,
                                                format_i,
                                                resolution_s);
   ACE_ASSERT (!framerates_a.empty ());
@@ -1536,9 +1543,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_framerate_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_framerate_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_framerate_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1579,16 +1586,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   // update controls
   if (initializing_)
     togglebutton_record->Enable (true);
-  spincontrol_buffer->SetValue (Stream_MediaFramework_Tools::toFrameSize (configuration_r.configuration->streamConfiguration.configuration_.format));
+  spinctrl_framesize->SetValue (Stream_MediaFramework_Tools::toFrameSize (configuration_r.configuration->streamConfiguration.configuration_.format));
   struct Stream_MediaFramework_V4L_MediaType media_type_s =
       Stream_Device_Tools::defaultCaptureFormat ((*stream_iterator).second.second.deviceIdentifier.identifier);
-  button_reset_format->Enable (!(configuration_r.configuration->streamConfiguration.configuration_.format == media_type_s));
+  button_reset_camera->Enable (!(configuration_r.configuration->streamConfiguration.configuration_.format == media_type_s));
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_reset_format_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_reset_format_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1644,7 +1651,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   //choice_source->GetEventHandler ()->ProcessEvent (event_s);
   this->AddPendingEvent (event_3);
 
-  button_reset_format->Enable (false);
+  button_reset_camera->Enable (false);
 }
 
 void
@@ -1654,16 +1661,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
 
   bool is_checked_b = event_in.IsChecked ();
-  textcontrol_filename->Enable (is_checked_b);
-  directorypicker_save->Enable (is_checked_b);
+  textctrl_filename->Enable (is_checked_b);
+//  directorypicker_save->Enable (is_checked_b);
 }
-void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::picker_directory_save_changed_cb"));
+//void
+//Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+//                                 Stream_CamSave_V4L_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::picker_directory_save_changed_cb"));
 
-}
+//}
 
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
@@ -1683,8 +1690,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 
   bool is_checked_b = event_in.IsChecked ();
   togglebutton_fullscreen->Enable (is_checked_b);
-  choice_display->Enable (is_checked_b);
-  button_display_settings->Enable (is_checked_b);
+  choice_screen->Enable (is_checked_b);
+//  button_display_settings->Enable (is_checked_b);
   wxRect area_s;
   if (is_checked_b)
   {
@@ -1702,15 +1709,15 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 //    (*stream_iterator).second.second.window = GDK_WINDOW_XID (window_p);
 //    ACE_ASSERT ((*stream_iterator).second.second.window);
     wxStringClientData* client_data_p =
-      dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (choice_display->GetSelection ()));
+      dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (choice_screen->GetSelection ()));
     ACE_ASSERT (client_data_p);
     (*stream_iterator).second.second.deviceIdentifier.identifier =
         client_data_p->GetData ().ToStdString ();
   } // end IF
   else
   {
-    ACE_OS::memset (&(*stream_iterator).second.second.area, 0,sizeof (struct v4l2_rect));
-    (*stream_iterator).second.second.window = NULL;
+    ACE_OS::memset (&(*stream_iterator).second.second.area, 0, sizeof (struct v4l2_rect));
+    (*stream_iterator).second.second.window = 0;
     (*stream_iterator).second.second.deviceIdentifier.identifier.clear ();
   } // end ELSE
 
@@ -1722,11 +1729,11 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     {
       break;
     }
-#if defined (GTK_USE)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
-      break;
-#endif // GTK_USE
+//#if defined (GTK_USE)
+//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+//      break;
+//#endif // GTK_USE
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1819,16 +1826,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_adapter_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_adapter_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
 
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_display_selected_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_display_selected_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_screen_changed_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1840,7 +1847,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     configuration_r.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_r.configuration->streamConfiguration.configuration_.renderer).c_str ()));
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
   wxStringClientData* client_data_p =
-    dynamic_cast<wxStringClientData*> (choice_display->GetClientObject (event_in.GetSelection ()));
+    dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (event_in.GetSelection ()));
   ACE_ASSERT (client_data_p);
   (*stream_iterator).second.second.deviceIdentifier.identifier =
       client_data_p->GetData ().ToStdString ();
@@ -1851,17 +1858,17 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   static struct Common_UI_DisplayAdapter display_adapter_s =
     Common_UI_Tools::getAdapter (display_device_s);
   ACE_ASSERT (!display_adapter_s.device.empty ());
-  int index_i = choice_adapter->FindString (display_adapter_s.description);
+  int index_i = choice_displayadapter->FindString (display_adapter_s.description);
   ACE_ASSERT (index_i != wxNOT_FOUND);
-  choice_adapter->Select (index_i);
+  choice_displayadapter->Select (index_i);
   wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_adapter"));
+                          XRCID ("choice_displayadapter"));
   event_s.SetInt (index_i);
   //choice_source->GetEventHandler ()->ProcessEvent (event_s);
   this->AddPendingEvent (event_s);
   //application_->wait ();
 
-  button_display_settings->Enable (togglebutton_display->IsEnabled ());
+//  button_display_settings->Enable (togglebutton_display->IsEnabled ());
 
   Common_UI_Resolutions_t resolutions_a =
     Common_UI_Tools::get ((*stream_iterator).second.second.deviceIdentifier.identifier);
@@ -1926,26 +1933,26 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   if (initializing_)
     initializing_ = false;
 }
+//void
+//Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+//                                 Stream_CamSave_V4L_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_clicked_cb"));
+
+//}
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_display_settings_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
 
 }
-void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::choice_resolution_2_selected_cb (wxCommandEvent& event_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_selected_cb"));
-
-}
 
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_about_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_about_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_about_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
@@ -1981,9 +1988,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
-                                 Stream_CamSave_V4L_Stream>::button_quit_click_cb (wxCommandEvent& event_in)
+                                 Stream_CamSave_V4L_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_quit_click_cb"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_quit_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);

@@ -18,9 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavcodec/avcodec.h"
+//#include "libavutil/frame.h"
+//#include "libavutil/imgutils.h"
+//#include "libswscale/swscale.h"
+//}
+//#endif /* __cplusplus */
+
 #include "libv4l2.h"
 
 #include "ace/Log_Msg.h"
+
+//#if defined (_DEBUG)
+//#include "common_tools.h"
+
+//#include "common_file_tools.h"
+
+////#include "common_image_defines.h"
+//#include "common_image_tools.h"
+
+//#include "common_ui_defines.h"
+//#endif // _DEBUG
 
 #include "stream_macros.h"
 

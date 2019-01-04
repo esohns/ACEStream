@@ -26,6 +26,7 @@
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -149,6 +150,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_FileReader_Reader_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  struct Stream_ModuleHandlerConfiguration,
                                  ControlMessageType,
                                  ACE_Message_Block,
@@ -160,6 +162,7 @@ class Stream_Module_FileReader_Reader_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  struct Stream_ModuleHandlerConfiguration,
                                  ControlMessageType,
                                  ACE_Message_Block,

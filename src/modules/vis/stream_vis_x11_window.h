@@ -26,14 +26,13 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
+
 #include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
 
 #include "stream_dev_tools.h"
-
-// forward declarations
-struct SwsContext;
 
 int libacestream_vis_x11_error_handler_cb (Display*, XErrorEvent*);
 
@@ -54,6 +53,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Vis_X11_Window_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -66,6 +66,7 @@ class Stream_Module_Vis_X11_Window_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -109,9 +110,6 @@ class Stream_Module_Vis_X11_Window_T
   struct _XDisplay*  display_;
   bool               isFirst_;
   Pixmap             pixmap_;
-  struct SwsContext* scaleContext_;
-  unsigned int       scaleContextHeight_;
-  unsigned int       scaleContextWidth_;
   Window             window_;
 };
 

@@ -21,22 +21,15 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavcodec/avcodec.h"
+//#include "libavcodec/avcodec.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
-
-#if defined (_DEBUG)
-//#include "common_file_tools.h"
-
-//#include "common_image_tools.h"
-#endif // _DEBUG
 
 #include "common_ui_common.h"
 

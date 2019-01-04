@@ -24,13 +24,12 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_net_exports.h"
 
 //extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
 extern const char libacestream_default_net_io_module_name_string[];
@@ -79,6 +78,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_IOReader_T // --> input
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -90,6 +90,7 @@ class Stream_Module_Net_IOReader_T // --> input
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -106,7 +107,7 @@ class Stream_Module_Net_IOReader_T // --> input
 #else
   Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  inline virtual ~Stream_Module_Net_IOReader_T () {};
+  inline virtual ~Stream_Module_Net_IOReader_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message

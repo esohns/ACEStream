@@ -182,6 +182,7 @@ class Stream_TaskBase_T
 
   bool                                 freeSessionData_;
   // *NOTE*: these apply to 'downstream', iff linked, only
+  // *TODO*: move all of this to Stream_HeadTask_T ASAP
   typename SessionMessageType::DATA_T* sessionData_2; // backup 'downstream' session data
   ACE_SYNCH_MUTEX*                     sessionDataLock_; // backup 'upstream' lock
 };

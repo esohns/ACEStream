@@ -22,15 +22,15 @@
 #define STREAM_MODULE_HTMLWRITER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include <libxml/HTMLtree.h>
+#include "libxml/HTMLtree.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_html_exports.h"
 
 extern const char libacestream_default_html_writer_module_name_string[];
 
@@ -48,16 +48,28 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_HTMLWriter_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   Stream_Module_HTMLWriter_T ();
   virtual ~Stream_Module_HTMLWriter_T ();
@@ -68,24 +80,10 @@ class Stream_Module_HTMLWriter_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
-
  protected:
   struct _xmlDoc* document_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T (const Stream_Module_HTMLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T& operator= (const Stream_Module_HTMLWriter_T&))
 };

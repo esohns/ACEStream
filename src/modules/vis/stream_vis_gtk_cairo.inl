@@ -29,7 +29,7 @@ extern "C"
 
 #include "stream_macros.h"
 
-#include "stream_lib_tools.h"
+#include "stream_lib_v4l_common.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -158,6 +158,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //leave_gdk = true;
 
 #if GTK_CHECK_VERSION(3,0,0)
+  cairo_surface_flush (buffer_);
   ACE_OS::memcpy (cairo_image_surface_get_data (buffer_),
 #elif GTK_CHECK_VERSION(2,0,0)
   ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
@@ -166,6 +167,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                   message_inout->length ());
 
   // step3: draw pixbuf to widget
+#if GTK_CHECK_VERSION(3,0,0)
+  cairo_surface_mark_dirty (buffer_);
+  cairo_paint (context_);
+#elif GTK_CHECK_VERSION(2,0,0)
   //  gint width, height;
   //  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->window),
   //                         &width, &height);
@@ -175,10 +180,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //                   --> move this into the gtk context and simply schedule a
   //                       refresh, which takes care of that
   //  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->window), NULL,
-  //                   pixelBuffer_,
+  //                   buffer_,
   //                   0, 0, 0, 0, width, height,
   //                   GDK_RGB_DITHER_NONE, 0, 0);
-  cairo_fill (context_);
+#endif // GTK_CHECK_VERSION
 
   if (likely (release_lock))
   {
@@ -295,8 +300,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       cairo_format_t format_e = CAIRO_FORMAT_INVALID;
       width_2 = cairo_image_surface_get_width (buffer_);
       height_2 = cairo_image_surface_get_height (buffer_);
-      row_stride_2 =
-          cairo_image_surface_get_stride (buffer_);
+      row_stride_2 = cairo_image_surface_get_stride (buffer_);
       format_e = cairo_image_surface_get_format (buffer_);
 #elif GTK_CHECK_VERSION(2,0,0)
       gint width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
@@ -315,7 +319,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (row_stride_i == static_cast<unsigned int> (row_stride_2));
 #if GTK_CHECK_VERSION(3,0,0)
-//      ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
+      ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
 #elif GTK_CHECK_VERSION(2,0,0)
       ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
       ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
@@ -325,7 +329,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       if (n_channels_i == 3)
         ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB24); // CAIRO_FORMAT_RGB24
       else
-        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_ARGB); // CAIRO_FORMAT_ARGB32
+        ACE_ASSERT (media_type_s.format == AV_PIX_FMT_RGB32); // CAIRO_FORMAT_ARGB32
 
       break;
 
@@ -453,6 +457,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
         cairo_image_surface_get_stride (configuration_in.pixelBuffer);
     format_e = cairo_image_surface_get_format (configuration_in.pixelBuffer);
 //    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
+    ACE_UNUSED_ARG (row_stride_i);
+    ACE_UNUSED_ARG (n_channels_i);
     ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
 
     cairo_surface_reference (configuration_in.pixelBuffer);

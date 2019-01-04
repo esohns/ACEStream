@@ -436,8 +436,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Test_U_AudioEffect_Message,
-                                   Test_U_AudioEffect_SessionMessage,
-                                   struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Module_FileWriter;
+                                   Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type

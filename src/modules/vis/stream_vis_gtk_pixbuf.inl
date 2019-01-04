@@ -22,7 +22,6 @@
 extern "C"
 {
 #include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
@@ -61,9 +60,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
  , inherited2 ()
  , isFirst_ (true)
  , lock_ (NULL)
- , scaleContext_ (NULL)
- , scaleContextHeight_ (0)
- , scaleContextWidth_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
@@ -88,8 +84,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-  if (scaleContext_)
-    sws_freeContext (scaleContext_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -218,81 +212,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_pixbuf_get_width (inherited::configuration_->pixelBuffer);
   int pixbuf_row_stride =
       gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
-  bool transform_image =
-      ((media_type_s.format != AV_PIX_FMT_RGBA) ||
-       ((static_cast<int> (media_type_s.resolution.width) != pixbuf_width) || (static_cast<int> (media_type_s.resolution.height) != pixbuf_height)));
-  uint8_t* in_data[AV_NUM_DATA_POINTERS];
-  uint8_t* out_data[AV_NUM_DATA_POINTERS];
-
-  if (transform_image &&
-      ((pixbuf_height != static_cast<int> (scaleContextHeight_)) || (pixbuf_width != static_cast<int> (scaleContextWidth_))))
-  {
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_); scaleContext_ = NULL;
-    } // end IF
-    int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
-//                 SWS_LANCZOS | SWS_ACCURATE_RND);
-    scaleContext_ =
-        sws_getCachedContext (NULL,
-                              media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
-                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
-                              flags,                             // flags
-                              NULL, NULL,
-                              0);                                // parameters
-    if (!scaleContext_)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      result = -1;
-      goto unlock;
-    } // end IF
-    scaleContextHeight_ = pixbuf_height;
-    scaleContextWidth_ = pixbuf_width;
-#if defined (_DEBUG)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
-                inherited::mod_->name (),
-                media_type_s.resolution.width, media_type_s.resolution.height,
-                pixbuf_width, pixbuf_height));
-#endif // _DEBUG
-  } // end IF
 
   result = 0;
-
-  // step3: transform image?
-
-  // *TODO*: this looks wrong
-  if (!transform_image)
-  { ACE_ASSERT (image_size == message_inout->length ());
-    // *TODO*: GTK requires RGB, not RGBA --> drop transparency
-    ACE_ASSERT (static_cast<unsigned int> (pixbuf_row_stride) == row_stride);
-    for (unsigned int i = 0;
-         i < media_type_s.resolution.height;
-         ++i)
-      ACE_OS::memcpy (data_2 + (i * pixbuf_row_stride),
-                      message_inout->rd_ptr () + (i * row_stride),
-                      row_stride);
-    goto unlock; // done
-  } // end IF
-
-  ACE_OS::memset (in_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  out_data[0] = static_cast<uint8_t*> (data_2);
-  if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
-                                             in_data,
-                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
-                                             out_data))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
-                inherited::mod_->name ()));
-    result = -1;
-    goto unlock;
-  } // end IF
 
 unlock:
   if (release_lock)
@@ -439,13 +360,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   {
     isFirst_ = true;
     lock_ = NULL;
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_);
-      scaleContext_ = NULL;
-    } // end IF
-    scaleContextHeight_ = 0;
-    scaleContextWidth_ = 0;
   } // end IF
 
   lock_ = configuration_in.pixelBufferLock;

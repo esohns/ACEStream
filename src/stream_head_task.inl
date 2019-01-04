@@ -156,7 +156,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
             session_message_p->initialize (session_message_p->sessionId (),
                                            STREAM_SESSION_MESSAGE_END,
                                            sessionData_,
-                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->data ()));
+                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()));
             sessionData_->decrease (); sessionData_ = NULL;
             isLinked_ = false;
           } // end IF
@@ -168,7 +168,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
             session_message_p->initialize (session_message_p->sessionId (),
                                            session_message_p->type (),
                                            sessionData_,
-                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->data ()));
+                                           &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->getR_2 ()));
           break;
         }
       } // end SWITCH
@@ -185,7 +185,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown message (type was: %d), aborting\n"),
                   inherited::mod_->name (),
                   messageBlock_in->msg_type ()));
       enqueue_message = false;
@@ -345,7 +345,7 @@ Stream_TailTask_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown message (type was: %d), aborting\n"),
                   inherited::mod_->name (),
                   messageBlock_in->msg_type ()));
       enqueue_message = false;

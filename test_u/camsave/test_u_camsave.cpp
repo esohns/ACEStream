@@ -1001,7 +1001,10 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 #endif // _DEBUG
   if (hasUI_in)
   {
-    outputFormat_out.format = AV_PIX_FMT_ARGB;
+    // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
+    //         alpha in the upper 8 bits, then red, then green, then blue. The
+    //         32-bit quantities are stored native-endian. ..."
+    outputFormat_out.format = AV_PIX_FMT_RGB32;
     outputFormat_out.frameRate.num =
         static_cast<int> (captureFormat_out.frameRate.numerator);
     outputFormat_out.frameRate.den =

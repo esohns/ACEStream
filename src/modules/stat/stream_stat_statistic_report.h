@@ -30,6 +30,7 @@
 #include "ace/Time_Value.h"
 
 #include "common_icounter.h"
+#include "common_ilock.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
@@ -137,6 +138,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Statistic_StatisticReport_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -162,6 +164,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

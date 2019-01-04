@@ -399,7 +399,8 @@ Stream_Module_Decoder_Tools::isRGB (enum AVPixelFormat format_in)
     case AV_PIX_FMT_0BGR:        ///< packed BGR 8:8:8, 32bpp, XBGRXBGR...   X=unused/undefined
     case AV_PIX_FMT_BGR0:        ///< packed BGR 8:8:8, 32bpp, BGRXBGRX...   X=unused/undefined
       return true;
-    default: break;
+    default:
+      break;
   } // end SWITCH
 
   return false;
@@ -410,24 +411,24 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::errorToString"));
 
-  std::string result;
+  // initialize return value(s)
+  std::string return_value;
 
   int result_2 = -1;
-  char buffer[AV_ERROR_MAX_STRING_SIZE];
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
+  char buffer_a[AV_ERROR_MAX_STRING_SIZE];
+  ACE_OS::memset (buffer_a, 0, sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
 
   result_2 = av_strerror (error_in,
-                          buffer,
+                          buffer_a,
                           sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
   if (unlikely (result_2))
     ACE_DEBUG ((LM_ERROR,
                 ((result_2 < 0) ? ACE_TEXT ("failed to av_strerror(%d), cannot find error description: \"%m\", continuing\n")
                                 : ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n")),
                 error_in));
+  return_value = buffer_a;
 
-  result = buffer;
-
-  return result;
+  return return_value;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -685,59 +686,18 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::convert"));
 
   // sanity check(s)
+  if (!sws_isSupportedInput (sourcePixelFormat_in) ||
+      !sws_isSupportedOutput (targetPixelFormat_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("unsupported format conversion (was: %s --> %s), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (sourcePixelFormat_in).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (targetPixelFormat_in).c_str ())));
+    return false;
+  } // end IF
 //  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
 // *TODO*: define a balanced scaler parametrization that suits most
 //         applications, or expose this as a parameter
-  int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_BICUBIC);
-  struct SwsContext* context_p =
-      (context_in ? context_in
-                  : sws_getCachedContext (NULL,
-                                          sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
-                                          targetWidth_in, targetHeight_in, targetPixelFormat_in,
-                                          flags,                             // flags
-                                          NULL, NULL,
-                                          0));                               // parameters
-  if (unlikely (!context_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
-    return false;
-  } // end IF
-
-  bool result = Stream_Module_Decoder_Tools::scale (context_p,
-                                                    sourceWidth_in,
-                                                    sourceHeight_in,
-                                                    sourcePixelFormat_in,
-                                                    sourceBuffers_in,
-                                                    targetWidth_in,
-                                                    targetHeight_in,
-                                                    targetPixelFormat_in,
-                                                    targetBuffers_in);
-
-  // clean up
-  if (unlikely (!context_in))
-    sws_freeContext (context_p);
-
-  return result;
-}
-
-bool
-Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
-                                    unsigned int sourceWidth_in,
-                                    unsigned int sourceHeight_in,
-                                    enum AVPixelFormat sourcePixelFormat_in,
-                                    uint8_t* sourceBuffers_in[],
-                                    unsigned int targetWidth_in,
-                                    unsigned int targetHeight_in,
-                                    enum AVPixelFormat targetPixelFormat_in,
-                                    uint8_t* targetBuffers_in[])
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::scale"));
-
-  // *TODO*: define a balanced scaler parametrization that suits most
-  //         applications, or expose this as a parameter
   int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
                SWS_BICUBIC);
   struct SwsContext* context_p =
@@ -776,7 +736,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result_2).c_str ())));
     goto clean;
   } // end IF
   // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
@@ -789,7 +749,80 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
 
 clean:
   if (unlikely (!context_in))
-    sws_freeContext (context_p);
+  {
+    sws_freeContext (context_p); context_p = NULL;
+  } // end IF
+
+  return result;
+}
+
+bool
+Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
+                                    unsigned int sourceWidth_in,
+                                    unsigned int sourceHeight_in,
+                                    enum AVPixelFormat pixelFormat_in,
+                                    uint8_t* sourceBuffers_in[],
+                                    unsigned int targetWidth_in,
+                                    unsigned int targetHeight_in,
+                                    uint8_t* targetBuffers_in[])
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::scale"));
+
+  // *TODO*: define a balanced scaler parametrization that suits most
+  //         applications, or expose this as a parameter
+  int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+               SWS_BICUBIC);
+  struct SwsContext* context_p =
+      (context_in ? context_in
+                  : sws_getCachedContext (NULL,
+                                          sourceWidth_in, sourceHeight_in, pixelFormat_in,
+                                          targetWidth_in, targetHeight_in, pixelFormat_in,
+                                          flags,                             // flags
+                                          NULL, NULL,
+                                          0));                               // parameters
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  bool result = false;
+  int result_2 = -1;
+  int in_linesize[AV_NUM_DATA_POINTERS];
+  int out_linesize[AV_NUM_DATA_POINTERS];
+  result_2 = av_image_fill_linesizes (in_linesize,
+                                      pixelFormat_in,
+                                      static_cast<int> (sourceWidth_in));
+  ACE_ASSERT (result_2 >= 0);
+  result_2 = av_image_fill_linesizes (out_linesize,
+                                      pixelFormat_in,
+                                      static_cast<int> (targetWidth_in));
+  ACE_ASSERT (result_2 >= 0);
+  result_2 = sws_scale (context_p,
+                        sourceBuffers_in, in_linesize,
+                        0, sourceHeight_in,
+                        targetBuffers_in, out_linesize);
+  if (unlikely (result_2 <= 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result_2).c_str ())));
+    goto clean;
+  } // end IF
+  // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
+  // *TODO*: find out when and why
+  else if (unlikely (result_2 != static_cast<int> (targetHeight_in)))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("sws_scale() returned: %d (expected: %u), continuing\n"),
+                result_2, targetHeight_in));
+  result = true;
+
+clean:
+  if (unlikely (!context_in))
+  {
+    sws_freeContext (context_p); context_p = NULL;
+  } // end IF
 
   return result;
 }

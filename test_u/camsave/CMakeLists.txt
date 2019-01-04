@@ -175,8 +175,10 @@ if (GUI_SUPPORT)
        test_u_camsave_ui.cpp
        test_u_camsave_ui.h
        test_u_camsave_ui.inl
-       test_u_camsave_ui_base.cpp
-       test_u_camsave_ui_base.h)
+       camsave_wxwidgets_ui.cpp
+       camsave_wxwidgets_ui.h)
+#       test_u_camsave_ui_base.cpp
+#       test_u_camsave_ui_base.h)
  endif ()
 endif (GUI_SUPPORT)
 

@@ -23,6 +23,7 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -46,15 +47,28 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_XPathQuery_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   Stream_Module_XPathQuery_T ();
   inline virtual ~Stream_Module_XPathQuery_T () {}
@@ -68,21 +82,7 @@ class Stream_Module_XPathQuery_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
-
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T (const Stream_Module_XPathQuery_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T& operator= (const Stream_Module_XPathQuery_T&))
 };

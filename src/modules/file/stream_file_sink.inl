@@ -40,18 +40,16 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-                           SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                           SessionDataType>::Stream_Module_FileWriter_T (ISTREAM_T* stream_in)
+                           SessionMessageType>::Stream_Module_FileWriter_T (ISTREAM_T* stream_in)
 #else
-                           SessionDataType>::Stream_Module_FileWriter_T (typename inherited::ISTREAM_T* stream_in)
+                           SessionMessageType>::Stream_Module_FileWriter_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
  , isOpen_ (false)
@@ -68,21 +66,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-                           SessionMessageType,
-                           SessionDataType>::~Stream_Module_FileWriter_T ()
+                           SessionMessageType>::~Stream_Module_FileWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::~Stream_Module_FileWriter_T"));
 
   int result = -1;
 
-  if (isOpen_)
+  if (unlikely (isOpen_))
   {
     result = stream_.close ();
     if (unlikely (result == -1))
@@ -96,17 +92,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 void
 Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-                           SessionMessageType,
-                           SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+                           SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::handleDataMessage"));
 
@@ -117,12 +111,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!isOpen_)
-  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to open file, returning\n")));
+  if (unlikely (!isOpen_))
     return;
-  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
@@ -169,7 +159,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
       // print progress dots ?
       // *TODO*: remove type inferences
-      if (inherited::configuration_->printProgressDot)
+      if (unlikely (inherited::configuration_->printProgressDot))
         std::cout << '.';
 
       break;
@@ -182,17 +172,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 void
 Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-                           SessionMessageType,
-                           SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                           SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::handleSessionMessage"));
 
@@ -207,7 +195,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->getR ();
-      const SessionDataType& session_data_r = session_data_container_r.getR ();
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          session_data_container_r.getR ();
       std::string directory, file_name;
       int open_flags = (O_CREAT |
                         O_TRUNC |
@@ -216,8 +205,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       const ACE_TCHAR* path_name_p = path_.get_path_name ();
       ACE_ASSERT (path_name_p);
       bool is_empty = !ACE_OS::strlen (path_name_p);
-      if (is_empty &&
-          session_data_r.targetFileName.empty ())
+      if (unlikely (is_empty &&
+                    session_data_r.targetFileName.empty ()))
         goto continue_; // nothing to do
 
       // *TODO*: remove type inferences
@@ -298,10 +287,12 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         return;
       } // end IF
       isOpen_ = true;
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened file stream \"%s\"\n"),
+                  ACE_TEXT ("%s: opened target file \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (file_name.c_str ())));
+#endif // _DEBUG
 continue_:
       break;
     }
@@ -320,7 +311,7 @@ continue_:
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
 
-      if (isOpen_)
+      if (likely (isOpen_))
       {
         ACE_FILE_Info file_information;
         result = stream_.get_info (file_information);
@@ -338,11 +329,13 @@ continue_:
           return;
         } // end IF
         isOpen_ = false;
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))\n"),
+                    ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     file_information.size_));
+#endif // _DEBUG
       } // end IF
 
       unsigned int file_index = 0;
@@ -384,7 +377,7 @@ continue_:
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
@@ -402,11 +395,12 @@ continue_:
         return;
       } // end IF
       isOpen_ = true;
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened file stream \"%s\"\n"),
+                  ACE_TEXT ("%s: opened target file \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (file_name.c_str ())));
-
+#endif // _DEBUG
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -414,7 +408,7 @@ continue_:
       //if (inherited::thr_count_)
       //  inherited::stop (false); // wait ?
 
-      if (isOpen_)
+      if (likely (isOpen_))
       {
         result = stream_.get_local_addr (path_);
         if (unlikely (result == -1))
@@ -444,11 +438,13 @@ continue_:
           return;
         } // end IF
         isOpen_ = false;
+#if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))\n"),
+                    ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     file_information.size_));
+#endif // _DEBUG
       } // end IF
 
       break;
@@ -463,17 +459,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionMessageType>
 bool
 Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
-                           SessionMessageType,
-                           SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                         Stream_IAllocator* allocator_in)
+                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
 
@@ -490,13 +484,466 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+#if defined (_DEBUG)
+  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+#endif // _DEBUG
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_Module_FileWriter_2<TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                           SessionMessageType>::Stream_Module_FileWriter_2 (ISTREAM_T* stream_in)
+#else
+                           SessionMessageType>::Stream_Module_FileWriter_2 (typename inherited::ISTREAM_T* stream_in)
+#endif
+ : inherited (stream_in)
+ , isOpen_ (false)
+ , path_ ()
+ , previousError_ (0)
+ , stream_ ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::Stream_Module_FileWriter_2"));
+
+}
+
+template <typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_Module_FileWriter_2<TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType>::~Stream_Module_FileWriter_2 ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::~Stream_Module_FileWriter_2"));
+
+  int result = -1;
+
+  if (unlikely (isOpen_))
+  {
+    result = stream_.close ();
+    if (unlikely (result == -1))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
+  } // end IF
+}
+
+template <typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Module_FileWriter_2<TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::handleDataMessage"));
+
+  ssize_t bytes_written = -1;
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
   // sanity check(s)
-  // *TODO*: remove type inferences
-  //if (Common_File_Tools::isReadable (configuration_in.targetFileName))
-  //  ACE_DEBUG ((LM_WARNING,
-  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  ACE_ASSERT (inherited::configuration_);
+  if (unlikely (!isOpen_))
+    return;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
+#else
+  size_t bytes_transferred = -1;
+#endif
+  bytes_written = stream_.send_n (message_inout,       // (chained) message
+                                  NULL,                // timeout
+                                  &bytes_transferred); // bytes transferred
+  switch (bytes_written)
+  {
+    case -1:
+    {
+      // *NOTE*: most probable cause: disk full
+      int error = ACE_OS::last_error ();
+      if (previousError_ &&
+          (error == previousError_))
+        break;
+      previousError_ = error;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//               (error == ERROR_INVALID_ACCESS); // 12 : (*TODO*: memory leakage ?)
+      ACE_ASSERT (error == ERROR_DISK_FULL);      // 112: no space left on device
+#else
+      ACE_ASSERT (error == ENOSPC);
+#endif
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
+                  inherited::mod_->name (),
+                  message_inout->total_length ()));
+      break;
+    }
+    default:
+    {
+      if (unlikely (bytes_written != static_cast<ssize_t> (message_inout->total_length ())))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
+                    inherited::mod_->name (),
+                    bytes_transferred,
+                    message_inout->total_length ()));
+      //else
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("wrote %d bytes...\n"),
+      //              bytes_transferred));
+
+      // print progress dots ?
+      // *TODO*: remove type inferences
+      if (unlikely (inherited::configuration_->printProgressDot))
+        std::cout << '.';
+
+      break;
+    }
+  } // end SWITCH
+}
+
+template <typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Module_FileWriter_2<TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::handleSessionMessage"));
+
+  int result = -1;
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      const typename SessionMessageType::DATA_T& session_data_container_r =
+          message_inout->getR ();
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          session_data_container_r.getR ();
+      std::string directory, file_name;
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
+
+      const ACE_TCHAR* path_name_p = path_.get_path_name ();
+      ACE_ASSERT (path_name_p);
+      bool is_empty = !ACE_OS::strlen (path_name_p);
+      if (unlikely (is_empty &&
+                    session_data_r.targetFileName.empty ()))
+        goto continue_; // nothing to do
+
+      // *TODO*: remove type inferences
+      directory =
+        (session_data_r.targetFileName.empty () ? (is_empty ? Common_File_Tools::getTempDirectory ()
+                                                            : ACE_TEXT (path_name_p))
+                                                : session_data_r.targetFileName);
+      file_name =
+        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME)
+                                                            : ACE_TEXT (path_name_p))
+                                                : session_data_r.targetFileName);
+      // sanity check(s)
+      if (!Common_File_Tools::isDirectory (directory))
+      {
+        // *TODO*: ACE::dirname() returns '.' on an empty argument, this isn't
+        //         entirely accurate
+        directory =
+          ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+        if (Common_File_Tools::isValidPath (directory))
+        {
+          if (!Common_File_Tools::isDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", returning\n"),
+                          inherited::mod_->name (),
+                          ACE_TEXT (directory.c_str ())));
+              return;
+            } // end IF
+        } // end IF
+        else if (Common_File_Tools::isValidFilename (directory))
+        {
+          directory =
+            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+          if (!Common_File_Tools::isDirectory (directory))
+            if (unlikely (!Common_File_Tools::createDirectory (directory)))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", returning\n"),
+                          inherited::mod_->name (),
+                          ACE_TEXT (directory.c_str ())));
+              return;
+            } // end IF
+        } // end IF
+        else
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: invalid target directory (was: \"%s\"), falling back\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (directory.c_str ())));
+          directory = Common_File_Tools::getTempDirectory ();
+        } // end ELSE
+      } // end IF
+      if (Common_File_Tools::isDirectory (file_name))
+        file_name =
+          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
+      else if (Common_File_Tools::isValidFilename (file_name))
+        file_name =
+          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
+      file_name = directory +
+                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
+                  file_name;
+
+      if (Common_File_Tools::isReadable (file_name))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+
+      if (unlikely (!Common_File_Tools::open (file_name,   // FQ file name
+                                              open_flags,  // flags
+                                              stream_)))   // stream
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+        return;
+      } // end IF
+      isOpen_ = true;
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: opened target file \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (file_name.c_str ())));
+#endif // _DEBUG
+continue_:
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STEP:
+    {
+      result = stream_.get_local_addr (path_);
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+      ACE_TCHAR buffer[PATH_MAX];
+      ACE_OS::memset (buffer, 0, sizeof (buffer));
+      result = path_.addr_to_string (buffer, sizeof (buffer));
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+
+      if (likely (isOpen_))
+      {
+        ACE_FILE_Info file_information;
+        result = stream_.get_info (file_information);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+
+        result = stream_.close ();
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        isOpen_ = false;
+#if defined (_DEBUG)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (buffer),
+                    file_information.size_));
+#endif // _DEBUG
+      } // end IF
+
+      unsigned int file_index = 0;
+      std::stringstream converter;
+
+      std::string regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^([^_.]+)(?:_([[:digit:]]+))?(\\..+)$");
+      std::regex regular_expression (regex_string,
+                                     std::regex::ECMAScript);
+      std::cmatch match_results;
+      if (unlikely (!std::regex_match (buffer,
+                                       match_results,
+                                       regular_expression,
+                                       std::regex_constants::match_default)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid file name (was: \"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    buffer));
+        return;
+      } // end IF
+//      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (!match_results.empty ());
+
+      ACE_ASSERT (match_results[1].matched);
+      std::string file_name = match_results.str (1);
+      if (match_results[2].matched)
+      {
+        converter << match_results.str (2);
+        converter >> file_index;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      } // end IF
+      converter << ++file_index;
+      file_name += '_';
+      file_name += converter.str ();
+      if (match_results[3].matched)
+        file_name += match_results.str (3);
+
+      if (Common_File_Tools::isReadable (file_name))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
+      if (unlikely (!Common_File_Tools::open (file_name,  // FQ file name
+                                              open_flags, // flags
+                                              stream_)))  // stream
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (file_name.c_str ())));
+        return;
+      } // end IF
+      isOpen_ = true;
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: opened target file \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (file_name.c_str ())));
+#endif // _DEBUG
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      //if (inherited::thr_count_)
+      //  inherited::stop (false); // wait ?
+
+      if (likely (isOpen_))
+      {
+        result = stream_.get_local_addr (path_);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+        ACE_TCHAR buffer[PATH_MAX];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        result = path_.addr_to_string (buffer, sizeof (buffer));
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+        ACE_FILE_Info file_information;
+        result = stream_.get_info (file_information);
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+
+        result = stream_.close ();
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        isOpen_ = false;
+#if defined (_DEBUG)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed target file \"%s\" (wrote: %q byte(s))\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (buffer),
+                    file_information.size_));
+#endif // _DEBUG
+      } // end IF
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_Module_FileWriter_2<TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_2::initialize"));
+
+  ACE_UNUSED_ARG (allocator_in);
+
+  int result =
+    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+    return false;
+  } // end IF
+
+#if defined (_DEBUG)
+  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+#endif // _DEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

@@ -33,12 +33,6 @@ extern "C"
 
 #include "common_tools.h"
 
-#if defined (_DEBUG)
-//#include "common_file_tools.h"
-
-//#include "common_image_tools.h"
-#endif // _DEBUG
-
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -66,6 +60,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                                    MediaType>::Stream_Visualization_LibAVResize_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , resolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize_T::Stream_Visualization_LibAVResize_T"));
 
@@ -134,7 +129,11 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
   if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-                                                       inherited::frame_->width, inherited::frame_->height, inherited::inputFormat_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                       resolution_.cx, resolution_.cy, inherited::inputFormat_,
+#else
+                                                       resolution_.width, resolution_.height, inherited::inputFormat_,
+#endif // ACE_WIN32 || ACE_WIN64
                                                        data_a,
                                                        inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
                                                        inherited::frame_->data)))
@@ -253,6 +252,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
 
       int flags_i = 0;
       MediaType media_type_s;
+      int result = -1;
       Common_UI_Resolution_t resolution_s;
 
       // remember input format
@@ -260,6 +260,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       inherited::getMediaType (media_type_r,
                                media_type_2);
       inherited::inputFormat_ = media_type_2.format;
+      resolution_ = media_type_2.resolution;
       // sanity check(s)
       if (unlikely (Stream_Module_Decoder_Tools::isCompressedVideo (inherited::inputFormat_)))
       {
@@ -286,9 +287,9 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                    media_type_2.resolution.cx, media_type_2.resolution.cy,
+                    resolution_.cx, resolution_.cy,
 #else
-                    media_type_2.resolution.width, media_type_2.resolution.height,
+                    resolution_.width, resolution_.height,
 #endif // ACE_WIN32 || ACE_WIN64
                     inherited::configuration_->area.width, inherited::configuration_->area.height));
 #endif // _DEBUG
@@ -300,9 +301,9 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       inherited::context_ =
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
+                                resolution_.cx, resolution_.cy, inherited::inputFormat_,
 #else
-                                media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
+                                resolution_.width, resolution_.height, inherited::inputFormat_,
 #endif // ACE_WIN32 || ACE_WIN64
                                 inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
                                 flags_i,                      // flags
@@ -330,6 +331,39 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.formats.push_front (media_type_s);
       } // end lock scope
+
+      // adjust buffer
+      inherited::frame_->height = inherited::configuration_->area.height;
+      inherited::frame_->width = inherited::configuration_->area.width;
+      inherited::frameSize_ =
+          av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                    inherited::frame_->width, inherited::frame_->height,
+                                    1); // *TODO*: linesize alignment
+      ACE_ASSERT (inherited::frameSize_ >= 0);
+      ACE_ASSERT (inherited::buffer_);
+      inherited::buffer_->release (); inherited::buffer_ = NULL;
+      inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
+      if (unlikely (!inherited::buffer_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::frameSize_));
+        goto error;
+      } // end IF
+      ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
+      result =
+          av_image_fill_linesizes (inherited::frame_->linesize,
+                                   static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                   static_cast<int> (inherited::frame_->width));
+      ACE_ASSERT (result >= 0);
+      result =
+          av_image_fill_pointers (inherited::frame_->data,
+                                  static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                  static_cast<int> (inherited::frame_->height),
+                                  reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                                  inherited::frame_->linesize);
+      ACE_ASSERT (result >= 0);
 
       break;
 

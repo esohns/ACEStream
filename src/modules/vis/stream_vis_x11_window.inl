@@ -23,7 +23,6 @@ extern "C"
 {
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
@@ -64,9 +63,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 // , context_ ()
  , display_ (NULL)
  , isFirst_ (true)
- , scaleContext_ (NULL)
- , scaleContextHeight_ (0)
- , scaleContextWidth_ (0)
  , window_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::Stream_Module_Vis_X11_Window_T"));
@@ -134,9 +130,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   inherited::mod_->name (),
                   display_));
   } // end IF
-
-  if (scaleContext_)
-    sws_freeContext (scaleContext_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -211,63 +204,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   }
-
-  transform_image =
-      ((pixel_format_e != AV_PIX_FMT_RGBA) ||
-       ((resolution_s.width != resolution_2.width) || (resolution_s.height != resolution_2.height)));
-  if (unlikely (transform_image &&
-                ((resolution_2.height != scaleContextHeight_) || (resolution_2.width != scaleContextWidth_))))
-  {
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_); scaleContext_ = NULL;
-    } // end IF
-    int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
-//                 SWS_LANCZOS | SWS_ACCURATE_RND);
-    scaleContext_ =
-        sws_getCachedContext (NULL,
-                              resolution_s.width, resolution_s.height, pixel_format_e,
-                              resolution_2.width, resolution_2.height, AV_PIX_FMT_RGBA,
-                              flags,                             // flags
-                              NULL, NULL,
-                              0);                                // parameters
-    if (unlikely (!scaleContext_))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      goto unlock;
-    } // end IF
-    scaleContextHeight_ = resolution_2.height;
-    scaleContextWidth_ = resolution_2.width;
-#if defined (_DEBUG)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
-                inherited::mod_->name (),
-                resolution_s.width, resolution_s.height,
-                resolution_2.width, resolution_2.height));
-#endif // _DEBUG
-  } // end IF
-
-  // step3: transform image?
-  if (transform_image)
-  {
-//    ACE_OS::memset (in_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-//    ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-    in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-    out_data[0] = buffer_;
-    if (unlikely (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                                         resolution_s.width, resolution_s.height, pixel_format_e,
-                                                         in_data,
-                                                         resolution_2.width, resolution_2.height, AV_PIX_FMT_RGBA,
-                                                         out_data)))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
-                  inherited::mod_->name ()));
-      goto unlock;
-    } // end IF
-  } // end IF
 
   image_p =
       XCreateImage (display_,
@@ -492,12 +428,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     closeDisplay_ = false;
     display_ = NULL;
     isFirst_ = true;
-    if (scaleContext_)
-    {
-      sws_freeContext (scaleContext_); scaleContext_ = NULL;
-    } // end IF
-    scaleContextHeight_ = 0;
-    scaleContextWidth_ = 0;
     window_ = 0;
   } // end IF
 

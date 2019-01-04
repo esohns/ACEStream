@@ -147,10 +147,10 @@ Stream_CamSave_Message_T<DataType,
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-  // *NOTE*: duplicates may reuse the device buffer memory, but only the
-  //         original message will requeue it (see release() below)
-  DataType& data_r = const_cast<DataType&> (message_p->getR ());
-  data_r.device = -1;
+//  // *NOTE*: duplicates may reuse the device buffer memory, but only the
+//  //         original message will requeue it (see release() below)
+//  DataType& data_r = const_cast<DataType&> (message_p->getR ());
+//  data_r.device = -1;
 
   return message_p;
 }
@@ -171,21 +171,22 @@ Stream_CamSave_Message_T<DataType,
     inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
-  if (inherited::data_.device != -1) // requeue device data buffers
-    goto requeue;
+  int reference_count = inherited::reference_count ();
+  if ((reference_count > 1)           || // not the last reference
+      (inherited::data_.device == -1) || // not a device data buffer
+      inherited::data_.release)          // clean up (device data)
+    return inherited::release ();
 
-  return inherited::release ();
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
 
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::data_block_);
+  // *IMPORTANT NOTE*: handle race condition here
+  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
+    if (inherited::size ()) // is device-data ?
+      goto requeue;
 
-//  // *IMPORTANT NOTE*: handle race condition here
-//  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
-//    if (inherited::size ()) // is device-data ?
-//      goto requeue;
-
-//    return NULL; // nothing to do
-//  } // end lock scope
+    return inherited::release ();
+  } // end lock scope
 
 requeue:
   struct v4l2_buffer buffer_s;

@@ -21,13 +21,10 @@
 #ifndef STREAM_VIS_GTK_PIXBUF_H
 #define STREAM_VIS_GTK_PIXBUF_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfobjects.h>
-#include <strmif.h>
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
+
+#include "common_ilock.h"
 
 #include "common_ui_ifullscreen.h"
 
@@ -55,6 +52,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Vis_GTK_Pixbuf_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -73,6 +71,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -119,9 +118,6 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 
   bool               isFirst_;
   ACE_SYNCH_MUTEX_T* lock_;
-  struct SwsContext* scaleContext_;
-  unsigned int       scaleContextHeight_;
-  unsigned int       scaleContextWidth_;
 };
 
 // include template definition

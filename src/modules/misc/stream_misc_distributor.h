@@ -30,11 +30,13 @@
 #include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_iget.h"
+//#include "common_iget.h"
+#include "common_ilock.h"
 
 #include "stream_common.h"
 #include "stream_ilink.h"
-#include "stream_task_base_asynch.h"
+//#include "stream_task_base_asynch.h"
+#include "stream_task_base_synch.h"
 
 extern const char libacestream_default_misc_distributor_module_name_string[];
 
@@ -52,31 +54,33 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataType>
 class Stream_Miscellaneous_Distributor_T
- : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  Stream_SessionId_t,
-                                  Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData>
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_IRecursiveLock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
  , public Stream_IDistributorModule
  , public Stream_IModuleLinkCB
- , public Common_IGetP_2_T<ACE_Module<ACE_SYNCH_USE,
-                                      TimePolicyType>*>
+// , public Common_IGetP_2_T<ACE_Module<ACE_SYNCH_USE,
+//                                      TimePolicyType> >
 {
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  Stream_SessionId_t,
-                                  Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_IRecursiveLock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -148,15 +152,16 @@ class Stream_Miscellaneous_Distributor_T
                                              SessionMessageType,
                                              SessionDataType> OWN_TYPE_T;
   typedef std::map<MODULE_T*,
-                   SessionDataType*> HEAD_TO_SESSIONDATA_MAP_T;
-  typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
+                   typename SessionMessageType::DATA_T*> HEAD_TO_SESSIONDATA_MAP_T;
+  typedef typename HEAD_TO_SESSIONDATA_MAP_T::iterator HEAD_TO_SESSIONDATA_ITERATOR_T;
+//  typedef typename HEAD_TO_SESSIONDATA_MAP_T::const_iterator HEAD_TO_SESSIONDATA_CONST_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T (const Stream_Miscellaneous_Distributor_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Miscellaneous_Distributor_T& operator= (const Stream_Miscellaneous_Distributor_T&))
 
   // helper methods
-  virtual const MODULE_T* const getP_2 () const; // return value: head module handle
+//  virtual const MODULE_T* const getP_2 () const; // return value: head module handle
   void forward (ACE_Message_Block*, // message handle
                 bool = false);      // dispose of original message ?
 

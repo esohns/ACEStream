@@ -172,7 +172,6 @@ class Stream_Module_Decoder_Tools
                      uint8_t*[],         // source buffer(s)
                      unsigned int,       // target width
                      unsigned int,       // target height
-                     enum AVPixelFormat, // target pixel format
                      uint8_t*[]);        // target buffer(s)
 
   // *NOTE*: write a sinus waveform into the target buffer in the specified

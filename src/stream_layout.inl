@@ -514,6 +514,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
 //  kptree::print_tree_bracketed (*this, std::cout);
 
   unsigned int depth_i = 0, count_i = 0, num_nodes_i = inherited::size ();
+  ACE_UNUSED_ARG (num_nodes_i);
   std::string indentation_string;
   bool is_last_b = false;
   for (typename inherited::iterator iterator = inherited::begin();
@@ -526,7 +527,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
                                      : !iterator.node->next_sibling);
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("%s%s%s%s"),
-                ((depth_i < inherited::depth (iterator)) ? ACE_TEXT_ALWAYS_CHAR ("\n") : ACE_TEXT_ALWAYS_CHAR ("")),
+                ((depth_i < static_cast<unsigned int> (inherited::depth (iterator))) ? ACE_TEXT_ALWAYS_CHAR ("\n") : ACE_TEXT_ALWAYS_CHAR ("")),
                 ACE_TEXT (indentation_string.c_str ()),
                 (*iterator)->name (),
                 (is_last_b ? ACE_TEXT_ALWAYS_CHAR ("\n") : ACE_TEXT_ALWAYS_CHAR (" --> "))));

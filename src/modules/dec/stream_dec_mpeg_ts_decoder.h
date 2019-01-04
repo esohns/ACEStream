@@ -25,11 +25,10 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
-
-//#include "stream_dec_exports.h"
 
 extern const char libacestream_default_dec_mpeg_ts_module_name_string[];
 
@@ -50,6 +49,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Decoder_MPEG_TS_Decoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -61,6 +61,7 @@ class Stream_Decoder_MPEG_TS_Decoder_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -98,21 +99,21 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   void parsePSI (ACE_Message_Block*); // data pointer
 
   // helper types
-  typedef std::map<unsigned short, unsigned short> PROGRAMNUM2PMTPACKETID_T;
-  typedef PROGRAMNUM2PMTPACKETID_T::const_iterator PROGRAMNUM2PMTPACKETID_ITERATOR_T;
-  typedef std::map<unsigned short, unsigned short> STREAMTYPE2PACKETID_T;
-  typedef STREAMTYPE2PACKETID_T::const_iterator STREAMTYPE2PACKETID_ITERATOR_T;
+  typedef std::map<unsigned short, unsigned short> PROGRAMNUM_TO_PMTPACKETID_T;
+  typedef PROGRAMNUM_TO_PMTPACKETID_T::const_iterator PROGRAMNUM_TO_PMTPACKETID_ITERATOR_T;
+  typedef std::map<unsigned short, unsigned short> STREAMTYPE_TO_PACKETID_T;
+  typedef STREAMTYPE_TO_PACKETID_T::const_iterator STREAMTYPE_TO_PACKETID_ITERATOR_T;
 
-  ACE_Message_Block*       buffer_;
-  unsigned int             missingPESBytes_;
-  bool                     isParsingPSI_; // program-specific information
-  unsigned int             missingPSIBytes_;
-  unsigned int             programPMTPacketId_;
-  unsigned int             program_;
-  PROGRAMNUM2PMTPACKETID_T programs_;
-  unsigned int             streamType_;
-  STREAMTYPE2PACKETID_T    streams_;
-  unsigned int             streamPacketId_;
+  ACE_Message_Block*          buffer_;
+  unsigned int                missingPESBytes_;
+  bool                        isParsingPSI_; // program-specific information
+  unsigned int                missingPSIBytes_;
+  unsigned int                programPMTPacketId_;
+  unsigned int                program_;
+  PROGRAMNUM_TO_PMTPACKETID_T programs_;
+  unsigned int                streamType_;
+  STREAMTYPE_TO_PACKETID_T    streams_;
+  unsigned int                streamPacketId_;
 };
 
 // include template definition

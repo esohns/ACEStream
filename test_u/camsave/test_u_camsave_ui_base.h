@@ -45,9 +45,9 @@ class dialog_main : public wxDialog
 	
 	protected:
 		wxToggleButton* togglebutton_record;
-		wxBitmapButton* button_snapshot;
-		wxBitmapButton* button_cut;
-		wxBitmapButton* button_report;
+    wxButton* button_snapshot;
+    wxButton* button_cut;
+    wxButton* button_report;
 		wxPanel* m_panel2;
 		wxStaticText* label_frames;
 		wxSpinCtrl* spincontrol_frames_captured;
@@ -62,11 +62,11 @@ class dialog_main : public wxDialog
 		wxStaticLine* m_staticline2;
 		wxPanel* m_panel3;
 		wxChoice* choice_source;
-		wxBitmapButton* button_hardware_settings;
+    wxButton* button_hardware_settings;
 		wxChoice* choice_format;
 		wxChoice* choice_resolution;
 		wxChoice* choice_framerate;
-		wxBitmapButton* button_reset_format;
+    wxButton* button_reset_format;
 		wxPanel* m_panel4;
 		wxToggleButton* togglebutton_save;
 		wxTextCtrl* textcontrol_filename;
@@ -76,12 +76,12 @@ class dialog_main : public wxDialog
 		wxToggleButton* togglebutton_fullscreen;
 		wxChoice* choice_adapter;
 		wxChoice* choice_display;
-		wxBitmapButton* button_display_settings;
+    wxButton* button_display_settings;
 		wxChoice* choice_resolution_2;
 		wxPanel* panel_video;
 		wxStaticLine* staticline_bottom;
-		wxBitmapButton* button_about;
-		wxBitmapButton* button_quit;
+    wxButton* button_about;
+    wxButton* button_quit;
 		wxGauge* gauge_progress;
 		
 		// Virtual event handlers, overide them in your derived class

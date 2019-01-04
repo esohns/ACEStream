@@ -21,26 +21,16 @@
 #ifndef STREAM_STAT_STATISTIC_ANALYSIS_H
 #define STREAM_STAT_STATISTIC_ANALYSIS_H
 
-#include "ace/config-lite.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfapi.h>
-#include <mfobjects.h>
-#include <strmif.h>
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_inotify.h"
 
 #include "common_math_sample.h"
 
 #include "stream_task_base_synch.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_lib_alsa_common.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_mediatype_converter.h"
 
 #include "stream_stat_common.h"
@@ -66,6 +56,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Statistic_StatisticAnalysis_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -85,6 +76,7 @@ class Stream_Statistic_StatisticAnalysis_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

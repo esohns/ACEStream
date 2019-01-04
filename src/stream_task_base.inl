@@ -352,10 +352,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         // *NOTE*: the idea here is to 'merge' the two datasets
         *session_data_2 += *session_data_p;
 
-        if (release_lock)
+        if (likely (release_lock))
         {
           result = sessionDataLock_->release ();
-          if (result == -1)
+          if (unlikely (result == -1))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
@@ -683,16 +683,17 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     case ACE_Message_Block::MB_PROTO:
     {
       DataMessageType* message_p =
-        dynamic_cast<DataMessageType*> (messageBlock_in);
-      if (unlikely (!message_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in,
-                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto error;
-      } // end IF
+//        dynamic_cast<DataMessageType*> (messageBlock_in);
+          static_cast<DataMessageType*> (messageBlock_in);
+//      if (unlikely (!message_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
+//                    inherited::mod_->name (),
+//                    messageBlock_in,
+//                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+//        goto error;
+//      } // end IF
 
       //// *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
       ////                   configurations with a network data source), data may

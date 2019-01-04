@@ -142,8 +142,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct Stream_Filecopy_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Stream_Filecopy_Message,
-                                   Stream_Filecopy_SessionMessage,
-                                   struct Stream_Filecopy_SessionData> Stream_Filecopy_FileWriter;
+                                   Stream_Filecopy_SessionMessage> Stream_Filecopy_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type

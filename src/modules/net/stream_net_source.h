@@ -27,6 +27,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -46,6 +47,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_Source_Reader_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  ACE_Message_Block,
@@ -55,19 +57,9 @@ class Stream_Module_Net_Source_Reader_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
- public:
-  // *NOTE*: this module has two modes of operation:
-  //         active:  establish and manage a connection
-  //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_Reader_T ();
-  inline virtual ~Stream_Module_Net_Source_Reader_T () {};
-
-  // implement (part of) Stream_ITaskBase
-  virtual void handleControlMessage (ACE_Message_Block&);
-
- private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  ACE_Message_Block,
@@ -77,6 +69,17 @@ class Stream_Module_Net_Source_Reader_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
+ public:
+  // *NOTE*: this module has two modes of operation:
+  //         active:  establish and manage a connection
+  //         passive: use an existing connection (handle passed in initialize())
+  Stream_Module_Net_Source_Reader_T ();
+  inline virtual ~Stream_Module_Net_Source_Reader_T () {}
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleControlMessage (ACE_Message_Block&);
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T (const Stream_Module_Net_Source_Reader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T& operator= (const Stream_Module_Net_Source_Reader_T&))
 
@@ -99,6 +102,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_Source_Writer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -111,6 +115,7 @@ class Stream_Module_Net_Source_Writer_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

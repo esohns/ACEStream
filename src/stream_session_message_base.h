@@ -48,7 +48,7 @@ class ACE_Data_Block;
 
 template <typename AllocatorConfigurationType,
           typename SessionMessageType,
-          typename SessionDataType, // implements Common_IReferenceCount !
+          typename SessionDataType, // implements Common_IReferenceCount
           ////////////////////////////////
           typename UserDataType>
 class Stream_SessionMessageBase_T

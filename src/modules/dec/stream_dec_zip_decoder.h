@@ -22,15 +22,16 @@
 #define STREAM_DEC_ZIP_DECODER_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "zlib.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
 #include "stream_dec_common.h"
-//#include "stream_dec_exports.h"
 
 //extern Stream_Dec_Export const char libacestream_default_dec_zip_decoder_module_name_string[];
 extern const char libacestream_default_dec_zip_decoder_module_name_string[];
@@ -52,6 +53,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Decoder_ZIPDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -63,6 +65,7 @@ class Stream_Decoder_ZIPDecoder_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

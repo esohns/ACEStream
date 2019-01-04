@@ -31,6 +31,7 @@ extern "C"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "common_ui_common.h"
@@ -67,6 +68,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Decoder_LibAVConverter_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -84,6 +86,7 @@ class Stream_Decoder_LibAVConverter_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

@@ -28,6 +28,7 @@
 
 #include "common_isubscribe.h"
 #include "common_iclone.h"
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -58,6 +59,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -77,6 +79,7 @@ class Stream_Module_MessageHandler_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -129,6 +132,7 @@ class Stream_Module_MessageHandler_T
   // convenient types
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

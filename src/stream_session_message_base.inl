@@ -187,9 +187,9 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     return *data_;
 
   ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (SessionDataType ());
-
-  ACE_NOTREACHED (return SessionDataType ();)
+  typename SessionDataType::DATA_T* data_p = NULL;
+  ACE_NOTSUP_RETURN (SessionDataType (data_p));
+  ACE_NOTREACHED (return SessionDataType (data_p);)
 }
 
 template <typename AllocatorConfigurationType,
@@ -210,8 +210,35 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   if (likely (data_))
   {
-    *data_in += *data_;
-    data_->release ();
+    const typename SessionDataType::DATA_T& session_data_r =
+        data_->getR ();
+    typename SessionDataType::DATA_T& session_data_2 =
+        const_cast<typename SessionDataType::DATA_T&> (data_in->getR ());
+    ACE_ASSERT (session_data_r.lock && session_data_2.lock);
+    int result = -1;
+    bool release_lock_b = false;
+//    ACE_ASSERT (session_data_r.lock != session_data_2.lock);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+//      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_2.lock);
+      if (session_data_r.lock != session_data_2.lock)
+      {
+        result = session_data_2.lock->acquire ();
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+        else
+          release_lock_b = true;
+      } // end IF
+      session_data_2 += session_data_r;
+      if (likely (release_lock_b))
+      {
+        result = session_data_2.lock->release ();
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+      } // end IF
+    } // end lock scope
+    data_->decrease ();
   } // end IF
 
   data_ = data_in;

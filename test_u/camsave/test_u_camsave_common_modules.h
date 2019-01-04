@@ -428,13 +428,18 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Stream_CamSave_MediaFoundation_SessionMessage_t,
                                    Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_FileWriter;
 #else
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
+//typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+//                                   Common_TimePolicy_t,
+//                                   struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+//                                   Test_U_ControlMessage_t,
+//                                   Stream_CamSave_Message_t,
+//                                   Stream_CamSave_V4L_SessionMessage_t,
+//                                   Stream_CamSave_V4L_SessionData> Stream_CamSave_FileWriter;
+typedef Stream_Module_FileWriter_2<Common_TimePolicy_t,
                                    struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Stream_CamSave_Message_t,
-                                   Stream_CamSave_V4L_SessionMessage_t,
-                                   Stream_CamSave_V4L_SessionData> Stream_CamSave_FileWriter;
+                                   Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_FileWriter;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

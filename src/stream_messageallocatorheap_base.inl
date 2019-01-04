@@ -246,7 +246,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   // step0: wait for an empty slot ?
-  if (block_)
+  if (likely (block_))
     result = freeMessageCounter_.acquire ();
   else
     result = freeMessageCounter_.tryacquire ();

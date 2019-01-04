@@ -508,9 +508,10 @@ Stream_Device_Tools::getCaptureSubFormats (int fileDescriptor_in)
     } // end IF
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("video capture device (fd: %d) has format \"%s\"\n"),
+                ACE_TEXT ("video capture device (fd: %d) has format \"%s\" [%d]\n"),
                 fileDescriptor_in,
-                ACE_TEXT (reinterpret_cast<char*> (fmtdesc_s.description))));
+                ACE_TEXT (reinterpret_cast<char*> (fmtdesc_s.description)),
+                fmtdesc_s.pixelformat));
 #endif // _DEBUG
 
     return_value.push_back (std::make_pair (fmtdesc_s.pixelformat,

@@ -24,6 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -45,12 +46,11 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ///////////////////////////////
-          typename SessionDataContainerType,
-          ///////////////////////////////
           typename UserDataType>
 class Stream_Module_Dump_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -62,6 +62,7 @@ class Stream_Module_Dump_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -78,7 +79,7 @@ class Stream_Module_Dump_T
 #else
   Stream_Module_Dump_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Stream_Module_Dump_T ();
+  inline virtual ~Stream_Module_Dump_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -103,8 +104,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ///////////////////////////////
-          typename SessionDataContainerType,
-          ///////////////////////////////
           typename UserDataType>
 class Stream_Module_FileDump_T
  : public Stream_Module_FileWriter_T<ACE_SYNCH_USE,
@@ -112,16 +111,14 @@ class Stream_Module_FileDump_T
                                      ConfigurationType,
                                      ControlMessageType,
                                      DataMessageType,
-                                     SessionMessageType,
-                                     typename SessionDataContainerType::DATA_T>
+                                     SessionMessageType>
 {
   typedef Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
                                      DataMessageType,
-                                     SessionMessageType,
-                                     typename SessionDataContainerType::DATA_T> inherited;
+                                     SessionMessageType> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -130,7 +127,7 @@ class Stream_Module_FileDump_T
 #else
   Stream_Module_FileDump_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Stream_Module_FileDump_T ();
+  inline virtual ~Stream_Module_FileDump_T () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

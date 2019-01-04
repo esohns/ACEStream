@@ -31,6 +31,8 @@
 #include "ace/Task_T.h"
 #include "ace/Stream.h"
 
+#include "common_ilock.h"
+
 #include "stream_common.h"
 #include "stream_ilink.h"
 #include "stream_task_base_synch.h"
@@ -108,6 +110,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Aggregator_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -120,6 +123,7 @@ class Stream_Module_Aggregator_WriterTask_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

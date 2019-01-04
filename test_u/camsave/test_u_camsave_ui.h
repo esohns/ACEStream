@@ -9,7 +9,8 @@
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_stream.h"
-#include "test_u_camsave_ui_base.h"
+//#include "test_u_camsave_ui_base.h" // wxFormBuilder
+#include "camsave_wxwidgets_ui.h" // wxGlade
 
 // helper functions
 void process_stream_events (struct Stream_CamSave_UI_CBData*, bool&);
@@ -21,11 +22,11 @@ ACE_THR_FUNC_RETURN stream_processing_thread (void*);
 template <typename InterfaceType, // implements Common_UI_wxWidgets_IApplication_T
           typename StreamType>
 class Stream_CamSave_WxWidgetsDialog_T
- : public dialog_main
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
                                           typename InterfaceType::CONFIGURATION_T>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
   //                                        typename InterfaceType::CONFIGURATION_T> inherited2;
 
@@ -55,30 +56,28 @@ class Stream_CamSave_WxWidgetsDialog_T
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
-  virtual void button_snapshot_click_cb (wxCommandEvent&);
-  virtual void button_cut_click_cb (wxCommandEvent&);
-#if defined (_DEBUG)
-  virtual void button_report_click_cb (wxCommandEvent&);
-#endif // _DEBUG
-  virtual void choice_source_selected_cb (wxCommandEvent&);
-  virtual void button_hardware_settings_click_cb (wxCommandEvent&);
-  virtual void choice_format_selected_cb (wxCommandEvent&);
-  virtual void choice_resolution_selected_cb (wxCommandEvent&);
-  virtual void choice_framerate_selected_cb (wxCommandEvent&);
-  virtual void button_reset_format_click_cb (wxCommandEvent&);
-  virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void button_snapshot_clicked_cb (wxCommandEvent&);
+  virtual void button_cut_clicked_cb (wxCommandEvent&);
+  virtual void button_report_clicked_cb (wxCommandEvent&);
+  virtual void button_reset_camera_clicked_cb (wxCommandEvent&);
+  virtual void choice_source_changed_cb (wxCommandEvent&);
+  virtual void button_camera_properties_clicked_cb (wxCommandEvent&);
+  virtual void choice_format_changed_cb (wxCommandEvent&);
+  virtual void choice_resolution_changed_cb (wxCommandEvent&);
+  virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
-  virtual void choice_adapter_selected_cb (wxCommandEvent&);
-  virtual void choice_display_selected_cb (wxCommandEvent&);
-  virtual void button_display_settings_click_cb (wxCommandEvent&);
-  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
-  virtual void button_about_click_cb (wxCommandEvent&);
-  virtual void button_quit_click_cb (wxCommandEvent&);
+  virtual void choice_displayadapter_changed_cb (wxCommandEvent&);
+  virtual void choice_screen_changed_cb (wxCommandEvent&);
+//  virtual void button_display_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_changed_cb (wxCommandEvent&);
+  virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
+//  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void button_about_clicked_cb (wxCommandEvent&);
+  virtual void button_quit_clicked_cb (wxCommandEvent&);
 
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
-  wxDECLARE_EVENT_TABLE ();
+//  wxDECLARE_EVENT_TABLE ();
 
   InterfaceType* application_;
   bool           initializing_;
@@ -126,27 +125,27 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_DirectShow_WxWidgetsIAppli
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
-  virtual void button_snapshot_click_cb (wxCommandEvent&);
-  virtual void button_cut_click_cb (wxCommandEvent&);
+  virtual void button_snapshot_clicked_cb (wxCommandEvent&);
+  virtual void button_cut_clicked_cb (wxCommandEvent&);
 #if defined (_DEBUG)
-  virtual void button_report_click_cb (wxCommandEvent&);
+  virtual void button_report_clicked_cb (wxCommandEvent&);
 #endif // _DEBUG
-  virtual void choice_source_selected_cb (wxCommandEvent&);
-  virtual void button_hardware_settings_click_cb (wxCommandEvent&);
-  virtual void choice_format_selected_cb (wxCommandEvent&);
-  virtual void choice_resolution_selected_cb (wxCommandEvent&);
-  virtual void choice_framerate_selected_cb (wxCommandEvent&);
-  virtual void button_reset_format_click_cb (wxCommandEvent&);
+  virtual void choice_source_changed_cb (wxCommandEvent&);
+  virtual void button_hardware_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_format_changed_cb (wxCommandEvent&);
+  virtual void choice_resolution_changed_cb (wxCommandEvent&);
+  virtual void choice_framerate_changed_cb (wxCommandEvent&);
+  virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
-  virtual void choice_adapter_selected_cb (wxCommandEvent&);
-  virtual void choice_display_selected_cb (wxCommandEvent&);
-  virtual void button_display_settings_click_cb (wxCommandEvent&);
-  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
-  virtual void button_about_click_cb (wxCommandEvent&);
-  virtual void button_quit_click_cb (wxCommandEvent&);
+  virtual void choice_adapter_changed_cb (wxCommandEvent&);
+  virtual void choice_display_changed_cb (wxCommandEvent&);
+  virtual void button_display_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_changed_cb (wxCommandEvent&);
+  virtual void button_about_clicked_cb (wxCommandEvent&);
+  virtual void button_quit_clicked_cb (wxCommandEvent&);
 
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
   wxDECLARE_EVENT_TABLE ();
@@ -194,27 +193,27 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
-  virtual void button_snapshot_click_cb (wxCommandEvent&);
-  virtual void button_cut_click_cb (wxCommandEvent&);
+  virtual void button_snapshot_clicked_cb (wxCommandEvent&);
+  virtual void button_cut_clicked_cb (wxCommandEvent&);
 #if defined (_DEBUG)
-  virtual void button_report_click_cb (wxCommandEvent&);
+  virtual void button_report_clicked_cb (wxCommandEvent&);
 #endif // _DEBUG
-  virtual void choice_source_selected_cb (wxCommandEvent&);
-  virtual void button_hardware_settings_click_cb (wxCommandEvent&);
-  virtual void choice_format_selected_cb (wxCommandEvent&);
-  virtual void choice_resolution_selected_cb (wxCommandEvent&);
-  virtual void choice_framerate_selected_cb (wxCommandEvent&);
-  virtual void button_reset_format_click_cb (wxCommandEvent&);
+  virtual void choice_source_changed_cb (wxCommandEvent&);
+  virtual void button_hardware_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_format_changed_cb (wxCommandEvent&);
+  virtual void choice_resolution_changed_cb (wxCommandEvent&);
+  virtual void choice_framerate_changed_cb (wxCommandEvent&);
+  virtual void button_reset_format_clicked_cb (wxCommandEvent&);
   virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
   virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
-  virtual void choice_adapter_selected_cb (wxCommandEvent&);
-  virtual void choice_display_selected_cb (wxCommandEvent&);
-  virtual void button_display_settings_click_cb (wxCommandEvent&);
-  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
-  virtual void button_about_click_cb (wxCommandEvent&);
-  virtual void button_quit_click_cb (wxCommandEvent&);
+  virtual void choice_adapter_changed_cb (wxCommandEvent&);
+  virtual void choice_display_changed_cb (wxCommandEvent&);
+  virtual void button_display_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_changed_cb (wxCommandEvent&);
+  virtual void button_about_clicked_cb (wxCommandEvent&);
+  virtual void button_quit_clicked_cb (wxCommandEvent&);
 
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
   wxDECLARE_EVENT_TABLE ();
@@ -229,11 +228,11 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
 template <>
 class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                        Stream_CamSave_V4L_Stream>
- : public dialog_main
+ : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
                                           struct Stream_CamSave_V4L_UI_CBData>
 {
-  typedef dialog_main inherited;
+  typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
   //                                        struct Stream_CamSave_V4L_UI_CBData> inherited2;
 
@@ -263,30 +262,28 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_
 
   // control handlers
   virtual void togglebutton_record_toggled_cb (wxCommandEvent&);
-  virtual void button_snapshot_click_cb (wxCommandEvent&);
-  virtual void button_cut_click_cb (wxCommandEvent&);
-#if defined (_DEBUG)
-  virtual void button_report_click_cb (wxCommandEvent&);
-#endif // _DEBUG
-  virtual void choice_source_selected_cb (wxCommandEvent&);
-  virtual void button_hardware_settings_click_cb (wxCommandEvent&);
-  virtual void choice_format_selected_cb (wxCommandEvent&);
-  virtual void choice_resolution_selected_cb (wxCommandEvent&);
-  virtual void choice_framerate_selected_cb (wxCommandEvent&);
-  virtual void button_reset_format_click_cb (wxCommandEvent&);
-  virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
-  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void button_snapshot_clicked_cb (wxCommandEvent&);
+  virtual void button_cut_clicked_cb (wxCommandEvent&);
+  virtual void button_report_clicked_cb (wxCommandEvent&);
+  virtual void button_reset_camera_clicked_cb (wxCommandEvent&);
+  virtual void choice_source_changed_cb (wxCommandEvent&);
+  virtual void button_camera_properties_clicked_cb (wxCommandEvent&);
+  virtual void choice_format_changed_cb (wxCommandEvent&);
+  virtual void choice_resolution_changed_cb (wxCommandEvent&);
+  virtual void choice_framerate_changed_cb (wxCommandEvent&);
   virtual void togglebutton_display_toggled_cb (wxCommandEvent&);
   virtual void togglebutton_fullscreen_toggled_cb (wxCommandEvent&);
-  virtual void choice_adapter_selected_cb (wxCommandEvent&);
-  virtual void choice_display_selected_cb (wxCommandEvent&);
-  virtual void button_display_settings_click_cb (wxCommandEvent&);
-  virtual void choice_resolution_2_selected_cb (wxCommandEvent&);
-  virtual void button_about_click_cb (wxCommandEvent&);
-  virtual void button_quit_click_cb (wxCommandEvent&);
+  virtual void choice_displayadapter_changed_cb (wxCommandEvent&);
+  virtual void choice_screen_changed_cb (wxCommandEvent&);
+//  virtual void button_display_settings_clicked_cb (wxCommandEvent&);
+  virtual void choice_resolution_2_changed_cb (wxCommandEvent&);
+  virtual void togglebutton_save_toggled_cb (wxCommandEvent&);
+//  virtual void picker_directory_save_changed_cb (wxFileDirPickerEvent&);
+  virtual void button_about_clicked_cb (wxCommandEvent&);
+  virtual void button_quit_clicked_cb (wxCommandEvent&);
 
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
-  wxDECLARE_EVENT_TABLE ();
+//  wxDECLARE_EVENT_TABLE ();
 
   Stream_CamSave_V4L_WxWidgetsIApplication_t* application_;
   bool                                        initializing_;

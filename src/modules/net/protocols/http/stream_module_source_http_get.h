@@ -24,14 +24,14 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
 #include "http_common.h"
-
-//#include "stream_net_http_exports.h"
 
 //extern STREAM_NET_HTTP_Export const char libacestream_default_net_http_get_module_name_string[];
 extern const char libacestream_default_net_http_get_module_name_string[];
@@ -53,6 +53,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_Source_HTTP_Get_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -64,6 +65,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -80,7 +82,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
 #else
   Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Module_Net_Source_HTTP_Get_T ();
+  inline virtual ~Stream_Module_Net_Source_HTTP_Get_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,

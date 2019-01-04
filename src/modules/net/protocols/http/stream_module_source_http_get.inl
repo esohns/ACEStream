@@ -68,25 +68,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConnectionConfigurationIteratorType>
-Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
-                                    TimePolicyType,
-                                    ConfigurationType,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::~Stream_Module_Net_Source_HTTP_Get_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::~Stream_Module_Net_Source_HTTP_Get_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
 bool
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,

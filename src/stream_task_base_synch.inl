@@ -24,6 +24,7 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename LockType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -34,6 +35,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
+                       LockType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,

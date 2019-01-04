@@ -111,7 +111,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
               modules_.find ((*iterator).second);
           ACE_ASSERT (iterator_2 != modules_.end ());
           ACE_ASSERT ((*iterator_2).second);
-          HEAD_TO_SESSIONDATA_CONST_ITERATOR_T iterator_3 =
+          HEAD_TO_SESSIONDATA_ITERATOR_T iterator_3 =
               data_.find ((*iterator_2).second);
           ACE_ASSERT (iterator_3 != data_.end ());
           ACE_ASSERT ((*iterator_3).second);
@@ -133,6 +133,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
           break;
         }
         case STREAM_MESSAGE_CONTROL:
+//        case ACE_Message_Block::MB_STOP:
           break;
         default:
         {
@@ -245,7 +246,7 @@ error:
             true); // locked access ?
 
       { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
-        for (HEAD_TO_SESSIONDATA_MAP_T iterator = data_.begin ();
+        for (HEAD_TO_SESSIONDATA_ITERATOR_T iterator = data_.begin ();
              iterator != data_.end ();
              ++iterator)
         { ACE_ASSERT ((*iterator).second);

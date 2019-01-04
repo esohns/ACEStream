@@ -27,14 +27,13 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_ilock.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_imodule.h"
 #include "stream_iparser.h"
 #include "stream_task_base_synch.h"
-
-//#include "stream_misc_exports.h"
 
 extern const char libacestream_default_misc_parser_module_name_string[];
 
@@ -58,6 +57,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_CppParser_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -72,6 +72,7 @@ class Stream_Module_CppParser_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -102,17 +103,17 @@ class Stream_Module_CppParser_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) ParserInterfaceType
-  inline virtual bool initialize (const ParserConfigurationType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
-  inline virtual void dump_state () const { ACE_ASSERT (false); ACE_NOTSUP; };
+  inline virtual bool initialize (const ParserConfigurationType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  inline virtual void dump_state () const { ACE_ASSERT (false); ACE_NOTSUP; }
   virtual bool parse (ACE_Message_Block*); // data buffer handle
 //  virtual void error (const YYLTYPE&,      // location
-  inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; };
+  inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; }
 
   // implement (part of) Common_ILexScanner_T
-  inline virtual ACE_Message_Block* buffer () { return fragment_; };
-  inline virtual bool isBlocking () const { return blockInParse_; };
-  inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }; // offset (increment)
-  inline virtual unsigned int offset () const { return offset_; };
+  inline virtual ACE_Message_Block* buffer () { return fragment_; }
+  inline virtual bool isBlocking () const { return blockInParse_; }
+  inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }
+  inline virtual unsigned int offset () const { return offset_; }
   virtual bool begin (const char*,   // buffer
                       unsigned int); // size
   virtual void end ();
@@ -120,15 +121,15 @@ class Stream_Module_CppParser_T
   // *NOTE*: (waits for and) appends the next data chunk to fragment_;
   virtual void waitBuffer ();
   virtual void error (const std::string&); // message
-  inline virtual void debug (yyscan_t state_in, bool toggle_in) { scanner_ .debug (state_in, toggle_in); };
-  inline virtual bool initialize (yyscan_t& state_in) { return scanner_.initialize (state_in); };
-  virtual void finalize (yyscan_t& state_in) { scanner_.finalize (state_in); };
-  virtual bool lex (yyscan_t& state_in) { return (scanner_.yylex (state_in) == 0); };
-  inline virtual struct yy_buffer_state* create (yyscan_t state_in, char* buffer_in, size_t size_in) { return scanner_.create (state_in, buffer_in, size_in); };
-  inline virtual void destroy (yyscan_t state_in, struct yy_buffer_state*& buffer_inout) { scanner_.destroy (state_in, buffer_inout); };
-  inline virtual const ScannerStateType& getR () const { return scannerState_; };
-  inline virtual const ParserInterfaceType* const getP () const { return this; };
-  inline virtual void setP (ParserInterfaceType* interfaceHandle_in) { scanner_.set (interfaceHandle_in); };
+  inline virtual void debug (yyscan_t state_in, bool toggle_in) { scanner_ .debug (state_in, toggle_in); }
+  inline virtual bool initialize (yyscan_t& state_in) { return scanner_.initialize (state_in); }
+  virtual void finalize (yyscan_t& state_in) { scanner_.finalize (state_in); }
+  virtual bool lex (yyscan_t& state_in) { return (scanner_.yylex (state_in) == 0); }
+  inline virtual struct yy_buffer_state* create (yyscan_t state_in, char* buffer_in, size_t size_in) { return scanner_.create (state_in, buffer_in, size_in); }
+  inline virtual void destroy (yyscan_t state_in, struct yy_buffer_state*& buffer_inout) { scanner_.destroy (state_in, buffer_inout); }
+  inline virtual const ScannerStateType& getR () const { return scannerState_; }
+  inline virtual const ParserInterfaceType* const getP () const { return this; }
+  inline virtual void setP (ParserInterfaceType* interfaceHandle_in) { scanner_.set (interfaceHandle_in); }
 
  protected:
   ParserConfigurationType* configuration_;
@@ -193,6 +194,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Parser_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -207,6 +209,7 @@ class Stream_Module_Parser_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -241,18 +244,18 @@ class Stream_Module_Parser_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) ParserInterfaceType
-  inline virtual bool initialize (const ParserConfigurationType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
-  inline virtual void dump_state () const { ACE_ASSERT (false); ACE_NOTSUP; };
+  inline virtual bool initialize (const ParserConfigurationType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  inline virtual void dump_state () const { ACE_ASSERT (false); ACE_NOTSUP; }
   virtual bool parse (ACE_Message_Block*); // data buffer handle
 //  virtual void error (const YYLTYPE&,      // location
-  inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; };
+  inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; }
 
   // implement (part of) Common_ILexScanner_T
-  inline virtual ACE_Message_Block* buffer () { return fragment_; };
+  inline virtual ACE_Message_Block* buffer () { return fragment_; }
 //  inline virtual bool debug () const { return bittorrent_get_debug (scannerState_); };
-  inline virtual bool isBlocking () const { return blockInParse_; };
-  inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }; // offset (increment)
-  inline virtual unsigned int offset () const { return offset_; };
+  inline virtual bool isBlocking () const { return blockInParse_; }
+  inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }
+  inline virtual unsigned int offset () const { return offset_; }
   virtual bool begin (const char*,   // buffer
                       unsigned int); // size
   virtual void end ();
@@ -260,9 +263,9 @@ class Stream_Module_Parser_T
   // *NOTE*: (waits for and) appends the next data chunk to fragment_;
   virtual void waitBuffer ();
   virtual void error (const std::string&); // message
-  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; };
-  inline virtual const ParserInterfaceType* const getP_2 () const { return this; };
-  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; }
+  inline virtual const ParserInterfaceType* const getP_2 () const { return this; }
+  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  protected:
   ParserConfigurationType* configuration_;

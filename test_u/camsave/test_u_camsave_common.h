@@ -337,20 +337,20 @@ class Stream_CamSave_V4L_SessionData
                                    struct Stream_CamSave_UserData> ()
   {}
 
-  Stream_CamSave_V4L_SessionData& operator+= (const Stream_CamSave_V4L_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
-                                  struct Stream_MediaFramework_V4L_MediaType,
-                                  struct Stream_CamSave_V4L_StreamState,
-                                  struct Stream_CamSave_StatisticData,
-                                  struct Stream_CamSave_UserData>::operator+= (rhs_in);
+//  Stream_CamSave_V4L_SessionData& operator+= (const Stream_CamSave_V4L_SessionData& rhs_in)
+//  {
+//    // *NOTE*: the idea is to 'merge' the data
+//    Stream_SessionDataMediaBase_T<struct Test_U_SessionData,
+//                                  struct Stream_MediaFramework_V4L_MediaType,
+//                                  struct Stream_CamSave_V4L_StreamState,
+//                                  struct Stream_CamSave_StatisticData,
+//                                  struct Stream_CamSave_UserData>::operator+= (rhs_in);
 
-    return *this;
-  }
+//    return *this;
+//  }
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData (const Stream_CamSave_V4L_SessionData&))
+//  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData (const Stream_CamSave_V4L_SessionData&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_V4L_SessionData& operator= (const Stream_CamSave_V4L_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_SessionData_t;

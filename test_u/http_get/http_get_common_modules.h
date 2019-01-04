@@ -164,8 +164,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct HTTPGet_ModuleHandlerConfiguration,
                                    HTTPGet_ControlMessage_t,
                                    HTTPGet_Message,
-                                   HTTPGet_SessionMessage,
-                                   struct HTTPGet_SessionData> HTTPGet_FileWriter;
+                                   HTTPGet_SessionMessage> HTTPGet_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // session data type
                               enum Stream_SessionMessageType,            // session event type
                               struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
