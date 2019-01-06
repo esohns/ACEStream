@@ -64,7 +64,7 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
 //       // *PORTABILITY*: tracing in a signal handler context is not portable
 //       // *TODO*
@@ -81,7 +81,7 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
     case SIGBREAK:
 #else
     case SIGUSR1:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
@@ -92,7 +92,7 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
 #else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // print statistic
@@ -106,7 +106,7 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
-                  signal_in));
+                  signal_in.signal));
       return;
     }
   } // end SWITCH

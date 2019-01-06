@@ -899,7 +899,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     //choice_source->GetEventHandler ()->ProcessEvent (event_s);
     this->AddPendingEvent (event_s);
   } // end IF
-  application_->wait ();
+//  application_->wait ();
 
   if (likely (activate_display_b))
   { ACE_ASSERT (!(*stream_iterator_2).second.second.display.device.empty ());
@@ -914,13 +914,14 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     event_s.SetInt (index_i);
     //choice_screen->GetEventHandler ()->ProcessEvent (event_s);
     this->AddPendingEvent (event_s);
+
     wxCommandEvent event_2 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_display"));
-
     event_2.SetInt ((*stream_iterator_2).second.second.display.device.empty () ? 0
                                                                                : 1);
     //togglebutton_display->GetEventHandler ()->ProcessEvent (event_2);
     this->AddPendingEvent (event_2);
+
     wxCommandEvent event_3 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_fullscreen"));
     event_3.SetInt ((*stream_iterator_2).second.second.fullScreen ? 1 : 0);
@@ -1389,7 +1390,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 
-  button_camera_properties->Enable (true);
+//  button_camera_properties->Enable (true);
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
@@ -1743,6 +1744,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     }
   } // end SWITCH
 }
+
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
@@ -1824,6 +1826,7 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   } // end IF
   ifullscreen_p->toggle ();
 }
+
 void
 Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
