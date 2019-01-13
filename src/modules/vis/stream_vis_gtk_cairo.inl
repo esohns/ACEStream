@@ -419,7 +419,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.window)
     return true; // nothing to do
 
+#if GTK_CHECK_VERSION(2,8,0)
   context_ = gdk_cairo_create (configuration_in.window);
+#else
+    ACE_ASSERT (false);
+#endif // GTK_CHECK_VERSION
   if (unlikely (!context_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -431,6 +435,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //  int scale_i = 0, width_i = 0, height_i = 0;
   GdkRectangle clip_area_s;
   ACE_OS::memset (&clip_area_s, 0, sizeof (GdkRectangle));
+#if GTK_CHECK_VERSION(3,0,0)
   if (!gdk_cairo_get_clip_rectangle (context_,
                                      &clip_area_s))
   {
@@ -439,6 +444,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                 context_));
     goto error;
   } // end IF
+#else
+    ACE_ASSERT (false);
+#endif // GTK_CHECK_VERSION
 
   // *TODO*: remove type inferences
   lock_ = configuration_in.pixelBufferLock;

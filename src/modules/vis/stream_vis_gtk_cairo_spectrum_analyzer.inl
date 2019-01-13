@@ -1122,6 +1122,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
 #if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (surface_in);
 #else
@@ -1130,6 +1131,10 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   int result = -1;
   bool release_lock = false;
+  unsigned int data_sample_size = 0;
+  unsigned int sound_sample_size = 0;
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+
   if (surfaceLock_)
   {
     result = surfaceLock_->acquire ();
@@ -1182,7 +1187,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cairoContext_);
   ACE_ASSERT (pixelBuffer_);
-  const SessionDataType& session_data_r = inherited::sessionData_->getR ();  
   ACE_ASSERT (!session_data_r.formats.empty ());
 
   gdk_cairo_set_source_pixbuf (cairoContext_,
@@ -1190,8 +1194,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                0.0, 0.0);
   cairo_reset_clip (cairoContext_);
 
-  unsigned int data_sample_size = 0;
-  unsigned int sound_sample_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.front (),

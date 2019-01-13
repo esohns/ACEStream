@@ -62,8 +62,9 @@ if (UNIX)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                                $<BUILD_INTERFACE:${GTK3_INCLUDE_DIRS}>)
   elseif (GTK2_FOUND)
+   # *NOTE*: a bug in cmake (3.10.2) requires the additional comment
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>)
+                               "$<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>")
   elseif (GTK_FOUND)
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIR}>)
@@ -210,8 +211,8 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../stat>)
 
-#get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
+get_target_property (debug ${PROJECT_NAME}_Visualization INTERFACE_INCLUDE_DIRECTORIES)
+message (STATUS "INTERFACE_INCLUDE_DIRECTORIES: \"${debug}\"")
 
 ############## next target ################
 set (source_files
