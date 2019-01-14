@@ -219,6 +219,8 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionId_in,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
+#else
+  ACE_UNUSED_ARG (event_e);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 }

@@ -1,10 +1,10 @@
 #include "ace/Synch.h"
 #include "test_u_camsave_ui.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "gdk/gdkx.h"
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#else
+//#include "gdk/gdkx.h"
+//#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_camsave_common.h"
 
@@ -1703,9 +1703,9 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
         static_cast<__u32> (area_s.GetWidth ());
     (*stream_iterator).second.second.area.height =
         static_cast<__u32> (area_s.GetHeight ());
-    GtkWidget* widget_p = panel_video->GetHandle ();
-    ACE_ASSERT (widget_p);
-    GdkWindow* window_p = gtk_widget_get_window (widget_p);
+//    GtkWidget* widget_p = panel_video->GetHandle ();
+//    ACE_ASSERT (widget_p);
+//    GdkWindow* window_p = gtk_widget_get_window (widget_p);
 //    ACE_ASSERT (window_p);
 //    (*stream_iterator).second.second.window = GDK_WINDOW_XID (window_p);
 //    ACE_ASSERT ((*stream_iterator).second.second.window);

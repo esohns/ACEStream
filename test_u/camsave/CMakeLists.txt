@@ -245,7 +245,7 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
- target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
+# target_link_libraries (${EXECUTABLE} libgobject-2.0.so libglib-2.0.so libgdk-3.so libgtk-3.so)
  target_link_libraries (${EXECUTABLE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 
@@ -292,7 +292,7 @@ endif (GUI_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} CommonXML)
 endif (UNIX)
-target_link_libraries (${EXECUTABLE} Common_Test_U)
+#target_link_libraries (${EXECUTABLE} Common_Test_U)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
