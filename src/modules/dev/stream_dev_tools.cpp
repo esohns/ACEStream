@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -312,7 +312,7 @@ Stream_Device_Tools::getVideoCaptureDevices ()
     return return_value;
   } // end IF
 #if defined (_DEBUG)
-  if (!entries.length ())
+  if (unlikely (!entries.length ()))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no video capture devices found, continuing\n")));
 #endif // _DEBUG
@@ -322,7 +322,7 @@ Stream_Device_Tools::getVideoCaptureDevices ()
   std::string device_file_path;
   ACE_DIRENT* dirent_p = NULL;
   int file_descriptor = -1;
-  int open_mode = O_RDONLY;
+  int open_mode_i = O_RDONLY;
   for (unsigned int i = 0;
        i < static_cast<unsigned int> (entries.length ());
        ++i)
@@ -335,13 +335,15 @@ Stream_Device_Tools::getVideoCaptureDevices ()
     ACE_ASSERT (Common_File_Tools::isValidFilename (device_file_path));
 //    ACE_ASSERT (Common_File_Tools::isReadable (device_file_path));
 
-    file_descriptor = v4l2_open (device_file_path.c_str (),
-                                 open_mode);
+    file_descriptor =
+        v4l2_open (ACE_TEXT_ALWAYS_CHAR (device_file_path.c_str ()),
+                   open_mode_i);
     if (unlikely (file_descriptor == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", continuing\n"),
-                  ACE_TEXT (device_file_path.c_str ()), open_mode));
+                  ACE_TEXT ("failed to v4l2_open(\"%s\",%d): \"%m\", continuing\n"),
+                  ACE_TEXT (device_file_path.c_str ()),
+                  open_mode_i));
       goto close;
     } // end IF
 
@@ -358,7 +360,8 @@ Stream_Device_Tools::getVideoCaptureDevices ()
     } // end IF
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("found video capture device \"%s\" (driver: \"%s\") on bus \"%s\"\n"),
+                ACE_TEXT ("%s: found video capture device \"%s\" (driver: \"%s\") on bus \"%s\"\n"),
+                ACE_TEXT (device_file_path.c_str ()),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.card)),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.driver)),
                 ACE_TEXT (reinterpret_cast<char*> (device_capabilities.bus_info))));

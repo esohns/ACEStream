@@ -1,10 +1,5 @@
-#include "ace/Synch.h"
+﻿#include "ace/Synch.h"
 #include "test_u_camsave_ui.h"
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//#include "gdk/gdkx.h"
-//#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_camsave_common.h"
 
@@ -676,7 +671,7 @@ wxEND_EVENT_TABLE ()
 #else
 //wxIMPLEMENT_DYNAMIC_CLASS (Stream_CamSave_V4L_WxWidgetsDialog_t, wxDialog_main)
 wxClassInfo
-Stream_CamSave_V4L_WxWidgetsDialog_t::ms_classInfo (L"Stream_CamSave_V4L_WxWidgetsDialog_t",
+Stream_CamSave_V4L_WxWidgetsDialog_t::ms_classInfo (ACE_TEXT_ALWAYS_WCHAR ("Stream_CamSave_V4L_WxWidgetsDialog_t"),
                                                     &wxDialog_main::ms_classInfo,
                                                     NULL,
                                                     (int) sizeof (Stream_CamSave_V4L_WxWidgetsDialog_t),
@@ -725,7 +720,8 @@ Stream_CamSave_V4L_WxWidgetsDialog_t::wxCreateObject ()
 #else
 //////////////////////////////////////////
 
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::Stream_CamSave_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in, wxID_ANY, wxEmptyString)
  , application_ (NULL)
@@ -737,7 +733,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 bool
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnInit_2"));
@@ -888,9 +885,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   if (likely (activate_source_b))
   { ACE_ASSERT (!(*stream_iterator).second.second.deviceIdentifier.identifier.empty ());
     index_i =
-      (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_source,
-                                                                     (*stream_iterator).second.second.deviceIdentifier.identifier)
-                     : 0);
+      Common_UI_WxWidgets_Tools::clientDataToIndex (choice_source,
+                                                    (*stream_iterator).second.second.deviceIdentifier.identifier);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_source->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -899,14 +895,13 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     //choice_source->GetEventHandler ()->ProcessEvent (event_s);
     this->AddPendingEvent (event_s);
   } // end IF
-//  application_->wait ();
+  application_->wait ();
 
   if (likely (activate_display_b))
   { ACE_ASSERT (!(*stream_iterator_2).second.second.display.device.empty ());
     index_i =
-      (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_screen,
-                                                                     (*stream_iterator_2).second.second.display.device)
-                     : 0);
+      Common_UI_WxWidgets_Tools::clientDataToIndex (choice_screen,
+                                                    (*stream_iterator_2).second.second.display.device);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_screen->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
@@ -932,7 +927,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   return true;
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::OnExit_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnExit_2"));
@@ -944,7 +940,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 //////////////////////////////////////////
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::dialog_main_idle_cb"));
@@ -965,7 +962,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::dialog_main_keydown_cb"));
@@ -1060,7 +1058,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 //////////////////////////////////////////
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
@@ -1265,7 +1264,8 @@ continue_:
   gauge_progress->Enable (true);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
@@ -1280,21 +1280,24 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   configuration_r.stream->control (STREAM_CONTROL_STEP_2);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_source_changed_cb"));
@@ -1333,15 +1336,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     (*stream_iterator).second.second.deviceIdentifier.fileDescriptor = -1;
   } // end IF
   ACE_ASSERT ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor == -1);
-  int open_mode = O_RDONLY;
+  int open_mode_i = O_RDONLY;
   (*stream_iterator).second.second.deviceIdentifier.fileDescriptor =
-      v4l2_open (device_identifier.c_str (),
-                 open_mode);
+      v4l2_open (ACE_TEXT_ALWAYS_CHAR (device_identifier.c_str ()),
+                 open_mode_i);
   if (unlikely ((*stream_iterator).second.second.deviceIdentifier.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_open(\"%s\",%d): \"%m\", returning\n"),
-                ACE_TEXT (device_identifier.c_str ()), open_mode));
+                ACE_TEXT (device_identifier.c_str ()),
+                open_mode_i));
     return;
   } // end IF
 #if defined (_DEBUG)
@@ -1384,16 +1388,18 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
     (initializing_ ? Common_UI_WxWidgets_Tools::clientDataToIndex (choice_format,
                                                                    converter.str ())
                    : 0);
+  ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_format->Select (index_i);
   wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
                           XRCID ("choice_format"));
   event_s.SetInt (index_i);
   this->AddPendingEvent (event_s);
 
-//  button_camera_properties->Enable (true);
+  button_camera_properties->Enable (true);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
@@ -1409,7 +1415,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   ACE_ASSERT (stream_iterator != configuration_r.configuration->streamConfiguration.end ());
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_format_changed_cb"));
@@ -1480,7 +1487,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   this->AddPendingEvent (event_s);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_changed_cb"));
@@ -1543,7 +1551,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   this->AddPendingEvent (event_s);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_framerate_changed_cb"));
@@ -1593,7 +1602,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   button_reset_camera->Enable (!(configuration_r.configuration->streamConfiguration.configuration_.format == media_type_s));
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
@@ -1656,7 +1666,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
@@ -1674,7 +1685,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 //}
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_display_toggled_cb"));
@@ -1746,7 +1758,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_fullscreen_toggled_cb"));
@@ -1828,14 +1841,16 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
 
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_screen_changed_cb"));
@@ -1944,7 +1959,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 
 //}
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
@@ -1952,7 +1968,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
 }
 
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_about_clicked_cb"));
@@ -1990,7 +2007,8 @@ Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
   wxAboutBox (about_dialog_info);
 }
 void
-Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                 Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                  Stream_CamSave_V4L_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_quit_clicked_cb"));

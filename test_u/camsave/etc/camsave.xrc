@@ -74,7 +74,7 @@
                                             <vgap>0</vgap>
                       <object class="sizeritem">
                         <option>1</option>
-                        <flag>wxALIGN_CENTER|wxEXPAND</flag>
+                        <flag>wxEXPAND</flag>
                         <object class="wxStaticText" name="label_1">
                                                     <label>control</label>
                                                     <style>wxALIGN_CENTER</style>
@@ -93,7 +93,7 @@
                       </object>
                       <object class="sizeritem">
                         <option>1</option>
-                        <flag>wxALIGN_CENTER|wxEXPAND</flag>
+                        <flag>wxEXPAND</flag>
                         <object class="wxStaticText" name="label_2">
                                                     <label>session</label>
                                                     <style>wxALIGN_CENTER</style>
@@ -112,7 +112,7 @@
                       </object>
                       <object class="sizeritem">
                         <option>1</option>
-                        <flag>wxALIGN_CENTER|wxEXPAND</flag>
+                        <flag>wxEXPAND</flag>
                         <object class="wxStaticText" name="label_3">
                                                     <label>data</label>
                                                     <style>wxALIGN_CENTER</style>
@@ -131,7 +131,7 @@
                       </object>
                       <object class="sizeritem">
                         <option>1</option>
-                        <flag>wxALIGN_CENTER|wxEXPAND</flag>
+                        <flag>wxEXPAND</flag>
                         <object class="wxStaticText" name="label_4">
                                                     <label>payload</label>
                                                     <style>wxALIGN_CENTER</style>
@@ -150,7 +150,7 @@
                       </object>
                       <object class="sizeritem">
                         <option>1</option>
-                        <flag>wxALIGN_CENTER|wxALL|wxEXPAND</flag>
+                        <flag>wxALL|wxEXPAND</flag>
                         <border>3</border>
                         <object class="wxStaticText" name="label_5">
                                                     <label>frame size</label>
@@ -384,14 +384,14 @@
             <object class="wxBoxSizer">
                             <orient>wxHORIZONTAL</orient>
               <object class="sizeritem">
-                <flag>wxALIGN_RIGHT</flag>
+                <flag></flag>
                 <object class="wxButton" name="button_about">
                   <handler event="EVT_BUTTON">button_about_clicked_cb</handler>
                                     <label>about</label>
                 </object>
               </object>
               <object class="sizeritem">
-                <flag>wxALIGN_RIGHT</flag>
+                <flag></flag>
                 <object class="wxButton" name="button_quit">
                   <handler event="EVT_BUTTON">button_quit_clicked_cb</handler>
                                     <label>quit</label>

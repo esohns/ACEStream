@@ -1,4 +1,4 @@
-#ifndef TEST_U_CAMSAVE_UI_H
+﻿#ifndef TEST_U_CAMSAVE_UI_H
 #define TEST_U_CAMSAVE_UI_H
 
 #include "wx/wx.h"
@@ -19,14 +19,15 @@ void process_stream_events (struct Stream_CamSave_UI_CBData*, bool&);
 //ACE_THR_FUNC_RETURN event_processing_thread (void*);
 ACE_THR_FUNC_RETURN stream_processing_thread (void*);
 
-template <typename InterfaceType, // implements Common_UI_wxWidgets_IApplication_T
+template <typename WidgetBaseClassType, // implements wxWindow (e.g. wxDialog)
+          typename InterfaceType,       // implements Common_UI_wxWidgets_IApplication_T
           typename StreamType>
 class Stream_CamSave_WxWidgetsDialog_T
- : public wxDialog_main
+ : public WidgetBaseClassType
  , public Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
                                           typename InterfaceType::CONFIGURATION_T>
 {
-  typedef wxDialog_main inherited;
+  typedef WidgetBaseClassType inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<typename InterfaceType::STATE_T,
   //                                        typename InterfaceType::CONFIGURATION_T> inherited2;
 
@@ -43,7 +44,8 @@ class Stream_CamSave_WxWidgetsDialog_T
 
  private:
   // convenient types
-  typedef Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+  typedef Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                           InterfaceType,
                                            StreamType> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
@@ -226,7 +228,8 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_MediaFoundation_WxWidgetsI
 #else
 // specializations (for V4L Linux)
 template <>
-class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+class Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                       Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                        Stream_CamSave_V4L_Stream>
  : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
@@ -249,7 +252,8 @@ class Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_
 
  private:
   // convenient types
-  typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+  typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                           Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                            Stream_CamSave_V4L_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel

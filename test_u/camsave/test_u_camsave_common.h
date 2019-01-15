@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
 *   Copyright (C) 2009 by Erik Sohns   *
 *   erik.sohns@web.de   *
 *                                                                         *
@@ -108,6 +108,8 @@ extern "C"
 #include "test_u_gtk_common.h"
 #elif defined (WXWIDGETS_USE)
 #include "test_u_wxwidgets_common.h"
+
+#include "camsave_wxwidgets_ui.h"
 #endif
 #endif // GUI_SUPPORT
 
@@ -128,7 +130,8 @@ template <typename NotificationType,
 class Stream_CamSave_EventHandler_T;
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 class Stream_CamSave_WxWidgetsDialog_T;
 #endif // WXWIDGETS_USE
@@ -1059,7 +1062,8 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t
                                          Stream_CamSave_MediaFoundation_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_CamSave_MediaFoundation_WxWidgetsApplication_t;
 #else
-typedef Stream_CamSave_WxWidgetsDialog_T<Stream_CamSave_V4L_WxWidgetsIApplication_t,
+typedef Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
+                                         Stream_CamSave_V4L_WxWidgetsIApplication_t,
                                          Stream_CamSave_V4L_Stream> Stream_CamSave_V4L_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_CamSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,

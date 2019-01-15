@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -1315,10 +1315,13 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+      configuration_->find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_->configuration_.renderer).c_str ()));
+  ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b = configuration_->configuration_.renderer !=
       STREAM_VISUALIZATION_VIDEORENDERER_NULL;
   bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
-  ACE_ASSERT ((display_b && (*iterator).second.second.window) || (!display_b && !(*iterator).second.second.window));
+  ACE_ASSERT ((display_b && (*iterator_2).second.second.window) || (!display_b && !(*iterator_2).second.second.window));
 
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen

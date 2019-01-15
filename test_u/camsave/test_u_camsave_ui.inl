@@ -1,4 +1,4 @@
-#if defined (ACE_WIN64) || defined (ACE_WIN32)
+﻿#if defined (ACE_WIN64) || defined (ACE_WIN32)
 #include <OleCtl.h>
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
@@ -37,9 +37,11 @@
 
 #include "stream_vis_tools.h"
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::Stream_CamSave_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in)
  , application_ (NULL)
@@ -54,10 +56,12 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   inherited::SetExtraStyle (wxWS_EX_PROCESS_IDLE);
 }
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 bool
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnInit_2"));
@@ -68,35 +72,35 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   application_ = dynamic_cast<InterfaceType*> (iapplication_in);
   ACE_ASSERT (application_);
 
-  togglebutton_record = XRCCTRL (*this, "togglebutton_record", wxToggleButton);
-  button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
-  button_cut = XRCCTRL (*this, "button_cut", wxButton);
-  button_report = XRCCTRL (*this, "button_report", wxButton);
-  button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
-  spinctrl_control = XRCCTRL (*this, "spinctrl_control", wxSpinCtrl);
-  spinctrl_session = XRCCTRL (*this, "spinctrl_session", wxSpinCtrl);
-  spinctrl_data = XRCCTRL (*this, "spinctrl_data", wxSpinCtrl);
-  spinctrl_payload = XRCCTRL (*this, "spinctrl_payload", wxSpinCtrl);
-  spinctrl_framesize = XRCCTRL (*this, "spinctrl_framesize", wxSpinCtrl);
-  button_reset_camera = XRCCTRL (*this, "button_reset_camera", wxButton);
-  choice_source = XRCCTRL (*this, "choice_source", wxChoice);
-  button_camera_properties = XRCCTRL (*this, "button_camera_properties", wxButton);
-  choice_format = XRCCTRL (*this, "choice_format", wxChoice);
-  choice_resolution = XRCCTRL (*this, "choice_resolution", wxChoice);
-  choice_framerate = XRCCTRL (*this, "choice_framerate", wxChoice);
-  togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
-  togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
-  choice_displayadapter = XRCCTRL (*this, "choice_displayadapter", wxChoice);
-  choice_screen = XRCCTRL (*this, "choice_screen", wxChoice);
+  inherited::togglebutton_record = XRCCTRL (*this, "togglebutton_record", wxToggleButton);
+  inherited::button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
+  inherited::button_cut = XRCCTRL (*this, "button_cut", wxButton);
+  inherited::button_report = XRCCTRL (*this, "button_report", wxButton);
+  inherited::button_snapshot = XRCCTRL (*this, "button_snapshot", wxButton);
+  inherited::spinctrl_control = XRCCTRL (*this, "spinctrl_control", wxSpinCtrl);
+  inherited::spinctrl_session = XRCCTRL (*this, "spinctrl_session", wxSpinCtrl);
+  inherited::spinctrl_data = XRCCTRL (*this, "spinctrl_data", wxSpinCtrl);
+  inherited::spinctrl_payload = XRCCTRL (*this, "spinctrl_payload", wxSpinCtrl);
+  inherited::spinctrl_framesize = XRCCTRL (*this, "spinctrl_framesize", wxSpinCtrl);
+  inherited::button_reset_camera = XRCCTRL (*this, "button_reset_camera", wxButton);
+  inherited::choice_source = XRCCTRL (*this, "choice_source", wxChoice);
+  inherited::button_camera_properties = XRCCTRL (*this, "button_camera_properties", wxButton);
+  inherited::choice_format = XRCCTRL (*this, "choice_format", wxChoice);
+  inherited::choice_resolution = XRCCTRL (*this, "choice_resolution", wxChoice);
+  inherited::choice_framerate = XRCCTRL (*this, "choice_framerate", wxChoice);
+  inherited::togglebutton_display = XRCCTRL (*this, "togglebutton_display", wxToggleButton);
+  inherited::togglebutton_fullscreen = XRCCTRL (*this, "togglebutton_fullscreen", wxToggleButton);
+  inherited::choice_displayadapter = XRCCTRL (*this, "choice_displayadapter", wxChoice);
+  inherited::choice_screen = XRCCTRL (*this, "choice_screen", wxChoice);
 //  button_display_settings = XRCCTRL (*this, "button_display_settings", wxButton);
-  choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
-  togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
-  textctrl_filename = XRCCTRL (*this, "textctrl_filename", wxTextCtrl);
+  inherited::choice_resolution_2 = XRCCTRL (*this, "choice_resolution_2", wxChoice);
+  inherited::togglebutton_save = XRCCTRL (*this, "togglebutton_save", wxToggleButton);
+  inherited::textctrl_filename = XRCCTRL (*this, "textctrl_filename", wxTextCtrl);
 //  directorypicker_save = XRCCTRL (*this, "directorypicker_save", wxDirPickerCtrl);
-  panel_video = XRCCTRL (*this, "panel_video", wxPanel);
-  gauge_progress = XRCCTRL (*this, "gauge_progress", wxGauge);
-  button_about = XRCCTRL (*this, "button_about", wxButton);
-  button_quit = XRCCTRL (*this, "button_quit", wxButton);
+  inherited::panel_video = XRCCTRL (*this, "panel_video", wxPanel);
+  inherited::gauge_progress = XRCCTRL (*this, "gauge_progress", wxGauge);
+  inherited::button_about = XRCCTRL (*this, "button_about", wxButton);
+  inherited::button_quit = XRCCTRL (*this, "button_quit", wxButton);
 
   // populate controls
 #if defined (_DEBUG)
@@ -180,14 +184,14 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   if (unlikely (devices_a.empty ()))
     activate_source = false;
   else
-    choice_source->Enable (true);
+    inherited::choice_source->Enable (true);
 
   if (likely (activate_source))
   {
     index_i =
-      (initializing_ ? choice_source->FindString ((*stream_iterator).second.second.deviceIdentifier.identifier.c_str ())
+      (initializing_ ? inherited::choice_source->FindString ((*stream_iterator).second.second.deviceIdentifier.identifier.c_str ())
                      : 0);
-    choice_source->Select (index_i);
+    inherited::choice_source->Select (index_i);
     wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
                             XRCID ("choice_source"));
     event_s.SetInt (index_i);
@@ -197,10 +201,12 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
   return true;
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::OnExit_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::OnExit_2"));
@@ -211,10 +217,12 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
 //////////////////////////////////////////
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::dialog_main_idle_cb (wxIdleEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::dialog_main_idle_cb"));
@@ -227,13 +235,15 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   ACE_ASSERT (configuration_r.stream);
 
   if (configuration_r.stream->isRunning ())
-    gauge_progress->Pulse ();
+    inherited::gauge_progress->Pulse ();
 }
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::dialog_main_keydown_cb (wxKeyEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::dialog_main_keydown_cb"));
@@ -248,19 +258,23 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
 //////////////////////////////////////////
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
@@ -274,30 +288,34 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
   configuration_r.stream->control (STREAM_CONTROL_STEP_2);
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
-#if defined (_DEBUG)
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
-#endif // _DEBUG
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_source_changed_cb"));
@@ -341,55 +359,67 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
   ACE_NOTREACHED (return;)
 #endif // ACE_WIN32 || ACE_WIN64
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_format_changed_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_changed_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_framerate_changed_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
@@ -405,37 +435,45 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 
 //}
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_display_toggled_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::togglebutton_fullscreen_toggled_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_screen_changed_cb"));
@@ -450,10 +488,12 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 //  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_display_settings_clicked_cb"));
 
 //}
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
@@ -475,19 +515,23 @@ Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
 #endif // ACE_WIN64 || ACE_WIN32
 }
 
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_about_clicked_cb"));
 
 }
-template <typename InterfaceType,
+template <typename WidgetBaseClassType,
+          typename InterfaceType,
           typename StreamType>
 void
-Stream_CamSave_WxWidgetsDialog_T<InterfaceType,
+Stream_CamSave_WxWidgetsDialog_T<WidgetBaseClassType,
+                                 InterfaceType,
                                  StreamType>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_WxWidgetsDialog_T::button_quit_clicked_cb"));
