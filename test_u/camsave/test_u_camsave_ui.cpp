@@ -882,6 +882,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   else
     choice_screen->Enable (true);
 
+  wxCommandEvent* event_p = NULL;
   if (likely (activate_source_b))
   { ACE_ASSERT (!(*stream_iterator).second.second.deviceIdentifier.identifier.empty ());
     index_i =
@@ -889,11 +890,14 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                                                     (*stream_iterator).second.second.deviceIdentifier.identifier);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_source->Select (index_i);
-    wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                            XRCID ("choice_source"));
-    event_s.SetInt (index_i);
-    //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-    this->AddPendingEvent (event_s);
+
+    ACE_NEW_NORETURN (event_p,
+                      wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                      XRCID ("choice_source")));
+    ACE_ASSERT (event_p);
+    event_p->SetInt (index_i);
+    this->QueueEvent (event_p);
+    event_p = NULL;
   } // end IF
   application_->wait ();
 
@@ -904,24 +908,32 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                                                     (*stream_iterator_2).second.second.display.device);
     ACE_ASSERT (index_i != wxNOT_FOUND);
     choice_screen->Select (index_i);
-    wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                            XRCID ("choice_screen"));
-    event_s.SetInt (index_i);
-    //choice_screen->GetEventHandler ()->ProcessEvent (event_s);
-    this->AddPendingEvent (event_s);
 
-    wxCommandEvent event_2 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
-                            XRCID ("togglebutton_display"));
-    event_2.SetInt ((*stream_iterator_2).second.second.display.device.empty () ? 0
-                                                                               : 1);
-    //togglebutton_display->GetEventHandler ()->ProcessEvent (event_2);
-    this->AddPendingEvent (event_2);
+    ACE_NEW_NORETURN (event_p,
+                      wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                      XRCID ("choice_screen")));
+    ACE_ASSERT (event_p);
+    event_p->SetInt (index_i);
+    this->QueueEvent (event_p);
+    event_p = NULL;
 
-    wxCommandEvent event_3 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
-                            XRCID ("togglebutton_fullscreen"));
-    event_3.SetInt ((*stream_iterator_2).second.second.fullScreen ? 1 : 0);
-    //togglebutton_fullscreen->GetEventHandler ()->ProcessEvent (event_3);
-    this->AddPendingEvent (event_3);
+    ACE_NEW_NORETURN (event_p,
+                      wxCommandEvent (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
+                                      XRCID ("togglebutton_display")));
+    ACE_ASSERT (event_p);
+    event_p->SetInt ((*stream_iterator_2).second.second.display.device.empty () ? 0
+                                                                                : 1);
+    this->QueueEvent (event_p);
+    event_p = NULL;
+
+    ACE_NEW_NORETURN (event_p,
+                      wxCommandEvent (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
+                                      XRCID ("togglebutton_fullscreen")));
+    ACE_ASSERT (event_p);
+    event_p->SetInt ((*stream_iterator_2).second.second.fullScreen ? 1
+                                                                   : 0);
+    this->QueueEvent (event_p);
+    event_p = NULL;
   } // end IF
 
   return true;
@@ -975,6 +987,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_CamSave_V4L_WxWidgetsIApplication_t::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (configuration_r.stream);
 
+  wxCommandEvent* event_p = NULL;
   switch (event_in.GetUnicodeKey ())
   {
     // It's a "normal" character. Notice that this includes control characters
@@ -986,11 +999,13 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
       if (!configuration_r.stream->isRunning ())
         return; // nothing to do
 
-      wxCommandEvent event_s (wxEVT_COMMAND_BUTTON_CLICKED,
-                              XRCID ("button_cut"));
-      event_s.SetInt (1);
-      //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-      this->AddPendingEvent (event_s);
+      ACE_NEW_NORETURN (event_p,
+                        wxCommandEvent (wxEVT_COMMAND_BUTTON_CLICKED,
+                                        XRCID ("button_cut")));
+      ACE_ASSERT (event_p);
+      event_p->SetInt (1);
+      this->QueueEvent (event_p);
+      event_p = NULL;
       break;
     }
     case 'f':
@@ -1003,23 +1018,31 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
         break;
       bool is_checked_b = togglebutton_fullscreen->GetValue ();
       togglebutton_fullscreen->SetValue (!is_checked_b);
-      wxCommandEvent event_s (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
-                              XRCID ("togglebutton_fullscreen"));
-      event_s.SetInt (is_checked_b ? 0 : 1);
-      //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-      this->AddPendingEvent (event_s);
+
+      ACE_NEW_NORETURN (event_p,
+                        wxCommandEvent (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
+                                        XRCID ("togglebutton_fullscreen")));
+      ACE_ASSERT (event_p);
+      event_p->SetInt (is_checked_b ? 0
+                                    : 1);
+      this->QueueEvent (event_p);
+      event_p = NULL;
       break;
     }
     case 'r':
     case 'R':
     {
-      wxCommandEvent event_s (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
-                              XRCID ("togglebutton_record"));
       bool is_checked_b = togglebutton_record->GetValue ();
       togglebutton_record->SetValue (!is_checked_b);
-      event_s.SetInt (togglebutton_record->GetValue () ? 0 : 1);
-      //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-      this->AddPendingEvent (event_s);
+
+      ACE_NEW_NORETURN (event_p,
+                        wxCommandEvent (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
+                                        XRCID ("togglebutton_record")));
+      ACE_ASSERT (event_p);
+      event_p->SetInt (is_checked_b ? 0
+                                    : 1);
+      this->QueueEvent (event_p);
+      event_p = NULL;
       break;
     }
     case 's':
@@ -1029,11 +1052,13 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
       if (!configuration_r.stream->isRunning ())
         return; // nothing to do
 
-      wxCommandEvent event_s (wxEVT_COMMAND_BUTTON_CLICKED,
-                              XRCID ("button_snapshot"));
-      event_s.SetInt (1);
-      //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-      this->AddPendingEvent (event_s);
+      ACE_NEW_NORETURN (event_p,
+                        wxCommandEvent (wxEVT_COMMAND_BUTTON_CLICKED,
+                                        XRCID ("button_snapshot")));
+      ACE_ASSERT (event_p);
+      event_p->SetInt (1);
+      this->QueueEvent (event_p);
+      event_p = NULL;
       break;
     }
     //////////////////////////////////////
@@ -1390,10 +1415,15 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                    : 0);
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_format->Select (index_i);
-  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_format"));
-  event_s.SetInt (index_i);
-  this->AddPendingEvent (event_s);
+
+  wxCommandEvent* event_p = NULL;
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_format")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
 
   button_camera_properties->Enable (true);
 }
@@ -1481,10 +1511,15 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     (initializing_ ? choice_resolution->FindString (resolution_string)
                    : 0);
   choice_resolution->Select (index_i);
-  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_resolution"));
-  event_s.SetInt (index_i);
-  this->AddPendingEvent (event_s);
+
+  wxCommandEvent* event_p = NULL;
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_resolution")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
@@ -1545,10 +1580,15 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     (initializing_ ? choice_framerate->FindString (framerate_string)
                    : 0);
   choice_framerate->Select (index_i);
-  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_framerate"));
-  event_s.SetInt (index_i);
-  this->AddPendingEvent (event_s);
+
+  wxCommandEvent* event_p = NULL;
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_framerate")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
@@ -1627,11 +1667,16 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                                                     converter.str ());
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_format->Select (index_i);
-  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_format"));
-  event_s.SetInt (index_i);
-  //choice_format->GetEventHandler ()->ProcessEvent (event_s);
-  this->AddPendingEvent (event_s);
+
+  wxCommandEvent* event_p = NULL;
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_format")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
+
   application_->wait ();
 
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1643,11 +1688,15 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                                                           converter.str ());
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_resolution->Select (index_i);
-  wxCommandEvent event_2 (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_resolution"));
-  event_2.SetInt (index_i);
-  //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-  this->AddPendingEvent (event_2);
+
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_resolution")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
+
   application_->wait ();
 
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1656,11 +1705,14 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   index_i = choice_framerate->FindString (converter.str ());
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_framerate->Select (index_i);
-  wxCommandEvent event_3 (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_framerate"));
-  event_3.SetInt (index_i);
-  //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-  this->AddPendingEvent (event_3);
+
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_framerate")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
 
   button_reset_camera->Enable (false);
 }
@@ -1879,12 +1931,17 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   int index_i = choice_displayadapter->FindString (display_adapter_s.description);
   ACE_ASSERT (index_i != wxNOT_FOUND);
   choice_displayadapter->Select (index_i);
-  wxCommandEvent event_s (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_displayadapter"));
-  event_s.SetInt (index_i);
-  //choice_source->GetEventHandler ()->ProcessEvent (event_s);
-  this->AddPendingEvent (event_s);
-  //application_->wait ();
+
+  wxCommandEvent* event_p = NULL;
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_displayadapter")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
+
+//  application_->wait ();
 
 //  button_display_settings->Enable (togglebutton_display->IsEnabled ());
 
@@ -1941,11 +1998,15 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     (initializing_ ? choice_resolution_2->FindString (resolution_string)
                    : 0);
   choice_resolution_2->Select (index_i);
-  wxCommandEvent event_2 (wxEVT_COMMAND_CHOICE_SELECTED,
-                          XRCID ("choice_resolution_2"));
-  event_2.SetInt (index_i);
-  //choice_resolution_2->GetEventHandler ()->ProcessEvent (event_2);
-  this->AddPendingEvent (event_2);
+
+  ACE_NEW_NORETURN (event_p,
+                    wxCommandEvent (wxEVT_COMMAND_CHOICE_SELECTED,
+                                    XRCID ("choice_resolution_2")));
+  ACE_ASSERT (event_p);
+  event_p->SetInt (index_i);
+  this->QueueEvent (event_p);
+  event_p = NULL;
+
   //application_->wait ();
 
   if (initializing_)

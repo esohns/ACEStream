@@ -457,8 +457,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//  GdkPixbuf*                      pixelBuffer;
+#if GTK_CHECK_VERSION(3,0,0)
   cairo_surface_t*                pixelBuffer;
+#elif GTK_CHECK_VERSION(2,0,0)
+  GdkPixbuf*                      pixelBuffer;
+#endif // GTK_CHECK_VERSION
   ACE_SYNCH_MUTEX*                pixelBufferLock;
 #endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

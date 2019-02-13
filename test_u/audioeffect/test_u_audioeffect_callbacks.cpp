@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -9459,14 +9459,18 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     (*streamconfiguration_iterator).second.second.cairoSurface2D =
       surface_p;
     ACE_ASSERT (ui_cb_data_p->cairoSurface2D);
-#else
-    if (data_p->pixelBuffer2D)
-      g_object_unref (data_p->pixelBuffer2D);
-    data_p->pixelBuffer2D = pixel_buffer_p;
-    (*modulehandler_configuration_iterator).second.second.pixelBuffer2D =
+#elif GTK_CHECK_VERSION(2,0,0)
+    if (ui_cb_data_p->pixelBuffer2D)
+      g_object_unref (ui_cb_data_p->pixelBuffer2D);
+    ui_cb_data_p->pixelBuffer2D = pixel_buffer_p;
+    (*streamconfiguration_iterator).second.second.pixelBuffer2D =
       pixel_buffer_p;
-    ACE_ASSERT (data_p->pixelBuffer2D);
-#endif // GTK_CHECK_VERSION(3,10,0)
+    ACE_ASSERT (ui_cb_data_p->pixelBuffer2D);
+#else
+    ACE_ASSERT (false); // *TODO*
+    ACE_NOTSUP_RETURN;
+    ACE_NOTREACHED (return;)
+#endif // GTK_CHECK_VERSION()
 #endif // ACE_WIN32 || ACE_WIN64
   } // end lock scope
 

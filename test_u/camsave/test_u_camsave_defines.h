@@ -25,9 +25,9 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#if defined (GTK3_SUPPORT)
+#if defined (GTK3_USE)
 #define TEST_U_STREAM_CAMSAVE_UI_DEFINITION_FILE              "camsave.gtk3"
-#elif defined (GTK2_SUPPORT)
+#elif defined (GTK2_USE)
 #define TEST_U_STREAM_CAMSAVE_UI_DEFINITION_FILE              "camsave.gtk2"
 #endif
 #elif defined (WXWIDGETS_USE)
@@ -52,9 +52,9 @@
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
-#define TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME           "entry_destination"
-#define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_destination"
-//#define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
+#define TEST_U_STREAM_UI_GTK_ENTRY_SAVE_NAME                  "entry_save"
+#define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
+//#define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_save"
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME              "filefilter_avi"
 #define TEST_U_STREAM_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
 #define TEST_U_STREAM_UI_GTK_FRAME_OPTIONS_NAME               "frame_options"

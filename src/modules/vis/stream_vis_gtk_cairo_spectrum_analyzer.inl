@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
@@ -1135,7 +1135,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int sound_sample_size = 0;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
-  if (surfaceLock_)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+#else
+  MediaType media_type_s;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  if (likely (surfaceLock_))
   {
     result = surfaceLock_->acquire ();
     if (unlikely (result == -1))
@@ -1195,7 +1201,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_reset_clip (cairoContext_);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.front (),
                             media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
@@ -1209,13 +1214,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  MediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.front (),
                             media_type_s);
   data_sample_size =
     ((snd_pcm_format_width (media_type_s.format) / 8) *
-      media_type_s.format.channels);
-  sound_sample_size = data_sample_size / media_type_s.format.channels;
+      media_type_s.channels);
+  sound_sample_size = data_sample_size / media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
 
   height_ = gdk_pixbuf_get_height (pixelBuffer_);
@@ -1230,7 +1234,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (height_); ACE_ASSERT (width_);
 
 unlock:
-  if (release_lock)
+  if (likely (release_lock))
   {
     ACE_ASSERT (surfaceLock_);
     result = surfaceLock_->release ();

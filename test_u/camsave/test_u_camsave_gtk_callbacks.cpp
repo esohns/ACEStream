@@ -39,7 +39,6 @@
 #include <mfreadwrite.h>
 #include <uuids.h>
 
-#include "gdk/gdkkeysyms.h"
 #include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
@@ -47,6 +46,8 @@
 
 #include "ace/Dirent_Selector.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "gdk/gdkkeysyms.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
@@ -1628,7 +1629,8 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 //                                  pixel_format_s);
 //  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
 //                                     framerate_s);
-#endif
+  ACE_UNUSED_ARG (framerate_s);
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 void
@@ -2085,7 +2087,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2618,13 +2620,16 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION
   ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION(3,0,0)
+//      gdk_pixbuf_get_from_window (window_p,
       gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
                                             0,
                                             window_p);
 #elif GTK_CHECK_VERSION(2,0,0)
-      gdk_pixbuf_get_from_window (window_p,
-                                  0, 0,
-                                  allocation.width, allocation.height);
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (window_p),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
                                     GDK_DRAWABLE (window_p),
@@ -3425,7 +3430,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_Thread_Manager* thread_manager_p = NULL;
 
   GtkSpinButton* spin_button_p = NULL;
-  unsigned int buffer_size_i = 0;
+//  unsigned int buffer_size_i = 0;
   gdouble value_d = 0.0;
 
   if (ui_cb_data_base_p->isFirst)
@@ -3476,7 +3481,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME)));
   ACE_ASSERT (toggle_action_p);
   GtkFileChooserButton* file_chooser_button_p = NULL;
-  GError* error_p = NULL;
+//  GError* error_p = NULL;
   std::string filename_string;
   GtkEntry* entry_p = NULL;
   if (!gtk_toggle_action_get_active (toggle_action_p))
@@ -3491,7 +3496,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
   entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
@@ -5277,7 +5282,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   unsigned int frame_rate_denominator = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 
-  bool result = false;
+//  bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
   switch (ui_cb_data_base_p->mediaFramework)
@@ -5385,12 +5390,15 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     return TRUE; // --> widget has not been realized yet
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock, FALSE);
-//    gdk_cairo_set_source_pixbuf (context_in,
-//                                 ui_cb_data_p->pixelBuffer,
-//                                 0.0, 0.0);
+#if GTK_CHECK_VERSION(3,0,0)
     cairo_set_source_surface (context_in,
                               ui_cb_data_p->pixelBuffer,
                               0.0, 0.0);
+#elif GTK_CHECK_VERSION(2,0,0)
+    gdk_cairo_set_source_pixbuf (context_in,
+                                 ui_cb_data_p->pixelBuffer,
+                                 0.0, 0.0);
+#endif // GTK_CHECK_VERSION
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  // *NOTE*: media foundation capture frames are v-flipped
@@ -5718,13 +5726,16 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 
     ui_cb_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
+//        gdk_pixbuf_get_from_window (window_p,
         gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
                                               0,
                                               window_p);
 #elif GTK_CHECK_VERSION (2,0,0)
-      gdk_pixbuf_get_from_window (window_p,
-                                  0, 0,
-                                  allocation_in->width, allocation_in->height);
+        gdk_pixbuf_get_from_drawable (pixbuf_p,
+                                      GDK_DRAWABLE (window_p),
+                                      NULL,
+                                      0, 0,
+                                      0, 0, allocation_in->width, allocation_in->height);
 #else
       gdk_pixbuf_get_from_drawable (pixbuf_p,
                                     GDK_DRAWABLE (window_p),
@@ -5775,7 +5786,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 #elif GTK_CHECK_VERSION (2,0,0)
     ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (ui_cb_data_p->pixelBuffer) == 8);
     ACE_ASSERT (gdk_pixbuf_get_colorspace (ui_cb_data_p->pixelBuffer) == GDK_COLORSPACE_RGB);
-    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_base_p->pixelBuffer) == 4);
+    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_p->pixelBuffer) == 4);
 //    if (!gdk_pixbuf_get_has_alpha (data_p->pixelBuffer))
 //    { ACE_ASSERT (gdk_pixbuf_get_n_channels (data_p->pixelBuffer) == 3);
 //      GdkPixbuf* pixbuf_p =
@@ -5909,7 +5920,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ENTRY_SAVE_NAME)));
   ACE_ASSERT (entry_p);
   const gchar* string_2 = gtk_entry_get_text (entry_p);
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
@@ -5994,7 +6005,11 @@ key_cb (GtkWidget* widget_in,
       bool is_active = gtk_toggle_action_get_active (toggle_action_p);
 
       // sanity check(s)
+#if GTK_CHECK_VERSION(3,0,0)
       if ((eventKey_in->keyval == GDK_KEY_Escape) &&
+#else
+      if ((eventKey_in->keyval == GDK_Escape) &&
+#endif // GTK_CHECK_VERSION(3,0,0)
           !is_active)
         break; // <-- not in fullscreen mode, nothing to do
 
