@@ -83,8 +83,10 @@ class Stream_MediaFramework_Tools
   static void finalize ();
 
   // X11
-  static Common_UI_Resolution_t toResolution (const Display&, // display
-                                              Window);        // window
+  static Common_Image_Resolution_t toResolution (const Display&, // display
+                                                 Window);        // window
+  static std::string toString (const Display&, // display
+                               int);           // error code
 
   // ALSA
   static void ALSAToSoX (enum _snd_pcm_format,       // format

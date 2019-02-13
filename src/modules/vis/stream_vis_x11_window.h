@@ -35,6 +35,7 @@
 #include "stream_dev_tools.h"
 
 int libacestream_vis_x11_error_handler_cb (Display*, XErrorEvent*);
+int libacestream_vis_x11_io_error_handler_cb (Display*);
 
 extern const char libacestream_default_vis_x11_window_module_name_string[];
 
@@ -99,11 +100,11 @@ class Stream_Module_Vis_X11_Window_T
 
   // helper methods
   inline enum AVPixelFormat getFormat (const MediaType& mediaType_in) { return getFormat_impl (mediaType_in); }
-  inline Common_UI_Resolution_t getResolution (const MediaType& mediaType_in) { return getResolution_impl (mediaType_in); }
+  inline Common_Image_Resolution_t getResolution (const MediaType& mediaType_in) { return getResolution_impl (mediaType_in); }
   inline enum AVPixelFormat getFormat_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat); }
-  inline Common_UI_Resolution_t getResolution_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_UI_Resolution_t return_value; return_value.width = mediaType_in.format.width; return_value.height = mediaType_in.format.height; return return_value; }
+  inline Common_Image_Resolution_t getResolution_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_Image_Resolution_t return_value; return_value.width = mediaType_in.format.width; return_value.height = mediaType_in.format.height; return return_value; }
 
-  uint8_t*           buffer_;
+//  uint8_t*           buffer_;
   bool               closeDisplay_;
   bool               closeWindow_;
 //  GC                 context_;

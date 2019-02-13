@@ -56,6 +56,8 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#include "common_image_common.h"
+
 #include "common_ui_common.h"
 
 #include "stream_dev_common.h"
@@ -91,16 +93,16 @@ class Stream_Device_Tools
 
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
-  static struct v4l2_pix_format getVideoCaptureFormat (int,                           // file descriptor
-                                                       __u32,                         // pixel format
-                                                       const Common_UI_Resolution_t&, // resolution {0: any}
-                                                       const struct v4l2_fract&);     // framerate {0/1: any}
+  static struct v4l2_pix_format getVideoCaptureFormat (int,                              // file descriptor
+                                                       __u32,                            // pixel format
+                                                       const Common_Image_Resolution_t&, // resolution {0: any}
+                                                       const struct v4l2_fract&);        // framerate {0/1: any}
   static Stream_MediaFramework_V4L_CaptureFormats_t getCaptureSubFormats (int); // file descriptor
-  static Common_UI_Resolutions_t getCaptureResolutions (int,    // file descriptor
-                                                        __u32); // pixel format
-  static Common_UI_Framerates_t getCaptureFramerates (int,                            // file descriptor
-                                                      __u32,                          // pixel format
-                                                      const Common_UI_Resolution_t&); // resolution
+  static Common_Image_Resolutions_t getCaptureResolutions (int,    // file descriptor
+                                                           __u32); // pixel format
+  static Common_UI_Framerates_t getCaptureFramerates (int,                               // file descriptor
+                                                      __u32,                             // pixel format
+                                                      const Common_Image_Resolution_t&); // resolution
 
   static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
 

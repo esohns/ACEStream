@@ -30,6 +30,10 @@ extern "C"
 
 #include "ace/Log_Msg.h"
 
+#include "common_file_tools.h"
+
+#include "common_image_tools.h"
+
 #include "common_ui_defines.h"
 
 #include "stream_macros.h"
@@ -57,7 +61,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                MediaType>::Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
- , buffer_ (NULL)
+// , buffer_ (NULL)
  , closeDisplay_ (false)
  , closeWindow_ (false)
 // , context_ ()
@@ -90,8 +94,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (buffer_)
-    delete [] buffer_;
+//  if (buffer_)
+//    delete [] buffer_;
 //  if (context_)
 //  { ACE_ASSERT (display_);
 //    result = XFreeGC (display_,
@@ -157,40 +161,41 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (display_ && window_);
+  ACE_ASSERT (display_);
+  ACE_ASSERT (window_);
+  ACE_ASSERT (pixmap_);
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
   const MediaType& media_type_r = session_data_r.formats.front ();
   enum AVPixelFormat pixel_format_e = getFormat (media_type_r);
-  Common_UI_Resolution_t resolution_s = getResolution (media_type_r);
-  Common_UI_Resolution_t resolution_2 =
+  Common_Image_Resolution_t resolution_s = getResolution (media_type_r);
+  Common_Image_Resolution_t resolution_2 =
       Stream_MediaFramework_Tools::toResolution (*display_,
                                                  window_);
-  unsigned int row_stride = 0, row_stride_2 = 0;
-  bool release_lock = false;
+  unsigned int row_stride_i = 0;
+//  bool release_lock = false;
+  bool refresh_b = true;
   Status result_2 = -1;
-  bool transform_image = false;
-  uint8_t* in_data[AV_NUM_DATA_POINTERS];
-  uint8_t* out_data[AV_NUM_DATA_POINTERS];
   XImage* image_p = NULL;
+#if defined (_DEBUG)
+  int result = -1;
+  int line_sizes_a[AV_NUM_DATA_POINTERS];
+  uint8_t* data_a[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
+  ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  std::string filename_string = Common_File_Tools::getTempDirectory ();
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
+  filename_string += ACE_TEXT_ALWAYS_CHAR ("output.png");
+#endif // _DEBUG
 
   // sanity check(s)
-  ACE_ASSERT (pixel_format_e != AV_PIX_FMT_NONE);
-  ACE_ASSERT (resolution_s.width && resolution_s.height);
+  ACE_ASSERT (pixel_format_e == AV_PIX_FMT_RGB32);
+  ACE_ASSERT ((resolution_s.width == resolution_2.width) && (resolution_s.height == resolution_2.height));
 
-//  image_size =
-//      av_image_get_buffer_size (pixel_format_e,
-//                                resolution_s.width,
-//                                resolution_s.height,
-//                                1); // *TODO*: linesize alignment
-  row_stride =
+  row_stride_i =
       av_image_get_linesize (pixel_format_e,
                              resolution_s.width,
-                             0);
-  row_stride_2 =
-      av_image_get_linesize (AV_PIX_FMT_RGBA,
-                             resolution_2.width,
                              0);
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
@@ -205,62 +210,109 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     return;
   }
 
+#if defined (_DEBUG)
+  result =
+      av_image_fill_linesizes (line_sizes_a,
+                               AV_PIX_FMT_RGB32,
+                               static_cast<int> (resolution_s.width));
+  ACE_ASSERT (result >= 0);
+  result =
+      av_image_fill_pointers (data_a,
+                              AV_PIX_FMT_RGB32,
+                              static_cast<int> (resolution_s.height),
+                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+                              line_sizes_a);
+  ACE_ASSERT (result >= 0);
+  Common_Image_Tools::savePNG (resolution_s,
+                               AV_PIX_FMT_RGB32,
+                               data_a,
+                               filename_string);
+#endif // _DEBUG
+
   image_p =
       XCreateImage (display_,
                     DefaultVisual (display_, DefaultScreen (display_)),
                     DefaultDepth (display_, DefaultScreen (display_)),
-                    XYPixmap,
+                    ZPixmap,
                     0,
-                    (transform_image ? reinterpret_cast<char*> (buffer_)
-                                     : reinterpret_cast<char*> (message_inout->rd_ptr ())),
-                    resolution_2.width, resolution_2.height,
+                    reinterpret_cast<char*> (message_inout->rd_ptr ()),
+                    resolution_s.width, resolution_s.height,
                     32,
-                    row_stride_2);
+                    0);
+//                    row_stride_i);
   if (unlikely (!image_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to XCreateImage(0x%@): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to XCreateImage(%@): \"%m\", returning\n"),
                 inherited::mod_->name (),
                 display_));
     return;
   } // end IF
 
-  XLockDisplay (display_);
-  release_lock = true;
+//  XLockDisplay (display_);
+//  release_lock = true;
 
+  // *TODO*: currently XPutImage returns 0 in all cases...no error handling :-(
   result_2 = XPutImage (display_,
                         pixmap_,
-//                        context_,
                         DefaultGC (display_, DefaultScreen (display_)),
                         image_p,
-                        0, 0, 0, 0, resolution_2.width, resolution_2.height);
-  if (unlikely (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to XPutImage(0x%@): \"%m\", returning\n"),
-                inherited::mod_->name (),
-                display_));
-    XDestroyImage (image_p); image_p = NULL;
-    goto unlock;
-  } // end IF
+                        0, 0, 0, 0,
+                        resolution_2.width, resolution_2.height);
+//  if (unlikely (result_2 != True))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to XPutImage(0x%@): \"%s\", returning\n"),
+//                inherited::mod_->name (),
+//                display_,
+//                ACE_TEXT (Stream_MediaFramework_Tools::toString (*display_, result_2).c_str ())));
+//    image_p->data = NULL; XDestroyImage (image_p); image_p = NULL;
+//    refresh_b = false;
+//    goto unlock;
+//  } // end IF
 
   result_2 = XSetWindowBackgroundPixmap (display_,
                                          window_,
                                          pixmap_);
-  if (unlikely (result_2))
+  if (unlikely (result_2 != True))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to XSetWindowBackgroundPixmap(0x%@,%u,%u): \"%m\", returning\n"),
                 inherited::mod_->name (),
                 display_, window_, pixmap_));
-    XDestroyImage (image_p); image_p = NULL;
+    image_p->data = NULL; XDestroyImage (image_p); image_p = NULL;
+    refresh_b = false;
     goto unlock;
   } // end IF
-  XDestroyImage (image_p); image_p = NULL;
+  image_p->data = NULL; XDestroyImage (image_p); image_p = NULL;
 
 unlock:
-  if (release_lock)
-    XUnlockDisplay (display_);
+//  if (release_lock)
+//    XUnlockDisplay (display_);
+
+  if (unlikely (!refresh_b))
+    return;
+
+  // repaint window immediately
+  result_2 = XClearWindow (display_,
+                           window_);
+  if (unlikely (result_2 != True))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to XClearWindow(0x%@,%u): \"%m\", returning\n"),
+                inherited::mod_->name (),
+                display_, window_));
+    return;
+  } // end IF
+  result_2 = XFlush (display_);
+  if (unlikely (result_2 != True))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to XFlush(0x%@,%u): \"%m\", returning\n"),
+                inherited::mod_->name (),
+                display_, window_));
+    return;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -292,30 +344,28 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (!buffer_);
       ACE_ASSERT (display_);
       ACE_ASSERT (window_);
-      ACE_ASSERT (!pixmap_);
-
-      Common_UI_Resolution_t resolution_s =
+      const typename SessionDataContainerType::DATA_T& session_data_r =
+          inherited::sessionData_->getR ();
+      const MediaType& media_type_r = session_data_r.formats.front ();
+      Common_Image_Resolution_t resolution_s =
           Stream_MediaFramework_Tools::toResolution (*display_,
                                                      window_);
+      int depth_i =
+          av_image_get_linesize (getFormat (media_type_r),
+                                 resolution_s.width,
+                                 0) / resolution_s.width * 8;
+//      ACE_ASSERT (depth_i == DefaultDepth (display_, DefaultScreen (display_)));
 
-      ACE_NEW_NORETURN (buffer_,
-                        uint8_t [resolution_s.width * resolution_s.height * (DefaultDepth (display_, DefaultScreen (display_)) / 8)]);
-      if (unlikely (!buffer_))
-      {
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
+      // sanity check(s)
+      ACE_ASSERT (!pixmap_);
 
       pixmap_ = XCreatePixmap (display_,
                                window_,
-                               resolution_s.width,
-                               resolution_s.height,
-                               DefaultDepth (display_, DefaultScreen (display_)));
+                               resolution_s.width, resolution_s.height,
+                               32);
+//                               DefaultDepth (display_, DefaultScreen (display_)));
       if (unlikely (!pixmap_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -323,9 +373,18 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     display_, window_,
                     resolution_s.width, resolution_s.height,
-                    DefaultDepth (display_, DefaultScreen (display_))));
+                    32));
+//                    DefaultDepth (display_, DefaultScreen (display_))));
         goto error;
       } // end IF
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
+                  inherited::mod_->name (),
+                  resolution_s.width, resolution_s.height,
+                  32));
+//                  DefaultDepth (display_, DefaultScreen (display_))));
+#endif // _DEBUG
 
       break;
 
@@ -347,10 +406,10 @@ error:
                     display_, pixmap_));
       pixmap_ = 0;
 
-      if (buffer_)
-      {
-        delete [] buffer_; buffer_ = NULL;
-      } // end IF
+//      if (buffer_)
+//      {
+//        delete [] buffer_; buffer_ = NULL;
+//      } // end IF
 
       break;
     }
@@ -431,39 +490,53 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     window_ = 0;
   } // end IF
 
+#if defined (_DEBUG)
   XErrorHandler error_handler_p =
       XSetErrorHandler (libacestream_vis_x11_error_handler_cb);
   ACE_UNUSED_ARG (error_handler_p);
+  XIOErrorHandler io_error_handler_p =
+      XSetIOErrorHandler (libacestream_vis_x11_io_error_handler_cb);
+  ACE_UNUSED_ARG (io_error_handler_p);
+#endif // _DEBUG
 
   ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
-  ACE_TCHAR* display_p =
-      (!configuration_in.display.device.empty () ? ACE_TEXT (const_cast<char*> (configuration_in.display.device.c_str ()))
-                                                 : ACE_OS::getenv (ACE_TEXT (STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE)));
-  ACE_ASSERT (display_p);
-  display_ = XOpenDisplay (ACE_TEXT_ALWAYS_CHAR (display_p));
-  if (unlikely (!display_))
+  if (configuration_in.X11Display)
+    display_ = configuration_in.X11Display;
+  else
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
+    ACE_TCHAR* display_p =
+        (!configuration_in.display.device.empty () ? ACE_TEXT (const_cast<char*> (configuration_in.display.device.c_str ()))
+                                                   : ACE_OS::getenv (ACE_TEXT (STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE)));
+    ACE_ASSERT (display_p);
+    display_ = XOpenDisplay (ACE_TEXT_ALWAYS_CHAR (display_p));
+    if (unlikely (!display_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_p));
+      return false;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: opened X11 connection (display: \"%s\")\n"),
                 inherited::mod_->name (),
                 display_p));
-    return false;
-  } // end IF
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: opened X11 connection (display: \"%s\")\n"),
-              inherited::mod_->name (),
-              display_p));
 #endif // _DEBUG
-  closeDisplay_ = true;
-  XSync (display_, False);
+    closeDisplay_ = true;
+  } // end ELSE
   ACE_ASSERT (display_);
+#if defined (_DEBUG)
+  XSync (display_, True);
+#endif // _DEBUG
+
   if (configuration_in.window)
     window_ = configuration_in.window;
   else
   {
     XSetWindowAttributes attributes_a;
+    ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
     attributes_a.background_pixel  =
         XWhitePixel (display_, DefaultScreen (display_));
     attributes_a.border_pixel =

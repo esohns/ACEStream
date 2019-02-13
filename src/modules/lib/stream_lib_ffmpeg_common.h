@@ -28,7 +28,7 @@ extern "C" {
 #include "libavutil/rational.h"
 } // extern "C"
 
-#include "common_ui_common.h"
+#include "common_image_common.h"
 
 struct Stream_MediaFramework_FFMPEG_MediaType
 {
@@ -40,9 +40,9 @@ struct Stream_MediaFramework_FFMPEG_MediaType
     frameRate.den = 1;
   }
 
-  enum AVPixelFormat     format;
-  struct AVRational      frameRate;
-  Common_UI_Resolution_t resolution;
+  enum AVPixelFormat        format;
+  struct AVRational         frameRate;
+  Common_Image_Resolution_t resolution;
 };
 typedef std::deque<struct Stream_MediaFramework_FFMPEG_MediaType> Stream_MediaFramework_FFMPEG_Formats_t;
 typedef Stream_MediaFramework_FFMPEG_Formats_t::iterator Stream_MediaFramework_FFMPEG_FormatsIterator_t;

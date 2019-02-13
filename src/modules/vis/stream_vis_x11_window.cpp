@@ -31,9 +31,25 @@ int
 libacestream_vis_x11_error_handler_cb (Display* display_in,
                                        XErrorEvent* event_in)
 {
-  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_error_handler_cb"));
+//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_error_handler_cb"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-  ACE_NOTREACHED (return -1;)
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("X11 error (display was: 0x%@): \"%s\", returning\n"),
+              display_in,
+              ACE_TEXT (Stream_MediaFramework_Tools::toString (*display_in, event_in->error_code).c_str ())));
+
+  return 0;
+}
+
+int
+libacestream_vis_x11_io_error_handler_cb (Display* display_in)
+{
+//  STREAM_TRACE (ACE_TEXT ("libacestream_vis_x11_io_error_handler_cb"));
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("X11 I/O error (display was: 0x%@): \"%s\", returning\n"),
+              display_in,
+              ACE_TEXT (Stream_MediaFramework_Tools::toString (*display_in, -1).c_str ())));
+
+  return 0;
 }

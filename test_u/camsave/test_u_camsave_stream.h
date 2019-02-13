@@ -270,9 +270,10 @@ class Stream_CamSave_V4L_Stream
   Stream_CamSave_LibAVResize_Module     resizer_; // --> window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
+  Stream_CamSave_Display_Module         display_;
+//  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
 #elif defined (WXWIDGETS_USE)
-  Stream_CamSave_X11WindowDisplay_Module X11WindowDisplay_;
+  Stream_CamSave_Display_Module         display_;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   ////////////////////////////////////////

@@ -234,7 +234,7 @@ class Test_U_AudioEffect_SessionData
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Common_UI_Resolution_t              resolution; // *TODO*: remove ASAP !
+  Common_Image_Resolution_t           resolution; // *TODO*: remove ASAP !
 #endif // ACE_WIN32 || ACE_WIN64
   struct Test_U_AudioEffect_Statistic statistic;
 };

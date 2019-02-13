@@ -1004,6 +1004,8 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
     // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
     //         alpha in the upper 8 bits, then red, then green, then blue. The
     //         32-bit quantities are stored native-endian. ..."
+    // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
+    //         ":0")
     outputFormat_out.format = AV_PIX_FMT_RGB32;
     outputFormat_out.frameRate.num =
         static_cast<int> (captureFormat_out.frameRate.numerator);
@@ -1213,7 +1215,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       captureinterfaceIdentifier_in;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  modulehandler_configuration.pixelBufferLock = &state_r.lock;
+//  modulehandler_configuration.pixelBufferLock = &state_r.lock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
@@ -1656,7 +1658,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GTK_USE)
     CBData_in.UIState = &state_r;
     CBData_in.progressData.state = &state_r;
-    CBData_in.pixelBufferLock = &state_r.lock;
+//    CBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
     struct Common_UI_wxWidgets_State& state_r =
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());

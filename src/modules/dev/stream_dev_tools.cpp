@@ -393,7 +393,7 @@ close:
 struct v4l2_pix_format
 Stream_Device_Tools::getVideoCaptureFormat (int fileDescriptor_in,
                                             __u32 pixelFormat_in,
-                                            const Common_UI_Resolution_t& resolution_in,
+                                            const Common_Image_Resolution_t& resolution_in,
                                             const struct v4l2_fract& frameRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getVideoCaptureFormat"));
@@ -524,21 +524,21 @@ Stream_Device_Tools::getCaptureSubFormats (int fileDescriptor_in)
   return return_value;
 }
 
-Common_UI_Resolutions_t
+Common_Image_Resolutions_t
 Stream_Device_Tools::getCaptureResolutions (int fileDescriptor_in,
                                             __u32 pixelFormat_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureResolutions"));
 
   // initialize return value(s)
-  Common_UI_Resolutions_t return_value;
+  Common_Image_Resolutions_t return_value;
 
   // sanity check(s)
   ACE_ASSERT (fileDescriptor_in != -1);
 
   int result = -1;
   struct v4l2_frmsizeenum frmsizeenum_s;
-  Common_UI_Resolution_t resolution_s;
+  Common_Image_Resolution_t resolution_s;
   for (__u32 i = 0;
        ;
        ++i)
@@ -577,7 +577,7 @@ Stream_Device_Tools::getCaptureResolutions (int fileDescriptor_in,
 Common_UI_Framerates_t
 Stream_Device_Tools::getCaptureFramerates (int fileDescriptor_in,
                                            __u32 pixelFormat_in,
-                                           const Common_UI_Resolution_t& resolution_in)
+                                           const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getCaptureResolutions"));
 

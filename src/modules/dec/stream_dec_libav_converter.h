@@ -34,7 +34,7 @@ extern "C"
 #include "common_ilock.h"
 #include "common_time_common.h"
 
-#include "common_ui_common.h"
+#include "common_image_common.h"
 
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
@@ -124,7 +124,7 @@ class Stream_Decoder_LibAVConverter_T
  protected:
   // helper methods
   inline void setFormat (enum AVPixelFormat format_in, MediaType& mediaType_inout) { setFormat_impl (format_in, mediaType_inout); }
-  inline void setResolution (const Common_UI_Resolution_t& resolution_in, MediaType& mediaType_inout) { setResolution_impl (resolution_in, mediaType_inout); }
+  inline void setResolution (const Common_Image_Resolution_t& resolution_in, MediaType& mediaType_inout) { setResolution_impl (resolution_in, mediaType_inout); }
 
   DataMessageType*   buffer_;
   struct SwsContext* context_;
@@ -162,7 +162,7 @@ class Stream_Decoder_LibAVConverter_T
 #else
   inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
 
-  inline void setResolution_impl (const Common_UI_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
+  inline void setResolution_impl (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
 #endif // ACE_WIN32 || ACE_WIN64
 };
 

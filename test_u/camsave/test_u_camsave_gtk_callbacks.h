@@ -72,7 +72,7 @@ gboolean idle_initialize_UI_cb (gpointer);
 gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
-gboolean idle_update_log_display_cb (gpointer);
+//gboolean idle_update_log_display_cb (gpointer);
 gboolean idle_update_progress_cb (gpointer);
 gboolean idle_update_video_display_cb (gpointer);
 
@@ -92,7 +92,7 @@ G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
 G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void toggleaction_fullscreen_toggled_cb (GtkToggleAction*, gpointer);
 
-G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
+//G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
@@ -107,7 +107,7 @@ G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey
 G_MODULE_EXPORT gboolean key_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 //G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
-G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+//G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

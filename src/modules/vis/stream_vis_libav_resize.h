@@ -24,6 +24,8 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_image_common.h"
+
 #include "stream_common.h"
 
 #include "stream_dec_libav_converter.h"
@@ -83,7 +85,7 @@ class Stream_Visualization_LibAVResize_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize_T (const Stream_Visualization_LibAVResize_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_LibAVResize_T& operator= (const Stream_Visualization_LibAVResize_T&))
 
-  Common_UI_Resolution_t resolution_; // input-
+  Common_Image_Resolution_t resolution_; // input-
 };
 
 // include template definition

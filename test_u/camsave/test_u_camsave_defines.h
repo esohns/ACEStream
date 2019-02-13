@@ -80,7 +80,7 @@
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME     "toggleaction_fullscreen"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME         "toggleaction_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME           "toggleaction_save"
-#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                    "textview"
+//#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                    "textview"
 #define TEST_U_STREAM_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"

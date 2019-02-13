@@ -429,16 +429,18 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-   , pixelBuffer (NULL)
-   , pixelBufferLock (NULL)
+//   , pixelBuffer (NULL)
+//   , pixelBufferLock (NULL)
 #endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
 #if defined (GTK_USE)
-   , window (NULL)
+   , window (None)
+//   , window (NULL)
+   , X11Display (NULL)
 #elif defined (WXWIDGETS_USE)
-   , window (0)
+   , window (None)
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
@@ -457,18 +459,20 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,0,0)
-  cairo_surface_t*                pixelBuffer;
-#elif GTK_CHECK_VERSION(2,0,0)
-  GdkPixbuf*                      pixelBuffer;
-#endif // GTK_CHECK_VERSION
-  ACE_SYNCH_MUTEX*                pixelBufferLock;
+//#if GTK_CHECK_VERSION(3,0,0)
+//  cairo_surface_t*                pixelBuffer;
+//#elif GTK_CHECK_VERSION(2,0,0)
+//  GdkPixbuf*                      pixelBuffer;
+//#endif // GTK_CHECK_VERSION
+//  ACE_SYNCH_MUTEX*                pixelBufferLock;
 #endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
 #else
 #if defined (GTK_USE)
-  GdkWindow*                      window;
+  XID                             window;
+  Display*                        X11Display;
+//  GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
   Window                          window;
 #endif
@@ -1000,25 +1004,25 @@ struct Stream_CamSave_V4L_UI_CBData
    : Stream_CamSave_UI_CBData ()
    , configuration (NULL)
 #if defined (GTK_USE)
-   , pixelBuffer (NULL)
-   , pixelBufferLock (NULL)
+//   , pixelBuffer (NULL)
+//   , pixelBufferLock (NULL)
 #endif // GTK_USE
    , stream (NULL)
    , subscribers ()
   {
 #if defined (GTK_USE)
-    pixelBufferLock = &UIState->lock;
+//    pixelBufferLock = &UIState->lock;
 #endif // GTK_USE
   }
 
   struct Stream_CamSave_Configuration* configuration;
 #if defined (GTK_USE)
-#if GTK_CHECK_VERSION(3,0,0)
-  cairo_surface_t*                     pixelBuffer;
-#elif GTK_CHECK_VERSION(2,0,0)
-  GdkPixbuf*                           pixelBuffer;
-#endif // GTK_CHECK_VERSION
-  ACE_SYNCH_MUTEX*                     pixelBufferLock;
+//#if GTK_CHECK_VERSION(3,0,0)
+//  cairo_surface_t*                     pixelBuffer;
+//#elif GTK_CHECK_VERSION(2,0,0)
+//  GdkPixbuf*                           pixelBuffer;
+//#endif // GTK_CHECK_VERSION
+//  ACE_SYNCH_MUTEX*                     pixelBufferLock;
 #endif // GTK_USE
   Stream_CamSave_V4L_Stream*           stream;
   Stream_CamSave_V4L_Subscribers_t     subscribers;

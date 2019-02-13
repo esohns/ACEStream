@@ -1273,11 +1273,13 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
- , GTKCairoDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+// , GTKCairoDisplay_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 #elif defined (WXWIDGETS_USE)
- , X11WindowDisplay_ (this,
-                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+ , display_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif
 #endif // GUI_SUPPORT
  , converter_2 (this,
@@ -1353,9 +1355,10 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
       layout_inout.append (&resizer_, branch_p, 0); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      layout_inout.append (&GTKCairoDisplay_, branch_p, 0);
+      layout_inout.append (&display_, branch_p, 0);
+//      layout_inout.append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
-      layout_inout.append (&X11WindowDisplay_, branch_p, 0);
+      layout_inout.append (&display_, branch_p, 0);
 #endif
 #else
       ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());

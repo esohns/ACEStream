@@ -253,7 +253,7 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       int flags_i = 0;
       MediaType media_type_s;
       int result = -1;
-      Common_UI_Resolution_t resolution_s;
+      Common_Image_Resolution_t resolution_s;
 
       // remember input format
       struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;

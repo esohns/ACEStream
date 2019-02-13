@@ -517,7 +517,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (num_nodes_i);
   std::string indentation_string;
   bool is_last_b = false;
-  for (typename inherited::iterator iterator = inherited::begin();
+  for (typename inherited::iterator iterator = inherited::begin ();
        iterator != inherited::end ();
        ++iterator, ++count_i)
   {
