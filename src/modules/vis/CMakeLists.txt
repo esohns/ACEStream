@@ -4,26 +4,6 @@ if (GTK_SUPPORT)
  include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
 endif (GTK_SUPPORT)
 
-if (WXWIDGETS_SUPPORT)
- message (STATUS "wxWidgets_DEFINITIONS: ${wxWidgets_DEFINITIONS}")
- message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
- message (STATUS "wxWidgets_CXX_FLAGS: ${wxWidgets_CXX_FLAGS}")
- message (STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
- # *NOTE*: re-enable ANSI mode
-# add_definitions (-DwxUSE_UNICODE=0)
- if (WIN32)
-  add_definitions (-D__WXMSW__)
-  add_definitions (-DWXUSINGDLL)
-  if (MSVC)
-   add_definitions (-DwxMSVC_VERSION_AUTO)
-  endif (MSVC)
- endif (WIN32)
- add_definitions (-DwxUSE_GUI=1)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-D__WXDEBUG__)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif (WXWIDGETS_SUPPORT)
-
 if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  pkg_check_modules (PKG_SOX REQUIRED sox)
@@ -51,38 +31,26 @@ endif ()
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
+
+if (GTK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+ if (GTKGL_SUPPORT)
+  if (GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
+  endif (GTKGLAREA_SUPPORT)
+ endif (GTKGL_SUPPORT)
+endif (GTK_SUPPORT)
+
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
-
- if (GTK_SUPPORT)
-  if (GTK3_FOUND)
-# *TODO*: FindGTK3.cmake is currently badly broken; use pkg_check_modules
-#   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-#                               $<BUILD_INTERFACE:${GTK3_INCLUDE_DIRS}>)
-# *NOTE*: a bug in cmake (3.12.1) requires the additional comment
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
-  elseif (GTK2_FOUND)
-   # *NOTE*: a bug in cmake (3.10.2) requires the additional comment
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               "$<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>")
-  elseif (GTK_FOUND)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${GTK_INCLUDE_DIR}>)
-  else ()
-   if (GTK2_SUPPORT)
-    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
-   elseif (GTK3_SUPPORT)
-# *NOTE*: a bug in cmake (3.10.2) requires the additional comment
-    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
-   endif ()
-  endif ()
- endif (GTK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -119,30 +87,6 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
-# *TODO*: repair pkgconfig support
-# gtk
- if (GTK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
-
-  if (GTKGL_SUPPORT)
-   if (GTK3_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
-    endif (GTKGLAREA_SUPPORT)
-   else ()
-    if (GTKGLAREA_SUPPORT)
-     target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
-    else ()
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglext)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglext/gdk)
-    endif (GTKGLAREA_SUPPORT)
-   endif ()
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
 
 # libavformat
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -266,26 +210,24 @@ add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)
- target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Visualization Advapi32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Evr.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Ole32.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
- target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
 
-# gtk
- if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/gdk_pixbuf-2.0.lib)
-   target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/cairo.lib)
-  endif (GTK3_SUPPORT)
- endif (GTK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 endif (WIN32)
+if (GTK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${GTK_LIBRARIES})
+endif (GTK_SUPPORT)
+
 target_link_libraries (${PROJECT_NAME}_Visualization Common)
+
 target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)

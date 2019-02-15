@@ -48,13 +48,13 @@
 #include "gtkgl/gtkglarea.h"
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,16,0) */
-#else /* GTK_CHECK_VERSION (3,0,0) */
+#elif GTK_CHECK_VERSION(2,0,0)
 #if defined (GTKGLAREA_SUPPORT)
-#include "gtkgl/gtkglarea.h"
+#include "gtkgl/gdkgl.h"
+#endif /* GTKGLAREA_SUPPORT */
 #else
 #include "gtk/gtkgl.h" // gtkglext
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTK_CHECK_VERSION (x,0,0) */
 #endif // GTKGL_SUPPORT
 
 #include "common_icounter.h"

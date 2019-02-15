@@ -170,21 +170,10 @@ elseif (WIN32)
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
 
  # assimp
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/include)
+ #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/include)
 
 # libav
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
-
-# gtk
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   if (GTKGL_SUPPORT)
-    if (GTKGLAREA_SUPPORT)
-     include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
-    endif (GTKGLAREA_SUPPORT)
-   endif (GTKGL_SUPPORT)
-  endif (GTK_USE)
- endif (GUI_SUPPORT)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})
@@ -340,9 +329,9 @@ elseif (WIN32)
 
 # *TODO*: repair WIN32 pkgconfig support
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimpd.lib)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimpd.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})

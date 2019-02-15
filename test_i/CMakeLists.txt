@@ -65,23 +65,8 @@ if (UNIX)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>)
   elseif (GTK_USE)
-   if (GTK3_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${GTK3_INCLUDE_DIRS}>)
-   elseif (GTK2_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>)
-   elseif (GTK_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIR}>)
-   elseif (GTK2_USE)
-    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
-   elseif (GTK3_USE)
-# *NOTE*: comment is necessary for cmake 3.12.1
-    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
-   endif ()
+   target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                               "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
@@ -163,19 +148,13 @@ target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
 if (UNIX)
  if (GUI_SUPPORT)
   if (GTK_USE)
-   if (GTK3_FOUND)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${GTK3_LIBRARIES})
-   elseif (GTK2_FOUND)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${GTK2_LIBRARIES})
-   elseif (GTK_FOUND)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${GTK_LIBRARIES})
-   elseif (GTK2_USE)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${PKG_GTK2_LIBRARIES})
-   elseif (GTK3_USE)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${PKG_GTK3_LIBRARIES})
-   endif ()
+   target_link_libraries (${PROJECT_NAME}_Test_I ${GTK_LIBRARIES})
 
    if (GTKGL_SUPPORT)
+    if (GTKGLAREA_SUPPORT)
+     target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
+    endif (GTKGLAREA_SUPPORT)
+
     target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
    endif (GTKGL_SUPPORT)
 

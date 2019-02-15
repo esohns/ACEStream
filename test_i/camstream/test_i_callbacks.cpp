@@ -8271,14 +8271,14 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Target_V4L_GTK_CBData* V4L_ui_cb_data_p =
-    static_cast<struct Test_I_Target_V4L_GTK_CBData*> (userData_in);
+  struct Test_I_Target_UI_CBData* ui_cb_data_p =
+    static_cast<struct Test_I_Target_UI_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (V4L_ui_cb_data_p);
-  ACE_ASSERT (V4L_ui_cb_data_p->configuration);
-  Test_I_Target_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
-    V4L_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != V4L_ui_cb_data_p->configuration->streamConfiguration.end ());
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

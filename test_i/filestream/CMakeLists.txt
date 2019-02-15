@@ -1,8 +1,4 @@
-﻿get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
-get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
-#message (STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
-#message (STATUS "BUILD_PATH: ${BUILD_PATH}")
-find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+﻿find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
@@ -161,10 +157,13 @@ endif ()
 #add_dependencies (${PROJECT_NAME} Common)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
+
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} X11)
 endif (UNIX)
+
+target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
+
 target_link_libraries (${EXECUTABLE_SOURCE} Common)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonLog)
 target_link_libraries (${EXECUTABLE_SOURCE} CommonSignal)

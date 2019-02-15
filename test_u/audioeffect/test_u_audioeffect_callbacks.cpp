@@ -3437,7 +3437,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_NOTREACHED (return G_SOURCE_REMOVE;)
 #endif // GTKGLAREA_SUPPORT
 #endif /* GTK_CHECK_VERSION (3,16,0) */
-#else
+#elif GTK_CHECK_VERSION(2,0,0)
 #if defined (GTKGLAREA_SUPPORT)
   /* Attribute list for gtkglarea widget. Specifies a
      list of Boolean attributes and enum/integer
@@ -3445,25 +3445,46 @@ idle_initialize_UI_cb (gpointer userData_in)
      GDK_GL_NONE. See glXChooseVisual manpage for further
      explanation.
   */
-  int attribute_list[] = {
+  int gl_attributes_a[] = {
+    GDK_GL_USE_GL,
+// GDK_GL_BUFFER_SIZE
+// GDK_GL_LEVEL
     GDK_GL_RGBA,
+    GDK_GL_DOUBLEBUFFER,
+//    GDK_GL_STEREO
+//    GDK_GL_AUX_BUFFERS
     GDK_GL_RED_SIZE,   1,
     GDK_GL_GREEN_SIZE, 1,
     GDK_GL_BLUE_SIZE,  1,
-    GDK_GL_DOUBLEBUFFER,
+    GDK_GL_ALPHA_SIZE, 1,
+//    GDK_GL_DEPTH_SIZE
+//    GDK_GL_STENCIL_SIZE
+//    GDK_GL_ACCUM_RED_SIZE
+//    GDK_GL_ACCUM_GREEN_SIZE
+//    GDK_GL_ACCUM_BLUE_SIZE
+//    GDK_GL_ACCUM_ALPHA_SIZE
+//
+//    GDK_GL_X_VISUAL_TYPE_EXT
+//    GDK_GL_TRANSPARENT_TYPE_EXT
+//    GDK_GL_TRANSPARENT_INDEX_VALUE_EXT
+//    GDK_GL_TRANSPARENT_RED_VALUE_EXT
+//    GDK_GL_TRANSPARENT_GREEN_VALUE_EXT
+//    GDK_GL_TRANSPARENT_BLUE_VALUE_EXT
+//    GDK_GL_TRANSPARENT_ALPHA_VALUE_EXT
     GDK_GL_NONE
   };
 
-  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list));
+  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (gl_attributes_a));
   if (!gl_area_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  ui_cb_data_base_p->OpenGLContexts.insert (std::make_pair (gl_area_p,
-                                                            gl_area_p->glcontext));
-  opengl_contexts_iterator = ui_cb_data_base_p->OpenGLContexts.find (gl_area_p);
+
+  state_r.OpenGLContexts.insert (std::make_pair (gl_area_p,
+                                                 gl_area_p->glcontext));
+  opengl_contexts_iterator = state_r.OpenGLContexts.find (gl_area_p);
 #else
   GdkGLConfigMode features = static_cast<GdkGLConfigMode> (GDK_GL_MODE_DOUBLE  |
                                                            GDK_GL_MODE_ALPHA   |
@@ -4959,7 +4980,7 @@ continue_:
   } // end SWITCH
 #else
   window_p =
-    gtk_widget_get_window (GTK_WIDGET ((*modulehandler_configuration_iterator).second.second.OpenGLWindow));
+    gtk_widget_get_window (GTK_WIDGET ((*modulehandler_configuration_iterator).second.second.window));
 #endif // ACE_WIN32 || ACE_WIN64
 #else
   drawing_area_p =
