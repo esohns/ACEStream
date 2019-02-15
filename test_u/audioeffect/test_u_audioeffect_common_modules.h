@@ -409,8 +409,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Test_U_AudioEffect_DirectShow_Message,
-                                   Test_U_AudioEffect_DirectShow_SessionMessage,
-                                   Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_FileWriter;
+                                   Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -422,8 +421,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                                    Test_U_ControlMessage_t,
                                    Test_U_AudioEffect_MediaFoundation_Message,
-                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                   Test_U_AudioEffect_MediaFoundation_SessionData> Test_U_AudioEffect_MediaFoundation_FileWriter;
+                                   Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type

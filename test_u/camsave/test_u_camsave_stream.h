@@ -107,9 +107,9 @@ class Stream_CamSave_DirectShow_Stream
   // modules
   Stream_CamSave_DirectShow_Source_Module            source_;
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
+#if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
   Stream_CamSave_DirectShow_DirectShowDisplay_Module directShowDisplay_;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Stream_CamSave_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
 #endif // GTK_USE

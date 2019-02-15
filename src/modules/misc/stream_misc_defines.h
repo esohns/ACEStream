@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef STREAM_STREAM_MISC_DEFINES_H
-#define STREAM_STREAM_MISC_DEFINES_H
+#ifndef STREAM_MISC_DEFINES_H
+#define STREAM_MISC_DEFINES_H
 
 #include "ace/config-lite.h"
 

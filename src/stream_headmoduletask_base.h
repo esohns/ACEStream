@@ -190,6 +190,7 @@ class Stream_HeadModuleTaskBase_T
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType> ISTREAM_CONTROL_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
+  typedef typename Common_IRecursiveLock_T<ACE_SYNCH_USE>::MUTEX_T LOCK_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -50,6 +50,7 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+#if defined (GUI_SUPPORT)
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , directShowDisplay_ (this,
@@ -58,6 +59,7 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  , GTKCairoDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
 #endif // GTK_USE
+#endif // GUI_SUPPORT
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -99,6 +101,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   //         close()d
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&encoder_);
+#if defined (GUI_SUPPORT)
   switch (inherited::configuration_->configuration_.renderer)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
@@ -115,13 +118,11 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     //case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
     //  modules_out.push_back (&mediaFoundationDisplay_);
     //  break;
-#if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
       modules_out.push_back (&GTKCairoDisplay_);
       break;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -131,6 +132,7 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
       return false;
     }
   } // end SWITCH
+#endif // GUI_SUPPORT
   modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
 

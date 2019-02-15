@@ -502,7 +502,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     !direct3DConfiguration_->focusWindow))
         return; // --> nothing to do
       struct _AMMediaType media_type_s;
-      Common_UI_Resolution_t resolution_s;
+      Common_Image_Resolution_t resolution_s;
       HWND window_handle_p = NULL;
 
       result_2 = CoInitializeEx (NULL,
@@ -782,7 +782,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   inherited2::getMediaType (session_data_r.formats.front (),
                             media_type_s);
-  Common_UI_Resolution_t resolution_s =
+  Common_Image_Resolution_t resolution_s =
     Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
 
   // *IMPORTANT NOTE*: the configuration has to be updated at this stage !
@@ -2412,7 +2412,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
         MFSESSION_GETFULLTOPOLOGY_CURRENT;
       TOPOID node_id = 0;
-      Common_UI_Resolution_t resolution_s;
+      Common_Image_Resolution_t resolution_s;
 
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |

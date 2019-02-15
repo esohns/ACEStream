@@ -622,14 +622,15 @@ Stream_Device_DirectShow_Tools::getCaptureSubFormats (IAMStreamConfig* IAMStream
 
   return result;
 }
-Common_UI_Resolutions_t
+
+Common_Image_Resolutions_t
 Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStreamConfig_in,
                                                        REFGUID mediaSubType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureResolutions"));
 
   // initialize return value(s)
-  Common_UI_Resolutions_t result;
+  Common_Image_Resolutions_t result;
 
   // sanity check(s)
   ACE_ASSERT (IAMStreamConfig_in);
@@ -648,7 +649,7 @@ Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStrea
   struct _VIDEO_STREAM_CONFIG_CAPS capabilities_s;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  Common_UI_Resolution_t resolution_s;
+  Common_Image_Resolution_t resolution_s;
   for (int i = 0; i < count; ++i)
   {
     media_type_p = NULL;
@@ -697,15 +698,15 @@ Stream_Device_DirectShow_Tools::getCaptureResolutions (IAMStreamConfig* IAMStrea
     } // end ELSE
     Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
   } // end FOR
-  result.sort (common_ui_resolution_less ());
-  result.unique (common_ui_resolution_equal ());
+  result.sort (common_image_resolution_less ());
+  result.unique (common_image_resolution_equal ());
 
   return result;
 }
 Common_UI_Framerates_t
 Stream_Device_DirectShow_Tools::getCaptureFramerates (IAMStreamConfig*IAMStreamConfig_in,
                                                       REFGUID mediaSubType_in,
-                                                      const Common_UI_Resolution_t& resolution_in)
+                                                      const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::getCaptureFramerates"));
 
@@ -945,7 +946,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
   struct _AMMediaType* media_type_p = NULL;
   struct _VIDEO_STREAM_CONFIG_CAPS video_stream_config_caps_s;
   ACE_OS::memset (&video_stream_config_caps_s, 0, sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
-  Common_UI_Resolution_t resolution_s;
+  Common_Image_Resolution_t resolution_s;
   unsigned int framerate_i = 0;
   for (int i = 0;
         i < count;

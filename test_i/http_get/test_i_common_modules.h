@@ -185,8 +185,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_Message,
-                                   Test_I_Stream_SessionMessage,
-                                   struct Test_I_Stream_SessionData> Test_I_FileWriter;
+                                   Test_I_Stream_SessionMessage> Test_I_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type

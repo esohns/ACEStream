@@ -95,6 +95,7 @@ struct Stream_ModuleHandlerConfiguration
    , hasHeader (false)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (false)
+   , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64
@@ -108,7 +109,6 @@ struct Stream_ModuleHandlerConfiguration
    , socketHandle (ACE_INVALID_HANDLE)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-   , subscribersLock (NULL)
    , timerManager (NULL)
   {}
 
@@ -133,6 +133,7 @@ struct Stream_ModuleHandlerConfiguration
   //            --> disable only if absolutely necessary
   bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
   bool                                  inbound;                              // statistic[/IO] module(s)
+  ACE_SYNCH_RECURSIVE_MUTEX*            lock;                                 // display/message handler module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type       mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -146,7 +147,6 @@ struct Stream_ModuleHandlerConfiguration
   ACE_HANDLE                            socketHandle;                         // network module(s)
   ACE_Time_Value                        statisticCollectionInterval;          // source/statistic/... module(s)
   ACE_Time_Value                        statisticReportingInterval;           // [ACE_Time_Value::zero: off]
-  ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;                      // message handler module
   Common_ITimer_t*                      timerManager;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

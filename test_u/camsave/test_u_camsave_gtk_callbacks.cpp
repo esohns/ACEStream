@@ -1451,7 +1451,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -1482,12 +1482,13 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID media_subtype = Common_Tools::StringToGUID (format_string);
   ACE_ASSERT (!InlineIsEqualGUID (media_subtype, GUID_NULL));
+  Common_Image_Resolution_t resolution_s;
 #else
   struct v4l2_pix_format pixel_format_s;
   std::istringstream converter;
   converter.str (format_string.c_str ());
   converter >> pixel_format_s.pixelformat;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
@@ -1514,9 +1515,17 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  resolution_s.cx = g_value_get_uint (&value);
+#else
   pixel_format_s.width = g_value_get_uint (&value);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  resolution_s.cy = g_value_get_uint (&value_2);
+#else
   pixel_format_s.height = g_value_get_uint (&value_2);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value_2);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -1537,9 +1546,9 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  struct v4l2_fract framerate_s;
-  framerate_s.numerator = g_value_get_uint (&value);
-  framerate_s.denominator = g_value_get_uint (&value_2);
+  unsigned int framerate_numerator_i, framerate_denominator_i;
+  framerate_numerator_i = g_value_get_uint (&value);
+  framerate_denominator_i = g_value_get_uint (&value_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
   {
@@ -1552,15 +1561,15 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
       Stream_MediaFramework_DirectShow_Tools::free (directshow_cb_data_p->configuration->streamConfiguration.configuration_.format);
       if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_stream_iterator).second.second.builder,
                                                                   media_subtype,
-                                                                  width_i, height_i,
-                                                                  framerate_i,
+                                                                  resolution_s.cx, resolution_s.cy,
+                                                                  framerate_numerator_i / framerate_denominator_i,
                                                                   directshow_cb_data_p->configuration->streamConfiguration.configuration_.format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(%s,%u,%u,%u), returning\n"),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                    width_i, height_i,
-                    framerate_i));
+                    resolution_s.cx, resolution_s.cy,
+                    framerate_numerator_i / framerate_denominator_i));
         return;
       } // end IF
       if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second.builder,
@@ -1578,8 +1587,8 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
       { ACE_ASSERT (directshow_cb_data_p->configuration->streamConfiguration.configuration_.format.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
         struct tagVIDEOINFOHEADER* video_info_header_p =
           reinterpret_cast<struct tagVIDEOINFOHEADER*> (directshow_cb_data_p->configuration->streamConfiguration.configuration_.format.pbFormat);
-        video_info_header_p->bmiHeader.biWidth = width_i;
-        video_info_header_p->bmiHeader.biHeight = height_i;
+        video_info_header_p->bmiHeader.biWidth = resolution_s.cx;
+        video_info_header_p->bmiHeader.biHeight = resolution_s.cy;
         video_info_header_p->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header_p->bmiHeader);
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
@@ -1594,8 +1603,8 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
       { ACE_ASSERT (directshow_cb_data_p->configuration->streamConfiguration.configuration_.format.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
         struct tagVIDEOINFOHEADER2* video_info_header_p =
           reinterpret_cast<struct tagVIDEOINFOHEADER2*> (directshow_cb_data_p->configuration->streamConfiguration.configuration_.format.pbFormat);
-        video_info_header_p->bmiHeader.biWidth = width_i;
-        video_info_header_p->bmiHeader.biHeight = height_i;
+        video_info_header_p->bmiHeader.biWidth = resolution_s.cx;
+        video_info_header_p->bmiHeader.biHeight = resolution_s.cy;
         video_info_header_p->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header_p->bmiHeader);
         ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
@@ -1631,7 +1640,6 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
 //                                  pixel_format_s);
 //  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
 //                                     framerate_s);
-  ACE_UNUSED_ARG (framerate_s);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -2127,9 +2135,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   struct _GUID format_s = GUID_NULL;
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2140,6 +2150,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
+
       format_s = 
         directshow_cb_data_p->configuration->streamConfiguration.configuration_.format.subtype;
       resolution_s =
@@ -2158,6 +2172,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
+      mediafoundation_stream_iterator_2 =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+      ACE_ASSERT (mediafoundation_stream_iterator_2 != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
+
       filename_string =
         (*mediafoundation_stream_iterator).second.second.targetFileName;
       break;
@@ -2661,10 +2679,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 //#endif // GTK_CHECK_VERSION
 
 //  ACE_ASSERT (GDK_IS_WINDOW (window_p));
-  (*iterator_2).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
-  (*iterator_3).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
-  (*iterator_2).second.second.window = GDK_WINDOW_XID (window_p);
-  (*iterator_3).second.second.window = GDK_WINDOW_XID (window_p);
+//  (*iterator_2).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
+//  (*iterator_3).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
+//  (*iterator_2).second.second.window = GDK_WINDOW_XID (window_p);
+//  (*iterator_3).second.second.window = GDK_WINDOW_XID (window_p);
+  (*iterator_2).second.second.window = window_p;
+  (*iterator_3).second.second.window = window_p;
   ACE_ASSERT ((*iterator_2).second.second.window);
   ACE_ASSERT ((*iterator_3).second.second.window);
 
@@ -2709,8 +2729,33 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
 
     g_value_init (&value, G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    { ACE_ASSERT ((*directshow_stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+      g_value_set_string (&value,
+                          (*directshow_stream_iterator).second.second.deviceIdentifier.identifier._string);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+      g_value_set_string (&value,
+                          (*mediafoundation_stream_iterator).second.second.deviceIdentifier.identifier._string);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
     g_value_set_string (&value,
                         (*iterator_2).second.second.deviceIdentifier.identifier.c_str ());
+#endif // ACE_WIN32 || ACE_WIN64
     index_i =
         Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                            value,
@@ -5037,7 +5082,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Common_UI_Resolution_t resolution_s;
+      Common_Image_Resolution_t resolution_s;
       resolution_s.cx = width;
       resolution_s.cy = height;
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
@@ -5293,13 +5338,13 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Stream_MediaFramework_DirectShow_Tools::setFramerate (static_cast<unsigned int> ((double)frame_interval / (double)frame_interval_denominator),
+      Stream_MediaFramework_DirectShow_Tools::setFramerate (static_cast<unsigned int> ((double)frame_rate_numerator / (double)frame_rate_denominator),
                                                             directshow_cb_data_p->configuration->streamConfiguration.configuration_.format);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      ACE_UNUSED_ARG (frame_interval_denominator);
+      ACE_UNUSED_ARG (frame_rate_denominator);
 
       // sanity check(s)
       ACE_ASSERT (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.format);
@@ -5319,7 +5364,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 
       UINT32 bit_rate =
         width * height * 3 * 8 *
-        static_cast<UINT32> ((double)frame_interval / (double)frame_interval_denominator);
+        static_cast<UINT32> ((double)frame_rate_numerator / (double)frame_rate_denominator);
       result_2 =
         mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.format->SetUINT32 (MF_MT_AVG_BITRATE,
                                                                                                         bit_rate);
@@ -5334,12 +5379,12 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
       result_2 =
         MFSetAttributeSize (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.format,
                             MF_MT_FRAME_RATE,
-                            frame_interval, frame_interval_denominator);
+                            frame_rate_numerator, frame_rate_denominator);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFSetAttributeSize(MF_MT_FRAME_RATE,%f): \"%s\", returning\n"),
-                    (float)frame_interval / (float)frame_interval_denominator,
+                    (float)frame_rate_numerator / (float)frame_rate_denominator,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         return;
       } // end IF
@@ -5550,7 +5595,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }
@@ -5560,7 +5605,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
       break;
     }

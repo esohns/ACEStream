@@ -12,7 +12,7 @@ elseif (WIN32)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
 #               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
 #               PATH_SUFFIXES lib
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
+               PATHS $ENV{LIB_ROOT}/libmysql_2
                PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
  if (NOT MYSQL_LIBRARY)
@@ -43,9 +43,9 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/cmake/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql_2/cmake/include>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql_2/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Database PUBLIC

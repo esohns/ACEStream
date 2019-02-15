@@ -1466,8 +1466,8 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
   g_value_unset (&value);
   unsigned int height = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
-//  unsigned int framerate_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  unsigned int framerate_i = 0;
   switch (CBData_in->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -8236,7 +8236,7 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  switch (cb_ui_cb_data_base_p->mediaFramework)
+  switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
@@ -8266,7 +8266,7 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  cb_ui_cb_data_base_p->mediaFramework));
+                  ui_cb_data_base_p->mediaFramework));
       return false;
     }
   } // end SWITCH

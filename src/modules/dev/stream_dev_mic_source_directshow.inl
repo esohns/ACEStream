@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <evcode.h>
 #include <strsafe.h>
 
 #include "ace/Log_Msg.h"
@@ -547,7 +548,9 @@ continue_2:
       } // end IF
 
       // process DirectShow filter graph events
-      inherited::TASK_BASE_T::start ();
+      ACE_thread_t thread_id;
+      inherited::TASK_BASE_T::start (thread_id);
+      ACE_UNUSED_ARG (thread_id);
       is_active = inherited::TASK_BASE_T::isRunning ();
       ACE_ASSERT (is_active);
 

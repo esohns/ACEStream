@@ -128,15 +128,19 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
-  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
                                                        resolution_.cx, resolution_.cy, inherited::inputFormat_,
-#else
-                                                       resolution_.width, resolution_.height, inherited::inputFormat_,
-#endif // ACE_WIN32 || ACE_WIN64
                                                        data_a,
                                                        inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
                                                        inherited::frame_->data)))
+#else
+  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
+                                                       resolution_.width, resolution_.height, inherited::inputFormat_,
+                                                       data_a,
+                                                       inherited::configuration_->area.width, inherited::configuration_->area.height, inherited::inputFormat_,
+                                                       inherited::frame_->data)))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
@@ -283,15 +287,19 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
         break;
       } // end IF
 #if defined (_DEBUG)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                     inherited::mod_->name (),
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                     resolution_.cx, resolution_.cy,
-#else
-                    resolution_.width, resolution_.height,
-#endif // ACE_WIN32 || ACE_WIN64
                     inherited::configuration_->area.width, inherited::configuration_->area.height));
+#else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                    inherited::mod_->name (),
+                    resolution_.width, resolution_.height,
+                    inherited::configuration_->area.width, inherited::configuration_->area.height));
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
 
       // initialize conversion context
@@ -385,15 +393,19 @@ error:
                                media_type_2);
 
 #if defined (_DEBUG)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
                   inherited::mod_->name (),
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                   media_type_2.resolution.cx, media_type_2.resolution.cy,
-#else
-                  media_type_2.resolution.width, media_type_2.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
                   inherited::configuration_->area.width, inherited::configuration_->area.height));
+#else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
+                  inherited::mod_->name (),
+                  media_type_2.resolution.width, media_type_2.resolution.height,
+                  inherited::configuration_->area.width, inherited::configuration_->area.height));
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
 
       // initialize conversion context

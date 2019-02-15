@@ -1001,6 +1001,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 #endif // _DEBUG
   if (hasUI_in)
   {
+    // *NOTE*: Gtk expects RGB32
     // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
     //         alpha in the upper 8 bits, then red, then green, then blue. The
     //         32-bit quantities are stored native-endian. ..."
@@ -1156,7 +1157,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      directshow_modulehandler_configuration.pixelBufferLock = &state_r.lock;
+      directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
       {
@@ -1180,8 +1181,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
-      mediafoundation_modulehandler_configuration.pixelBufferLock =
-          &state_r.lock;
+      mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
 
       if (statisticReportingInterval_in)
       {
@@ -1474,7 +1474,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
-      Common_UI_Resolution_t resolution_s = 
+      Common_Image_Resolution_t resolution_s = 
         Stream_MediaFramework_DirectShow_Tools::toResolution (directShowConfiguration_in.streamConfiguration.configuration_.format);
       //struct _D3DDISPLAYMODE display_mode_s =
       //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
@@ -1621,7 +1621,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GTK_USE)
         directShowCBData_in.UIState = &state_r;
         directShowCBData_in.progressData.state = &state_r;
-        directShowCBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -1636,7 +1635,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GTK_USE)
         mediaFoundationCBData_in.UIState = &state_r;
         mediaFoundationCBData_in.progressData.state = &state_r;
-        mediaFoundationCBData_in.pixelBufferLock = &state_r.lock;
 #elif defined (WXWIDGETS_USE)
         struct Common_UI_wxWidgets_State& state_r =
           const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
@@ -2005,6 +2003,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -2012,11 +2011,7 @@ ACE_TMAIN (int argc_in,
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
   logstack_p = &state_r.logStack;
   lock_p = &state_r.logStackLock;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   Common_Logger_t logger (logstack_p,
                           lock_p);
 #endif // GTK_USE
@@ -2091,6 +2086,16 @@ ACE_TMAIN (int argc_in,
       directshow_ui_cb_data.configuration = &directshow_configuration;
       directshow_ui_cb_data.mediaFramework = media_framework_e;
       ui_cb_data_p = &directshow_ui_cb_data;
+
+      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+          idle_finalize_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+          idle_initialize_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2098,6 +2103,16 @@ ACE_TMAIN (int argc_in,
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
       mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
       ui_cb_data_p = &mediafoundation_ui_cb_data;
+
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+          idle_finalize_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+          idle_initialize_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+
       break;
     }
     default:
@@ -2120,6 +2135,15 @@ ACE_TMAIN (int argc_in,
   struct Stream_CamSave_V4L_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
+
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT
@@ -2128,15 +2152,6 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
   Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
@@ -2381,9 +2396,7 @@ ACE_TMAIN (int argc_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
 #if defined (GTK_USE)
-        result_2 = gtk_manager_p->initialize (argc_in,
-                                              argv_in,
-                                              &directshow_ui_definition);
+        result_2 = gtk_manager_p->initialize (directshow_ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
         break;
       }
@@ -2391,9 +2404,7 @@ ACE_TMAIN (int argc_in,
       {
 #if defined (GTK_USE)
         result_2 =
-          gtk_manager_p->initialize (argc_in,
-                                     argv_in,
-                                     &mediafoundation_ui_definition);
+          gtk_manager_p->initialize (mediafoundation_ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
         break;
       }

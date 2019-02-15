@@ -120,7 +120,7 @@ Stream_MediaFramework_DirectDraw_Tools::finalize (bool coUninitialize_in)
 struct _D3DDISPLAYMODE
 Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (UINT adapter_in,
                                                         enum _D3DFORMAT format_in,
-                                                        const Common_UI_Resolution_t& resolution_in)
+                                                        const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::getDisplayMode"));
 
@@ -179,7 +179,7 @@ Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (UINT adapter_in,
 bool
 Stream_MediaFramework_DirectDraw_Tools::can (UINT adapter_in,
                                              enum _D3DFORMAT format_in,
-                                             const Common_UI_Resolution_t& resolution_in)
+                                             const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::can"));
 
@@ -271,7 +271,7 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
   } // end IF
   if (!configuration_inout.presentationParameters.Windowed)
   {
-    Common_UI_Resolution_t resolution_s;
+    Common_Image_Resolution_t resolution_s;
     resolution_s.cx =
       configuration_inout.presentationParameters.BackBufferWidth;
     resolution_s.cy =

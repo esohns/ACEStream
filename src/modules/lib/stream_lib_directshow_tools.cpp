@@ -3326,7 +3326,7 @@ continue_:
 }
 
 void
-Stream_MediaFramework_DirectShow_Tools::resize (const Common_UI_Resolution_t& size_in,
+Stream_MediaFramework_DirectShow_Tools::resize (const Common_Image_Resolution_t& size_in,
                                                 struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::resize"));
@@ -3410,7 +3410,7 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
 }
 
 void
-Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_UI_Resolution_t& resolution_in,
+Stream_MediaFramework_DirectShow_Tools::setResolution (const Common_Image_Resolution_t& resolution_in,
                                                        struct _AMMediaType& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::setResolution"));
@@ -4065,13 +4065,13 @@ Stream_MediaFramework_DirectShow_Tools::toString (const struct _AMMediaType& med
   return result;
 }
 
-Common_UI_Resolution_t
+Common_Image_Resolution_t
 Stream_MediaFramework_DirectShow_Tools::toResolution (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toResolution"));
 
-  Common_UI_Resolution_t result;
-  ACE_OS::memset (&result, 0, sizeof (Common_UI_Resolution_t));
+  Common_Image_Resolution_t result;
+  ACE_OS::memset (&result, 0, sizeof (Common_Image_Resolution_t));
 
   if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
   {

@@ -2728,7 +2728,7 @@ ACE_TMAIN (int argc_in,
       idle_finalize_target_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_target_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
   ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64

@@ -35,7 +35,7 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_ui_common.h"
+#include "common_image_common.h"
 
 #include "stream_lib_defines.h"
 
@@ -48,18 +48,18 @@ class Stream_MediaFramework_DirectDraw_Tools
   static bool initialize (bool = true); // initialize COM ?
   static void finalize (bool = true); // finalize COM ?
 
-  static struct _D3DDISPLAYMODE getDisplayMode (UINT,                           // adapter
-                                                enum _D3DFORMAT,                // format
-                                                const Common_UI_Resolution_t&); // resolution
+  static struct _D3DDISPLAYMODE getDisplayMode (UINT,                              // adapter
+                                                enum _D3DFORMAT,                   // format
+                                                const Common_Image_Resolution_t&); // resolution
   // *IMPORTANT NOTE*: callers must Release() the handle
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   inline static IDirect3D9Ex* handle () { ACE_ASSERT (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle); Stream_MediaFramework_DirectDraw_Tools::direct3DHandle->AddRef (); return Stream_MediaFramework_DirectDraw_Tools::direct3DHandle; }
 #else
   inline static IDirect3D9* handle () { ACE_ASSERT (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle); Stream_MediaFramework_DirectDraw_Tools::direct3DHandle->AddRef (); return Stream_MediaFramework_DirectDraw_Tools::direct3DHandle; }
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  static bool can (UINT,                           // adapter
-                   enum _D3DFORMAT,                // format
-                   const Common_UI_Resolution_t&); // resolution
+  static bool can (UINT,                              // adapter
+                   enum _D3DFORMAT,                   // format
+                   const Common_Image_Resolution_t&); // resolution
 
   static bool getDevice (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: Direct3D configuration
                          IDirect3DDeviceManager9*&,                            // return value: interface handle

@@ -93,11 +93,15 @@ template <ACE_SYNCH_DECL,
           typename DistributorModuleType>
 class Stream_Layout_T
  : public tree<ACE_Module<ACE_SYNCH_USE,
-                          TimePolicyType>*>
+                          TimePolicyType>*,
+               std::allocator<tree_node_<ACE_Module<ACE_SYNCH_USE,
+                                                    TimePolicyType>*> > >
  , public Common_IDumpState
 {
   typedef tree<ACE_Module<ACE_SYNCH_USE,
-                          TimePolicyType>*> inherited;
+                          TimePolicyType>*,
+               std::allocator<tree_node_<ACE_Module<ACE_SYNCH_USE,
+                                                    TimePolicyType>*> > > inherited;
 
  public:
   // convenient types
@@ -113,8 +117,8 @@ class Stream_Layout_T
   bool setup (STREAM_T&);
   void unset (STREAM_T&);
 
-  Stream_Module_t* find (const std::string&,  // nodule name
-                         bool = false) const; // sanitize module names ?
+  MODULE_T* find (const std::string&,  // nodule name
+                  bool = false) const; // sanitize module names ?
   Stream_ModuleList_t prev (const std::string&) const; // nodule name
   Stream_ModuleList_t next (const std::string&) const; // nodule name
 
@@ -143,21 +147,22 @@ class Stream_Layout_T
 
   // helper methods
   bool setup (typename inherited::tree_node&, // distributor node
-              ISTREAM_T*,                     // stream handle
-              MODULE_T*);                     // stream tail handle
+              ISTREAM_T*, // stream handle
+              MODULE_T*); // stream tail handle
 
-  BASE_ITERATOR_T find (MODULE_T*) const;
-  void prev (typename inherited::tree_node&, // distributor node
-             const std::string&,             // module name
-             Stream_ModuleList_t&) const;    // return value
+  bool find (MODULE_T*,
+             typename inherited::iterator_base&) const;
+  void prev (typename inherited::tree_node&,                  // distributor node
+             const std::string&,          // module name
+             Stream_ModuleList_t&) const; // return value
 
   inline bool is_distributor (MODULE_T* module_in) const { return dynamic_cast<Stream_IDistributorModule*> (module_in->writer ()); }
   // *NOTE*: the return index value is correct as long as:
   //         - the module has been initialize()d
   //         - the corresponding head module has not been push()ed yet
-  bool has_branch (typename inherited::tree_node&, // distributor node
-                   const std::string&,             // branch name
-                   unsigned int&) const;           // return value: index (iff any; see above)
+  bool has_branch (typename inherited::tree_node&,           // distributor node
+                   const std::string&,   // branch name
+                   unsigned int&) const; // return value: index (iff any; see above)
 };
 
 // include template definition

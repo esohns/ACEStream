@@ -44,6 +44,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/math>)

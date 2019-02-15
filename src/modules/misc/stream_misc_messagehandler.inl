@@ -109,8 +109,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT ((configuration_in.subscribers && configuration_in.subscribersLock) ||
-              (!configuration_in.subscribers && !configuration_in.subscribersLock));
+  ACE_ASSERT ((configuration_in.subscribers && configuration_in.lock) ||
+              (!configuration_in.subscribers && !configuration_in.lock));
 
   if (inherited::isInitialized_)
   {
@@ -130,9 +130,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   delete_ =
-      (!configuration_in.subscribersLock && !configuration_in.subscribers);
-  if (configuration_in.subscribersLock)
-    lock_ = configuration_in.subscribersLock;
+      (!configuration_in.lock && !configuration_in.subscribers);
+  if (configuration_in.lock)
+    lock_ = configuration_in.lock;
   else
   {
     if (lock_)
@@ -145,10 +145,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-
-      // clean up
       delete_ = false;
-
       return false;
     } // end IF
   } // end IF
@@ -168,15 +165,11 @@ continue_3:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-
-      // clean up
       if (delete_)
       {
-        delete lock_;
-        lock_ = NULL;
+        delete lock_; lock_ = NULL;
       } // end IF
       delete_ = false;
-
       return false;
     } // end IF
   } // end IF

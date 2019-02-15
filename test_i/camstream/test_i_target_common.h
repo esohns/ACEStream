@@ -234,7 +234,7 @@ typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_T
 #else
 class Test_I_Target_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                        struct Stream_MediaFramework_V4L_MediaType,
+                                        struct Stream_MediaFramework_FFMPEG_MediaType,
                                         struct Test_I_Target_StreamState,
                                         Test_I_Statistic_t,
                                         struct Test_I_Target_UserData>
@@ -242,7 +242,7 @@ class Test_I_Target_SessionData
  public:
   Test_I_Target_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                   struct Stream_MediaFramework_V4L_MediaType,
+                                   struct Stream_MediaFramework_FFMPEG_MediaType,
                                    struct Test_I_Target_StreamState,
                                    Test_I_Statistic_t,
                                    struct Test_I_Target_UserData> ()
@@ -253,7 +253,7 @@ class Test_I_Target_SessionData
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
-                                  struct Stream_MediaFramework_V4L_MediaType,
+                                  struct Stream_MediaFramework_FFMPEG_MediaType,
                                   struct Test_I_Target_StreamState,
                                   Test_I_Statistic_t,
                                   struct Test_I_Target_UserData>::operator+= (rhs_in);
@@ -656,14 +656,14 @@ struct Test_I_Target_StreamConfiguration
    , userData (NULL)
   {}
 
-  struct Stream_MediaFramework_V4L_MediaType format;
+  struct Stream_MediaFramework_FFMPEG_MediaType format;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkWindow*                                 window;
+  GdkWindow*                                    window;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
-  struct Test_I_Target_UserData*             userData;
+  struct Test_I_Target_UserData*                userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

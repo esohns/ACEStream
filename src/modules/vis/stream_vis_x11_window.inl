@@ -35,6 +35,7 @@ extern "C"
 #include "common_image_tools.h"
 
 #include "common_ui_defines.h"
+#include "common_ui_tools.h"
 
 #include "stream_macros.h"
 
@@ -210,29 +211,29 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     return;
   }
 
-#if defined (_DEBUG)
-  result =
-      av_image_fill_linesizes (line_sizes_a,
-                               AV_PIX_FMT_RGB32,
-                               static_cast<int> (resolution_s.width));
-  ACE_ASSERT (result >= 0);
-  result =
-      av_image_fill_pointers (data_a,
-                              AV_PIX_FMT_RGB32,
-                              static_cast<int> (resolution_s.height),
-                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-                              line_sizes_a);
-  ACE_ASSERT (result >= 0);
-  Common_Image_Tools::savePNG (resolution_s,
-                               AV_PIX_FMT_RGB32,
-                               data_a,
-                               filename_string);
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  result =
+//      av_image_fill_linesizes (line_sizes_a,
+//                               AV_PIX_FMT_RGB32,
+//                               static_cast<int> (resolution_s.width));
+//  ACE_ASSERT (result >= 0);
+//  result =
+//      av_image_fill_pointers (data_a,
+//                              AV_PIX_FMT_RGB32,
+//                              static_cast<int> (resolution_s.height),
+//                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+//                              line_sizes_a);
+//  ACE_ASSERT (result >= 0);
+//  Common_Image_Tools::savePNG (resolution_s,
+//                               AV_PIX_FMT_RGB32,
+//                               data_a,
+//                               filename_string);
+//#endif // _DEBUG
 
   image_p =
       XCreateImage (display_,
                     DefaultVisual (display_, DefaultScreen (display_)),
-                    DefaultDepth (display_, DefaultScreen (display_)),
+                    32,
                     ZPixmap,
                     0,
                     reinterpret_cast<char*> (message_inout->rd_ptr ()),
@@ -251,6 +252,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
 //  XLockDisplay (display_);
 //  release_lock = true;
+
+//#if defined (_DEBUG)
+//  Common_UI_Tools::dump (*display_, window_);
+//  Common_UI_Tools::dump (*display_, pixmap_);
+//#endif // _DEBUG
 
   // *TODO*: currently XPutImage returns 0 in all cases...no error handling :-(
   result_2 = XPutImage (display_,
@@ -356,7 +362,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
           av_image_get_linesize (getFormat (media_type_r),
                                  resolution_s.width,
                                  0) / resolution_s.width * 8;
-//      ACE_ASSERT (depth_i == DefaultDepth (display_, DefaultScreen (display_)));
+      XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
+                                                             window_);
+      // *NOTE*: otherwise there will be 'BadMatch' errors
+      ACE_ASSERT (depth_i == attributes_s.depth);
 
       // sanity check(s)
       ACE_ASSERT (!pixmap_);
@@ -364,17 +373,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       pixmap_ = XCreatePixmap (display_,
                                window_,
                                resolution_s.width, resolution_s.height,
-                               32);
-//                               DefaultDepth (display_, DefaultScreen (display_)));
+                               depth_i);
       if (unlikely (!pixmap_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to XCreatePixmap(0x%@,%u,%ux%u,%u): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to XCreatePixmap(0x%@,%u,%ux%u,%d): \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     display_, window_,
                     resolution_s.width, resolution_s.height,
-                    32));
-//                    DefaultDepth (display_, DefaultScreen (display_))));
+                    depth_i));
         goto error;
       } // end IF
 #if defined (_DEBUG)
@@ -382,8 +389,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
                   inherited::mod_->name (),
                   resolution_s.width, resolution_s.height,
-                  32));
-//                  DefaultDepth (display_, DefaultScreen (display_))));
+                  depth_i));
 #endif // _DEBUG
 
       break;

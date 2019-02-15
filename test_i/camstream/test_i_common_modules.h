@@ -43,9 +43,15 @@
 #include "stream_lib_directshow_target.h"
 #include "stream_lib_mediafoundation_target.h"
 
+#if defined (GUI_SUPPORT)
 #include "stream_vis_target_direct3d.h"
 #include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
+
+#if defined (GTK_USE)
+#include "stream_vis_gtk_cairo.h"
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #else
 #include "stream_dev_cam_source_v4l.h"
 

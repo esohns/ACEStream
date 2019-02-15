@@ -117,13 +117,13 @@ class Stream_Module_Vis_GTK_Cairo_T
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 
 #if GTK_CHECK_VERSION(3,0,0)
-  cairo_surface_t*   buffer_; // target-
+  cairo_surface_t*                         buffer_; // target-
 #elif GTK_CHECK_VERSION(2,0,0)
-  GdkPixbuf*         buffer_; // target-
+  GdkPixbuf*                               buffer_; // target-
 #endif // GTK_CHECK_VERSION
-  cairo_t*           context_;
-  bool               isFirst_;
-  ACE_SYNCH_MUTEX_T* lock_; // surface-
+  cairo_t*                                 context_;
+  bool                                     isFirst_;
+  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_; // surface-
 };
 
 // include template definition

@@ -1,9 +1,9 @@
 ﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
-#include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
-
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
 if (GTK_SUPPORT)
-# include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
+ include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
 endif (GTK_SUPPORT)
+
 if (WXWIDGETS_SUPPORT)
  message (STATUS "wxWidgets_DEFINITIONS: ${wxWidgets_DEFINITIONS}")
  message (STATUS "wxWidgets_DEFINITIONS_DEBUG: ${wxWidgets_DEFINITIONS_DEBUG}")
@@ -123,39 +123,9 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # gtk
  if (GTK_SUPPORT)
-  if (GTK3_SUPPORT)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/atk-1.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gdk-pixbuf-2.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/cairo>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/pango-1.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/glib-2.0/include>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gtk-3.0>)
-  else ()
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/atk-1.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gdk-pixbuf-2.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/cairo>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/pango-1.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/glib-2.0/include>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/glib-2.0>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/lib/gtk-2.0/include>)
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk2/include/gtk-2.0>)
-  endif ()
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+
   if (GTKGL_SUPPORT)
    if (GTK3_SUPPORT)
     if (GTKGLAREA_SUPPORT)
@@ -190,6 +160,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -241,6 +213,7 @@ if (GTK_SUPPORT)
       stream_vis_gtk_pixbuf.h
       stream_vis_gtk_pixbuf.inl)
 endif (GTK_SUPPORT)
+
 if (UNIX)
  set (source_files
       ${source_files}

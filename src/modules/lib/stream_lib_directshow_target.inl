@@ -109,7 +109,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("%s: failed to ACE_Message_Queue::flush() \"%m\", continuing\n"),
     //              inherited::mod_->name ()));
-    inherited::queue_.waitForIdleState ();
+  inherited::idle ();
   //} // end IF
 
   if (ROTID_)
@@ -201,7 +201,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     //} // end IF
     //if (!push_)
     //{
-      inherited::queue_.waitForIdleState ();
+      inherited::idle ();
     //} // end IF
 
     if (ROTID_)
@@ -232,8 +232,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  result_2 = inherited::queue_.activate ();
-  if (result_2 == -1)
+  ACE_ASSERT (inherited::msg_queue_);
+  result_2 = inherited::msg_queue_->activate ();
+  if (unlikely (result_2 == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::activate() \"%m\", aborting\n"),
@@ -254,7 +255,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
     configuration_in.filterConfiguration->module = inherited::mod_;
     configuration_in.filterConfiguration->pinConfiguration->queue =
-      &(inherited::queue_);
+      inherited::msg_queue_;
 
     if (!inherited2::initialize (*configuration_in.filterConfiguration))
     {
@@ -269,7 +270,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                                 allocator_in);
 
 error:
-  result_2 = inherited::queue_.deactivate ();
+  ACE_ASSERT (inherited::msg_queue_);
+  result_2 = inherited::msg_queue_->deactivate ();
   if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate() \"%m\", continuing\n"),
@@ -320,7 +322,8 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
-  int result = inherited::queue_.enqueue_tail (message_block_p, NULL);
+  ACE_ASSERT (inherited::msg_queue_);
+  int result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

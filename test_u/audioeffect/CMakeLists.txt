@@ -1,4 +1,9 @@
-﻿# Threads
+﻿option (GTKGL_USE "enable GTK OpenGL" ON)
+if(GTKGL_USE)
+ add_definitions (-DGTKGL_USE)
+endif (GTKGL_USE)
+
+# Threads
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)

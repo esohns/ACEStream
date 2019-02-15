@@ -52,6 +52,7 @@ template <ACE_SYNCH_DECL,
 class Stream_MediaFramework_MediaFoundation_Source_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -68,6 +69,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

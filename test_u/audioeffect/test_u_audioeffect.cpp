@@ -1338,8 +1338,6 @@ do_work (unsigned int bufferSize_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
 #if defined (GTK_USE)
-        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-        state_r.eventHooks.initHook = idle_initialize_UI_cb;
         //directShowCBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
         state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1352,8 +1350,6 @@ do_work (unsigned int bufferSize_in,
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
 #if defined (GTK_USE)
-        state_r.eventHooks.finiHook = idle_finalize_UI_cb;
-        state_r.eventHooks.initHook = idle_initialize_UI_cb;
         //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
         //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
         state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -1704,6 +1700,8 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  struct Common_UI_GTK_GLConfiguration* gtk_configuration_p = NULL;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -1722,20 +1720,50 @@ ACE_TMAIN (int argc_in,
     {
 #if defined (GTK_USE)
       directshow_ui_cb_data.progressData.state = &state_r;
+
+      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+          idle_finalize_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+          idle_initialize_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#if GTK_CHECK_VERSION(3,0,0)
+      if (!UI_CSS_file.empty ())
+        directshow_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+#endif // GTK_CHECK_VERSION(3,0,0)
+      gtk_configuration_p = &directshow_ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_USE
       cb_data_base_p = &directshow_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
       directshow_ui_cb_data.configuration = &directshow_configuration;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
 #if defined (GTK_USE)
       mediafoundation_ui_cb_data.progressData.state = &state_r;
+
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+          idle_finalize_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+          idle_initialize_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#if GTK_CHECK_VERSION(3,0,0)
+      if (!UI_CSS_file.empty ())
+        mediafoundation_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+#endif // GTK_CHECK_VERSION(3,0,0)
+      gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_USE
       cb_data_base_p = &mediafoundation_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
+
       break;
     }
     default:
@@ -1757,8 +1785,23 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_U_AudioEffect_Configuration configuration;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
+
 #if defined (GTK_USE)
   ui_cb_data.progressData.state = &state_r;
+
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#if GTK_CHECK_VERSION(3,0,0)
+  if (!UI_CSS_file.empty ())
+    ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
+#endif // GTK_CHECK_VERSION(3,0,0)
+    gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_USE
   cb_data_base_p = &ui_cb_data;
   ui_cb_data.configuration = &configuration;
@@ -1900,21 +1943,9 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
-#if GTK_CHECK_VERSION(3,0,0)
-  if (!UI_CSS_file.empty ())
-    ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
-#endif // GTK_CHECK_VERSION(3,0,0)
+  ACE_ASSERT (gtk_configuration_p);
   if (!UI_definition_file.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (*gtk_configuration_p);
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

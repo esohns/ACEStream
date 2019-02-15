@@ -436,12 +436,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , window (NULL)
 #else
 #if defined (GTK_USE)
-   , window (None)
-//   , window (NULL)
-   , X11Display (NULL)
+   , window (NULL)
 #elif defined (WXWIDGETS_USE)
    , window (None)
 #endif
+//   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
    , targetFileName ()
@@ -470,11 +469,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   HWND                            window;
 #else
 #if defined (GTK_USE)
-  XID                             window;
-  Display*                        X11Display;
-//  GdkWindow*                      window;
+  GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
   Window                          window;
+  Display*                        X11Display;
 #endif
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
@@ -762,10 +760,22 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
  : Test_U_Configuration
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 {
   Stream_CamSave_DirectShow_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
    : Test_U_Configuration ()
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , direct3DConfiguration ()
    , streamConfiguration ()
@@ -782,10 +792,22 @@ struct Stream_CamSave_DirectShow_Configuration
 };
 
 struct Stream_CamSave_MediaFoundation_Configuration
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+ : Test_U_GTK_Configuration
+#else
  : Test_U_Configuration
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 {
   Stream_CamSave_MediaFoundation_Configuration ()
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+   : Test_U_GTK_Configuration ()
+#else
    : Test_U_Configuration ()
+#endif // GTK_USE
+#endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , direct3DConfiguration ()
    , streamConfiguration ()

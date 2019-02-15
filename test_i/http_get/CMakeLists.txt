@@ -1,48 +1,6 @@
-﻿option (SSL_SUPPORT "enable SSL support" OFF)
-
-if (SSL_SUPPORT)
- set (ACE_SSL_LIB_FILE libACE_SSL.so)
- if (UNIX)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES lib
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- elseif (WIN32)
-  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-   set (LIB_FILE_SUFFIX d)
-  endif ()
-  unset (ACE_SSL_LIB_FILE)
-  set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- endif ()
- #if (NOT EXISTS ACE_SSL_LIBRARY)
- if (NOT ACE_SSL_LIBRARY)
-  message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
- else ()
-  #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
- endif ()
-endif ()
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
 
 if (UNIX)
- if (SSL_SUPPORT)
-  find_package (OpenSSL MODULE
-                COMPONENTS Crypto SSL)
-  if (OPENSSL_FOUND)
-   add_definitions (-DSSL_SUPPORT)
-  endif (OPENSSL_FOUND)
-#  pkg_check_modules (PKG_SSL REQUIRED libssl)
- endif (SSL_SUPPORT)
-
-# if (DBUS_SUPPORT)
-#  pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
-# endif ()
-
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 # pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libswscale)
 endif (UNIX)
@@ -61,6 +19,7 @@ elseif (WIN32)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
 #               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
 #               PATH_SUFFIXES lib
+               PATHS C:/lib/libmysql_2
                PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
                PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
@@ -146,16 +105,18 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/cmake)
-else ()
+elseif (WIN32)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
+ include_directories (C:/lib/libiconv-1.9.2-1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
 
 # *TODO*: repair pkgconfig support
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
+ include_directories (C:/lib/libmysql_2/cmake/include)
+ include_directories (C:/lib/libmysql_2/include)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 

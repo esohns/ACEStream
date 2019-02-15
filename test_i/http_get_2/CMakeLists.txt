@@ -1,45 +1,6 @@
-﻿option (SSL_SUPPORT "enable SSL support" ON)
-
-if (SSL_SUPPORT)
- set (ACE_SSL_LIB_FILE libACE_SSL.so)
- if (UNIX)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES lib
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- elseif (WIN32)
-  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-   set (LIB_FILE_SUFFIX d)
-  endif ()
-  unset (ACE_SSL_LIB_FILE)
-  set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
-                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- endif ()
- #if (NOT EXISTS ACE_SSL_LIBRARY)
- if (NOT ACE_SSL_LIBRARY)
-  message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
- else ()
-  #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
- endif (NOT ACE_SSL_LIBRARY)
-endif (SSL_SUPPORT)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
 
 if (UNIX)
- if (SSL_SUPPORT)
-  find_package (OpenSSL MODULE
-                COMPONENTS Crypto SSL)
-  if (OPENSSL_FOUND)
-   add_definitions (-DSSL_SUPPORT)
-  endif (OPENSSL_FOUND)
-#  pkg_check_modules (PKG_SSL REQUIRED libssl)
- endif (SSL_SUPPORT)
-
  find_package (ZLIB)
  if (ZLIB_FOUND)
   add_definitions (-DZLIB_SUPPORT)
@@ -80,7 +41,7 @@ if (UNIX)
 # include_directories (${OO_SDK_DIRECTORY}/include)
  include_directories (/usr/include/libreoffice)
 elseif (WIN32)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8)
+ include_directories (${LIB_ROOT}/zlib-1.2.8)
 
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
@@ -180,10 +141,7 @@ if (UNIX)
 elseif (WIN32)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
- if (SSL_SUPPORT)
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/include)
- endif ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
+ include_directories ($ENV{LIB_ROOT}/libiconv-1.9.2-1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
@@ -192,11 +150,6 @@ elseif (WIN32)
 
  add_definitions (-DCPPU_ENV=msci)
  add_definitions (-DWNT)
-
-# *TODO*: repair pkgconfig support
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
@@ -335,7 +288,7 @@ elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mf.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8/zdll.lib)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/zlib-1.2.8/zdll.lib)
 
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})

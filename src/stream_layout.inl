@@ -30,8 +30,6 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
-#include "stream_misc_defines.h"
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename DistributorModuleType>
@@ -220,7 +218,7 @@ end:
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename DistributorModuleType>
-Stream_Module_t*
+ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
                 DistributorModuleType>::find (const std::string& name_in,
@@ -357,7 +355,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   if (unlikely (distributorModule_in))
   {
     // establish branch head
-    iterator = find (distributorModule_in);
+    find (distributorModule_in,
+          iterator);
     ACE_ASSERT (inherited::is_valid (iterator));
     unsigned int num_branches_i =
         inherited::number_of_children (iterator);
@@ -599,23 +598,30 @@ Stream_Layout_T<ACE_SYNCH_USE,
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename DistributorModuleType>
-typename tree<ACE_Module<ACE_SYNCH_USE, TimePolicyType>*>::iterator_base
+bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::find (MODULE_T* module_in) const
+                DistributorModuleType>::find (MODULE_T* module_in,
+                                              typename inherited::iterator_base& result_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::find"));
+
+  // initialize return value(s)
+  result_out = inherited::end ();
 
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  for (typename inherited::iterator iterator = inherited::begin ();
+  for (ITERATOR_T iterator = inherited::begin ();
        iterator != inherited::end ();
        ++iterator)
     if (unlikely (*iterator == module_in))
-      return iterator;
+    {
+      result_out = iterator;
+      return true;
+    } // end IF
 
-  return inherited::end ();
+  return false;
 }
 
 template <ACE_SYNCH_DECL,

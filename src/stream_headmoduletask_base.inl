@@ -1593,7 +1593,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-  ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T> reverse_lock (inherited::lock_);
+  ACE_Reverse_Lock<LOCK_T> reverse_lock (inherited::lock_);
 
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
@@ -1630,7 +1630,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
+  ACE_GUARD (LOCK_T, aGuard, inherited::lock_);
 
   // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
   //         thread to join
@@ -1645,7 +1645,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     case STREAM_HEADMODULECONCURRENCY_ACTIVE:
     {
-      { ACE_GUARD (ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T>, aGuard_2, reverse_lock);
+      { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
         inherited::wait ();
       } // end lock scope
       break;
@@ -1658,7 +1658,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_hthread_t handle = inherited::threads_[0].handle ();
       if (likely (handle != ACE_INVALID_HANDLE))
       {
-        { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (handle, &status);
         } // end lock scope
         if (unlikely (result == -1))
@@ -1678,7 +1678,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 #else
       if (likely (static_cast<int> (thread_id) != -1))
       {
-        { ACE_GUARD (ACE_Reverse_Lock<typename inherited::ITASKCONTROL_T::MUTEX_T>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<LOCK_T>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
         this_p->inherited::threads_[0].id (-1);

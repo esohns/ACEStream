@@ -11,6 +11,9 @@ if (UNIX)
 elseif (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
  add_definitions (-DWIN32)
+# *TODO*: this is a work-around for opencv support with vs2010 (requires __cplusplus >= 201103L)
+#         --> remove ASAP
+ #add_definitions (-DCV_CXX11)
 endif ()
 
 set (LLVM_COMPILER_ID_STRING "Clang")
@@ -114,8 +117,10 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/videoio/include>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../opencv/modules/videostab/include>)
+# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8>)
+                             $<BUILD_INTERFACE:C:/lib/zlib-1.2.8>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc>)
@@ -187,7 +192,7 @@ set (source_files
      stream_dec_mpeg_ts_decoder.cpp
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
-     stream_dec_opencv_decoder.cpp
+#     stream_dec_opencv_decoder.cpp # *TODO*
      stream_dec_opencv_decoder.h
      stream_dec_opencv_decoder.inl
      stream_dec_riff_scanner.cpp

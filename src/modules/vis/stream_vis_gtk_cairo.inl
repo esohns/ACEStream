@@ -29,8 +29,6 @@ extern "C"
 
 #include "stream_macros.h"
 
-#include "stream_lib_v4l_common.h"
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -223,6 +221,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   return;
 
 error:
+  //  if (leave_gdk)
+  //    gdk_threads_leave ();
+
   if (likely (release_lock))
   { ACE_ASSERT (lock_);
     result = lock_->release ();
@@ -231,9 +232,6 @@ error:
                   ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
   } // end IF
-
-  //  if (leave_gdk)
-  //    gdk_threads_leave ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -397,6 +395,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
+  int scale_i = 0, width_i = 0, height_i = 0;
+  int width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
+  cairo_format_t format_e = CAIRO_FORMAT_INVALID;
+  GdkRectangle clip_area_s;
+
   if (inherited::isInitialized_)
   {
     if (buffer_)
@@ -419,6 +422,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.window)
     return true; // nothing to do
 
+  scale_i = gdk_window_get_scale_factor (configuration_in.window);
+  width_i = gdk_window_get_width (configuration_in.window) * scale_i;
+  height_i = gdk_window_get_height (configuration_in.window) * scale_i;
+
 #if GTK_CHECK_VERSION(2,8,0)
   context_ = gdk_cairo_create (configuration_in.window);
 #else
@@ -432,8 +439,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-//  int scale_i = 0, width_i = 0, height_i = 0;
-  GdkRectangle clip_area_s;
   ACE_OS::memset (&clip_area_s, 0, sizeof (GdkRectangle));
 #if GTK_CHECK_VERSION(3,0,0)
   if (!gdk_cairo_get_clip_rectangle (context_,
@@ -449,94 +454,78 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #endif // GTK_CHECK_VERSION
 
   // *TODO*: remove type inferences
-  lock_ = configuration_in.pixelBufferLock;
+  lock_ = configuration_in.lock;
 
-  if (configuration_in.pixelBuffer)
-  {
-    // sanity check(s)
+  gdk_threads_enter ();
 #if GTK_CHECK_VERSION(3,0,0)
-    ACE_ASSERT (cairo_surface_status (configuration_in.pixelBuffer) == CAIRO_STATUS_SUCCESS);
-    ACE_ASSERT (cairo_surface_get_type (configuration_in.pixelBuffer) == CAIRO_SURFACE_TYPE_IMAGE);
-    int width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
-    cairo_format_t format_e = CAIRO_FORMAT_INVALID;
-    width_2 = cairo_image_surface_get_width (configuration_in.pixelBuffer);
-    height_2 = cairo_image_surface_get_height (configuration_in.pixelBuffer);
-    row_stride_i =
-        cairo_image_surface_get_stride (configuration_in.pixelBuffer);
-    format_e = cairo_image_surface_get_format (configuration_in.pixelBuffer);
-//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
-    ACE_UNUSED_ARG (row_stride_i);
-    ACE_UNUSED_ARG (n_channels_i);
-    ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
-
-    cairo_surface_reference (configuration_in.pixelBuffer);
-#elif GTK_CHECK_VERSION(2,0,0)
-    ACE_ASSERT (GDK_IS_PIXBUF (configuration_in.pixelBuffer));
-    gint width_2 = 0, height_2 = 0, row_stride_i = 0, n_channels_i = 0;
-    g_object_get (G_OBJECT (configuration_in.pixelBuffer),
-                  ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,
-                  ACE_TEXT_ALWAYS_CHAR ("height"),     &height_2,
-                  ACE_TEXT_ALWAYS_CHAR ("rowstride"),  &row_stride_i,
-                  ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
-                  NULL);
-//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
-    ACE_ASSERT (gdk_pixbuf_get_colorspace (configuration_in.pixelBuffer) == GDK_COLORSPACE_RGB);
-    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (configuration_in.pixelBuffer) == 8);
-    ACE_ASSERT (n_channels_i == 4);
-//    ACE_ASSERT (!gdk_pixbuf_get_has_alpha (configuration_in.pixelBuffer));
-
-    g_object_ref (configuration_in.pixelBuffer);
-#else
-    ACE_ASSERT (false);
-#endif // GTK_CHECK_VERSION
-    buffer_ = configuration_in.pixelBuffer;
+  buffer_ =
+      gdk_window_create_similar_image_surface (configuration_in.window,
+                                               CAIRO_FORMAT_RGB24,
+                                               width_i, height_i, scale_i);
+//                                               clip_area.width, clip_area.height,
+//                                               0); // scale {0: same as window}
+  if (!buffer_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
+                configuration_in.window));
+    gdk_threads_leave ();
+    goto error;
   } // end IF
-  else
-  {
-#if GTK_CHECK_VERSION(3,0,0)
-    //  scale_i = gdk_window_get_scale_factor (configuration_in.window);
-    //  width_i = gdk_window_get_width (configuration_in.window) * scale_i;
-    //  height_i = gdk_window_get_height (configuration_in.window) * scale_i;
-    //  cairoSurface_ =
-    //      gdk_window_create_similar_image_surface (configuration_in.window,
-    //                                               CAIRO_FORMAT_RGB24,
-    //                                               width_i, height_i, scale_i);
-    ////                                               clip_area.width, clip_area.height,
-    ////                                               0); // scale {0: same as window}
-    //  if (!cairoSurface_)
-    //  {
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(%@), aborting\n"),
-    //                configuration_in.window));
-    //    goto error;
-    //  } // end IF
 #elif GTK_CHECK_VERSION(2,0,0)
-    // *TODO*: remove type inference
-//      gdk_threads_enter ();
-      // *TODO*: remove type inference
-//      pixelBuffer_ =
-//#if GTK_CHECK_VERSION (3,0,0)
-//          gdk_pixbuf_get_from_window (configuration_in.window,
-//                                      0, 0,
-//                                      configuration_in.area.width, configuration_in.area.height);
-//#else
-//          gdk_pixbuf_get_from_drawable (NULL,
-//                                        GDK_DRAWABLE (configuration_in.window),
-//                                        NULL,
-//                                        0, 0,
-//                                        0, 0, configuration_in.area.width, configuration_in.area.height);
-//#endif
-//      if (!pixelBuffer_)
-//      { // *NOTE*: most probable reason: window is not mapped
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
-//        gdk_threads_leave ();
-//        return false;
-//      } // end IF
-//      gdk_threads_leave ();
+// *TODO*: remove type inference
+  buffer_ =
+#if GTK_CHECK_VERSION (3,0,0)
+    gdk_pixbuf_get_from_window (configuration_in.window,
+                                0, 0,
+                                width_i, height_i);
+#else
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (configuration_in.window),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, width_i, height_i);
+#endif
+  if (!buffer_)
+  { // *NOTE*: most probable reason: window is not mapped
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+    gdk_threads_leave ();
+    goto error;
+  } // end IF
+  gdk_threads_leave ();
 #endif // GTK_CHECK_VERSION
-  } // end ELSE
   ACE_ASSERT (buffer_);
+
+  // sanity check(s)
+#if GTK_CHECK_VERSION(3,0,0)
+  ACE_ASSERT (cairo_surface_status (buffer_) == CAIRO_STATUS_SUCCESS);
+  ACE_ASSERT (cairo_surface_get_type (buffer_) == CAIRO_SURFACE_TYPE_IMAGE);
+  width_2 = cairo_image_surface_get_width (buffer_);
+  height_2 = cairo_image_surface_get_height (buffer_);
+  row_stride_i =
+      cairo_image_surface_get_stride (buffer_);
+  format_e = cairo_image_surface_get_format (buffer_);
+//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
+  ACE_UNUSED_ARG (row_stride_i);
+  ACE_UNUSED_ARG (n_channels_i);
+  ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
+#elif GTK_CHECK_VERSION(2,0,0)
+  ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
+  g_object_get (G_OBJECT (buffer_),
+                ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,
+                ACE_TEXT_ALWAYS_CHAR ("height"),     &height_2,
+                ACE_TEXT_ALWAYS_CHAR ("rowstride"),  &row_stride_i,
+                ACE_TEXT_ALWAYS_CHAR ("n-channels"), &n_channels_i,
+                NULL);
+//    ACE_ASSERT ((clip_area_s.width == width_2) && (clip_area_s.height == height_2));
+  ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
+  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
+  ACE_ASSERT (n_channels_i == 4);
+//    ACE_ASSERT (!gdk_pixbuf_get_has_alpha (configuration_in.pixelBuffer));
+#else
+  ACE_ASSERT (false);
+#endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION(3,0,0)
   cairo_set_source_surface (context_,
@@ -560,10 +549,6 @@ error:
   {
     cairo_destroy (context_); context_ = NULL;
   } // end IF
-//  if (surface_)
-//  {
-//    cairo_surface_destroy (surface_); surface_ = NULL;
-//  } // end IF
 
   return false;
 }

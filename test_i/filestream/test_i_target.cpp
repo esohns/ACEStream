@@ -584,8 +584,7 @@ do_work (unsigned int bufferSize_in,
 #if defined (GTK_USE)
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
-  modulehandler_configuration.subscribersLock =
-    &state_r.subscribersLock;
+  modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   modulehandler_configuration.targetFileName = fileName_in;
@@ -1324,7 +1323,7 @@ ACE_TMAIN (int argc_in,
       idle_finalize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_target_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
   ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
   if (!gtk_glade_file.empty ())
     if (!gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration))

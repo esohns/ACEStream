@@ -712,6 +712,7 @@ idle_session_start_cb (gpointer userData_in)
   // sanity check(s)
   struct HTTPGet_UI_CBData* ui_cb_data_p =
     static_cast<struct HTTPGet_UI_CBData*> (userData_in);
+  ACE_UNUSED_ARG (ui_cb_data_p);
 
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();

@@ -43,7 +43,17 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* stream_in)
+                        UserDataType>::Stream_TaskBaseAsynch_T (typename Stream_TaskBase_T<ACE_SYNCH_USE,
+                                                                                           TimePolicyType,
+                                                                                           Common_IRecursiveLock_T<ACE_SYNCH_USE>,
+                                                                                           ConfigurationType,
+                                                                                           ControlMessageType,
+                                                                                           DataMessageType,
+                                                                                           SessionMessageType,
+                                                                                           SessionIdType,
+                                                                                           SessionControlType,
+                                                                                           SessionEventType,
+                                                                                           UserDataType>::ISTREAM_T* stream_in)
  : inherited (stream_in,
               // *TODO*: this looks dodgy, but seems to work nonetheless...
               &queue_)   // queue handle

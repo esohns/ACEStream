@@ -402,8 +402,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      ACE_ASSERT (inherited::msg_queue_);
       unsigned int result_3 =
-        inherited::queue_.flush (false); // flush session data ?
+        inherited::msg_queue_->flush (); // flush session data ?
       ACE_UNUSED_ARG (result_3);
       break;
     }
@@ -863,7 +864,7 @@ error_2:
       COM_initialized = true;
 
       // step1: dispatch all data to DirectShow
-      inherited::queue_.waitForIdleState ();
+      inherited::idle ();
       // step2: *TODO*: wait for DirectShow
 
       // *IMPORTANT NOTE*: "Reset the owner to NULL before releasing the Filter

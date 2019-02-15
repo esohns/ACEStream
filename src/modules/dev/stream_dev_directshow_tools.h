@@ -30,6 +30,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_image_common.h"
+
 #include "common_ui_common.h"
 
 #include "stream_lib_common.h"
@@ -57,11 +59,11 @@ class Stream_Device_DirectShow_Tools
   // format
   static bool isMediaTypeBottomUp (const struct _AMMediaType&);
   static Common_Identifiers_t getCaptureSubFormats (IAMStreamConfig*);
-  static Common_UI_Resolutions_t getCaptureResolutions (IAMStreamConfig*,
-                                                        REFGUID = GUID_NULL); // media subtype {GUID_NULL: all}
+  static Common_Image_Resolutions_t getCaptureResolutions (IAMStreamConfig*,
+                                                           REFGUID = GUID_NULL); // media subtype {GUID_NULL: all}
   static Common_UI_Framerates_t getCaptureFramerates (IAMStreamConfig*,
-                                                      REFGUID,                        // media subtype
-                                                      const Common_UI_Resolution_t&); // resolution
+                                                      REFGUID,                           // media subtype
+                                                      const Common_Image_Resolution_t&); // resolution
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static bool getCaptureFormat (IGraphBuilder*,        // graph builder handle
                                 REFGUID,               // device category

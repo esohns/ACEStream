@@ -2204,6 +2204,8 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
+  Common_UI_GTK_Configuration* gtk_configuration_p = NULL;
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   bool result_2 = false;
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
@@ -2229,6 +2231,20 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
       ui_cb_data_p = &directshow_ui_cb_data;
 #endif // GTK_USE
+      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_source_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+        idle_initialize_source_UI_cb;
+      directshow_ui_cb_data.configuration->GTKConfiguration.definition =
+        &gtk_ui_definition;
+      if (!gtk_rc_filename.empty ())
+        directshow_ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+
+      gtk_configuration_p = &directshow_ui_cb_data.configuration->GTKConfiguration;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2239,6 +2255,20 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
       ui_cb_data_p = &mediafoundation_ui_cb_data;
 #endif // GTK_USE
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_source_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+        idle_initialize_source_UI_cb;
+      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition =
+        &gtk_ui_definition;
+      if (!gtk_rc_filename.empty ())
+        mediafoundation_ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+
+      gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
+
       break;
     }
     default:
@@ -2260,7 +2290,18 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_I_Source_V4L_UI_CBData ui_cb_data;
-  //ui_cb_data.progressData.state = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
+  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
+  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      idle_finalize_source_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      idle_initialize_source_UI_cb;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  if (!gtk_rc_filename.empty ())
+    ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
+
+  gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
 #if defined (GUI_SUPPORT)
   ui_cb_data_p = &ui_cb_data;
 #endif // GUI_SUPPORT
@@ -2394,22 +2435,11 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
 #if defined (GTK_USE)
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_source_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_source_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
-  if (!gtk_rc_filename.empty ())
-    ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
   if (!gtk_glade_filename.empty ())
-  {
+  { ACE_ASSERT (gtk_configuration_p);
     gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
-    result_2 = gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
+    result_2 = gtk_manager_p->initialize (*gtk_configuration_p);
     if (!result_2)
     {
       ACE_DEBUG ((LM_ERROR,

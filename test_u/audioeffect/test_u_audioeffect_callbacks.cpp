@@ -4082,23 +4082,21 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second.GdkWindow2D);
-      (*directshow_modulehandler_configuration_iterator).second.second.GdkWindow2D =
+    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second.window);
+      (*directshow_modulehandler_configuration_iterator).second.second.window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.GdkWindow2D);
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second.window);
       window_p =
-        (*directshow_modulehandler_configuration_iterator).second.second.GdkWindow2D;
+        (*directshow_modulehandler_configuration_iterator).second.second.window;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second.GdkWindow2D);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second.GdkWindow2D =
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second.window);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second.window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.GdkWindow2D);
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second.window);
       window_p =
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.GdkWindow2D;
+        (*mediafoundation_modulehandler_configuration_iterator).second.second.window;
       break;
     }
     default:

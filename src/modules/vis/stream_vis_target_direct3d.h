@@ -78,6 +78,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Vis_Target_Direct3D_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -96,6 +97,7 @@ class Stream_Vis_Target_Direct3D_T
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,

@@ -1,46 +1,4 @@
-﻿option (SSL_SUPPORT "enable SSL support" ON)
-
-if (SSL_SUPPORT)
- set (ACE_SSL_LIB_FILE libACE_SSL.so)
- if (UNIX)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES lib
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- elseif (WIN32)
-  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-   set (LIB_FILE_SUFFIX d)
-  endif ()
-  unset (ACE_SSL_LIB_FILE)
-  set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-                DOC "searching for ${ACE_SSL_LIB_FILE}"
-                NO_DEFAULT_PATH)
- endif ()
- #if (NOT EXISTS ACE_SSL_LIBRARY)
- if (NOT ACE_SSL_LIBRARY)
-  message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
- else ()
-  #message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
- endif ()
-endif ()
-
-if (UNIX)
- if (SSL_SUPPORT)
-  find_package (OpenSSL MODULE
-                COMPONENTS Crypto SSL)
-  if (OPENSSL_FOUND)
-#   set (WXWIDGETS_SUPPORT ON CACHE BOOL "wxWidgets support")
-   add_definitions (-DSSL_SUPPORT)
-  endif (OPENSSL_FOUND)
-#  pkg_check_modules (PKG_SSL REQUIRED libssl)
- endif (SSL_SUPPORT)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
-endif (UNIX)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/scripts/SSLConfig.cmake)
 
 #if (WIN32)
 # *TODO*: repair pkgconfig support
@@ -132,6 +90,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)

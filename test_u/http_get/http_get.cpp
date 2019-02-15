@@ -1199,7 +1199,7 @@ ACE_TMAIN (int argc_in,
       idle_finalize_ui_cb;
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_ui_cb;
-  ui_cb_data.configuration->GTKConfiguration.interface = &gtk_ui_definition;
+  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
   state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UI_file_path, static_cast<GtkBuilder*> (NULL));
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (ui_cb_data.configuration->GTKConfiguration);
