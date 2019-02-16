@@ -38,6 +38,8 @@
 
 #include "common_time_common.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
@@ -73,6 +75,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
+ , public Common_UI_WindowTypeConverter_T<HWND>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
@@ -90,6 +93,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
 
  public:
   // convenient types

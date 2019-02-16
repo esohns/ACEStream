@@ -1044,7 +1044,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     window_ = NULL;
   } // end IF
 
-  window_ = configuration_in.window;
+  inherited2::getWindowType (configuration_in.window,
+                             window_);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

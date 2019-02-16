@@ -4961,13 +4961,13 @@ continue_:
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       window_p =
-        gtk_widget_get_window (GTK_WIDGET ((*directshow_modulehandler_configuration_iterator).second.second.OpenGLWindow));
+        gtk_widget_get_window (GTK_WIDGET ((*directshow_modulehandler_configuration_iterator).second.second.window));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       window_p =
-        gtk_widget_get_window (GTK_WIDGET ((*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLWindow));
+        gtk_widget_get_window (GTK_WIDGET ((*mediafoundation_modulehandler_configuration_iterator).second.second.window));
       break;
     }
     default:

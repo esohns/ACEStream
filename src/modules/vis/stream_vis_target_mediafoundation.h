@@ -36,6 +36,7 @@
 #include "common_time_common.h"
 
 #include "common_ui_ifullscreen.h"
+#include "common_ui_windowtype_converter.h"
 
 #include "stream_common.h"
 #include "stream_iallocator.h"
@@ -70,6 +71,7 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
+ , public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
  , public Common_IInitialize_T<struct _AMMediaType>
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -89,6 +91,7 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
 
  public:
   Stream_Vis_Target_MediaFoundation_T (ISTREAM_T*); // stream handle

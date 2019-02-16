@@ -331,7 +331,7 @@ elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimpd.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimpd.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})
@@ -417,8 +417,9 @@ elseif (WIN32)
    endif ()
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
+                           ${LIBPNG_PATH}
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample

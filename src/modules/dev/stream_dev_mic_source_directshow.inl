@@ -20,6 +20,7 @@
 
 #include <evcode.h>
 #include <strsafe.h>
+#include <vfwmsgs.h>
 
 #include "ace/Log_Msg.h"
 
@@ -596,7 +597,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::LOCK_T, aGuard, inherited::lock_);
         if (sessionEndProcessed_)
           break; // done
         sessionEndProcessed_ = true;

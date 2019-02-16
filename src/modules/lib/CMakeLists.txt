@@ -1,4 +1,10 @@
-﻿if (UNIX)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui//scripts/SetUIFramework.cmake)
+if (GTK_SUPPORT)
+ include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
+endif (GTK_SUPPORT)
+
+if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
 endif (UNIX)
@@ -17,6 +23,9 @@ if (WIN32)
 endif (WIN32)
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
+
+target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
+                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC

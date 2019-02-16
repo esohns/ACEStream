@@ -543,7 +543,7 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::setup (typename inherited::tree_node& node_in,
+                DistributorModuleType>::setup (NODE_T& node_in,
                                                ISTREAM_T* istream_in,
                                                MODULE_T* tail_in)
 {
@@ -630,7 +630,7 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::prev (typename inherited::tree_node& node_in,
+                DistributorModuleType>::prev (NODE_T& node_in,
                                               const std::string& name_in,
                                               Stream_ModuleList_t& list_inout) const
 {
@@ -663,7 +663,7 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Layout_T<ACE_SYNCH_USE,
                 TimePolicyType,
-                DistributorModuleType>::has_branch (typename inherited::tree_node& node_in,
+                DistributorModuleType>::has_branch (NODE_T& node_in,
                                                     const std::string& branchName_in,
                                                     unsigned int& index_out) const
 {

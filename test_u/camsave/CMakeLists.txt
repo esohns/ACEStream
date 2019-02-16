@@ -389,19 +389,22 @@ elseif (WIN32)
  if (GUI_SUPPORT)
   set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
 
-  if (GTK3_SUPPORT)
+  if (GTK_USE)
+   if (GTK3_USE)
+    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
+    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                              G:/software/Development/dll
+                              ${GTK_LIB_PATH})
+   elseif (GTK2_USE)
+    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
+    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                              G:/software/Development/dll
+                              ${GTK_LIB_PATH})
+   endif ()
+  elseif (WXWIDGETS_USE)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             G:/software/Development/dll
-                             ${PROJECT_SOURCE_DIR}/../gtk3/bin)
-  elseif (GTK2_SUPPORT)
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             G:/software/Development/dll
-                             ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+                             ${wxWidgets_LIB_DIR})
   endif ()
-  if (WXWIDGETS_SUPPORT)
-  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                            ${wxWidgets_LIB_DIR})
-  endif (WXWIDGETS_SUPPORT)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)

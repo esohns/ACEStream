@@ -10,13 +10,6 @@ if (GUI_SUPPORT)
  if (CURSES_USE)
  elseif (GTK_USE)
   include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/ui/scripts/SetGTKVersion.cmake)
-  if (GTK3_USE)
-   message (STATUS "using Gtk version 3")
-  elseif (GTK2_USE)
-   message (STATUS "using Gtk version 2")
-  else ()
-   message (FATAL "invalid/unknown Gtk version, aborting")
-  endif (GTK3_USE)
 
   if (CMAKE_BUILD_TYPE STREQUAL Debug)
    add_definitions (-DG_ERRORCHECK_MUTEXES)
@@ -79,31 +72,16 @@ if (UNIX)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CURSES_INCLUDE_DIRS}>)
   elseif (GTK_USE)
-   if (GTK3_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                                $<BUILD_INTERFACE:${GTK3_INCLUDE_DIRS}>)
-   elseif (GTK2_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                                $<BUILD_INTERFACE:${GTK2_INCLUDE_DIRS}>)
-   elseif (GTK_FOUND)
-    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIR}>)
-   elseif (GTK2_USE)
-    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                                $<BUILD_INTERFACE:${PKG_GTK2_INCLUDE_DIRS}>)
-   elseif (GTK3_USE)
-# *NOTE*: comment is necessary for cmake 3.12.1
-    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                                "$<BUILD_INTERFACE:${PKG_GTK3_INCLUDE_DIRS}>")
-   endif ()
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
-   if (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
-   endif (OPENGL_SUPPORT AND GTKGLAREA_SUPPORT)
+   endif (GTKGLAREA_SUPPORT)
 
    if (LIBGLADE_SUPPORT)
     target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
@@ -224,8 +202,11 @@ elseif (WIN32)
    if (GTKGL_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_U OpenGL32.lib)
     target_link_libraries (${PROJECT_NAME}_Test_U ${CMAKE_CURRENT_SOURCE_DIR}/../../libepoxy/cmake/${CMAKE_BUILD_TYPE}/epoxy1_static.lib)
-    target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
-
+    if (GTK2_USE)
+     target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/gtk2/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+    elseif (GTK3_USE)
+     target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/gtk3/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+    endif ()
     target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
    endif (GTKGL_SUPPORT)
 

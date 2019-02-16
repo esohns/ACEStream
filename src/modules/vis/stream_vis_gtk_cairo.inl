@@ -422,7 +422,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.window)
     return true; // nothing to do
 
+#if GTK_CHECK_VERSION(3,0,0)
   scale_i = gdk_window_get_scale_factor (configuration_in.window);
+#else
+  scale_i = 1;
+#endif // GTK_CHECK_VERSION(2,0,0)
   width_i = gdk_window_get_width (configuration_in.window) * scale_i;
   height_i = gdk_window_get_height (configuration_in.window) * scale_i;
 

@@ -1,4 +1,10 @@
-﻿include (FindPkgConfig)
+﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui//scripts/SetUIFramework.cmake)
+if (GTK_SUPPORT)
+ include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
+endif (GTK_SUPPORT)
+
+include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavutil)
@@ -24,6 +30,9 @@ if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
 endif ()
 
 add_library (${PROJECT_NAME}_Device STATIC "")
+
+target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                            "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC

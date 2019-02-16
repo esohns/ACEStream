@@ -346,7 +346,13 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
           goto error;
         } // end ELSE
       } // end IF
-      if (!initialize_Session (inherited::configuration_->window,
+
+      ACE_ASSERT (inherited::configuration_->window);
+      HWND window_h = NULL;
+      inherited2::getWindowType (inherited::configuration_->window,
+                                 window_h);
+      ACE_ASSERT (window_h);
+      if (!initialize_Session (window_h,
                                inherited::configuration_->area,
                                inherited::configuration_->rendererNodeId,
                                media_sink_p,

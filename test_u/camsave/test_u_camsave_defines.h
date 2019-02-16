@@ -21,6 +21,8 @@
 #ifndef TEST_U_STREAM_CAMSAVE_DEFINES_H
 #define TEST_U_STREAM_CAMSAVE_DEFINES_H
 
+#include "gtk/gtk.h"
+
 #define TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE             "output.avi"
 
 #if defined (GUI_SUPPORT)
@@ -37,9 +39,15 @@
 
 //---------------------------------------
 #if defined (GTK_USE)
+#if GTK_CHECK_VERSION(3,0,0)
 #define TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME                  "action_cut"
 #define TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME               "action_report"
 #define TEST_U_STREAM_UI_GTK_ACTION_SNAPSHOT_NAME             "action_snapshot"
+#elif GTK_CHECK_VERSION(2,0,0)
+#define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                  "button_cut"
+#define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME               "button_report"
+#define TEST_U_STREAM_UI_GTK_BUTTON_SNAPSHOT_NAME             "button_snapshot"
+#endif // GTK_CHECK_VERSION
 #define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                  "scrolledwindow_vadjustment"
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME                "about"
 #define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME                "clear"
@@ -57,7 +65,6 @@
 //#define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_save"
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME              "filefilter_avi"
 #define TEST_U_STREAM_UI_GTK_FRAME_DISPLAY_NAME               "frame_display"
-#define TEST_U_STREAM_UI_GTK_FRAME_OPTIONS_NAME               "frame_options"
 #define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SOURCE_NAME                "frame_source"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME            "liststore_format"
@@ -71,16 +78,21 @@
 #define TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
 #define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                  "insert"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME       "spinbutton_buffersize"
-#define TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME   "spinbutton_captured_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATA_NAME             "spinbutton_data"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"
-#define TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME    "spinbutton_dropped_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                   "statusbar"
+#if GTK_CHECK_VERSION(3,0,0)
+#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_DISPLAY_NAME        "toggleaction_display"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME     "toggleaction_fullscreen"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME         "toggleaction_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME           "toggleaction_save"
-//#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                    "textview"
+#elif GTK_CHECK_VERSION(2,0,0)
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME        "togglebutton_display"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME     "togglebutton_fullscreen"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
+#endif // GTK_CHECK_VERSION
 #define TEST_U_STREAM_UI_GTK_WINDOW_FULLSCREEN                "window_fullscreen"
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME       "dialog_main"

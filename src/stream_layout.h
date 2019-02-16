@@ -109,6 +109,7 @@ class Stream_Layout_T
                      TimePolicyType> STREAM_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
+  typedef tree_node_<MODULE_T*> NODE_T;
   typedef typename inherited::iterator ITERATOR_T;
 
   Stream_Layout_T ();
@@ -146,13 +147,13 @@ class Stream_Layout_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Layout_T& operator= (const Stream_Layout_T&))
 
   // helper methods
-  bool setup (typename inherited::tree_node&, // distributor node
+  bool setup (NODE_T&,    // distributor node
               ISTREAM_T*, // stream handle
               MODULE_T*); // stream tail handle
 
   bool find (MODULE_T*,
              typename inherited::iterator_base&) const;
-  void prev (typename inherited::tree_node&,                  // distributor node
+  void prev (NODE_T&,                     // distributor node
              const std::string&,          // module name
              Stream_ModuleList_t&) const; // return value
 
@@ -160,7 +161,7 @@ class Stream_Layout_T
   // *NOTE*: the return index value is correct as long as:
   //         - the module has been initialize()d
   //         - the corresponding head module has not been push()ed yet
-  bool has_branch (typename inherited::tree_node&,           // distributor node
+  bool has_branch (NODE_T&,              // distributor node
                    const std::string&,   // branch name
                    unsigned int&) const; // return value: index (iff any; see above)
 };

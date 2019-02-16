@@ -429,19 +429,15 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//   , pixelBuffer (NULL)
-//   , pixelBufferLock (NULL)
-#endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
-#else
-#if defined (GTK_USE)
    , window (NULL)
 #elif defined (WXWIDGETS_USE)
    , window (None)
-#endif
-//   , X11Display (NULL)
+   , X11Display (NULL)
+#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , window (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE
 #endif // GUI_SUPPORT
    , targetFileName ()
   {
@@ -458,23 +454,15 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//#if GTK_CHECK_VERSION(3,0,0)
-//  cairo_surface_t*                pixelBuffer;
-//#elif GTK_CHECK_VERSION(2,0,0)
-//  GdkPixbuf*                      pixelBuffer;
-//#endif // GTK_CHECK_VERSION
-//  ACE_SYNCH_MUTEX*                pixelBufferLock;
-#endif // GTK_USE
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                            window;
-#else
-#if defined (GTK_USE)
   GdkWindow*                      window;
 #elif defined (WXWIDGETS_USE)
   Window                          window;
   Display*                        X11Display;
-#endif
+#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                            window;
 #endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE
 #endif // GUI_SUPPORT
   std::string                     targetFileName;
 };

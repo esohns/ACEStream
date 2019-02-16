@@ -443,8 +443,13 @@ error_2:
       ACE_ASSERT (!IAMDroppedFrames_);
 
       // *TODO*: remove type inferences
+      ACE_ASSERT (inherited::configuration_->window);
+      HWND window_h = NULL;
+      inherited2::getWindowType (inherited::configuration_->window,
+                                 window_h);
+      ACE_ASSERT (window_h);
       if (!initialize_DirectShow (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string),
-                                  inherited::configuration_->window,
+                                  window_h,
                                   ICaptureGraphBuilder2_,
                                   IAMVideoControl_,
                                   IAMDroppedFrames_,

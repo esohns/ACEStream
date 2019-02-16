@@ -38,6 +38,8 @@
 
 #include "common_iinitialize.h"
 
+#include "common_ui_windowtype_converter.h"
+
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
@@ -71,6 +73,7 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Common_UI_WindowTypeConverter_T<HWND>
  , public FilterType
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -84,7 +87,8 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef FilterType inherited2;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
+  typedef FilterType inherited3;
 
  public:
   Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle
