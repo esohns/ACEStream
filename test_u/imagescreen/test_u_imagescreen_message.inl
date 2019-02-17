@@ -20,43 +20,30 @@
 
 #include "ace/Malloc_Base.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <DShow.h>
-#else
-#include "libv4l2.h"
-#include "linux/videodev2.h"
-#endif
-
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
-template <typename DataType,
-          typename SessionDataType>
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::Stream_ImageScreen_Message_T (unsigned int size_in)
+template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (unsigned int size_in)
  : inherited (size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::Stream_ImageScreen_Message_T"));
 
 }
 
-template <typename DataType,
-          typename SessionDataType>
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::Stream_ImageScreen_Message_T (const OWN_TYPE_T& message_in)
+template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (const OWN_TYPE_T& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::Stream_ImageScreen_Message_T"));
 
 }
 
-template <typename DataType,
-          typename SessionDataType>
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
-                                                                     ACE_Data_Block* dataBlock_in,
-                                                                     ACE_Allocator* messageAllocator_in,
-                                                                     bool incrementMessageCounter_in)
+template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
+                                                                             ACE_Data_Block* dataBlock_in,
+                                                                             ACE_Allocator* messageAllocator_in,
+                                                                             bool incrementMessageCounter_in)
  : inherited (sessionId_in,
               dataBlock_in,               // use (don't own (!) memory of-) this data block
               messageAllocator_in,        // message block allocator
@@ -66,11 +53,9 @@ Stream_ImageScreen_Message_T<DataType,
 
 }
 
-template <typename DataType,
-          typename SessionDataType>
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
-                                                                     ACE_Allocator* messageAllocator_in)
+template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Stream_SessionId_t sessionId_in,
+                                                                             ACE_Allocator* messageAllocator_in)
  : inherited (sessionId_in,
               messageAllocator_in) // message block allocator
 {
@@ -78,10 +63,8 @@ Stream_ImageScreen_Message_T<DataType,
 
 }
 
-template <typename DataType,
-          typename SessionDataType>
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::~Stream_ImageScreen_Message_T ()
+template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::~Stream_ImageScreen_Message_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::~Stream_ImageScreen_Message_T"));
 
@@ -94,11 +77,9 @@ Stream_ImageScreen_Message_T<DataType,
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
-template <typename DataType,
-          typename SessionDataType>
+template <typename SessionDataType>
 ACE_Message_Block*
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::duplicate (void) const
+Stream_ImageScreen_Message_T<SessionDataType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::duplicate"));
 
@@ -154,82 +135,3 @@ Stream_ImageScreen_Message_T<DataType,
 
   return message_p;
 }
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-template <typename DataType,
-          typename SessionDataType>
-ACE_Message_Block*
-Stream_ImageScreen_Message_T<DataType,
-                         SessionDataType>::release (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::release"));
-
-  // release any continuations first
-  if (inherited::cont_)
-  {
-    inherited::cont_->release (); inherited::cont_ = NULL;
-  } // end IF
-
-  int reference_count = inherited::reference_count ();
-  if ((reference_count > 1)           || // not the last reference
-      (inherited::data_.device == -1) || // not a device data buffer
-      inherited::data_.release)          // clean up (device data)
-    return inherited::release ();
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::data_block_);
-
-  // *IMPORTANT NOTE*: handle race condition here
-  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
-    if (inherited::size ()) // is device-data ?
-      goto requeue;
-
-    return inherited::release ();
-  } // end lock scope
-
-requeue:
-  struct v4l2_buffer buffer_s;
-  ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
-  buffer_s.index = inherited::data_.index;
-  buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer_s.memory = inherited::data_.method;
-  switch (inherited::data_.method)
-  {
-    case V4L2_MEMORY_USERPTR:
-    {
-      buffer_s.m.userptr =
-          reinterpret_cast<unsigned long> (inherited::rd_ptr ());
-      buffer_s.length = inherited::size ();
-      break;
-    }
-    case V4L2_MEMORY_MMAP:
-    {
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
-                  inherited::data_.method));
-      return NULL;
-    }
-  } // end SWITCH
-  // *NOTE*: in oder to retrieve the buffer instance handle from the device
-  //         buffer when it has written the frame data, the address of the
-  //         ACE_Message_Block (!) could be embedded in the 'reserved' field(s).
-  //         Unfortunately, this does not work, the fields seem to be zeroed by
-  //         the driver
-  //         --> maintain a mapping: buffer index <--> buffer handle
-//        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  int result = v4l2_ioctl (inherited::data_.device,
-                           VIDIOC_QBUF,
-                           &buffer_s);
-  if (unlikely (result == -1))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
-
-  return NULL;
-}
-#endif

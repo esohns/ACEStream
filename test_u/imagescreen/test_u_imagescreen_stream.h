@@ -51,181 +51,24 @@ class Stream_IAllocator;
 
 extern const char stream_name_string_[];
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-class Stream_ImageScreen_DirectShow_Stream
+class Stream_ImageScreen_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_DirectShow_StreamState,
-                        struct Stream_ImageScreen_DirectShow_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
+                        struct Stream_ImageScreen_StreamState,
+                        struct Stream_ImageScreen_StreamConfiguration,
+                        struct Stream_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_DirectShow_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_DirectShow_SessionData,
-                        Stream_ImageScreen_DirectShow_SessionData_t,
-                        Test_U_ControlMessage_t,
-                        Stream_ImageScreen_DirectShow_Message_t,
-                        Stream_ImageScreen_DirectShow_SessionMessage_t>
-{
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_DirectShow_StreamState,
-                        struct Stream_ImageScreen_DirectShow_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_DirectShow_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_DirectShow_SessionData,
-                        Stream_ImageScreen_DirectShow_SessionData_t,
-                        Test_U_ControlMessage_t,
-                        Stream_ImageScreen_DirectShow_Message_t,
-                        Stream_ImageScreen_DirectShow_SessionMessage_t> inherited;
-
- public:
-  Stream_ImageScreen_DirectShow_Stream ();
-  virtual ~Stream_ImageScreen_DirectShow_Stream ();
-
-  // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_DirectShow_Stream (const Stream_ImageScreen_DirectShow_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_DirectShow_Stream& operator= (const Stream_ImageScreen_DirectShow_Stream&))
-
-  // modules
-  Stream_ImageScreen_DirectShow_Source_Module            source_;
-  Stream_ImageScreen_DirectShow_StatisticReport_Module   statisticReport_;
-#if defined (GUI_SUPPORT)
-  Stream_ImageScreen_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
-  Stream_ImageScreen_DirectShow_DirectShowDisplay_Module directShowDisplay_;
-#if defined (GTK_USE)
-  Stream_ImageScreen_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  Stream_ImageScreen_DirectShow_AVIEncoder_Module        encoder_;
-  Stream_ImageScreen_DirectShow_FileWriter_Module        fileWriter_;
-};
-
-class Stream_ImageScreen_MediaFoundation_Stream
- : public Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_MediaFoundation_StreamState,
-                        struct Stream_ImageScreen_MediaFoundation_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_MediaFoundation_SessionData,
-                        Stream_ImageScreen_MediaFoundation_SessionData_t,
-                        Test_U_ControlMessage_t,
-                        Stream_ImageScreen_MediaFoundation_Message_t,
-                        Stream_ImageScreen_MediaFoundation_SessionMessage_t>
- , public IMFAsyncCallback
-{
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_MediaFoundation_StreamState,
-                        struct Stream_ImageScreen_MediaFoundation_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_MediaFoundation_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_MediaFoundation_SessionData,
-                        Stream_ImageScreen_MediaFoundation_SessionData_t,
-                        Test_U_ControlMessage_t,
-                        Stream_ImageScreen_MediaFoundation_Message_t,
-                        Stream_ImageScreen_MediaFoundation_SessionMessage_t> inherited;
-
- public:
-  Stream_ImageScreen_MediaFoundation_Stream ();
-  virtual ~Stream_ImageScreen_MediaFoundation_Stream ();
-
-  // override (part of) Stream_IStreamControl_T
-  virtual const Stream_Module_t* find (const std::string&) const; // module name
-  virtual void start ();
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true,  // recurse upstream (if any) ?
-                     bool = true); // locked access ?
-
-  // implement IMFAsyncCallback
-  virtual STDMETHODIMP QueryInterface (const IID&,
-                                       void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
-  virtual STDMETHODIMP_ (ULONG) Release ();
-  virtual STDMETHODIMP GetParameters (DWORD*,  // return value: flags
-                                      DWORD*); // return value: queue handle
-  virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
-
-  // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_MediaFoundation_Stream (const Stream_ImageScreen_MediaFoundation_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_MediaFoundation_Stream& operator= (const Stream_ImageScreen_MediaFoundation_Stream&))
-
-  // modules
-  Stream_ImageScreen_MediaFoundation_Source_Module                     source_;
-  Stream_ImageScreen_MediaFoundation_StatisticReport_Module            statisticReport_;
-  Stream_ImageScreen_MediaFoundation_MediaFoundationDisplay_Module     mediaFoundationDisplay_;
-  Stream_ImageScreen_MediaFoundation_MediaFoundationDisplayNull_Module mediaFoundationDisplayNull_;
-  Stream_ImageScreen_MediaFoundation_Direct3DDisplay_Module            direct3DDisplay_;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Stream_ImageScreen_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  Stream_ImageScreen_MediaFoundation_AVIEncoder_Module                 encoder_;
-  Stream_ImageScreen_MediaFoundation_FileWriter_Module                 fileWriter_;
-
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-  // media session
-  IMFMediaSession*                                                 mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  ULONG                                                            referenceCount_;
-};
-#else
-class Stream_ImageScreen_V4L_Stream
- : public Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_V4L_StreamState,
-                        struct Stream_ImageScreen_V4L_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_V4L_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_V4L_SessionData,
-                        Stream_ImageScreen_V4L_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                        Stream_ImageScreen_SessionData,
+                        Stream_ImageScreen_SessionData_t,
+                        Stream_ControlMessage_t,
                         Stream_ImageScreen_Message_t,
-                        Stream_ImageScreen_V4L_SessionMessage_t>
+                        Stream_ImageScreen_SessionMessage_t>
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -233,21 +76,21 @@ class Stream_ImageScreen_V4L_Stream
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
-                        struct Stream_ImageScreen_V4L_StreamState,
-                        struct Stream_ImageScreen_V4L_StreamConfiguration,
-                        struct Stream_ImageScreen_StatisticData,
+                        struct Stream_ImageScreen_StreamState,
+                        struct Stream_ImageScreen_StreamConfiguration,
+                        struct Stream_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
-                        struct Stream_ImageScreen_V4L_ModuleHandlerConfiguration,
-                        Stream_ImageScreen_V4L_SessionData,
-                        Stream_ImageScreen_V4L_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                        Stream_ImageScreen_SessionData,
+                        Stream_ImageScreen_SessionData_t,
+                        Stream_ControlMessage_t,
                         Stream_ImageScreen_Message_t,
-                        Stream_ImageScreen_V4L_SessionMessage_t> inherited;
+                        Stream_ImageScreen_SessionMessage_t> inherited;
 
  public:
-  Stream_ImageScreen_V4L_Stream ();
-  virtual ~Stream_ImageScreen_V4L_Stream ();
+  Stream_ImageScreen_Stream ();
+  virtual ~Stream_ImageScreen_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (typename inherited::LAYOUT_T&, // return value: layout
@@ -257,30 +100,15 @@ class Stream_ImageScreen_V4L_Stream
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_V4L_Stream (const Stream_ImageScreen_V4L_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_V4L_Stream& operator= (const Stream_ImageScreen_V4L_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_Stream (const Stream_ImageScreen_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_Stream& operator= (const Stream_ImageScreen_Stream&))
 
   // modules
-  Stream_ImageScreen_V4L_Source_Module      source_;
+  Stream_ImageScreen_Source_Module          source_;
   Stream_ImageScreen_StatisticReport_Module statisticReport_;
   Stream_ImageScreen_LibAVDecoder_Module    decoder_; // --> RGB
-  Stream_ImageScreen_Distributor_Module     distributor_; // (sub-)branch ?
-  ////////////////////////////////////////
-  Stream_ImageScreen_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
   Stream_ImageScreen_LibAVResize_Module     resizer_; // --> window size/fullscreen
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   Stream_ImageScreen_Display_Module         display_;
-//  Stream_ImageScreen_GTKCairoDisplay_Module GTKCairoDisplay_;
-#elif defined (WXWIDGETS_USE)
-  Stream_ImageScreen_Display_Module         display_;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  ////////////////////////////////////////
-  Stream_ImageScreen_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
-  Stream_ImageScreen_V4L_AVIEncoder_Module  encoder_; // --> AVI
-  Stream_ImageScreen_FileWriter_Module      fileWriter_;
 };
-#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

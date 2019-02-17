@@ -28,7 +28,7 @@ Stream_ImageScreen_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_ImageScreen_SessionMessage_T (Stream_SessionId_t sessionId_in,
                                                                                    enum Stream_SessionMessageType messageType_in,
                                                                                    SessionDataType*& sessionData_in,
-                                                                                   struct Stream_ImageScreen_UserData* userData_in)
+                                                                                   struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,

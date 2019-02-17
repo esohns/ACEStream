@@ -29,8 +29,10 @@
 #include "test_u_imagescreen_common.h"
 
 class Stream_ImageScreen_SignalHandler
- : public Common_SignalHandler_T<struct Stream_ImageScreen_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Common_SignalHandlerConfiguration>
 {
+  typedef Common_SignalHandler_T<struct Common_SignalHandlerConfiguration> inherited;
+
  public:
   Stream_ImageScreen_SignalHandler (enum Common_SignalDispatchType, // dispatch mode
                                 ACE_SYNCH_RECURSIVE_MUTEX*);    // lock handle
@@ -40,8 +42,6 @@ class Stream_ImageScreen_SignalHandler
   virtual void handle (const struct Common_Signal&); // signal
 
  private:
-  typedef Common_SignalHandler_T<struct Stream_ImageScreen_SignalHandlerConfiguration> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_SignalHandler (const Stream_ImageScreen_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_SignalHandler& operator= (const Stream_ImageScreen_SignalHandler&))

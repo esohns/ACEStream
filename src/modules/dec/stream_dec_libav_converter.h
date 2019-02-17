@@ -160,8 +160,10 @@ class Stream_Decoder_LibAVConverter_T
   void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
   void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);
 #else
+  inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.format = format_in; }
   inline void setFormat_impl (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
 
+  inline void setResolution_impl (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
   inline void setResolution_impl (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
 #endif // ACE_WIN32 || ACE_WIN64
 };

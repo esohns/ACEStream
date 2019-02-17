@@ -270,8 +270,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->area.width && inherited::configuration_->area.height);
       ACE_ASSERT (inherited::configuration_->window);
+
+      gint width_i = 0, height_i = 0;
 
       if (buffer_)
       {
@@ -280,18 +281,21 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       gdk_threads_enter ();
 
+      gdk_window_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+                           &width_i, &height_i);
+
       buffer_ =
-    #if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
           gdk_pixbuf_get_from_window (inherited::configuration_->window,
                                       0, 0,
-                                      inherited::configuration_->area.width, inherited::configuration_->area.height);
-    #else
+                                      width_i, height_i);
+#else
           gdk_pixbuf_get_from_drawable (NULL,
                                         GDK_DRAWABLE (inherited::configuration_->window),
                                         NULL,
                                         0, 0,
-                                        0, 0, inherited::configuration_->area.width, inherited::configuration_->area.height);
-    #endif
+                                        0, 0, width_i, height_i);
+#endif
       if (!buffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,
@@ -348,25 +352,29 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   } // end IF
 
   // sanity check(s)
-  // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.area.width && configuration_in.area.height);
+  // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.window);
+
+  gint width_i = 0, height_i = 0;
 
   lock_ = configuration_in.lock;
 
   gdk_threads_enter ();
 
+  gdk_window_get_size (GDK_DRAWABLE (configuration_in.window),
+                       &width_i, &height_i);
+
   buffer_ =
 #if GTK_CHECK_VERSION (3,0,0)
       gdk_pixbuf_get_from_window (configuration_in.window,
                                   0, 0,
-                                  configuration_in.area.width, configuration_in.area.height);
+                                  width_i, height_i);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
                                     GDK_DRAWABLE (configuration_in.window),
                                     NULL,
                                     0, 0,
-                                    0, 0, configuration_in.area.width, configuration_in.area.height);
+                                    0, 0, width_i, height_i);
 #endif
   if (!buffer_)
   { // *NOTE*: most probable reason: window is not mapped

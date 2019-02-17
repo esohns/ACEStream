@@ -26,33 +26,25 @@
 #include "stream_common.h"
 
 // forward declarations
-#if defined (GUI_SUPPORT)
 struct Stream_ImageScreen_UI_CBData;
-#endif // GUI_SUPPORT
 
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
           typename UIStateType,
 #if defined (WXWIDGETS_USE)
           typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
 #endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Stream_ImageScreen_EventHandler_T
  : public NotificationType
 {
  public:
-#if defined (GUI_SUPPORT)
   Stream_ImageScreen_EventHandler_T (struct Stream_ImageScreen_UI_CBData* // UI callback data
 #if defined (GTK_USE)
                                 );
 #elif defined (WXWIDGETS_USE)
                                  ,InterfaceType*);                // wxWidgets application handle
 #endif
-#else
-  Stream_ImageScreen_EventHandler_T ();
-#endif // GUI_SUPPORT
   inline virtual ~Stream_ImageScreen_EventHandler_T () {}
 
   // implement Stream_ISessionDataNotify_T
@@ -67,19 +59,15 @@ class Stream_ImageScreen_EventHandler_T
                        const SessionMessageType&);
 
  private:
-#if defined (GUI_SUPPORT)
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T ())
-#endif // GUI_SUPPORT
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T (const Stream_ImageScreen_EventHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T& operator= (const Stream_ImageScreen_EventHandler_T&))
 
-#if defined (GUI_SUPPORT)
   struct Stream_ImageScreen_UI_CBData*             CBData_;
 #if defined (GTK_USE)
 #elif defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
 #endif // GTK_USE
-#endif // GUI_SUPPORT
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 
