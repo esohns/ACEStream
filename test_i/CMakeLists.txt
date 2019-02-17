@@ -244,6 +244,7 @@ target_sources (${PROJECT_NAME}_Test_I
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
 add_subdirectory (filestream)
+add_subdirectory (camsave)
 add_subdirectory (camstream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)

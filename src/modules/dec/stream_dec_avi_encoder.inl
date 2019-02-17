@@ -791,7 +791,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       MediaType media_type_s; 
       inherited2:: getMediaType (session_data_r.formats.front (),
                                  media_type_s);
-      unsigned int bits_per_sample = 16;
+      unsigned int bits_per_sample = 24;
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       struct AVCodec* codec_p = NULL;
@@ -821,7 +821,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       switch (format_.format)
       {
         // RGB formats
-        case AV_PIX_FMT_RGB555LE:
+        case AV_PIX_FMT_RGB24:
+        case AV_PIX_FMT_BGR24:
+        case AV_PIX_FMT_ARGB:
+        case AV_PIX_FMT_RGBA:
+        case AV_PIX_FMT_ABGR:
+        case AV_PIX_FMT_BGRA:
+        case AV_PIX_FMT_RGB555BE:
+        case AV_PIX_FMT_RGB555LE: // WARNING: WMP expects
+        case AV_PIX_FMT_RGB565BE:
+        case AV_PIX_FMT_RGB565LE:
           break;
         // luminance-chrominance formats
         case AV_PIX_FMT_YUV420P: // 'YU12'
@@ -980,7 +989,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->debug_mv = 0;
 //      codec_context_p->dct_algo = FF_DCT_AUTO;
 //      codec_context_p->idct_algo = FF_IDCT_AUTO;
-      codec_context_p->bits_per_raw_sample = 5;
+      codec_context_p->bits_per_raw_sample = 24;
 //      codec_context_p->thread_count = 0;
 //      codec_context_p->thread_type = 0;
 //      codec_context_p->thread_safe_callbacks = 0;
@@ -1036,8 +1045,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      stream_p->nb_side_data = 0;
 //      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;
 #endif // ACE_WIN32 || ACE_WIN64
-
-      ACE_ASSERT (format_.format == AV_PIX_FMT_RGB555LE);
 
       goto continue_;
 

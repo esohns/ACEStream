@@ -1,0 +1,134 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.h}
+code_name {.cpp}
+Function {} {open
+} {
+  Fl_Window {} {open
+    xywh {53 153 685 800} type Single resizable
+    class window_main non_modal visible
+  } {
+    Fl_Pack {} {open
+      xywh {-35 -526 1035 2036} type HORIZONTAL resizable
+      class pack_main
+    } {
+      Fl_Pack {} {open
+        xywh {-35 -526 1020 2036} align 0
+        class pack_settings
+      } {
+        Fl_Pack {} {
+          xywh {0 -3 345 453} type HORIZONTAL
+          class pack_feedback
+        } {
+          Fl_Pack {} {
+            xywh {0 -3 60 453}
+            class pack_action
+          } {
+            Fl_Button {} {
+              xywh {0 410 45 40} type Toggle labelsize 8 resizable
+              class button_record
+            }
+            Fl_Button {} {
+              xywh {0 199 45 45} labelsize 8
+              class button_snapshot
+            }
+            Fl_Button {} {
+              xywh {0 32 45 135} labelsize 8
+              class button_cut
+            }
+            Fl_Button {} {
+              xywh {0 -3 45 170} labelsize 8
+              class button_report
+            }
+          }
+          Fl_Tile {} {
+            xywh {0 -3 300 170}
+            class tile_statistic
+          } {}
+        }
+        Fl_Pack {} {
+          xywh {110 197 745 1133}
+          class pack_configuration
+        } {
+          Fl_Pack {} {open
+            xywh {190 197 560 1133}
+            class pack_camera
+          } {
+            Fl_Pack {} {open
+              xywh {215 253 535 418}
+              class pack_camera_action
+            } {
+              Fl_Button {} {
+                xywh {240 419 25 25} resizable
+                class button_reset
+              }
+            }
+            Fl_Choice {} {open
+              xywh {215 197 25 56} down_box BORDER_BOX
+              class choice_framerate
+            } {}
+            Fl_Choice {} {open
+              xywh {215 399 25 25} down_box BORDER_BOX
+              class choice_camera_resolution
+            } {}
+            Fl_Pack {} {
+              xywh {215 605 535 725} type HORIZONTAL
+              class pack_source
+            } {
+              Fl_Button {} {
+                xywh {240 852 25 25} resizable
+                class button_source_settings
+              }
+              Fl_Choice {} {
+                xywh {220 1078 25 25} down_box BORDER_BOX
+                class choice_source
+              } {}
+            }
+            Fl_Choice {} {
+              xywh {215 625 25 25} down_box BORDER_BOX
+              class choice_format
+            } {}
+          }
+          Fl_Pack {} {open
+            xywh {190 253 560 690}
+            class pack_display
+          } {
+            Fl_Choice {} {open
+              xywh {215 691 25 25} down_box BORDER_BOX
+              class choice_adapter
+            } {}
+            Fl_Choice {} {open
+              xywh {215 465 25 25} down_box BORDER_BOX
+              class choice_screen
+            } {}
+            Fl_Choice {} {open
+              xywh {215 253 25 10} down_box BORDER_BOX
+              class choice_display_resolution
+            } {}
+            Fl_Pack {} {open
+              xywh {215 253 535 484} resizable
+              class pack_display_action
+            } {
+              Fl_Button {} {
+                xywh {240 485 25 25}
+                class button_display
+              }
+              Fl_Button {} {
+                xywh {240 259 25 25} resizable
+                class button_fullscreen
+              }
+            }
+          }
+          Fl_Pack {} {
+            xywh {110 253 745 547}
+            class pack_save
+          } {}
+        }
+      }
+      Fl_Group {} {open
+        xywh {450 25 550 735} resizable
+        class group_video
+      } {}
+    }
+  }
+}

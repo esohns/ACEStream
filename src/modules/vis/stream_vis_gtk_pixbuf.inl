@@ -381,8 +381,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
   ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
   ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
-  ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
+  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
+//  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
+//  ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
 
   gdk_threads_leave ();
 
