@@ -101,7 +101,6 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.parserConfiguration);
-  ACE_ASSERT (configuration_in.streamConfiguration);
 
   if (inherited::isInitialized_)
   {

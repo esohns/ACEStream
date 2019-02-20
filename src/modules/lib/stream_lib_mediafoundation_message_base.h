@@ -35,24 +35,29 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename DataType>
+template <typename DataType,
+          typename AllocatorConfigurationType,
+          typename MessageType>
 class Stream_MediaFramework_MediaFoundation_MessageBase_T
- : public Stream_DataMessageBase_T<AllocatorConfigurationType,
+ : public Stream_DataMessageBase_T<DataType,
+                                   AllocatorConfigurationType,
                                    MessageType,
-                                   DataType,
                                    int>
  //, public IMFSample
 {
+  typedef Stream_DataMessageBase_T<DataType,
+                                   AllocatorConfigurationType,
+                                   MessageType,
+                                   int> inherited;
+
  public:
   // convenient types
-  typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
-                                                              MessageType,
-                                                              DataType> OWN_TYPE_T;
+  typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<DataType,
+                                                              AllocatorConfigurationType,
+                                                              MessageType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
-  inline virtual ~Stream_MediaFramework_MediaFoundation_MessageBase_T () {};
+  inline virtual ~Stream_MediaFramework_MediaFoundation_MessageBase_T () {}
 
   //// implement IMFSample
   //virtual HRESULT STDMETHODCALLTYPE GetSampleFlags (DWORD*);
@@ -158,11 +163,6 @@ class Stream_MediaFramework_MediaFoundation_MessageBase_T
                                                        bool = true);       // increment running message counter ?
 
  private:
-  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                   MessageType,
-                                   DataType,
-                                   int> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_MessageBase_T& operator= (const Stream_MediaFramework_MediaFoundation_MessageBase_T&))
 

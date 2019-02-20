@@ -21,6 +21,7 @@
 #ifndef STREAM_MODULE_FILEREADER_H
 #define STREAM_MODULE_FILEREADER_H
 
+#include "ace/Dirent_Selector.h"
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
@@ -35,6 +36,16 @@
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_file_source_module_name_string[];
+
+// *NOTE*: just set NULL instead (see also: 'man 3 scandir')
+int
+stream_file_dirent_selector_all_cb (const dirent*);
+// *NOTE*: used for sorting only (see also: 'man 3 scandir')
+int
+stream_file_dirent_comparator_strcmp_cb (const dirent**,
+                                         const dirent**);
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -121,11 +132,6 @@ class Stream_Module_FileReaderH_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-  // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T (const Stream_Module_FileReaderH_T&))
@@ -135,8 +141,9 @@ class Stream_Module_FileReaderH_T
   virtual int svc (void);
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  bool        isOpen_;
-  ACE_FILE_IO stream_;
+  ACE_Dirent_Selector directory_;
+  bool                isOpen_;
+  ACE_FILE_IO         stream_;
 };
 
 //////////////////////////////////////////

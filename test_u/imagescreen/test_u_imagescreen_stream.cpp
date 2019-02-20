@@ -39,12 +39,14 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SOURCE_DEFAULT_NAME_STRING))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
+// , statisticReport_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , delay_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 // , GTKCairoDisplay_ (this,
@@ -82,9 +84,10 @@ Stream_ImageScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   ACE_ASSERT (layout_inout.empty ());
 
   layout_inout.append (&source_, NULL, 0);
-  layout_inout.append (&statisticReport_, NULL, 0);
+//  layout_inout.append (&statisticReport_, NULL, 0);
   layout_inout.append (&decoder_, NULL, 0); // output is uncompressed RGB
   layout_inout.append (&resizer_, NULL, 0); // output is window size/fullscreen
+  layout_inout.append (&delay_, NULL, 0);
   layout_inout.append (&display_, NULL, 0);
 
   return true;
@@ -122,24 +125,20 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-
   session_data_p =
     &const_cast<Stream_ImageScreen_SessionData&> (inherited::sessionData_->getR ());
+  ACE_ASSERT (session_data_p->formats.empty ());
+  // *TODO*: remove type inferences
+  session_data_p->formats.push_back (configuration_in.configuration_.format);
+
+  // sanity check(s)
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
-
   configuration_p =
       dynamic_cast<struct Stream_ImageScreen_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-
-  // sanity check(s)
   ACE_ASSERT (configuration_p);
 
-  // *TODO*: remove type inferences
-  ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
 //  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                       session_data_r.v4l2Format))
 //  {
@@ -157,7 +156,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 //    return false;
 //  } // end IF
 //  session_data_p->format = configuration_p->inputFormat;
-  session_data_p->targetFileName = configuration_p->directory;
+//  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 

@@ -42,6 +42,9 @@ extern "C"
 #include "stream_vis_defines.h"
 
 #include "test_u_common.h"
+#if defined (GTK_USE)
+#include "test_u_gtk_common.h"
+#endif // GTK_USE
 
 // forward declarations
 template <typename NotificationType,
@@ -110,9 +113,10 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
-   , directory ()
    , display ()
+   , fileIdentifier ()
    , fullScreen (false)
+   , individualFormat (true)
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -133,8 +137,10 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
-  std::string                                   directory; // source module
   struct Common_UI_DisplayDevice                display; // display module
+  Common_File_Identifier                        fileIdentifier; // source module
+  // *NOTE*: treat each image separately (different sizes)
+  bool                                          individualFormat;
   bool                                          fullScreen;
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
@@ -202,10 +208,11 @@ struct Stream_ImageScreen_Configuration
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
+   , timerConfiguration ()
    , streamConfiguration ()
   {}
 
-  // **************************** stream data **********************************
+  struct Common_TimerConfiguration         timerConfiguration;
   Stream_ImageScreen_StreamConfiguration_t streamConfiguration;
 };
 

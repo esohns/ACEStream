@@ -105,9 +105,10 @@ class Stream_ImageScreen_Stream
 
   // modules
   Stream_ImageScreen_Source_Module          source_;
-  Stream_ImageScreen_StatisticReport_Module statisticReport_;
+//  Stream_ImageScreen_StatisticReport_Module statisticReport_;
   Stream_ImageScreen_LibAVDecoder_Module    decoder_; // --> RGB
   Stream_ImageScreen_LibAVResize_Module     resizer_; // --> window size/fullscreen
+  Stream_ImageScreen_Delay_Module           delay_;
   Stream_ImageScreen_Display_Module         display_;
 };
 

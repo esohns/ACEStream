@@ -77,6 +77,9 @@ set (source_files
      stream_misc_aggregator.inl
      stream_misc_common.h
      stream_misc_defines.h
+     stream_misc_delay.cpp
+     stream_misc_delay.h
+     stream_misc_delay.inl
      stream_misc_distributor.cpp
      stream_misc_distributor.h
      stream_misc_distributor.inl
@@ -151,6 +154,8 @@ install (FILES
          stream_misc_aggregator.inl
          stream_misc_common.h
          stream_misc_defines.h
+         stream_misc_delay.h
+         stream_misc_delay.inl
          stream_misc_distributor.h
          stream_misc_distributor.inl
          stream_misc_dump.h

@@ -28,9 +28,11 @@
 
 #include "stream_common.h"
 #include "stream_configuration.h"
-#include "stream_message_base.h"
+#include "stream_data_message_base.h"
 
-#include "test_u_common.h"
+#include "stream_lib_ffmpeg_common.h"
+
+//#include "test_u_common.h"
 
 // forward declaration(s)
 template <ACE_SYNCH_DECL,
@@ -45,10 +47,16 @@ class Stream_ImageScreen_SessionMessage_T;
 
 template <typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_ImageScreen_Message_T
- : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               int>
+ : public Stream_DataMessageBase_T<struct Stream_MediaFramework_FFMPEG_MediaType,
+                                   struct Stream_AllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   int>
 {
+  typedef Stream_DataMessageBase_T<struct Stream_MediaFramework_FFMPEG_MediaType,
+                                   struct Stream_AllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   int> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
@@ -56,10 +64,6 @@ class Stream_ImageScreen_Message_T
                                                  Stream_ImageScreen_Message_T<SessionDataType>,
                                                  Stream_ImageScreen_SessionMessage_T<Stream_ImageScreen_Message_T<SessionDataType>,
                                                                                      SessionDataType> >;
-
-  typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               int> inherited;
 
  public:
   Stream_ImageScreen_Message_T (unsigned int); // size

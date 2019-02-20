@@ -32,10 +32,10 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType,
-          typename MessageType,
+template <typename DataType,
           ////////////////////////////////
-          typename DataType,
+          typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+          typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
@@ -50,9 +50,9 @@ class Stream_DataMessageBase_T
 
  public:
   // convenient types
-  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+  typedef Stream_DataMessageBase_T<DataType,
+                                   AllocatorConfigurationType,
                                    MessageType,
-                                   DataType,
                                    CommandType> OWN_TYPE_T;
   typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
@@ -109,10 +109,10 @@ class Stream_DataMessageBase_T
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename AllocatorConfigurationType,
-          typename MessageType,
+template <typename DataType, // *NOTE*: this implements Common_IReferenceCount
           ////////////////////////////////
-          typename DataType, // *NOTE*: this implements Common_IReferenceCount
+          typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+          typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
@@ -127,9 +127,9 @@ class Stream_DataMessageBase_2
 
  public:
   // convenient types
-  typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
+  typedef Stream_DataMessageBase_2<DataType,
+                                   AllocatorConfigurationType,
                                    MessageType,
-                                   DataType,
                                    CommandType> OWN_TYPE_T;
   typedef DataType DATA_T;
 

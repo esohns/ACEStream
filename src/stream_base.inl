@@ -426,6 +426,9 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
   // step1: allocate session data ?
   if (resetSessionData_in)
   {
@@ -486,15 +489,15 @@ Stream_Base_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
-    if (state_.module)
-      if (!layout_.append (state_.module,
-                           ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME)))
+    if (configuration_->configuration_.module)
+      if (!layout_.append (configuration_->configuration_.module,
+                           configuration_->configuration_.moduleBranch))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Layout_T::append(\"%s\",\"%s\"), returning\n"),
                     ACE_TEXT (StreamName),
-                    state_.module->name (),
-                    ACE_TEXT (STREAM_SUBSTREAM_DISPLAY_NAME)));
+                    configuration_->configuration_.module->name (),
+                    ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ())));
         return;
       } // end IF
 

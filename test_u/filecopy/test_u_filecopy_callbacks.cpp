@@ -208,10 +208,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-  if (!(*iterator_2).second.second.fileName.empty ())
+  if (!(*iterator_2).second.second.fileIdentifier.identifier.empty ())
   {
     file_p =
-      g_file_new_for_path ((*iterator_2).second.second.fileName.c_str ());
+      g_file_new_for_path ((*iterator_2).second.second.fileIdentifier.identifier.c_str ());
     ACE_ASSERT (file_p);
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                     file_p,
@@ -1336,9 +1336,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
     is_source = false;
   if (is_source)
   {
-    (*iterator_2).second.second.fileName =
+    (*iterator_2).second.second.fileIdentifier.identifier =
       Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-    result = !(*iterator_2).second.second.fileName.empty ();
+    result = !(*iterator_2).second.second.fileIdentifier.identifier.empty ();
   } // end IF
   else
   {
@@ -1368,7 +1368,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (action_p);
   result =
     (is_source ? result && !(*iterator_2).second.second.targetFileName.empty ()
-               : result && !(*iterator_2).second.second.fileName.empty ());
+               : result && !(*iterator_2).second.second.fileIdentifier.identifier.empty ());
   gtk_action_set_sensitive (action_p, result);
 } // filechooserbutton_cb
 

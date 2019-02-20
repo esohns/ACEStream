@@ -194,18 +194,12 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Common_ICounter
-  virtual void reset ();
-
   // implement Common_IStatistic
   virtual bool collect (StatisticContainerType&); // return value: info
   // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 
  protected:
-  // *NOTE*: protects statistic
-  mutable ACE_SYNCH_MUTEX    lock_;
-
   // *DATA STATISTIC*
   float                      inboundBytes_;
   float                      outboundBytes_;
@@ -268,6 +262,9 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   void finiTimers (bool = true); // cancel both timers ? [false: cancel localReportingHandlerID_ only]
   // *IMPORTANT NOTE*: callers must hold lock_ !
   bool putStatisticMessage ();
+
+  // implement Common_ICounter
+  virtual void reset ();
 
   bool                       inbound_;
 

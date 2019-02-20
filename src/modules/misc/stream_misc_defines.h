@@ -24,6 +24,7 @@
 #include "ace/config-lite.h"
 
 #define STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING                 "Distributor"
+#define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
 #define STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
 #define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"

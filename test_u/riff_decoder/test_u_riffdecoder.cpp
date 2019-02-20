@@ -220,9 +220,9 @@ do_work (bool debug_in,
 
   // ********************** module configuration data **************************
   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.fileName = fileName_in;
-  modulehandler_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
+  modulehandler_configuration.fileIdentifier.identifier = fileName_in;
+//  modulehandler_configuration.streamConfiguration =
+//    &configuration.streamConfiguration;
   modulehandler_configuration.parserConfiguration =
       &configuration.parserConfiguration;
 

@@ -433,7 +433,7 @@ do_work (unsigned int bufferSize_in,
     moduleheandler_configuration.concurrency =
         STREAM_HEADMODULECONCURRENCY_ACTIVE;
   moduleheandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
-  moduleheandler_configuration.fileName = fileName_in;
+  moduleheandler_configuration.fileIdentifier.identifier = fileName_in;
   moduleheandler_configuration.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
   if (!UIDefinitionFile_in.empty ())

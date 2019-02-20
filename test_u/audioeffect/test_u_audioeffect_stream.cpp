@@ -1377,11 +1377,13 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (configuration_in.useMediaFoundation)
-    session_data_p->targetFileName = mediafoundation_configuration_p->fileName;
+    session_data_p->targetFileName =
+        mediafoundation_configuration_p->fileIdentifier.identifier;
   else
-    session_data_p->targetFileName = directshow_configuration_p->fileName;
+    session_data_p->targetFileName =
+        directshow_configuration_p->fileIdentifier.identifier;
 #else
-  session_data_p->targetFileName = configuration_p->fileName;
+  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
 #endif
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);

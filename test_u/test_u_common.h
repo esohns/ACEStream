@@ -304,8 +304,7 @@ struct Test_U_ModuleHandlerConfiguration
 {
   Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , fileName ()
-   , inbound (false)
+   , fileIdentifier ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -314,8 +313,7 @@ struct Test_U_ModuleHandlerConfiguration
    , pushStatisticMessages (true)
   {}
 
-  std::string                     fileName;              // file writer module
-  bool                            inbound;               // statistic/IO module
+  Common_File_Identifier          fileIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                            manageCOM;
   enum Stream_MediaFramework_Type mediaFramework;        // display module

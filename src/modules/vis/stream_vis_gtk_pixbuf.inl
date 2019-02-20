@@ -359,7 +359,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   lock_ = configuration_in.lock;
 
-  gdk_threads_enter ();
+//  gdk_threads_enter ();
 
   gdk_window_get_size (GDK_DRAWABLE (configuration_in.window),
                        &width_i, &height_i);
@@ -393,7 +393,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
 //  ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
 
-  gdk_threads_leave ();
+//  gdk_threads_leave ();
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

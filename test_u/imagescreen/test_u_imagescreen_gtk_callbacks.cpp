@@ -43,10 +43,13 @@
 #include "common_ui_gtk_tools.h"
 
 #include "test_u_imagescreen_defines.h"
+#include "test_u_imagescreen_stream.h"
 
 void
 load_entries (GtkListStore* listStore_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::load_entries"));
+
   gtk_list_store_clear (listStore_in);
 
   GtkTreeIter iterator;
@@ -72,6 +75,8 @@ load_entries (GtkListStore* listStore_in)
 gboolean
 idle_initialize_UI_cb (gpointer userData_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
+
   // sanity check(s)
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
@@ -132,15 +137,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-      (*stream_configuration_iterator).second.second.directory;
+      (*stream_configuration_iterator).second.second.fileIdentifier.identifier;
   gboolean result =
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                         ACE_TEXT_ALWAYS_CHAR ((*stream_configuration_iterator).second.second.directory.c_str ()));
+                                         ACE_TEXT_ALWAYS_CHAR ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ()));
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT ((*stream_configuration_iterator).second.second.directory.c_str ())));
+                ACE_TEXT ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
 
@@ -151,6 +156,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   (*stream_configuration_iterator).second.second.window =
       gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT ((*stream_configuration_iterator).second.second.window);
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation_s);
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+      allocation_s.width;
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+      allocation_s.height;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("initial window size: %ux%u\n"),
+              allocation_s.width, allocation_s.height));
 
   return G_SOURCE_REMOVE;
 }
@@ -158,6 +173,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 gboolean
 idle_finalize_UI_cb (gpointer userData_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
+
   ACE_UNUSED_ARG (userData_in);
 
   gtk_main_quit ();
@@ -368,6 +385,8 @@ idle_finalize_UI_cb (gpointer userData_in)
 gboolean
 idle_update_progress_cb (gpointer userData_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
+
   struct Common_UI_GTK_ProgressData* data_p =
       static_cast<struct Common_UI_GTK_ProgressData*> (userData_in);
 
@@ -378,7 +397,7 @@ idle_update_progress_cb (gpointer userData_in)
   // synch access
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
 
-  int result = -1;
+//  int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
     data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -389,9 +408,9 @@ idle_update_progress_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
 
-  ACE_THR_FUNC_RETURN exit_status;
-  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-  ACE_ASSERT (thread_manager_p);
+//  ACE_THR_FUNC_RETURN exit_status;
+//  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
+//  ACE_ASSERT (thread_manager_p);
   Common_UI_GTK_PendingActionsIterator_t iterator_2;
   for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
@@ -399,26 +418,26 @@ idle_update_progress_cb (gpointer userData_in)
   {
     iterator_2 = data_p->pendingActions.find (*iterator_3);
     ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    ACE_thread_t thread_id = (*iterator_2).second.id ();
-    result = thread_manager_p->join (thread_id, &exit_status);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  thread_id));
-    else
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: %u)\n"),
-                  thread_id,
-                  exit_status));
-#else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
-                  thread_id,
-                  exit_status));
-#endif
-    } // end ELSE
+//    ACE_thread_t thread_id = (*iterator_2).second.id ();
+//    result = thread_manager_p->join (thread_id, &exit_status);
+//    if (result == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
+//                  thread_id));
+//    else
+//    {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("thread %u has joined (status was: %u)\n"),
+//                  thread_id,
+//                  exit_status));
+//#else
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
+//                  thread_id,
+//                  exit_status));
+//#endif
+//    } // end ELSE
 
     data_p->state->eventSourceIds.erase (*iterator_3);
     data_p->pendingActions.erase (iterator_2);
@@ -447,6 +466,8 @@ idle_update_progress_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
+
+    data_p->eventSourceId = 0;
 
     done = true;
   } // end IF
@@ -500,8 +521,8 @@ idle_session_end_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (userData_in);
 
-  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
 
   return G_SOURCE_REMOVE;
 }
@@ -516,24 +537,43 @@ void
 togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
                                gpointer userData_in)
 {
+
+  // sanity check(s)
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+
   bool is_active_b =
       gtk_toggle_button_get_active (toggleButton_in);
 
-  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
-  ACE_ASSERT (ui_cb_data_p);
-
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),
-                        (is_active_b ? GTK_STOCK_MEDIA_STOP : GTK_STOCK_MEDIA_RECORD));
+                        (is_active_b ? GTK_STOCK_MEDIA_STOP : GTK_STOCK_MEDIA_PLAY));
 
-    // step3: start progress reporting
-    //ACE_ASSERT (!data_p->progressData.eventSourceId);
-    ui_cb_data_p->progressData.eventSourceId =
+  // toggle ?
+  if (!is_active_b)
+  {
+    // --> user pressed pause/stop
+    ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
+    ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
+
+    // stop stream
+    ui_cb_data_p->stream->stop (true,  // wait ?
+                                true); // locked access ?
+
+    return;
+  } // end IF
+
+  if (!ui_cb_data_p->stream->initialize (ui_cb_data_p->configuration->streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, returning\n")));
+    return;
+  } // end IF
+
+  // step3: start progress reporting
+  //ACE_ASSERT (!data_p->progressData.eventSourceId);
+  ui_cb_data_p->progressData.eventSourceId =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
@@ -543,17 +583,20 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
                           idle_update_progress_cb,
                           &ui_cb_data_p->progressData,
                           NULL);
-    if (!ui_cb_data_p->progressData.eventSourceId)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
-    ui_cb_data_p->progressData.pendingActions[ui_cb_data_p->progressData.eventSourceId] =
-      ACE_Thread_ID (0, 0);
-    //    ACE_DEBUG ((LM_DEBUG,
-    //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
-    //                event_source_id));
-    ui_cb_data_p->UIState->eventSourceIds.insert (ui_cb_data_p->progressData.eventSourceId);
+  if (!ui_cb_data_p->progressData.eventSourceId)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+    return;
   } // end lock scope
+  ui_cb_data_p->progressData.pendingActions[ui_cb_data_p->progressData.eventSourceId] =
+      ACE_Thread_ID (0, 0);
+  //    ACE_DEBUG ((LM_DEBUG,
+  //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
+  //                event_source_id));
+  ui_cb_data_p->UIState->eventSourceIds.insert (ui_cb_data_p->progressData.eventSourceId);
+
+  ui_cb_data_p->stream->start ();
 } // toggleaction_record_toggled_cb
 
 //void
@@ -785,17 +828,17 @@ filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
       ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-  (*stream_configuration_iterator).second.second.directory =
+  (*stream_configuration_iterator).second.second.fileIdentifier.identifier =
       ACE_TEXT_ALWAYS_CHAR (gtk_file_chooser_get_current_folder (fileChooser_in));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("changed directory to \"%s\"\n"),
-              ACE_TEXT ((*stream_configuration_iterator).second.second.directory.c_str ())));
+              ACE_TEXT ((*stream_configuration_iterator).second.second.fileIdentifier.identifier.c_str ())));
 } // filechooserbutton_current_folder_changed_cb
 
 gboolean
-drawingarea_expose_cb (GtkWidget* widget_in,
-                       GdkEvent* event_in,
-                       gpointer userData_in)
+drawingarea_expose_event_cb (GtkWidget* widget_in,
+                             GdkEvent* event_in,
+                             gpointer userData_in)
 {
   ACE_UNUSED_ARG (widget_in);
 
@@ -847,196 +890,25 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
 
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
-
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
-  GtkAllocation allocation;
-  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-                             &allocation);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("resized to %ux%u\n"),
-              allocation.width, allocation.height));
-//  data_p->configuration->moduleHandlerConfiguration.area =
-//    allocation;
-} // drawingarea_configure_event_cb
-
-//void
-//drawingarea_size_allocate_cb (GtkWidget* widget_in,
-//                              GdkRectangle* allocation_in,
-//                              gpointer userData_in)
-//{
-//  // sanity check(s)
-//  ACE_ASSERT (widget_in);
-
-//  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (allocation_in);
-//  ACE_ASSERT (userData_in);
-//  ACE_ASSERT (window_p);
-
-//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
-
 //  Common_UI_GTK_BuildersIterator_t iterator =
 //    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
 //  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
+      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
-//  //GtkToggleAction* toggle_action_p =
-//  //    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-//  //                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME)));
-//  //ACE_ASSERT (toggle_action_p);
-
-//  // sanity check(s)
-////  ACE_ASSERT (ui_cb_data_p->pixelBuffer);
-////  ACE_ASSERT (ui_cb_data_p->pixelBuffer == (*iterator_3).second.second.pixelBuffer);
-////  ACE_ASSERT (ui_cb_data_p->pixelBufferLock);
-////  ACE_ASSERT (ui_cb_data_p->pixelBufferLock == (*iterator_3).second.second.pixelBufferLock);
-
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("window resized to %dx%d\n"),
-//              allocation_in->width, allocation_in->height));
-
-//#if GTK_CHECK_VERSION (3,0,0)
-//#else
-////  GdkPixbuf* pixbuf_p =
-////    gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-////                    TRUE,
-////                    8,
-////                    allocation_in->width, allocation_in->height);
-////  if (!pixbuf_p)
-////  {
-////    ACE_DEBUG ((LM_ERROR,
-////                ACE_TEXT ("failed to gdk_pixbuf_new(), returning\n")));
-////    return;
-////  } // end IF
-//#endif // GTK_CHECK_VERSION
-
-////  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock);
-////    if (ui_cb_data_p->pixelBuffer)
-////    {
-////      g_object_unref (ui_cb_data_p->pixelBuffer); ui_cb_data_p->pixelBuffer = NULL;
-////    } // end IF
-////#if defined (ACE_WIN32) || defined (ACE_WIN64)
-////    switch (ui_cb_data_p->mediaFramework)
-////    {
-////      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-////        (*directshow_stream_iterator).second.second.pixelBuffer = NULL;
-////        break;
-////      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-////        (*mediafoundation_stream_iterator).second.second.pixelBuffer = NULL;
-////        break;
-////      default:
-////      {
-////        ACE_DEBUG ((LM_ERROR,
-////                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-////                    ui_cb_data_p->mediaFramework));
-////        return;
-////      }
-////    } // end SWITCH
-////#else
-////    (*iterator_3).second.second.pixelBuffer = NULL;
-////#endif
-
-//#if GTK_CHECK_VERSION (3,0,0)
-////    GdkPixbuf* pixbuf_p =
-////        gdk_pixbuf_get_from_window (window_p,
-////                                    0, 0,
-////                                    allocation_in->width, allocation_in->height);
-////    if (!pixbuf_p)
-////    {
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
-////                  window_p));
-////      return;
-////    } // end IF
-//#endif // GTK_CHECK_VERSION
-
-////    ui_cb_data_p->pixelBuffer =
-////#if GTK_CHECK_VERSION (3,0,0)
-////        gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
-////                                              0,       // scale
-////                                              window_p);
-////    g_object_unref (pixbuf_p); pixbuf_p = NULL;
-////#elif GTK_CHECK_VERSION (2,0,0)
-////        gdk_pixbuf_get_from_drawable (pixbuf_p,
-////                                      GDK_DRAWABLE (window_p),
-////                                      NULL,
-////                                      0, 0,
-////                                      0, 0, allocation_in->width, allocation_in->height);
-////#else
-////      gdk_pixbuf_get_from_drawable (pixbuf_p,
-////                                    GDK_DRAWABLE (window_p),
-////                                    NULL,
-////                                    0, 0,
-////                                    0, 0, allocation_in->width, allocation_in->height);
-////#endif // GTK_CHECK_VERSION
-////    if (!ui_cb_data_p->pixelBuffer)
-////    {
-////#if GTK_CHECK_VERSION (3,0,0)
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to gdk_cairo_surface_create_from_pixbuf(%@), returning\n"),
-////                  window_p));
-////#elif GTK_CHECK_VERSION (2,0,0)
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
-////                  window_p));
-////#else
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), returning\n"),
-////                  GDK_DRAWABLE (window_p)));
-////      gdk_pixbuf_unref (pixbuf_p); pixbuf_p = NULL;
-////#endif // GTK_CHECK_VERSION
-////      return;
-////    } // end IF
-
-//    //    GHashTable* hash_table_p = gdk_pixbuf_get_options (cb_data_p->pixelBuffer);
-//    //    GHashTableIter iterator;
-//    //    g_hash_table_iter_init (&iterator, hash_table_p);
-//    //    gpointer key, value;
-//    //    for (unsigned int i = 0;
-//    //         g_hash_table_iter_next (iterator, &key, &value);
-//    //         ++i)
-//    //      ACE_DEBUG ((LM_DEBUG,
-//    //                  ACE_TEXT ("%u: \"\" --> \"\"\n"),
-//    //                  i,
-//    //                  static_cast<gchar*> (key),
-//    //                  static_cast<gchar*> (value)));
-
-//    // sanity check(s)
-//#if GTK_CHECK_VERSION (3,0,0)
-////  ACE_ASSERT (cairo_surface_status (ui_cb_data_p->pixelBuffer) == CAIRO_STATUS_SUCCESS);
-////  ACE_ASSERT (cairo_surface_get_type (ui_cb_data_p->pixelBuffer) == CAIRO_SURFACE_TYPE_IMAGE);
-////  ACE_ASSERT (cairo_image_surface_get_format (ui_cb_data_p->pixelBuffer) == CAIRO_FORMAT_ARGB32);
-//#elif GTK_CHECK_VERSION (2,0,0)
-////    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (ui_cb_data_p->pixelBuffer) == 8);
-////    ACE_ASSERT (gdk_pixbuf_get_colorspace (ui_cb_data_p->pixelBuffer) == GDK_COLORSPACE_RGB);
-////    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_p->pixelBuffer) == 4);
-////    if (!gdk_pixbuf_get_has_alpha (data_p->pixelBuffer))
-////    { ACE_ASSERT (gdk_pixbuf_get_n_channels (data_p->pixelBuffer) == 3);
-////      GdkPixbuf* pixbuf_p =
-////          gdk_pixbuf_add_alpha (data_p->pixelBuffer,
-////                                FALSE, 0, 0, 0);
-////      ACE_ASSERT (pixbuf_p);
-////      gdk_pixbuf_unref (data_p->pixelBuffer);
-////      data_p->pixelBuffer = pixbuf_p;
-////    } // end IF
-////    // sanity check(s)
-////    ACE_ASSERT (gdk_pixbuf_get_has_alpha (data_p->pixelBuffer));
-//#endif // GTK_CHECK_VERSION
-//} // drawingarea_size_allocate_cb
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (window_in),
+                             &allocation_s);
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+      allocation_s.width;
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+      allocation_s.height;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("resized window to %ux%u\n"),
+              allocation_s.width, allocation_s.height));
+} // drawingarea_configure_event_cb
 
 //void
 //filechooserdialog_cb (GtkFileChooser* fileChooser_in,

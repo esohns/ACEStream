@@ -46,11 +46,16 @@ class Stream_CamSave_SessionMessage_T;
 template <typename DataType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CamSave_Message_T
- : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<DataType,
+                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   DataType,
                                    int>
 {
+  typedef Stream_DataMessageBase_T<DataType,
+                                   struct Stream_AllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   int> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
@@ -60,11 +65,6 @@ class Stream_CamSave_Message_T
                                                  Stream_CamSave_SessionMessage_T<Stream_CamSave_Message_T<DataType,
                                                                                                           SessionDataType>,
                                                                                  SessionDataType> >;
-
-  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   enum Stream_MessageType,
-                                   DataType,
-                                   int> inherited;
 
  public:
   Stream_CamSave_Message_T (unsigned int); // size

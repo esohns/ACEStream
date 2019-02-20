@@ -20,4 +20,9 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_directshow_message_base.h"
+#include "stream_misc_delay.h"
+
+#include "stream_misc_defines.h"
+
+const char libacestream_default_misc_delay_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING);

@@ -65,6 +65,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
               autoStart_in,
               concurrency_in,
               generateSessionMessages_in)
+ , directory_ ()
  , isOpen_ (false)
  , stream_ ()
 {
@@ -103,12 +104,19 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
   int result = -1;
 
+  result = directory_.close ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Dirent_Selector::close(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+
   if (isOpen_)
   {
     result = stream_.close ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
   } // end IF
 }
 
@@ -147,98 +155,49 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    result = directory_.close ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Dirent_Selector::close(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
+
     if (isOpen_)
     {
       result = stream_.close ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
       isOpen_ = false;
     } // end IF
   } // end IF
 
+  if (configuration_in.fileIdentifier.identifierDiscriminator == Common_File_Identifier::DIRECTORY)
+  {
+    result = directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
+                              configuration_in.fileIdentifier.selector,
+                              alphasort);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Dirent_Selector::open(\"%s\"): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
+      return false;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: processing %d file(s) in \"%s\"\n"),
+                inherited::mod_->name (),
+                directory_.length (),
+                ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
+#endif // _DEBUG
+  } // end IF
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename TimerManagerType,
-          typename UserDataType>
-bool
-Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType,
-                            TimerManagerType,
-                            UserDataType>::collect (StatisticContainerType& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::collect"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-
-  // step0: initialize container
-//  data_out.dataMessages = 0;
-//  data_out.droppedMessages = 0;
-//  data_out.bytes = 0.0;
-  data_out.timeStamp = COMMON_TIME_NOW;
-
-  // *TODO*: collect socket statistics information
-  //         (and propagate it downstream ?)
-
-  // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
-    return false;
-  } // end IF
-
-  return true;
-}
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -273,8 +232,6 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   int error = 0;
-  ACE_FILE_Addr file_address;
-  ACE_FILE_Connector file_connector;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
@@ -282,6 +239,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
+  int file_index_i = 0;
+  std::string file_path_string;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -291,34 +250,23 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 //  ACE_ASSERT (session_data_r.lock);
 
-  result = file_address.set (inherited::configuration_->fileName.c_str ());
-  if (result == -1)
+next:
+  file_path_string = inherited::configuration_->fileIdentifier.identifier;
+  if (directory_.length ())
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
-
-    // signal the controller
-    inherited::STATE_MACHINE_T::finished ();
-
-    goto continue_;
+    file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
+    file_path_string += directory_[file_index_i++]->d_name;
   } // end IF
-  result =
-    file_connector.connect (stream_,                 // stream
-                            file_address,            // filename
-                            NULL,                    // timeout (block)
-                            ACE_Addr::sap_any,       // (local) filename: N/A
-                            0,                       // reuse_addr: N/A
-                            (O_RDONLY |
-                             O_BINARY),              // flags --> open
-                            ACE_DEFAULT_FILE_PERMS); // permissions --> open
-  if (result == -1)
+
+  if (!Common_File_Tools::open (file_path_string,
+                                (O_RDONLY |
+                                 O_BINARY), // flags --> open,
+                                stream_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to Common_File_Tools::open(\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
+                ACE_TEXT (file_path_string.c_str ())));
 
     // signal the controller
     inherited::STATE_MACHINE_T::finished ();
@@ -326,15 +274,14 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
     goto continue_;
   } // end IF
   isOpen_ = true;
+#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: opened file \"%s\" (%u byte(s))\n"),
+              ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
               inherited::mod_->name (),
-              ACE_TEXT (inherited::configuration_->fileName.c_str ()),
-              Common_File_Tools::size (inherited::configuration_->fileName)));
+              ACE_TEXT (file_path_string.c_str ()),
+              Common_File_Tools::size (file_path_string)));
+#endif // _DEBUG
 
-  // step1: start processing data...
-//   ACE_DEBUG ((LM_DEBUG,
-//               ACE_TEXT ("entering processing loop...\n")));
   do
   {
     message_block_p = NULL;
@@ -453,11 +400,20 @@ done:
     {
       case 0:
       {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("finished reading file...\n")));
+        message_p->release (); message_p = NULL;
 
-        // clean up
-        message_p->release ();
+        // more ?
+        if (file_index_i &&
+            (file_index_i < directory_.length ()))
+        {
+          result = stream_.close ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+          isOpen_ = false;
+          goto next;
+        } // end IF
 
         finished = true;
         // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -475,8 +431,7 @@ done:
                     inherited::mod_->name (),
                     message_p->size ()));
 
-        // clean up
-        message_p->release ();
+        message_p->release (); message_p = NULL;
 
         finished = true;
         // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -495,8 +450,7 @@ done:
                       ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
 
-          // clean up
-          message_p->release ();
+          message_p->release (); message_p = NULL;
 
           finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -507,6 +461,7 @@ done:
         break;
       }
     } // end SWITCH
+    message_p = NULL;
   } while (true);
 
 continue_:
@@ -518,68 +473,10 @@ continue_:
                   ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
     isOpen_ = false;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: closed file \"%s\"\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
   } // end IF
 
   return result_2;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//bool
-//Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::putStatisticMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//  ACE_ASSERT (inherited::sessionData_);
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-//
-//  // step1: update session state
-//  SessionDataType& session_data_r =
-//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-//  // *TODO*: remove type inferences
-//  session_data_r.currentStatistic = statisticData_in;
-//
-//  // *TODO*: attach stream state information to the session data
-//
-////  // step2: create session data object container
-////  SessionDataContainerType* session_data_p = NULL;
-////  ACE_NEW_NORETURN (session_data_p,
-////                    SessionDataContainerType (inherited::sessionData_,
-////                                              false));
-////  if (!session_data_p)
-////  {
-////    ACE_DEBUG ((LM_CRITICAL,
-////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-////    return false;
-////  } // end IF
-//
-//  // step3: send the statistic data downstream
-////  // *NOTE*: fire-and-forget session_data_p here
-//  // *TODO*: remove type inference
-//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-//                                       *inherited::sessionData_,
-//                                       inherited::configuration_->streamConfiguration->messageAllocator);
-//}
 
 //////////////////////////////////////////
 
@@ -618,7 +515,9 @@ Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_MESSAGE_STEP:
     {
       // *TODO*: start reading next file
-      break;
+      ACE_ASSERT (false);
+      ACE_NOTSUP;
+      ACE_NOTREACHED (break;)
     }
     default:
     {
@@ -784,7 +683,9 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_MESSAGE_STEP:
     {
       // *TODO*: start reading next file
-      break;
+      ACE_ASSERT (false);
+      ACE_NOTSUP;
+      ACE_NOTREACHED (break;)
     }
     default:
     {

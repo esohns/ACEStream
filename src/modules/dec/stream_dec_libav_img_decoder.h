@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_LIBAV_DECODER_T_H
-#define STREAM_DEC_LIBAV_DECODER_T_H
+#ifndef STREAM_DEC_LIBAV_IMG_DECODER_T_H
+#define STREAM_DEC_LIBAV_IMG_DECODER_T_H
 
 #ifdef __cplusplus
 extern "C"
@@ -51,17 +51,11 @@ struct SwsContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_libav_decoder_module_name_string[];
-
-void
-stream_decoder_libav_log_cb (void*,       // avcl
-                             int,         // level
-                             const char*, // format
-                             va_list);    // vl
+extern const char libacestream_default_dec_libav_img_decoder_module_name_string[];
 
 enum AVPixelFormat
-stream_decoder_libav_getformat_cb (struct AVCodecContext*,
-                                   const enum AVPixelFormat*);
+stream_decoder_libav_img_getformat_cb (struct AVCodecContext*,
+                                       const enum AVPixelFormat*);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -75,7 +69,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename MediaType>
-class Stream_Decoder_LibAVDecoder_T
+class Stream_Decoder_LibAV_ImageDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  Common_ILock_T<ACE_SYNCH_USE>,
@@ -115,11 +109,11 @@ class Stream_Decoder_LibAVDecoder_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_LibAVDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_LibAV_ImageDecoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_LibAV_ImageDecoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Decoder_LibAVDecoder_T ();
+  virtual ~Stream_Decoder_LibAV_ImageDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -133,7 +127,7 @@ class Stream_Decoder_LibAVDecoder_T
 
  private:
   // convenient types
-  typedef Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
+  typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                                         TimePolicyType,
                                         ConfigurationType,
                                         ControlMessageType,
@@ -142,30 +136,24 @@ class Stream_Decoder_LibAVDecoder_T
                                         SessionDataContainerType,
                                         MediaType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T (const Stream_Decoder_LibAV_ImageDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T& operator= (const Stream_Decoder_LibAV_ImageDecoder_T&))
 
-  DataMessageType*                              buffer_;
-//  struct AVBuffer        buffer_;
-//  struct AVBufferRef     bufferRef_;
   enum AVCodecID                                codecId_;
-  struct AVCodecContext*                        context_;
-  enum AVPixelFormat                            decodeFormat_; // codec output-
-  struct AVFrame*                               frame_;
+//  struct AVCodecContext*                        context_;
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
-  int                                           profile_; // codec-
-  struct SwsContext*                            transformContext_;
+//  int                                           profile_; // codec-
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
 #else
-  static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
 //  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
 // include template definition
-#include "stream_dec_libav_decoder.inl"
+#include "stream_dec_libav_img_decoder.inl"
 
 #endif

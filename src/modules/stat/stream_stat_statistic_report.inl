@@ -53,7 +53,6 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               SessionDataContainerType>::Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , lock_ ()
  , inboundBytes_ (0.0F)
  , outboundBytes_ (0.0F)
  , inboundMessages_ (0)
@@ -123,7 +122,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     pushStatisticMessages_ = false;
 
     // reset various counters
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
       inboundBytes_ = 0.0F;
       outboundBytes_ = 0.0F;
       inboundMessages_ = 0;
@@ -216,7 +215,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (controlMessage_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     // update counters
     ++controlMessages_;
     ++inboundMessages_;
@@ -255,7 +254,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     inboundBytes_ += message_inout->total_length ();
     byteCounter_ += message_inout->total_length ();
 
@@ -303,7 +302,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     ++sessionMessages_;
     ++inboundMessages_;
 
@@ -491,7 +490,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   bool in_session = false;
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
     // remember this result (support asynchronous API)
     lastBytesPerSecondCount_ = byteCounter_;
     lastDataMessagesPerSecondCount_ = messageCounter_ - sessionMessageCounter_;
@@ -578,7 +577,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // initialize return value(s)
   ACE_OS::memset (&data_out, 0, sizeof (StatisticContainerType));
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, false);
     // *TODO*: remove type inferences
     data_out.bytes = inboundBytes_ + outboundBytes_;
     data_out.dataMessages =
@@ -627,7 +626,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   int result = -1;
   SessionDataType* session_data_p = NULL;
 
-  ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_);
 
   if (inherited::sessionData_)
     session_data_p =

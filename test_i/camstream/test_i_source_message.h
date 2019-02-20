@@ -46,9 +46,9 @@ class Stream_MessageAllocatorHeapBase_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Test_I_DirectShow_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
@@ -58,9 +58,9 @@ class Test_I_Source_DirectShow_Stream_Message
                                                  Test_I_Source_DirectShow_Stream_Message,
                                                  Test_I_Source_DirectShow_SessionMessage>;
 
-  typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Test_I_DirectShow_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t> inherited;
 
  public:
@@ -95,9 +95,9 @@ class Test_I_Source_DirectShow_Stream_Message
 };
 
 class Test_I_Source_MediaFoundation_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Test_I_MediaFoundation_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
@@ -107,9 +107,9 @@ class Test_I_Source_MediaFoundation_Stream_Message
                                                  Test_I_Source_MediaFoundation_Stream_Message,
                                                  Test_I_Source_MediaFoundation_SessionMessage>;
 
-  typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Test_I_MediaFoundation_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t> inherited;
   
  public:
@@ -144,12 +144,18 @@ class Test_I_Source_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Source_V4L_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   struct Test_I_V4L_MessageData,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
 {
+  typedef Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
+                                   struct Test_I_AllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   Test_I_CommandType_t> inherited;
+  typedef Common_ReferenceCounterBase inherited2;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Test_I_AllocatorConfiguration,
@@ -159,7 +165,7 @@ class Test_I_Source_V4L_Stream_Message
 
  public:
   Test_I_Source_V4L_Stream_Message (unsigned int); // size
-  inline virtual ~Test_I_Source_V4L_Stream_Message () {};
+  inline virtual ~Test_I_Source_V4L_Stream_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -168,7 +174,7 @@ class Test_I_Source_V4L_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
@@ -177,12 +183,6 @@ class Test_I_Source_V4L_Stream_Message
   Test_I_Source_V4L_Stream_Message (const Test_I_Source_V4L_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                   enum Stream_MessageType,
-                                   struct Test_I_V4L_MessageData,
-                                   Test_I_CommandType_t> inherited;
-  typedef Common_ReferenceCounterBase inherited2;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L_Stream_Message ())
   // *NOTE*: to be used by message allocators
   Test_I_Source_V4L_Stream_Message (Stream_SessionId_t,

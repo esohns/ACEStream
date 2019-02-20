@@ -86,9 +86,32 @@ const char toplevel_widget_name_string_[] =
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
+int
+dirent_selector_cb (const dirent* dirEntry_in)
+{
+  // *IMPORTANT NOTE*: select all files
+
+  std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
+  std::string::size_type position =
+      filename.find_last_of ('.', std::string::npos);
+  if (position == std::string::npos)
+    return 0;
+  filename.erase (0, position + 1);
+  if (ACE_OS::strncmp (filename.c_str (),
+                       ACE_TEXT_ALWAYS_CHAR ("png"),
+                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("png"))) != 0)
+    return 0;
+
+  return 1;
+}
+
+//////////////////////////////////////////
+
 void
 do_print_usage (const std::string& programName_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::do_print_usage"));
+
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
@@ -103,6 +126,9 @@ do_print_usage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::string image_file_path = path_root;
+  image_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  image_file_path +=
+      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [PATH]   : image path [")
             << image_file_path
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -130,6 +156,8 @@ do_process_arguments (int argc_in,
                       std::string& UIDefinitionFilePath_out,
                       std::string& ImageFilePath_out)
 {
+  STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
+
   std::string path_root =
     Common_File_Tools::getWorkingDirectory ();
 
@@ -142,6 +170,9 @@ do_process_arguments (int argc_in,
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIDefinitionFilePath_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   ImageFilePath_out = path_root;
+  ImageFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  ImageFilePath_out +=
+      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -284,6 +315,8 @@ do_work (int argc_in,
          Common_SignalActions_t& previousSignalActions_inout,
          Stream_ImageScreen_SignalHandler& signalHandler_in)
 {
+  STREAM_TRACE (ACE_TEXT ("::do_work"));
+
   struct Stream_ImageScreen_Configuration configuration;
   struct Stream_ImageScreen_UI_CBData ui_cb_data;
 
@@ -294,8 +327,13 @@ do_work (int argc_in,
 //  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
-  modulehandler_configuration.directory = imageFilePath_in;
+  modulehandler_configuration.fileIdentifier.identifier = imageFilePath_in;
+  modulehandler_configuration.fileIdentifier.identifierDiscriminator =
+      Common_File_Identifier::DIRECTORY;
+  modulehandler_configuration.fileIdentifier.selector =
+      dirent_selector_cb;
   //  modulehandler_configuration.display = displayDevice_in;
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB24;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data
@@ -327,6 +365,9 @@ do_work (int argc_in,
 #if defined (GUI_SUPPORT)
   configuration.streamConfiguration.configuration_.module = &message_handler;
 #endif // GUI_SUPPORT
+
+  configuration.streamConfiguration.configuration_.format.format =
+      AV_PIX_FMT_RGB24;
   configuration.streamConfiguration.configuration_.renderer =
       STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF;
 
@@ -340,13 +381,6 @@ do_work (int argc_in,
 //  stream_configuration_iterator =
 //    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (stream_configuration_iterator != configuration.streamConfiguration.end ());
-
-  if (!stream.initialize (configuration.streamConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, returning\n")));
-    return;
-  } // end IF
 
   // initialize UI
   Common_UI_GTK_Configuration_t gtk_configuration;
@@ -393,8 +427,16 @@ do_work (int argc_in,
     return;
   } // end IF
 
-  // start UI
+  // initialize timer manager
+  Common_Timer_Manager_t* timer_manager_p =
+      COMMON_TIMERMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (timer_manager_p);
+  timer_manager_p->initialize (configuration.timerConfiguration);
   ACE_thread_t thread_id = 0;
+  timer_manager_p->start (thread_id);
+  ACE_UNUSED_ARG (thread_id);
+
+  // start UI
   gtk_manager_p->start (thread_id);
   ACE_UNUSED_ARG (thread_id);
   ACE_Time_Value timeout (0,
@@ -408,9 +450,12 @@ do_work (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
+    timer_manager_p->stop ();
     return;
   } // end IF
   gtk_manager_p->wait ();
+
+  timer_manager_p->stop ();
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
@@ -466,6 +511,9 @@ ACE_TMAIN (int argc_in,
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   std::string image_file_path = path_root;
+  image_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  image_file_path +=
+      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,

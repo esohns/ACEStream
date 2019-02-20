@@ -68,12 +68,9 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
-  inline Test_U_RIFFDecoder_ModuleHandlerConfiguration ()
+  Test_U_RIFFDecoder_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , streamConfiguration (NULL)
-  {};
-
-  Test_U_RIFFDecoder_StreamConfiguration_t* streamConfiguration;
+  {}
 };
 
 struct Test_U_RIFFDecoder_SessionData

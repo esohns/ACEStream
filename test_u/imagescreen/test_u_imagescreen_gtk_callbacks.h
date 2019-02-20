@@ -44,7 +44,7 @@ G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
-G_MODULE_EXPORT gboolean drawingarea_expose_cb (GtkWidget*, GdkEvent*, gpointer);
+G_MODULE_EXPORT gboolean drawingarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_current_folder_changed_cb (GtkFileChooser*, gpointer);
 //G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);

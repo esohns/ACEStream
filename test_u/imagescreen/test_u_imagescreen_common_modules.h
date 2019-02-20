@@ -24,33 +24,26 @@
 #include "ace/config-lite.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-#include "common_timer_manager_common.h"
+//#include "common_time_common.h"
+//#include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_dec_libav_converter.h"
+//#include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
-
-#include "stream_dev_cam_source_v4l.h"
-#include "stream_dec_avi_encoder.h"
 
 #include "stream_file_source.h"
 
 #include "stream_misc_defines.h"
-#include "stream_misc_distributor.h"
+#include "stream_misc_delay.h"
 #include "stream_misc_messagehandler.h"
 
-#include "stream_stat_statistic_report.h"
+//#include "stream_stat_statistic_report.h"
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_gtk_cairo.h"
-
-#include "stream_vis_target_direct3d.h"
-#include "stream_vis_target_directshow.h"
-#include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_libav_resize.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -101,28 +94,36 @@ typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Stream_ImageScreen_SessionData_t,
                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_LibAVResize;
 
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_ImageScreen_Message_t,
-                                                      Stream_ImageScreen_SessionMessage_t,
-                                                      Stream_CommandType_t,
-                                                      struct Stream_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Stream_ImageScreen_SessionData,
-                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_ReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_ImageScreen_Message_t,
-                                                      Stream_ImageScreen_SessionMessage_t,
-                                                      Stream_CommandType_t,
-                                                      struct Stream_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Stream_ImageScreen_SessionData,
-                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_WriterTask_t;
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Stream_ImageScreen_Message_t,
+//                                                      Stream_ImageScreen_SessionMessage_t,
+//                                                      Stream_CommandType_t,
+//                                                      struct Stream_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Stream_ImageScreen_SessionData,
+//                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_ReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Stream_ImageScreen_Message_t,
+//                                                      Stream_ImageScreen_SessionMessage_t,
+//                                                      Stream_CommandType_t,
+//                                                      struct Stream_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Stream_ImageScreen_SessionData,
+//                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_WriterTask_t;
+
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Stream_ImageScreen_Message_t,
+                              Stream_ImageScreen_SessionMessage_t,
+                              Stream_UserData> Stream_ImageScreen_Delay;
 
 #if defined (GTK_USE)
 //typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
@@ -186,14 +187,21 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_LibAVResize);                      // writer type
 
-DATASTREAM_MODULE_DUPLEX (Stream_ImageScreen_SessionData,                // session data type
-                          enum Stream_SessionMessageType,                   // session event type
-                          struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
-                          libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                 // stream notification interface type
-                          Stream_ImageScreen_Statistic_ReaderTask_t,            // reader type
-                          Stream_ImageScreen_Statistic_WriterTask_t,            // writer type
-                          Stream_ImageScreen_StatisticReport);                  // name
+//DATASTREAM_MODULE_DUPLEX (Stream_ImageScreen_SessionData,                // session data type
+//                          enum Stream_SessionMessageType,                   // session event type
+//                          struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+//                          libacestream_default_stat_report_module_name_string,
+//                          Stream_INotify_t,                                 // stream notification interface type
+//                          Stream_ImageScreen_Statistic_ReaderTask_t,            // reader type
+//                          Stream_ImageScreen_Statistic_WriterTask_t,            // writer type
+//                          Stream_ImageScreen_StatisticReport);                  // name
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_ImageScreen_Delay);                        // writer type
 
 #if defined (GTK_USE)
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                       // session data type

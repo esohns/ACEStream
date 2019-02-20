@@ -213,6 +213,7 @@ struct Stream_Configuration
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , module (NULL)
+   , moduleBranch ()
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , resetSessionData (true)
@@ -231,6 +232,7 @@ struct Stream_Configuration
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*              messageAllocator;
   Stream_Module_t*                module; // final-
+  std::string                     moduleBranch; // final- {"": main branch}
   ACE_Notification_Strategy*      notificationStrategy;
   bool                            printFinalReport;
   bool                            resetSessionData;
