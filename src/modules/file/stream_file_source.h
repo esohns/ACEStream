@@ -103,7 +103,7 @@ class Stream_Module_FileReaderH_T
   Stream_Module_FileReaderH_T (ISTREAM_T*, // stream handle
 #else
   Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T*,                                           // stream handle
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -126,7 +126,7 @@ class Stream_Module_FileReaderH_T
                                     StatisticContainerType,
                                     TimerManagerType,
                                     UserDataType>::initialize;
-#endif
+#endif // __GNUG__ || _MSC_VER
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -139,7 +139,6 @@ class Stream_Module_FileReaderH_T
 
   // helper methods
   virtual int svc (void);
-  //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   ACE_Dirent_Selector directory_;
   bool                isOpen_;

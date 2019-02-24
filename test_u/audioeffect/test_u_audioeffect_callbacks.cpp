@@ -5214,8 +5214,6 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
     ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       static_cast<unsigned int> (value_i);
-    (*modulehandler_configuration_iterator).second.second.bufferSize =
-        static_cast<unsigned int> (value_i);
 #endif
   } // end IF
   else

@@ -74,7 +74,7 @@ struct Stream_AllocatorConfiguration
   Stream_AllocatorConfiguration ()
    : Common_AllocatorConfiguration ()
   {
-    defaultBufferSize = STREAM_MESSAGE_DATA_BUFFER_SIZE;
+    defaultBufferSize = STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE;
   }
 };
 
@@ -84,7 +84,6 @@ struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
-   , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
 #if defined (_DEBUG)
@@ -106,6 +105,7 @@ struct Stream_ModuleHandlerConfiguration
    , printFinalReport (false)
    , pushStatisticMessages (true)
    , reportingInterval (0)
+   , slurpFiles (false)
    , socketHandle (ACE_INVALID_HANDLE)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
@@ -113,7 +113,6 @@ struct Stream_ModuleHandlerConfiguration
   {}
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
-  unsigned int                          bufferSize;
   enum Stream_HeadModuleConcurrency     concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
@@ -144,6 +143,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  printFinalReport;                     // statistic module(s)
   bool                                  pushStatisticMessages;                // source/statistic/... module(s)
   unsigned int                          reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
+  bool                                  slurpFiles;                           // file source module(s)
   ACE_HANDLE                            socketHandle;                         // network module(s)
   ACE_Time_Value                        statisticCollectionInterval;          // source/statistic/... module(s)
   ACE_Time_Value                        statisticReportingInterval;           // [ACE_Time_Value::zero: off]

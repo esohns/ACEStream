@@ -53,15 +53,7 @@ class Stream_IAllocator;
 
 extern const char libacestream_default_dec_libav_decoder_module_name_string[];
 
-void
-stream_decoder_libav_log_cb (void*,       // avcl
-                             int,         // level
-                             const char*, // format
-                             va_list);    // vl
-
-enum AVPixelFormat
-stream_decoder_libav_getformat_cb (struct AVCodecContext*,
-                                   const enum AVPixelFormat*);
+enum AVPixelFormat stream_decoder_libav_getformat_cb (struct AVCodecContext*, const enum AVPixelFormat*);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -146,16 +138,19 @@ class Stream_Decoder_LibAVDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
-  DataMessageType*                              buffer_;
+  DataMessageType*       buffer_;
 //  struct AVBuffer        buffer_;
 //  struct AVBufferRef     bufferRef_;
-  enum AVCodecID                                codecId_;
-  struct AVCodecContext*                        context_;
-  enum AVPixelFormat                            decodeFormat_; // codec output-
-  struct AVFrame*                               frame_;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
-  int                                           profile_; // codec-
-  struct SwsContext*                            transformContext_;
+  enum AVCodecID         codecId_;
+  struct AVCodecContext* context_;
+  enum AVPixelFormat     format_; // codec output-
+  unsigned int           formatHeight_; // codec output-
+  struct AVFrame*        frame_;
+  unsigned int           frameSize_; // codec output-
+  enum AVPixelFormat     outputFormat_; // output-
+  unsigned int           outputFrameSize_; // output-
+  int                    profile_; // codec-
+  struct SwsContext*     transformContext_;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static char            paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];

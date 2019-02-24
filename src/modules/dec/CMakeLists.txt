@@ -1,9 +1,22 @@
-﻿if (UNIX)
- pkg_check_modules (PKG_ALSA REQUIRED alsa)
- pkg_check_modules (PKG_SOX REQUIRED sox)
+﻿option (FFMPEG_SUPPORT "support ffmpeg" ON)
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" ON)
+option (OPENCV_SUPPORT "support OpenCV" OFF)
+option (SOX_SUPPORT "support SoX" OFF)
 
- pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
- pkg_check_modules (PKG_OPENCV REQUIRED opencv)
+if (UNIX)
+ pkg_check_modules (PKG_ALSA REQUIRED alsa)
+ if (FFMPEG_SUPPORT)
+  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
+ endif (FFMPEG_SUPPORT)
+ if (IMAGEMAGICK_SUPPORT)
+  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
+ endif (IMAGEMAGICK_SUPPORT)
+ if (OPENCV_SUPPORT)
+  pkg_check_modules (PKG_OPENCV REQUIRED opencv)
+ endif (OPENCV_SUPPORT)
+ if (SOX_SUPPORT)
+  pkg_check_modules (PKG_SOX REQUIRED sox)
+ endif (SOX_SUPPORT)
 endif (UNIX)
 
 if (UNIX)
@@ -35,6 +48,8 @@ if (UNIX)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
 
@@ -183,6 +198,9 @@ set (source_files
      stream_dec_h264_nal_decoder.cpp
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
+     stream_dec_imagemagick_decoder.cpp
+     stream_dec_imagemagick_decoder.h
+     stream_dec_imagemagick_decoder.inl
      stream_dec_libav_converter.cpp
      stream_dec_libav_converter.h
      stream_dec_libav_converter.inl
@@ -257,6 +275,7 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_SOX_LIBRARIES})
 # target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_AVCODEC_LIBRARIES})
  target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_FFMPEG_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Decoder ${ImageMagick_LIBRARIES})
 
 # target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/libavcodec.a)
 # target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
@@ -318,6 +337,8 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
+     stream_dec_imagemagick_decoder.h
+     stream_dec_imagemagick_decoder.inl
      stream_dec_libav_converter.h
      stream_dec_libav_converter.inl
      stream_dec_libav_decoder.h

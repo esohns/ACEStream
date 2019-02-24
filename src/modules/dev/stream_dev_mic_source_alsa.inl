@@ -493,7 +493,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
       asynchCBData_.statistic = &session_data_r.statistic;
       //  asynchCBData_.areas = areas;
-      asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
+      asynchCBData_.bufferSize =
+          inherited::configuration_->allocatorConfiguration->defaultBufferSize;
       asynchCBData_.channels = media_type_r.channels;
       asynchCBData_.format = media_type_r.format;
       asynchCBData_.queue = inherited::msg_queue ();

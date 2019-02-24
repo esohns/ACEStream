@@ -1,14 +1,23 @@
-﻿include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
+
+
+option (FFMPEG_SUPPORT "support ffmpeg" ON)
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" ON)
+
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
 if (GTK_SUPPORT)
  include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetGTKVersion.cmake)
 endif (GTK_SUPPORT)
 
 if (UNIX)
- pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  pkg_check_modules (PKG_SOX REQUIRED sox)
-elseif (WIN32)
+ if (FFMPEG_SUPPORT)
+  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
+ endif (FFMPEG_SUPPORT)
 endif ()
+if (IMAGEMAGICK_SUPPORT)
+ find_package (ImageMagick COMPONENTS MagickCore MagickWand)
+endif (IMAGEMAGICK_SUPPORT)
 
 if (UNIX)
 # add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -48,9 +57,11 @@ endif (GTK_SUPPORT)
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
+                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -139,9 +150,6 @@ set (source_files
      stream_vis_common.h
      stream_vis_defines.h
 #     stream_vis_exports.h
-     stream_vis_libav_resize.cpp
-     stream_vis_libav_resize.h
-     stream_vis_libav_resize.inl
      stream_vis_tools.cpp
      stream_vis_tools.h)
 if (GTK_SUPPORT)
@@ -157,6 +165,20 @@ if (GTK_SUPPORT)
       stream_vis_gtk_pixbuf.h
       stream_vis_gtk_pixbuf.inl)
 endif (GTK_SUPPORT)
+if (FFMPEG_SUPPORT)
+ set (source_files
+      ${source_files}
+     stream_vis_libav_resize.cpp
+     stream_vis_libav_resize.h
+     stream_vis_libav_resize.inl)
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ set (source_files
+      ${source_files}
+     stream_vis_imagemagick_resize.cpp
+     stream_vis_imagemagick_resize.h
+     stream_vis_imagemagick_resize.inl)
+endif (IMAGEMAGICK_SUPPORT)
 
 if (UNIX)
  set (source_files
@@ -219,12 +241,15 @@ if (WIN32)
 # target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
 # target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
-
- target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 endif (WIN32)
 if (GTK_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization ${GTK_LIBRARIES})
 endif (GTK_SUPPORT)
+target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
+target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
+target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
+
+target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 
 target_link_libraries (${PROJECT_NAME}_Visualization Common)
 
@@ -251,6 +276,10 @@ if (WIN32)
           stream_vis_gtk_cairo.inl
           stream_vis_gtk_cairo_spectrum_analyzer.h
           stream_vis_gtk_cairo_spectrum_analyzer.inl
+          stream_vis_gtk_pixbuf.h
+          stream_vis_gtk_pixbuf.inl
+          stream_vis_imagemagick_resize.h
+          stream_vis_imagemagick_resize.inl
           stream_vis_libav_resize.h
           stream_vis_libav_resize.inl
           stream_vis_target_direct3d.h
@@ -259,8 +288,6 @@ if (WIN32)
           stream_vis_target_directshow.inl
           stream_vis_target_mediafoundation.h
           stream_vis_target_mediafoundation.inl
-          stream_vis_gtk_pixbuf.h
-          stream_vis_gtk_pixbuf.inl
           stream_vis_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
@@ -275,6 +302,8 @@ else ()
           stream_vis_gtk_cairo_spectrum_analyzer.inl
           stream_vis_gtk_pixbuf.h
           stream_vis_gtk_pixbuf.inl
+          stream_vis_imagemagick_resize.h
+          stream_vis_imagemagick_resize.inl
           stream_vis_libav_resize.h
           stream_vis_libav_resize.inl
           stream_vis_tools.h
@@ -286,3 +315,4 @@ install (TARGETS ${PROJECT_NAME}_Visualization
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
+

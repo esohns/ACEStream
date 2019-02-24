@@ -23,7 +23,8 @@
 
 #include "ace/config-lite.h"
 
-#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAVResize"
+#define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagick_Resize"
+#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAV_Resize"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING                           "Direct2D"
 #define STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING                           "Direct3D"
@@ -33,9 +34,9 @@
 #else
 #define STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING                         "X11"
 #endif // ACE_WIN32 || ACE_WIN64
-#define STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING                          "GTKCairo"
-#define STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING                         "GTKPixbuf"
-#define STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING              "GTKSpectrumAnalyzer"
+#define STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING                          "GTK_Cairo"
+#define STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING                         "GTK_Pixbuf"
+#define STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING              "GTK_SpectrumAnalyzer"
 
 #define STREAM_VIS_NULL_DEFAULT_NAME_STRING                               "Null"
 

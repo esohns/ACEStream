@@ -124,6 +124,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      inherited::msg_queue_->activate ();
+
       // schedule the second-granularity timer
       ACE_Time_Value one_second (1, 0); // one-second interval
       resetTimeoutHandlerId_ =
@@ -168,6 +170,8 @@ error:
         resetTimeoutHandlerId_ = -1;
       } // end IF
 
+      inherited::msg_queue_->deactivate ();
+
       break;
     }
     default:
@@ -201,7 +205,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
-    if (error != ETIMEDOUT)
+    if (error != EWOULDBLOCK)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue::dequeue_head(): \"%m\", returning\n"),
                   inherited::mod_->name ()));

@@ -22,12 +22,12 @@
 #define STREAM_DEFINES_H
 
 // message
-#define STREAM_MESSAGE_DATA_BUFFER_SIZE                  1024 // 1 kB
 // *IMPORTANT NOTE*: this is not what it seems; the value is currently used ONLY
 //                   to distinguish between message types (see e.g.
 //                   stream_cachedmessageallocator.cpp:172)
 // *TODO*: find an alternative method and implement proper message priorization
 #define STREAM_MESSAGE_CONTROL_PRIORITY                  100
+#define STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE          16384 // 16 kB
 
 // queue
 // *IMPORTANT NOTE*: any of these can seriously affect application performance

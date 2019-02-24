@@ -215,7 +215,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                                                             : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME)
+        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME)
                                                             : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
@@ -262,7 +262,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
         file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
+          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
@@ -670,7 +670,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
                                                             : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME)
+        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME)
                                                             : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
@@ -717,7 +717,7 @@ Stream_Module_FileWriter_2<TimePolicyType,
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
         file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
+          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
@@ -1202,7 +1202,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                                                                 : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (!path_name_p ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME)
+        (session_data_r.targetFileName.empty () ? (!path_name_p ? ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME)
                                                                 : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
@@ -1247,7 +1247,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       } // end IF
       if (Common_File_Tools::isDirectory (file_name))
         file_name =
-          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
+          ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
       else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));

@@ -1,4 +1,10 @@
-﻿set (LLVM_COMPILER_ID_STRING "Clang")
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" ON)
+
+if (IMAGEMAGICK_SUPPORT)
+ find_package (ImageMagick COMPONENTS MagickCore MagickWand)
+endif (IMAGEMAGICK_SUPPORT)
+
+set (LLVM_COMPILER_ID_STRING "Clang")
 string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
 string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
 if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
@@ -9,8 +15,10 @@ endif ()
 add_library (${PROJECT_NAME}_File STATIC "")
 
 if (UNIX)
- target_include_directories (${PROJECT_NAME}_File PUBLIC
-                             $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+ if (IMAGEMAGICK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_File PUBLIC
+                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+ endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
@@ -49,13 +57,20 @@ target_include_directories (${PROJECT_NAME}_File PUBLIC
 ############## next target ################
 set (source_files
      stream_file_defines.h
-     stream_file_exports.h
+#     stream_file_exports.h
      stream_file_source.cpp
      stream_file_source.h
      stream_file_source.inl
      stream_file_sink.cpp
      stream_file_sink.h
      stream_file_sink.inl)
+if (IMAGEMAGICK_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_file_imagemagick_source.cpp
+      stream_file_imagemagick_source.h
+      stream_file_imagemagick_source.inl)
+endif (IMAGEMAGICK_SUPPORT)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -83,10 +98,14 @@ if (WIN32)
 endif ()
 add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})
 
-if (WIN32)
- target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
-endif ()
+if (IMAGEMAGICK_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_File ${ImageMagick_LIBRARIES})
+endif (IMAGEMAGICK_SUPPORT)
+
+target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
+
 target_link_libraries (${PROJECT_NAME}_File Common)
+
 target_link_libraries (${PROJECT_NAME}_File ${PROJECT_NAME})
 
 set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
@@ -103,15 +122,23 @@ export (TARGETS ${PROJECT_NAME}_File
 ############### install files ################
 install (FILES
          stream_file_defines.h
-         stream_file_exports.h
+#         stream_file_exports.h
          stream_file_source.h
          stream_file_source.inl
          stream_file_sink.h
          stream_file_sink.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
+if (IMAGEMAGICK_SUPPORT)
+ install (FILES
+          stream_file_imagemagick_source.h
+          stream_file_imagemagick_source.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif (IMAGEMAGICK_SUPPORT)
 install (TARGETS ${PROJECT_NAME}_File
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
+

@@ -56,6 +56,85 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
+          typename MediaType>
+class Stream_Module_Splitter1_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                    ,typename SessionMessageType::DATA_T::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
+
+ public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Splitter1_T (ISTREAM_T*);                     // stream handle
+#else
+  Stream_Module_Splitter1_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  virtual ~Stream_Module_Splitter1_T ();
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+
+ protected:
+  ACE_Message_Block* buffer_;
+  unsigned int       PDUSize_;
+
+ private:
+  // convenient types
+  typedef Stream_IDataMessage_T<typename DataMessageType::MESSAGE_T,
+                                typename DataMessageType::COMMAND_T> IDATA_MESSAGE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter1_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter1_T (const Stream_Module_Splitter1_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter1_T& operator= (const Stream_Module_Splitter1_T&))
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
           ////////////////////////////////
           typename MediaType>
@@ -114,17 +193,16 @@ class Stream_Module_Splitter_T
 
  protected:
   ACE_Message_Block* buffer_;
-  bool               defragment_;
   unsigned int       PDUSize_;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
-
   // convenient types
   typedef Stream_IDataMessage_T<typename DataMessageType::MESSAGE_T,
                                 typename DataMessageType::COMMAND_T> IDATA_MESSAGE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
 };
 
 //////////////////////////////////////////

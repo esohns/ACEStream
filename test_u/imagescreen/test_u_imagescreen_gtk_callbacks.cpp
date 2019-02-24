@@ -45,6 +45,8 @@
 #include "test_u_imagescreen_defines.h"
 #include "test_u_imagescreen_stream.h"
 
+static bool untoggling_stream_b = false;
+
 void
 load_entries (GtkListStore* listStore_in)
 {
@@ -163,6 +165,8 @@ idle_initialize_UI_cb (gpointer userData_in)
       allocation_s.width;
   (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
       allocation_s.height;
+  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
+      (*stream_configuration_iterator).second.second.outputFormat.resolution;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("initial window size: %ux%u\n"),
               allocation_s.width, allocation_s.height));
@@ -519,10 +523,27 @@ idle_session_end_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
 
-//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  ACE_ASSERT (gtk_toggle_button_get_active (toggle_button_p));
+
+  untoggling_stream_b = true;
+  gtk_toggle_button_set_active (toggle_button_p,
+                                FALSE);
+
+  ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
+  ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
 
   return G_SOURCE_REMOVE;
 }
@@ -549,6 +570,12 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),
                         (is_active_b ? GTK_STOCK_MEDIA_STOP : GTK_STOCK_MEDIA_PLAY));
+
+  if (untoggling_stream_b)
+  {
+    untoggling_stream_b = false;
+    return;
+  } // end IF
 
   // toggle ?
   if (!is_active_b)
@@ -901,10 +928,12 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (window_in),
                              &allocation_s);
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
-      allocation_s.width;
-  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-      allocation_s.height;
+//  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+//      allocation_s.width;
+//  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+//      allocation_s.height;
+  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
+      (*stream_configuration_iterator).second.second.outputFormat.resolution;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("resized window to %ux%u\n"),
               allocation_s.width, allocation_s.height));

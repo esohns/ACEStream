@@ -24,6 +24,7 @@
 #include <deque>
 
 extern "C" {
+#include "libavcodec/avcodec.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
 } // extern "C"
@@ -33,13 +34,15 @@ extern "C" {
 struct Stream_MediaFramework_FFMPEG_MediaType
 {
   Stream_MediaFramework_FFMPEG_MediaType ()
-   : format (AV_PIX_FMT_NONE)
+   : codec (AV_CODEC_ID_NONE)
+   , format (AV_PIX_FMT_NONE)
    , frameRate ()
    , resolution ()
   {
     frameRate.den = 1;
   }
 
+  enum AVCodecID            codec;
   enum AVPixelFormat        format;
   struct AVRational         frameRate;
   Common_Image_Resolution_t resolution;

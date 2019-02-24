@@ -20,10 +20,9 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_file_sink.h"
+#include "stream_dec_imagemagick_decoder.h"
 
-#include "stream_file_defines.h"
+#include "stream_dec_defines.h"
 
-//STREAM_FILE_Export const char libacestream_default_file_sink_module_name_string[] =
-const char libacestream_default_file_sink_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_imagemagick_decoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING);

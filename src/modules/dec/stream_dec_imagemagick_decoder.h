@@ -18,16 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_LIBAV_IMG_DECODER_T_H
-#define STREAM_DEC_LIBAV_IMG_DECODER_T_H
+#ifndef STREAM_DEC_IMAGEMAGICK_DECODER_T_H
+#define STREAM_DEC_IMAGEMAGICK_DECODER_T_H
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
+#include "wand/magick_wand.h"
 
 #include "ace/Global_Macros.h"
 
@@ -51,11 +45,7 @@ struct SwsContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_libav_img_decoder_module_name_string[];
-
-enum AVPixelFormat
-stream_decoder_libav_img_getformat_cb (struct AVCodecContext*,
-                                       const enum AVPixelFormat*);
+extern const char libacestream_default_dec_imagemagick_decoder_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -66,10 +56,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType,
-          ////////////////////////////////
           typename MediaType>
-class Stream_Decoder_LibAV_ImageDecoder_T
+class Stream_Decoder_ImageMagick_Decoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  Common_ILock_T<ACE_SYNCH_USE>,
@@ -85,7 +73,7 @@ class Stream_Decoder_LibAV_ImageDecoder_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     >
 #else
-                                                     ,typename SessionDataContainerType::DATA_T>
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
 #endif // ACE_WIN32 || ACE_WIN64
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -103,17 +91,17 @@ class Stream_Decoder_LibAV_ImageDecoder_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     > inherited2;
 #else
-                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
 #endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_LibAV_ImageDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_ImageMagick_Decoder_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_LibAV_ImageDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_ImageMagick_Decoder_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Decoder_LibAV_ImageDecoder_T () {}
+  virtual ~Stream_Decoder_ImageMagick_Decoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -125,35 +113,26 @@ class Stream_Decoder_LibAV_ImageDecoder_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+ protected:
+  MagickWand*                                   context_;
+  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
+
  private:
   // convenient types
-  typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
-                                        TimePolicyType,
-                                        ConfigurationType,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        SessionDataContainerType,
-                                        MediaType> OWN_TYPE_T;
+  typedef Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               MediaType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T (const Stream_Decoder_LibAV_ImageDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAV_ImageDecoder_T& operator= (const Stream_Decoder_LibAV_ImageDecoder_T&))
-
-  enum AVCodecID                                codecId_;
-//  struct AVCodecContext*                        context_;
-  struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
-//  int                                           profile_; // codec-
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-#else
-  static char                                   paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//  static char            paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-#endif // ACE_WIN32 || ACE_WIN64
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ImageMagick_Decoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ImageMagick_Decoder_T (const Stream_Decoder_ImageMagick_Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ImageMagick_Decoder_T& operator= (const Stream_Decoder_ImageMagick_Decoder_T&))
 };
 
 // include template definition
-#include "stream_dec_libav_img_decoder.inl"
+#include "stream_dec_imagemagick_decoder.inl"
 
 #endif

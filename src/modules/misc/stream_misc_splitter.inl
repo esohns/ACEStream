@@ -30,7 +30,226 @@ extern "C"
 
 #include "ace/Log_Msg.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
+
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Stream_Module_Splitter1_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                         MediaType>::Stream_Module_Splitter1_T (ISTREAM_T* stream_in)
+#else
+                         MediaType>::Stream_Module_Splitter1_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in)
+ , inherited2 ()
+ , buffer_ (NULL)
+ , PDUSize_ (STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter1_T::Stream_Module_Splitter1_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Stream_Module_Splitter1_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         MediaType>::~Stream_Module_Splitter1_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter1_T::~Stream_Module_Splitter1_T"));
+
+  if (buffer_)
+    buffer_->release ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Stream_Module_Splitter1_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                        bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter1_T::handleDataMessage"));
+
+  passMessageDownstream_out = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  ACE_Message_Block* message_block_p = NULL;
+  if (unlikely (!buffer_))
+  {
+    buffer_ = message_inout;
+    message_block_p = buffer_;
+  } // end IF
+  else
+  {
+    message_block_p = buffer_;
+    while (message_block_p->cont ())
+      message_block_p = message_block_p->cont ();
+    message_block_p->cont (message_inout);
+    message_block_p = message_inout;
+  } // end ELSE
+  ACE_ASSERT (message_block_p);
+
+continue_:
+  // message_block_p points at the trailing fragment
+
+  unsigned int total_length = buffer_->total_length ();
+  // *TODO*: remove type inference
+  if (total_length < PDUSize_)
+    return; // done
+
+  // received enough data --> (split and) forward
+  ACE_Message_Block* message_block_2 = NULL;
+  unsigned int remainder = (total_length - PDUSize_);
+  if (remainder)
+  {
+    message_block_2 = message_block_p->duplicate ();
+    if (unlikely (!message_block_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+    message_block_2->rd_ptr (message_block_p->length () - remainder);
+    ACE_ASSERT (message_block_2->length () == remainder);
+
+    message_block_p->reset ();
+    message_block_p->wr_ptr (message_block_2->rd_ptr ());
+    message_block_p = buffer_;
+
+    buffer_ = message_block_2;
+  } // end IF
+  else
+  {
+    message_block_p = buffer_;
+    buffer_ = NULL;
+  } // end IF
+  total_length = message_block_p->total_length ();
+  ACE_ASSERT (total_length == PDUSize_);
+
+  if (inherited::configuration_->crunch)
+  {
+    IDATA_MESSAGE_T* idata_message_p =
+      dynamic_cast<IDATA_MESSAGE_T*> (message_block_p);
+    if (unlikely (!idata_message_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_IDataMessage_T*>(0x%@), returning\n"),
+                  inherited::mod_->name (),
+                  message_block_p));
+      message_block_p->release (); message_block_p = NULL;
+      return;
+    } // end IF
+    try {
+      idata_message_p->defragment ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
+                  inherited::mod_->name ()));
+      message_block_p->release (); message_block_p = NULL;
+      return;
+    } // end IF
+  } // end IF
+  ACE_ASSERT (message_block_p->length () == PDUSize_);
+
+  int result_2 = inherited::put_next (message_block_p, NULL);
+  if (unlikely (result_2 == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+    return;
+  } // end IF
+
+  // *NOTE*: more than one frame may have been received
+  //         --> split again ?
+  if (buffer_)
+  {
+    message_block_p = buffer_;
+    goto continue_;
+  } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Stream_Module_Splitter1_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter1_T::initialize"));
+
+  if (inherited::isInitialized_)
+  {
+    if (buffer_)
+    {
+      buffer_->release (); buffer_ = NULL;
+    } // end IF
+  } // end IF
+
+  // *TODO*: remove type inferences
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            media_type_s);
+  PDUSize_ = media_type_s.lSampleSize;
+
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  inherited2::getMediaType (configuration_in.outputFormat,
+                            media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -55,8 +274,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , buffer_ (NULL)
- , defragment_ (false)
- , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+ , PDUSize_ (STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
 
@@ -165,7 +383,7 @@ continue_:
   total_length = message_block_p->total_length ();
   ACE_ASSERT (total_length == PDUSize_);
 
-  if (defragment_)
+  if (inherited::configuration_->crunch)
   {
     IDATA_MESSAGE_T* idata_message_p =
       dynamic_cast<IDATA_MESSAGE_T*> (message_block_p);
@@ -236,11 +454,9 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
     {
       buffer_->release (); buffer_ = NULL;
     } // end IF
-    defragment_ = false;
   } // end IF
 
   // *TODO*: remove type inferences
-  defragment_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   inherited2::getMediaType (configuration_in.outputFormat,
@@ -306,7 +522,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
               generateSessionMessages_in)
  , inherited2 ()
  , buffer_ (NULL)
- , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+ , PDUSize_ (STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::Stream_Module_SplitterH_T"));
 

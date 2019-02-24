@@ -241,6 +241,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   bool stop_processing = false;
   int file_index_i = 0;
   std::string file_path_string;
+  unsigned int file_size_i = 0;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -257,6 +258,7 @@ next:
     file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
     file_path_string += directory_[file_index_i++]->d_name;
   } // end IF
+  file_size_i = Common_File_Tools::size (file_path_string);
 
   if (!Common_File_Tools::open (file_path_string,
                                 (O_RDONLY |
@@ -378,7 +380,8 @@ done:
 
     // *TODO*: remove type inference
     message_p =
-        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->slurpFiles ? file_size_i
+                                                                          : inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,

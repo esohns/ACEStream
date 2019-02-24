@@ -21,9 +21,10 @@
 #ifndef STREAM_FILE_DEFINES_H
 #define STREAM_FILE_DEFINES_H
 
-#define MODULE_FILE_SOURCE_DEFAULT_NAME_STRING     "FileSource"
-#define MODULE_FILE_SINK_DEFAULT_NAME_STRING       "FileWriter"
+#define STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING "ImageMagick_Source"
+#define STREAM_FILE_SOURCE_DEFAULT_NAME_STRING             "FileSource"
+#define STREAM_FILE_SINK_DEFAULT_NAME_STRING               "FileSink"
 
-#define STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME "output.tmp"
+#define STREAM_FILE_DEFAULT_OUTPUT_FILENAME                "output.tmp"
 
 #endif

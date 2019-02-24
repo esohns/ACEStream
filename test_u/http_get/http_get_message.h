@@ -77,11 +77,16 @@ class HTTPGet_MessageDataContainer
 //////////////////////////////////////////
 
 class HTTPGet_Message
- : public Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
+ : public Stream_DataMessageBase_2<HTTPGet_MessageDataContainer,
+                                   struct Common_FlexParserAllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   HTTPGet_MessageDataContainer,
                                    HTTP_Method_t>
 {
+  typedef Stream_DataMessageBase_2<HTTPGet_MessageDataContainer,
+                                   struct Common_FlexParserAllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   HTTP_Method_t> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_FlexParserAllocatorConfiguration,
@@ -114,11 +119,6 @@ class HTTPGet_Message
   HTTPGet_Message (const HTTPGet_Message&);
 
  private:
-  typedef Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
-                                   enum Stream_MessageType,
-                                   HTTPGet_MessageDataContainer,
-                                   HTTP_Method_t> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Message ())
   HTTPGet_Message (Stream_SessionId_t,
                    ACE_Allocator*);    // message allocator

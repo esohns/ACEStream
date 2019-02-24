@@ -27,17 +27,6 @@
 const char libacestream_default_dec_libav_decoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING);
 
-void
-stream_decoder_libav_log_cb (void* avcl_in,
-                             int level_in,
-                             const char* format_in,
-                             va_list vl_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::stream_decoder_libav_log_cb"));
-
-  ACE_ASSERT (false); // *TODO*
-}
-
 enum AVPixelFormat
 stream_decoder_libav_getformat_cb (struct AVCodecContext* context_in,
                                    const enum AVPixelFormat* formats_in)

@@ -327,6 +327,7 @@ do_work (int argc_in,
 //  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
+  modulehandler_configuration.codecId = AV_CODEC_ID_PNG;
   modulehandler_configuration.fileIdentifier.identifier = imageFilePath_in;
   modulehandler_configuration.fileIdentifier.identifierDiscriminator =
       Common_File_Identifier::DIRECTORY;
@@ -334,6 +335,7 @@ do_work (int argc_in,
       dirent_selector_cb;
   //  modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.slurpFiles = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data

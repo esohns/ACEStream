@@ -68,11 +68,16 @@ class Test_I_Stream_MessageData
 //////////////////////////////////////////
 
 class Test_I_Stream_Message
- : public Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
+ : public Stream_DataMessageBase_2<Test_I_Stream_MessageData,
+                                   struct Common_FlexParserAllocatorConfiguration,
                                    enum Stream_MessageType,
-                                   Test_I_Stream_MessageData,
                                    HTTP_Method_t>
 {
+  typedef Stream_DataMessageBase_2<Test_I_Stream_MessageData,
+                                   struct Common_FlexParserAllocatorConfiguration,
+                                   enum Stream_MessageType,
+                                   HTTP_Method_t> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_FlexParserAllocatorConfiguration,
@@ -82,7 +87,7 @@ class Test_I_Stream_Message
 
  public:
   Test_I_Stream_Message (unsigned int); // size
-  inline virtual ~Test_I_Stream_Message () {};
+  inline virtual ~Test_I_Stream_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -91,8 +96,7 @@ class Test_I_Stream_Message
 
   // implement Stream_MessageBase_T
   virtual HTTP_Method_t command () const; // return value: message type
-  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
-                                                                                                                                : HTTP_Tools::MethodToString (method_in)); };
+  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
 
  protected:
   // copy ctor to be used by duplicate() and derived classes
@@ -100,11 +104,6 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_2<struct Common_FlexParserAllocatorConfiguration,
-                                   enum Stream_MessageType,
-                                   Test_I_Stream_MessageData,
-                                   HTTP_Method_t> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
   // *NOTE*: to be used by message allocators
   Test_I_Stream_Message (Stream_SessionId_t,

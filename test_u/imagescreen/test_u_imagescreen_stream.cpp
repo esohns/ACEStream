@@ -38,13 +38,13 @@
 Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SOURCE_DEFAULT_NAME_STRING))
+            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
- , resizer_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+// , decode_ (this,
+//            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+ , resize_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , delay_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
@@ -85,8 +85,8 @@ Stream_ImageScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
 
   layout_inout.append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
-  layout_inout.append (&decoder_, NULL, 0); // output is uncompressed RGB
-  layout_inout.append (&resizer_, NULL, 0); // output is window size/fullscreen
+//  layout_inout.append (&decode_, NULL, 0); // output is uncompressed RGB
+  layout_inout.append (&resize_, NULL, 0); // output is window size/fullscreen
   layout_inout.append (&delay_, NULL, 0);
   layout_inout.append (&display_, NULL, 0);
 
