@@ -243,15 +243,15 @@ target_sources (${PROJECT_NAME}_Test_I
 
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-add_subdirectory (filestream)
 add_subdirectory (camsave)
 add_subdirectory (camstream)
+add_subdirectory (filestream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)
 
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
-add_dependencies (test_i filesource filetarget camsource camtarget HTTP_get_1 HTTP_get_2)
+add_dependencies (test_i camsave camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_I)

@@ -105,8 +105,8 @@ Stream_CamSave_SignalHandler::handle (const struct Common_Signal& signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
-                  signal_in.signal));
+                  ACE_TEXT ("received invalid/unknown signal: [%d] \"%S\", returning\n"),
+                  signal_in.signal, signal_in.signal));
       return;
     }
   } // end SWITCH

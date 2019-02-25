@@ -137,6 +137,17 @@ class Stream_CamSave_WxWidgetsDialog_T;
 #endif // WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
+enum Stream_Camsave_ProgramMode
+{
+  STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION = 0,
+  STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS,
+  STREAM_CAMSAVE_PROGRAMMODE_NORMAL,
+  ////////////////////////////////////////
+  STREAM_CAMSAVE_PROGRAMMODE_MAX,
+  STREAM_CAMSAVE_PROGRAMMODE_INVALID
+};
+
+
 struct Stream_CamSave_UserData
  : Stream_UserData
 {

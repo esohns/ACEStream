@@ -498,8 +498,8 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
       if (outputFormat_ != AV_PIX_FMT_NONE)
       { ACE_ASSERT (session_data_r.lock);
-        setFormat (outputFormat_,
-                   media_type_2);
+        inherited2::setFormat (outputFormat_,
+                               media_type_2);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
           session_data_r.formats.push_front (media_type_2);
         } // end lock scope

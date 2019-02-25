@@ -276,15 +276,12 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       // *TODO*: remove type inferences
-      if (unlikely (!inherited::configuration_->window ||
-                    (!inherited::configuration_->outputFormat.resolution.width ||
-                     !inherited::configuration_->outputFormat.resolution.height)))
+      if (unlikely ((sourceResolution_.width == inherited::configuration_->outputFormat.resolution.width) &&
+                    (sourceResolution_.height == inherited::configuration_->outputFormat.resolution.height)))
       {
-#if defined (_DEBUG)
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: output size and/or -window not set, continuing\n"),
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: output size is input size, nothing to do\n"),
                     inherited::mod_->name ()));
-#endif // _DEBUG
         break;
       } // end IF
 #if defined (_DEBUG)

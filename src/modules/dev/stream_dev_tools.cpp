@@ -688,6 +688,23 @@ close:
   return return_value;
 }
 
+struct Stream_MediaFramework_FFMPEG_MediaType
+Stream_Device_Tools::convert (const struct Stream_MediaFramework_V4L_MediaType& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::convert"));
+
+  struct Stream_MediaFramework_FFMPEG_MediaType result;
+
+  result.format =
+      Stream_Device_Tools::v4l2FormatToffmpegFormat (format_in.format.pixelformat);
+  result.frameRate.num = format_in.frameRate.numerator;
+  result.frameRate.den = format_in.frameRate.denominator;
+  result.resolution.width = format_in.format.width;
+  result.resolution.height = format_in.format.height;
+
+  return result;
+}
+
 void
 Stream_Device_Tools::dump (int fileDescriptor_in)
 {

@@ -37,6 +37,7 @@
 #define STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING                          "GTK_Cairo"
 #define STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING                         "GTK_Pixbuf"
 #define STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING              "GTK_SpectrumAnalyzer"
+#define STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING                         "GTK_Window"
 
 #define STREAM_VIS_NULL_DEFAULT_NAME_STRING                               "Null"
 
@@ -46,7 +47,11 @@
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+#if GTK_CHECK_VERSION (3,0,0)
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
+#else
+#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF
+#endif // GTK_CHECK_VERSION
 #elif defined (WXWIDGETS_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D

@@ -609,7 +609,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.connectionManager = iconnection_manager_p;
-  modulehandler_configuration.fileName = fileName_in;
+  modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   modulehandler_configuration.printProgressDot =
     UIDefinitionFile_in.empty ();
   modulehandler_configuration.connectionConfigurations =

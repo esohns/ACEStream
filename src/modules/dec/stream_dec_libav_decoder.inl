@@ -643,8 +643,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
+      MediaType media_type_2 = session_data_r.formats.front ();
       struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-      inherited2::getMediaType (session_data_r.formats.front (),
+      inherited2::getMediaType (media_type_2,
                                 media_type_s);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       formatHeight_ =
@@ -1048,6 +1049,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                   reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
                                   frame_->linesize);
       ACE_ASSERT (result >= 0);
+
+      if (outputFormat_ != media_type_s.format)
+      { ACE_ASSERT (session_data_r.lock);
+        inherited2::setFormat (outputFormat_,
+                               media_type_2);
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          session_data_r.formats.push_front (media_type_2);
+        } // end lock scope
+      } // end IF
 
       goto continue_;
 

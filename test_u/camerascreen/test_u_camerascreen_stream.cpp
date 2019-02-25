@@ -20,7 +20,7 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "test_i_camsave_stream.h"
+#include "test_u_camerascreen_stream.h"
 
 #include "ace/Log_Msg.h"
 
@@ -44,7 +44,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
+Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
@@ -65,23 +65,23 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  , fileWriter_ (this,
                 ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream"));
 
 }
 
-Stream_CamSave_DirectShow_Stream::~Stream_CamSave_DirectShow_Stream ()
+Stream_CameraScreen_DirectShow_Stream::~Stream_CameraScreen_DirectShow_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::~Stream_CamSave_DirectShow_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::~Stream_CameraScreen_DirectShow_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_CameraScreen_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                         bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -140,9 +140,9 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -150,9 +150,9 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  Stream_CamSave_DirectShow_SessionData* session_data_p = NULL;
+  Stream_CameraScreen_DirectShow_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  Stream_CamSave_DirectShow_Source* source_impl_p = NULL;
+  Stream_CameraScreen_DirectShow_Source* source_impl_p = NULL;
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   bool COM_initialized = false;
@@ -451,7 +451,7 @@ continue_:
   //ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
 
   session_data_p =
-    &const_cast<Stream_CamSave_DirectShow_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_CameraScreen_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   //if ((*iterator).second.second.direct3DConfiguration->handle)
   //{
@@ -466,7 +466,7 @@ continue_:
 
   // ******************* Camera Source ************************
   source_impl_p =
-    dynamic_cast<Stream_CamSave_DirectShow_Source*> (source_.writer ());
+    dynamic_cast<Stream_CameraScreen_DirectShow_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -547,7 +547,7 @@ error:
 
 //////////////////////////////////////////
 
-Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream ()
+Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
@@ -572,13 +572,13 @@ Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream ()
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
  , referenceCount_ (1)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_Stream"));
 
 }
 
-Stream_CamSave_MediaFoundation_Stream::~Stream_CamSave_MediaFoundation_Stream ()
+Stream_CameraScreen_MediaFoundation_Stream::~Stream_CameraScreen_MediaFoundation_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::~Stream_CamSave_MediaFoundation_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::~Stream_CameraScreen_MediaFoundation_Stream"));
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
@@ -600,21 +600,21 @@ Stream_CamSave_MediaFoundation_Stream::~Stream_CamSave_MediaFoundation_Stream ()
 }
 
 const Stream_Module_t*
-Stream_CamSave_MediaFoundation_Stream::find (const std::string& name_in) const
+Stream_CameraScreen_MediaFoundation_Stream::find (const std::string& name_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::find"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::find"));
 
   //if (!ACE_OS::strcmp (name_in.c_str (),
   //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)))
-  //  return const_cast<Stream_CamSave_MediaFoundation_DisplayNull_Module*> (&displayNull_);
+  //  return const_cast<Stream_CameraScreen_MediaFoundation_DisplayNull_Module*> (&displayNull_);
 
   return inherited::find (name_in);
 }
 
 void
-Stream_CamSave_MediaFoundation_Stream::start ()
+Stream_CameraScreen_MediaFoundation_Stream::start ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::start"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::start"));
 
   // sanity check(s)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
@@ -652,11 +652,11 @@ Stream_CamSave_MediaFoundation_Stream::start ()
 }
 
 void
-Stream_CamSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
+Stream_CameraScreen_MediaFoundation_Stream::stop (bool waitForCompletion_in,
                                              bool recurseUpstream_in,
                                              bool lockedAccess_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::stop"));
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
@@ -676,14 +676,14 @@ Stream_CamSave_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 }
 
 HRESULT
-Stream_CamSave_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
+Stream_CameraScreen_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
                                                        void** interface_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::QueryInterface"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::QueryInterface"));
 
   static const QITAB query_interface_table[] =
   {
-    QITABENT (Stream_CamSave_MediaFoundation_Stream, IMFAsyncCallback),
+    QITABENT (Stream_CameraScreen_MediaFoundation_Stream, IMFAsyncCallback),
     { 0 },
   };
 
@@ -693,16 +693,16 @@ Stream_CamSave_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
                    interface_out);
 }
 ULONG
-Stream_CamSave_MediaFoundation_Stream::AddRef ()
+Stream_CameraScreen_MediaFoundation_Stream::AddRef ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::AddRef"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::AddRef"));
 
   return InterlockedIncrement (&referenceCount_);
 }
 ULONG
-Stream_CamSave_MediaFoundation_Stream::Release ()
+Stream_CameraScreen_MediaFoundation_Stream::Release ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::Release"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
   //if (count == 0);
@@ -712,10 +712,10 @@ Stream_CamSave_MediaFoundation_Stream::Release ()
 }
 
 HRESULT
-Stream_CamSave_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
+Stream_CameraScreen_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
                                                       DWORD* queue_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::GetParameters"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::GetParameters"));
 
   ACE_UNUSED_ARG (flags_out);
   ACE_UNUSED_ARG (queue_out);
@@ -726,9 +726,9 @@ Stream_CamSave_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
 }
 
 HRESULT
-Stream_CamSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
+Stream_CameraScreen_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::Invoke"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::Invoke"));
 
   HRESULT result = E_FAIL;
   IMFMediaEvent* media_event_p = NULL;
@@ -744,8 +744,8 @@ Stream_CamSave_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (inherited::sessionData_);
 
-  //Stream_CamSave_SessionData& session_data_r =
-  //  const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+  //Stream_CameraScreen_SessionData& session_data_r =
+  //  const_cast<Stream_CameraScreen_SessionData&> (inherited::sessionData_->get ());
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
@@ -916,10 +916,10 @@ error:
 }
 
 bool
-Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_CameraScreen_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
                                              bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -969,9 +969,9 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -979,11 +979,11 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  Stream_CamSave_MediaFoundation_SessionData* session_data_p = NULL;
+  Stream_CameraScreen_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
+  struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
     NULL;
-  Stream_CamSave_MediaFoundation_Source* source_impl_p = NULL;
+  Stream_CameraScreen_MediaFoundation_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -1004,7 +1004,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Stream_CamSave_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_CameraScreen_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1012,7 +1012,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   ACE_ASSERT (iterator != configuration_in.end ());
 
   configuration_p =
-      dynamic_cast<struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
+      dynamic_cast<struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
 
   // sanity check(s)
   ACE_ASSERT (configuration_p);
@@ -1024,7 +1024,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
 
   // ******************* Camera Source ************************
   source_impl_p =
-    dynamic_cast<Stream_CamSave_MediaFoundation_Source*> (source_.writer ());
+    dynamic_cast<Stream_CameraScreen_MediaFoundation_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1259,57 +1259,36 @@ error:
   return false;
 }
 #else
-Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
+Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
- , distributor_ (this,
-                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
- , converter_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-// , GTKCairoDisplay_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
  , display_2_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#elif defined (WXWIDGETS_USE)
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#endif
-#endif // GUI_SUPPORT
- , converter_2 (this,
-                ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::Stream_CameraScreen_Stream"));
 
 }
 
-Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream ()
+Stream_CameraScreen_Stream::~Stream_CameraScreen_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::~Stream_CameraScreen_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
-                                 bool& delete_out)
+Stream_CameraScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
+                                  bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::load"));
 
   // initialize return value(s)
   delete_out = false;
@@ -1322,82 +1301,34 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_->configuration_.renderer).c_str ()));
+      configuration_->find (ACE_TEXT_ALWAYS_CHAR ("").c_str ()));
   ACE_ASSERT (iterator_2 != configuration_->end ());
-  bool display_b =
-      (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_NULL);
-  bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
-//  ACE_ASSERT ((display_b && (*iterator_2).second.second.window) || (!display_b && !(*iterator_2).second.second.window));
-
-  // *NOTE*: this processing stream may have branches, depending on:
-  //         - whether the output is displayed on a screen
-  //         - whether the output is saved to file
-  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 0;
 
   layout_inout.append (&source_, NULL, 0);
-//  layout_inout.append (&statisticReport_, NULL, 0);
-  if (display_b || save_to_file_b)
-  {
-    layout_inout.append (&decoder_, NULL, 0); // output is uncompressed RGB
-    if (display_b && save_to_file_b)
-    {
-      layout_inout.append (&distributor_, NULL, 0);
-      branch_p = &distributor_;
-      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
-      Stream_IDistributorModule* idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
-      ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (configuration_->configuration_.branches);
-    } // end IF
-
-    if (display_b)
-    { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
-      //            native endianness)
-      layout_inout.append (&converter_, branch_p, 0); // output is uncompressed 24-bit RGB
-      layout_inout.append (&resizer_, branch_p, 0); // output is window size/fullscreen
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-      if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-        layout_inout.append (&display_, branch_p, 0);
-      else
-        layout_inout.append (&display_2_, branch_p, 0);
-//      layout_inout.append (&GTKCairoDisplay_, branch_p, 0);
-#elif defined (WXWIDGETS_USE)
-      layout_inout.append (&display_, branch_p, 0);
-#endif
-#else
-      ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());
-      ACE_ASSERT (false); // *TODO*
-#endif // GUI_SUPPORT
-      ++index_i;
-    } // end IF
-    if (save_to_file_b)
-    {
-      layout_inout.append (&converter_2, branch_p, index_i); // output is uncompressed 32-bit RGB
-      layout_inout.append (&encoder_, branch_p, index_i); // output is AVI
-      layout_inout.append (&fileWriter_, branch_p, index_i);
-    } // end IF
-  } // end IF
+  layout_inout.append (&statisticReport_, NULL, 0);
+  layout_inout.append (&resizer_, branch_p, 0); // output is window size/fullscreen
+  if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+   layout_inout.append (&display_, branch_p, 0);
+  else
+    layout_inout.append (&display_2_, branch_p, 0);
 
   return true;
 }
 
 bool
-Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  Stream_CamSave_V4L_SessionData* session_data_p = NULL;
+  Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  struct Stream_CamSave_V4L_ModuleHandlerConfiguration* configuration_p = NULL;
-  Stream_CamSave_V4L_Source* source_impl_p = NULL;
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration* configuration_p = NULL;
+  Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -1418,7 +1349,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<Stream_CamSave_V4L_SessionData&> (inherited::sessionData_->getR ());
+    &const_cast<Stream_CameraScreen_V4L_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1426,7 +1357,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (iterator != configuration_in.end ());
 
   configuration_p =
-      dynamic_cast<struct Stream_CamSave_V4L_ModuleHandlerConfiguration*> (&(*iterator).second.second);
+      dynamic_cast<struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration*> (&(*iterator).second.second);
 
   // sanity check(s)
   ACE_ASSERT (configuration_p);
@@ -1434,30 +1365,12 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_.format);
-//  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                       session_data_r.v4l2Format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFormat(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  if (!Stream_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-//                                          session_data_r.v4l2FrameRate))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::getFrameRate(%d), aborting\n"),
-//                configuration_in.moduleHandlerConfiguration->fileDescriptor));
-//    return false;
-//  } // end IF
-//  session_data_p->format = configuration_p->inputFormat;
-  session_data_p->targetFileName = configuration_p->targetFileName;
 
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
   source_impl_p =
-    dynamic_cast<Stream_CamSave_V4L_Source*> (source_.writer ());
+    dynamic_cast<Stream_CameraScreen_V4L_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,

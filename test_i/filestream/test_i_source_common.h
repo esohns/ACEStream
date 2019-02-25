@@ -155,7 +155,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , fileName ()
+   , fileIdentifier ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -164,7 +164,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
   Test_I_Source_IConnection_t*              connection; // TCP target module
   Test_I_Source_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP target module
-  std::string                               fileName; // file reader module
+  Common_File_Identifier                    fileIdentifier; // file reader module
   Test_I_Source_StreamConfiguration_t*      streamConfiguration; // net source module
   Test_I_Source_ISessionNotify_t*           subscriber;
   Test_I_Source_Subscribers_t*              subscribers;

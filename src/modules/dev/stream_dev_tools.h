@@ -64,6 +64,7 @@ extern "C"
 
 #include "stream_lib_common.h"
 #include "stream_lib_alsa_common.h"
+#include "stream_lib_ffmpeg_common.h"
 #include "stream_lib_v4l_common.h"
 
 // forward declarations
@@ -105,6 +106,8 @@ class Stream_Device_Tools
                                                       const Common_Image_Resolution_t&); // resolution
 
   static struct Stream_MediaFramework_V4L_MediaType defaultCaptureFormat (const std::string&); // device identifier
+
+  static struct Stream_MediaFramework_FFMPEG_MediaType convert (const struct Stream_MediaFramework_V4L_MediaType&);
 
   static void dump (int); // file descriptor
 

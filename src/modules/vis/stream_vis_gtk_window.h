@@ -18,41 +18,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DECODER_LIBAV_CONVERTER_T_H
-#define STREAM_DECODER_LIBAV_CONVERTER_T_H
-
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
+#ifndef STREAM_VIS_GTK_WINDOW_H
+#define STREAM_VIS_GTK_WINDOW_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_ilock.h"
-#include "common_time_common.h"
 
-#include "common_image_common.h"
+#include "common_ui_ifullscreen.h"
 
-#include "stream_common.h"
 #include "stream_task_base_synch.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_dev_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_lib_mediatype_converter.h"
 
-// forward declaration(s)
-struct AVCodecContext;
-struct AVFrame;
+// forward declarations
 struct SwsContext;
-class Stream_IAllocator;
 
-extern const char libacestream_default_dec_libav_converter_module_name_string[];
+extern const char libacestream_default_vis_gtk_window_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -63,9 +46,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType,
-          typename MediaType> // session data-
-class Stream_Decoder_LibAVConverter_T
+          typename MediaType>
+class Stream_Module_Vis_GTK_Window_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  Common_ILock_T<ACE_SYNCH_USE>,
@@ -81,8 +63,9 @@ class Stream_Decoder_LibAVConverter_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     >
 #else
-                                                     ,typename SessionDataContainerType::DATA_T>
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
 #endif // ACE_WIN32 || ACE_WIN64
+ , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -99,59 +82,45 @@ class Stream_Decoder_LibAVConverter_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                                     > inherited2;
 #else
-                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
 #endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Decoder_LibAVConverter_T (ISTREAM_T*); // stream handle
+  Stream_Module_Vis_GTK_Window_T (ISTREAM_T*);                     // stream handle
 #else
-  Stream_Decoder_LibAVConverter_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Module_Vis_GTK_Window_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Stream_Decoder_LibAVConverter_T ();
+  virtual ~Stream_Module_Vis_GTK_Window_T ();
 
-  // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
-  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- protected:
-  DataMessageType*   buffer_;
-  struct SwsContext* context_;
-  struct AVFrame*    frame_;
-  unsigned int       frameSize_; // output-
-  enum AVPixelFormat inputFormat_;
-  enum AVPixelFormat outputFormat_;
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  static char        paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//#else
-//  static char        paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-//#endif
+  // implement Common_UI_IFullscreen
+  virtual void toggle ();
 
  private:
-  // convenient types
-  typedef Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataContainerType,
-                                          MediaType> OWN_TYPE_T;
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T (const Stream_Module_Vis_GTK_Window_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Window_T& operator= (const Stream_Module_Vis_GTK_Window_T&))
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T (const Stream_Decoder_LibAVConverter_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T& operator= (const Stream_Decoder_LibAVConverter_T&))
+  // helper methods
+  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
+
+  virtual int svc (void);
+
+  GMainLoop* mainLoop_;
+  GdkWindow* window_;
 };
 
 // include template definition
-#include "stream_dec_libav_converter.inl"
+#include "stream_vis_gtk_window.inl"
 
 #endif

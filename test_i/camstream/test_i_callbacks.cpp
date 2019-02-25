@@ -3259,7 +3259,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end IF
   if (Common_File_Tools::isDirectory (file_name))
     file_name =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
     file_name =
       ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));

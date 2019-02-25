@@ -53,9 +53,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
- , buffer_ (NULL)
- , isFirst_ (true)
- , lock_ (NULL)
+// , buffer_ (NULL)
+// , foreignBuffer_ (true)
+// , lock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
@@ -80,8 +80,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-  if (buffer_)
-    g_object_unref (buffer_);
+//  if (buffer_)
+//    g_object_unref (buffer_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -111,7 +111,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   if (!inherited::configuration_->window)
     return; // done
-  ACE_ASSERT (buffer_);
+//  ACE_ASSERT (buffer_);
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
@@ -127,40 +127,69 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   int result = -1;
   bool leave_gdk = false;
-  bool release_lock = false;
+//  bool release_lock = false;
+  GdkPixbuf* buffer_p = NULL;
+  gint width_i, height_i;
 
-  if (likely (lock_))
-  {
-    result = lock_->acquire ();
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-      return;
-    } // end IF
-    release_lock = true;
-  } // end IF
+//  if (likely (lock_))
+//  {
+//    result = lock_->acquire ();
+//    if (unlikely (result == -1))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n"),
+//                  inherited::mod_->name ()));
+//      return;
+//    } // end IF
+//    release_lock = true;
+//  } // end IF
 
   gdk_threads_enter ();
   leave_gdk = true;
 
-  ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
+  gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+                         &width_i, &height_i);
+
+  buffer_p =
+#if GTK_CHECK_VERSION (3,0,0)
+      gdk_pixbuf_get_from_window (inherited::configuration_->window,
+                                  0, 0,
+                                  width_i, height_i);
+#else
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (inherited::configuration_->window),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, width_i, height_i);
+#endif
+  if (!buffer_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+    return;
+  } // end IF
+
+//  ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
+  ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_p),
                   message_inout->rd_ptr (),
                   message_inout->length ());
 
-  //  gint width, height;
-  //  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->window),
-  //                         &width, &height);
-  // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an X
+//    gint width_i, height_i;
+//    gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+//                           &width_i, &height_i);
+  // *IMPORTANT NOTE*: this potentially involves transfer of image data to an X
   //                   server running on a different host. Also, X servers don't
   //                   react kindly to multithreaded access
   //                   --> move this into the gtk context and simply schedule a
   //                       refresh, which takes care of that
-  //  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->window), NULL,
-  //                   buffer_,
-  //                   0, 0, 0, 0, width, height,
-  //                   GDK_RGB_DITHER_NONE, 0, 0);
+//  if (unlikely (!foreignBuffer_))
+//  {
+    gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
+                     NULL,
+//                     buffer_,
+                     buffer_p,
+                     0, 0, 0, 0, -1, -1,
+                     GDK_RGB_DITHER_NONE, 0, 0);
 
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
@@ -169,10 +198,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
   // *NOTE*: this does not work either... :-(
   //         --> make the (downstream) UI event handler queue an 'idle refresh'
-//  gdk_window_invalidate_rect (inherited::configuration_->window,
-//                              NULL,
-//                              false);
-//  GtkWidget* widget_p = NULL;
+//    gdk_window_invalidate_rect (inherited::configuration_->window,
+//                                NULL,
+//                                false);
+    //  GtkWidget* widget_p = NULL;
 //  gdk_window_get_user_data (configuration_->window,
 //                            reinterpret_cast<gpointer*> (&widget_p));
 //  ACE_ASSERT (widget_p);
@@ -183,6 +212,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //  gtk_widget_queue_draw_area (widget_p,
 //                              allocation.x, allocation.y,
 //                              allocation.width, allocation.height);
+//  } // end IF
+
+    g_object_unref (buffer_p); buffer_p = NULL;
 
   if (likely (leave_gdk))
   {
@@ -190,15 +222,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     leave_gdk = false;
   } // end IF
 
-  if (likely (release_lock))
-  { ACE_ASSERT (lock_);
-    result = lock_->release ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
-                  inherited::mod_->name ()));
-    release_lock = false;
-  } // end IF
+//  if (likely (release_lock))
+//  { ACE_ASSERT (lock_);
+//    result = lock_->release ();
+//    if (unlikely (result == -1))
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
+//                  inherited::mod_->name ()));
+//    release_lock = false;
+//  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -229,40 +261,62 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
-      const typename SessionDataContainerType::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
-      const MediaType& media_type_r = session_data_r.formats.front ();
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-      inherited2::getMediaType (media_type_r,
-                                media_type_s);
-      unsigned int frame_size_i =
-          av_image_get_buffer_size (media_type_s.format,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    media_type_s.resolution.cx,
-                                    media_type_s.resolution.cy,
-#else
-                                    media_type_s.resolution.width,
-                                    media_type_s.resolution.height,
-#endif // ACE_WIN32 || ACE_WIN64
-                                    1); // *TODO*: linesize alignment
-      ACE_UNUSED_ARG (frame_size_i);
-      unsigned int row_stride_i =
-          av_image_get_linesize (media_type_s.format,
-    #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                 media_type_s.resolution.cx,
-    #else
-                                 media_type_s.resolution.width,
-    #endif // ACE_WIN32 || ACE_WIN64
-                                 0);
-//      ACE_UNUSED_ARG (row_stride_i);
-      ACE_ASSERT (buffer_);
-      int pixbuf_height = gdk_pixbuf_get_height (buffer_);
-      int pixbuf_width = gdk_pixbuf_get_width (buffer_);
-      int pixbuf_row_stride = gdk_pixbuf_get_rowstride (buffer_);
+      // *TODO*: remove type inference
+      ACE_ASSERT (inherited::configuration_->window);
+//      ACE_ASSERT (!buffer_);
 
-      ACE_ASSERT ((static_cast<unsigned int> (pixbuf_width) == media_type_s.resolution.width) && (static_cast<unsigned int> (pixbuf_height) == media_type_s.resolution.height));
-      ACE_ASSERT (static_cast<unsigned int> (pixbuf_row_stride) == row_stride_i);
+//      if (inherited::configuration_->pixelBuffer)
+//      {
+//        g_object_ref (inherited::configuration_->pixelBuffer);
+//        buffer_ = inherited::configuration_->pixelBuffer;
+//      } // end IF
+//      else
+//      {
+//        gint width_i = 0, height_i = 0;
+
+//        gdk_threads_enter ();
+
+//        gdk_window_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+//                             &width_i, &height_i);
+
+//        buffer_ =
+//#if GTK_CHECK_VERSION (3,0,0)
+//            gdk_pixbuf_get_from_window (inherited::configuration_->window,
+//                                        0, 0,
+//                                        width_i, height_i);
+//#else
+//            gdk_pixbuf_get_from_drawable (NULL,
+//                                          GDK_DRAWABLE (inherited::configuration_->window),
+//                                          NULL,
+//                                          0, 0,
+//                                          0, 0, width_i, height_i);
+//#endif
+//        if (!buffer_)
+//        { // *NOTE*: most probable reason: window is not mapped
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+//                      inherited::mod_->name ()));
+//          gdk_threads_leave ();
+//          goto error;
+//        } // end IF
+
+//        gdk_threads_leave ();
+
+//        foreignBuffer_ = false;
+//      } // end ELSE
+
+      // sanity check(s)
+//      ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
+//      ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
+//      ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
+//      ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
+    //  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
+    //  ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
+
+      break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -274,41 +328,41 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       gint width_i = 0, height_i = 0;
 
-      if (buffer_)
-      {
-        g_object_unref (buffer_); buffer_ = NULL;
-      } // end IF
+//      if (buffer_)
+//      {
+//        g_object_unref (buffer_); buffer_ = NULL;
+//      } // end IF
 
       gdk_threads_enter ();
 
       gdk_window_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                            &width_i, &height_i);
 
-      buffer_ =
-#if GTK_CHECK_VERSION (3,0,0)
-          gdk_pixbuf_get_from_window (inherited::configuration_->window,
-                                      0, 0,
-                                      width_i, height_i);
-#else
-          gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (inherited::configuration_->window),
-                                        NULL,
-                                        0, 0,
-                                        0, 0, width_i, height_i);
-#endif
-      if (!buffer_)
-      { // *NOTE*: most probable reason: window is not mapped
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-                    inherited::mod_->name ()));
-        gdk_threads_leave ();
-        goto error;
-      } // end IF
+//      buffer_ =
+//#if GTK_CHECK_VERSION (3,0,0)
+//          gdk_pixbuf_get_from_window (inherited::configuration_->window,
+//                                      0, 0,
+//                                      width_i, height_i);
+//#else
+//          gdk_pixbuf_get_from_drawable (NULL,
+//                                        GDK_DRAWABLE (inherited::configuration_->window),
+//                                        NULL,
+//                                        0, 0,
+//                                        0, 0, width_i, height_i);
+//#endif
+//      if (!buffer_)
+//      { // *NOTE*: most probable reason: window is not mapped
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
+//                    inherited::mod_->name ()));
+//        gdk_threads_leave ();
+//        goto error_2;
+//      } // end IF
       gdk_threads_leave ();
 
       break;
 
-error:
+error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -343,57 +397,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (buffer_)
-    {
-      g_object_unref (buffer_); buffer_ = NULL;
-    } // end IF
-    isFirst_ = true;
-    lock_ = NULL;
+//    if (buffer_)
+//    {
+//      g_object_unref (buffer_); buffer_ = NULL;
+//    } // end IF
+//    foreignBuffer_ = true;
+//    lock_ = NULL;
   } // end IF
 
-  // sanity check(s)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_in.window);
-
-  gint width_i = 0, height_i = 0;
-
-  lock_ = configuration_in.lock;
-
-//  gdk_threads_enter ();
-
-  gdk_window_get_size (GDK_DRAWABLE (configuration_in.window),
-                       &width_i, &height_i);
-
-  buffer_ =
-#if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window (configuration_in.window,
-                                  0, 0,
-                                  width_i, height_i);
-#else
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (configuration_in.window),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, width_i, height_i);
-#endif
-  if (!buffer_)
-  { // *NOTE*: most probable reason: window is not mapped
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to gdk_pixbuf_get_from_window(), aborting\n"),
-                inherited::mod_->name ()));
-    gdk_threads_leave ();
-    return false;
-  } // end IF
-
-  // sanity check(s)
-  ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
-  ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
-  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 3);
-//  ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
-//  ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
-
-//  gdk_threads_leave ();
+//  lock_ = configuration_in.lock;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

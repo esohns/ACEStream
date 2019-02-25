@@ -573,7 +573,7 @@ do_work (unsigned int bufferSize_in,
   Test_I_Module_DataBaseWriter_Module database_writer (stream_p,
                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_TARGET_DEFAULT_NAME_STRING));
   Test_I_FileWriter_Module file_writer (stream_p,
-                                        ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING));
+                                        ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   module_p = &file_writer;
   if (dataBase_in)
     module_p = &database_writer;

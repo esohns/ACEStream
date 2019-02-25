@@ -173,9 +173,10 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const typename inherited::CON
       &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_p->fileName = (*iterator).second.second.fileName;
+  session_data_p->fileName =
+      (*iterator).second.second.fileIdentifier.identifier;
   session_data_p->size =
-    Common_File_Tools::size ((*iterator).second.second.fileName);
+    Common_File_Tools::size ((*iterator).second.second.fileIdentifier.identifier);
 
   inherited::isInitialized_ = true;
   //inherited::dump_state ();

@@ -129,22 +129,23 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       // schedule the second-granularity timer
       ACE_Time_Value one_second (1, 0); // one-second interval
       resetTimeoutHandlerId_ =
-        itimer_p->schedule_timer (&resetTimeoutHandler_,        // event handler handle
-                                  NULL,                         // asynchronous completion token
-                                  COMMON_TIME_NOW + one_second, // first wakeup time
-                                  one_second);                  // interval
+        itimer_p->schedule_timer (&resetTimeoutHandler_,                              // event handler handle
+                                  NULL,                                               // asynchronous completion token
+                                  COMMON_TIME_NOW + inherited::configuration_->delay, // first wakeup time
+                                  inherited::configuration_->delay);                  // interval
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Common_ITimerBase::schedule_timer(%#T): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    &one_second));
+                    &inherited::configuration_->delay));
         goto error;
       } // end IF
 #if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: scheduled second-interval timer (id: %d)\n"),
+                  ACE_TEXT ("%s: scheduled interval timer (%#T, id: %d)\n"),
                   inherited::mod_->name (),
+                  &inherited::configuration_->delay,
                   resetTimeoutHandlerId_));
 #endif // _DEBUG
 

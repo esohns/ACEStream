@@ -424,7 +424,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                                           MediaType>::Stream_Visualization_ImageMagickResize1_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , frameSize_ (0)
  , pixelContext_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::Stream_Visualization_ImageMagickResize1_T"));
@@ -488,12 +487,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   PixelSetColor (pixelContext_,
                  ACE_TEXT_ALWAYS_CHAR ("WHITE"));
 
-  frameSize_ =
-      av_image_get_buffer_size (inherited::configuration_->outputFormat.format,
-                                inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
-                                1); // *TODO*: linesize alignment
-  ACE_ASSERT (frameSize_ >= 0);
-
   return true;
 }
 
@@ -547,18 +540,17 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (!message_inout->cont ());
 
   // allocate a message buffer for the next frame
-  message_p = inherited::allocateMessage (frameSize_);
+  message_p = inherited::allocateMessage (1);
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                 inherited::mod_->name (),
-                frameSize_));
+                1));
     goto error;
   } // end IF
-
   // sanity check(s)
-  ACE_ASSERT (message_p->capacity () >= frameSize_);
+//  ACE_ASSERT (message_p->capacity () >= frameSize_);
 
 //  message_data_p =
 //      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
@@ -619,11 +611,10 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   data_p = MagickGetImageBlob (inherited::context_,
                                &size_i);
   ACE_ASSERT (data_p);
-  ACE_ASSERT (frameSize_ == size_i);
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_i,
                    0);
-  message_p->wr_ptr (frameSize_);
+  message_p->wr_ptr (size_i);
   message_p->initialize (inherited::configuration_->outputFormat,
                          session_id,
                          NULL);
@@ -632,7 +623,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //    filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
 //    if (!Common_File_Tools::store (filename_string,
 //                                   data_p,
-//                                   frameSize_))
+//                                   size_i))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
@@ -734,11 +725,6 @@ error:
                   inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
-
-      frameSize_ =
-        av_image_get_buffer_size (inherited::configuration_->outputFormat.format,
-                                  inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
-                                  1); // *TODO*: linesize alignment
 
       break;
 

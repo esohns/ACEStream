@@ -113,6 +113,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
+   , delay (5, 0)
    , display ()
    , fileIdentifier ()
    , fullScreen (false)
@@ -121,6 +122,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
 #if defined (GTK_USE)
+//   , pixelBuffer (NULL)
    , window (NULL)
 #elif defined (WXWIDGETS_USE)
    , window (None)
@@ -137,6 +139,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
+  ACE_Time_Value                                delay;
   struct Common_UI_DisplayDevice                display; // display module
   Common_File_Identifier                        fileIdentifier; // source module
   // *NOTE*: treat each image separately (different sizes)
@@ -146,6 +149,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
 #if defined (GTK_USE)
+//  GdkPixbuf*                                    pixelBuffer;
   GdkWindow*                                    window;
 #elif defined (WXWIDGETS_USE)
   Window                                        window;

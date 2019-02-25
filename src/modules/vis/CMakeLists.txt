@@ -78,6 +78,8 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/gtk>)
 elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -125,6 +127,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/gtk>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
@@ -163,7 +167,10 @@ if (GTK_SUPPORT)
       stream_vis_gtk_cairo_spectrum_analyzer.inl
       stream_vis_gtk_pixbuf.cpp
       stream_vis_gtk_pixbuf.h
-      stream_vis_gtk_pixbuf.inl)
+      stream_vis_gtk_pixbuf.inl
+      stream_vis_gtk_window.cpp
+      stream_vis_gtk_window.h
+      stream_vis_gtk_window.inl)
 endif (GTK_SUPPORT)
 if (FFMPEG_SUPPORT)
  set (source_files
@@ -278,6 +285,8 @@ if (WIN32)
           stream_vis_gtk_cairo_spectrum_analyzer.inl
           stream_vis_gtk_pixbuf.h
           stream_vis_gtk_pixbuf.inl
+          stream_vis_gtk_window.h
+          stream_vis_gtk_window.inl
           stream_vis_imagemagick_resize.h
           stream_vis_imagemagick_resize.inl
           stream_vis_libav_resize.h

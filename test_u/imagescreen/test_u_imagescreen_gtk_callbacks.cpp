@@ -171,6 +171,25 @@ idle_initialize_UI_cb (gpointer userData_in)
               ACE_TEXT ("initial window size: %ux%u\n"),
               allocation_s.width, allocation_s.height));
 
+//  (*stream_configuration_iterator).second.second.pixelBuffer =
+//#if GTK_CHECK_VERSION (3,0,0)
+//          gdk_pixbuf_get_from_window ((*stream_configuration_iterator).second.second.window,
+//                                      0, 0,
+//                                      allocation_s.width, allocation_s.height);
+//#else
+//          gdk_pixbuf_get_from_drawable (NULL,
+//                                        GDK_DRAWABLE ((*stream_configuration_iterator).second.second.window),
+//                                        NULL,
+//                                        0, 0,
+//                                        0, 0, allocation_s.width, allocation_s.height);
+//#endif
+//  if (!(*stream_configuration_iterator).second.second.pixelBuffer)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+//    return FALSE;
+//  } // end IF
+
   return G_SOURCE_REMOVE;
 }
 
@@ -873,32 +892,37 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
+  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
+      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   GdkWindow* window_p = gtk_widget_get_window (widget_in);
 
   // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p->pixelBufferLock);
-//  ACE_ASSERT (context_in);
-//  if (!ui_cb_data_p->pixelBuffer)
-//    return TRUE; // --> widget has not been realized yet
   ACE_ASSERT (window_p);
+//  if (!(*stream_configuration_iterator).second.second.pixelBuffer)
+//    return TRUE;
 
 //  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock, FALSE);
 //#if GTK_CHECK_VERSION(3,0,0)
-//    cairo_set_source_surface (context_in,
-//                              ui_cb_data_p->pixelBuffer,
-//                              0.0, 0.0);
-//#elif GTK_CHECK_VERSION(2,0,0)
-//    gdk_cairo_set_source_pixbuf (context_in,
-//                                 ui_cb_data_p->pixelBuffer,
-//                                 0.0, 0.0);
+//  cairo_set_source_surface (context_in,
+//                            ui_cb_data_p->pixelBuffer,
+//                            0.0, 0.0);
+//#elif GTK_CHECK_VERSION(2,22,0)
+//  cairo_t* cairo_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
+//  ACE_ASSERT (cairo_p);
+//  gdk_cairo_set_source_pixbuf (cairo_p,
+//                               (*stream_configuration_iterator).second.second.pixelBuffer,
+//                               0.0, 0.0);
+//  cairo_paint (cairo_p);
+//  cairo_destroy (cairo_p); cairo_p = NULL;
+//#elif GTK_CHECK_VERSION(2,2,0)
+//  gdk_draw_pixbuf (GDK_DRAWABLE (window_p),
+//                   NULL,
+//                   (*stream_configuration_iterator).second.second.pixelBuffer,
+//                   0, 0, 0, 0, -1, -1,
+//                   GDK_RGB_DITHER_NONE, 0, 0);
 //#endif // GTK_CHECK_VERSION
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *NOTE*: media foundation capture frames are v-flipped
-//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
-//#endif
-//    cairo_fill (context_in);
 //  } // end lock scope
 
   return TRUE;
@@ -928,15 +952,42 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (window_in),
                              &allocation_s);
-//  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
-//      allocation_s.width;
-//  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
-//      allocation_s.height;
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+      allocation_s.width;
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+      allocation_s.height;
   ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
       (*stream_configuration_iterator).second.second.outputFormat.resolution;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("resized window to %ux%u\n"),
               allocation_s.width, allocation_s.height));
+
+//  if ((*stream_configuration_iterator).second.second.pixelBuffer)
+//  {
+//    g_object_unref ((*stream_configuration_iterator).second.second.pixelBuffer);
+//    (*stream_configuration_iterator).second.second.pixelBuffer = NULL;
+//  } // end IF
+
+//  (*stream_configuration_iterator).second.second.pixelBuffer =
+//#if GTK_CHECK_VERSION (3,0,0)
+//          gdk_pixbuf_get_from_window (window_in,
+//                                      0, 0,
+//                                      allocation_s.width, allocation_s.height);
+//#else
+//          gdk_pixbuf_get_from_drawable (NULL,
+//                                        GDK_DRAWABLE (window_in),
+//                                        NULL,
+//                                        0, 0,
+//                                        0, 0, allocation_s.width, allocation_s.height);
+//#endif
+//  if (!(*stream_configuration_iterator).second.second.pixelBuffer)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
+//    return FALSE;
+//  } // end IF
+
+  return TRUE;
 } // drawingarea_configure_event_cb
 
 //void

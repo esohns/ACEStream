@@ -261,7 +261,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
   MODULE_T* prev_p = NULL;
   for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), 0);
-       iterator != inherited::end_fixed (inherited::begin (), 0);
+       inherited::is_valid (iterator);
+//       iterator != inherited::end_fixed (inherited::begin (), 0);
        ++iterator)
   {
     if (unlikely (inherited::number_of_children (iterator)))

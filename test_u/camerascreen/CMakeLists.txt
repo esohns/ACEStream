@@ -96,7 +96,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/test_i)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/test_u)
 elseif (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
       "D:/projects/DShowBaseClasses")
@@ -141,47 +141,27 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (EXECUTABLE camsave)
+set (EXECUTABLE camerascreen)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
-     test_i_camsave.cpp
-     test_i_camsave_common.h
-     test_i_camsave_common_modules.h
-     test_i_camsave_defines.h
-     test_i_camsave_eventhandler.cpp
-     test_i_camsave_eventhandler.h
-     test_i_camsave_eventhandler.inl
-     test_i_camsave_message.cpp
-     test_i_camsave_message.h
-     test_i_camsave_message.inl
-     test_i_camsave_session_message.cpp
-     test_i_camsave_session_message.h
-     test_i_camsave_session_message.inl
-     test_i_camsave_signalhandler.cpp
-     test_i_camsave_signalhandler.h
-     test_i_camsave_stream.cpp
-     test_i_camsave_stream.h)
-if (GUI_SUPPORT)
- if (GTK_USE)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       test_i_camsave_gtk_callbacks.cpp
-       test_i_camsave_gtk_callbacks.h)
- elseif (WXWIDGETS_USE)
-  set (${EXECUTABLE}_EXE_SRCS
-       ${${EXECUTABLE}_EXE_SRCS}
-       test_i_camsave_ui.cpp
-       test_i_camsave_ui.h
-       test_i_camsave_ui.inl
-       camsave_wxwidgets_ui.cpp
-       camsave_wxwidgets_ui.h)
-#       test_i_camsave_ui_base.cpp
-#       test_i_camsave_ui_base.h)
- endif ()
-endif (GUI_SUPPORT)
+     ../test_u_common.h
+     ../test_u_defines.h
+     test_u_camerascreen.cpp
+     test_u_camerascreen_common.h
+     test_u_camerascreen_common_modules.h
+     test_u_camerascreen_defines.h
+     test_u_camerascreen_eventhandler.cpp
+     test_u_camerascreen_eventhandler.h
+     test_u_camerascreen_eventhandler.inl
+     test_u_camerascreen_message.cpp
+     test_u_camerascreen_message.h
+     test_u_camerascreen_message.inl
+     test_u_camerascreen_session_message.cpp
+     test_u_camerascreen_session_message.h
+     test_u_camerascreen_session_message.inl
+     test_u_camerascreen_stream.cpp
+     test_u_camerascreen_stream.h)
 
 if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
@@ -211,30 +191,14 @@ endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 
-set (ui_definition_file "")
-if (GUI_SUPPORT)
- if (GTK_USE)
-  if (GTK3_USE)
-   set (ui_definition_file ${EXECUTABLE}.gtk3)
-  elseif (GTK2_USE)
-   set (ui_definition_file ${EXECUTABLE}.gtk2)
-  endif ()
- elseif (WXWIDGETS_USE)
-  if (WIN32)
-   add_definitions(-DUNICODE -D_UNICODE)
-  endif (WIN32)
-  set (ui_definition_file ${EXECUTABLE}.xrc)
- endif ()
-endif (GUI_SUPPORT)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
-                ${${EXECUTABLE}_EXE_SRCS}
-                etc/${ui_definition_file})
-set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+                ${${EXECUTABLE}_EXE_SRCS})
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
-if (WIN32 AND NOT BUILD_TEST_I)
+if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
-endif (WIN32 AND NOT BUILD_TEST_I)
+endif (WIN32 AND NOT BUILD_TEST_U)
 
 #add_dependencies (${EXECUTABLE} ACE)
 add_dependencies (${EXECUTABLE} Common)
@@ -304,16 +268,7 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
-
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- if (GUI_SUPPORT)
-  if (WXWIDGETS_USE)
-   target_link_libraries (${EXECUTABLE} ${wxWidgets_LIBRARIES})
-  endif (WXWIDGETS_USE)
- endif (GUI_SUPPORT)
-endif (UNIX)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
@@ -321,7 +276,7 @@ cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
  install (FILES etc/${ui_definition_file}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)

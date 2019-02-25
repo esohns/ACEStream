@@ -116,9 +116,9 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 
-  GdkPixbuf*                               buffer_;
-  bool                                     isFirst_;
-  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_;
+//  GdkPixbuf*                               buffer_;
+//  bool                                     foreignBuffer_;
+//  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_;
 };
 
 // include template definition

@@ -27,18 +27,6 @@
 #include <mfapi.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
-#include "gtk/gtk.h"
-#elif defined (WXWIDGETS_USE)
-#include "gdk/gdk.h"
-#include "gtk/gtk.h"
-#endif
-#endif // GUI_SUPPORT
-
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/Init_ACE.h"
@@ -64,18 +52,6 @@
 #include "common_timer_manager_common.h"
 #include "common_timer_tools.h"
 
-#if defined (GUI_SUPPORT)
-#include "common_ui_defines.h"
-#include "common_ui_tools.h"
-#if defined (GTK_USE)
-#include "common_ui_gtk_builder_definition.h"
-#include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
-#include "common_ui_wxwidgets_application.h"
-#include "common_ui_wxwidgets_tools.h"
-#endif
-#endif // GUI_SUPPORT
-
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -96,35 +72,19 @@
 
 #include "stream_vis_tools.h"
 
-#include "test_i_common.h"
-#include "test_i_defines.h"
+#include "test_u_common.h"
+#include "test_u_defines.h"
 
-#include "test_i_camsave_defines.h"
-#include "test_i_camsave_eventhandler.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#include "test_i_camsave_gtk_callbacks.h"
-#elif defined (WXWIDGETS_USE)
-#include "test_u_camsave_ui.h"
-#endif
-#endif // GUI_SUPPORT
-#include "test_i_camsave_signalhandler.h"
-#include "test_i_camsave_stream.h"
+#include "test_u_camerascreen_defines.h"
+#include "test_u_camerascreen_eventhandler.h"
+#include "test_u_camerascreen_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
-const char toplevel_widget_classname_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_CLASS_NAME);
-const char toplevel_widget_name_string_[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_WXWIDGETS_TOPLEVEL_WIDGET_NAME);
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CameraScreenStream");
 
 void
-do_printUsage (const std::string& programName_in)
+do_print_usage (const std::string& programName_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_printUsage"));
+  STREAM_TRACE (ACE_TEXT ("::do_print_usage"));
 
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
@@ -193,24 +153,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
-            << path
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
-  path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
-  std::string UI_file = path;
-  UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
-            << UI_file
-            << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
-            << std::endl;
-#endif // GUI_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -226,10 +168,6 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [STRING] : display device [\"")
             << display_device_s.description
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
-            << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
-            << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -250,27 +188,22 @@ do_printUsage (const std::string& programName_in)
 }
 
 bool
-do_processArguments (int argc_in,
-                     ACE_TCHAR** argv_in, // cannot be const...
-                     std::string& captureinterfaceIdentifier_out,
+do_process_arguments (int argc_in,
+                      ACE_TCHAR** argv_in, // cannot be const...
+                      std::string& captureinterfaceIdentifier_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     bool& showConsole_out,
+                      bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
-                     std::string& targetFileName_out,
-#if defined (GUI_SUPPORT)
-                     std::string& UIFile_out,
-#endif // GUI_SUPPORT
-                     bool& logToFile_out,
+                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     enum Stream_MediaFramework_Type& mediaFramework_out,
+                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
-                     struct Common_UI_DisplayDevice& displayDevice_out,
-                     enum Stream_Visualization_VideoRenderer& renderer_out,
-                     unsigned int& statisticReportingInterval_out,
-                     bool& traceInformation_out,
-                     enum Stream_Camsave_ProgramMode& mode_out)
+                      struct Common_UI_DisplayDevice& displayDevice_out,
+                      enum Stream_Visualization_VideoRenderer& renderer_out,
+                      bool& traceInformation_out,
+                      enum Stream_CameraScreen_ProgramMode& mode_out)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
+  STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
@@ -309,43 +242,22 @@ do_processArguments (int argc_in,
   captureinterfaceIdentifier_out +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  targetFileName_out = path;
-  path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
-  UIFile_out = path;
-  UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
   renderer_out = STREAM_VIS_RENDERER_VIDEO_DEFAULT;
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
-  mode_out = STREAM_CAMSAVE_PROGRAMMODE_NORMAL;
+  mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("3cd:f::g::hlmo:s:tvx"),
+                              ACE_TEXT ("3cd:lmo:tvx"),
 #else
-                              ACE_TEXT ("d:f::g::hlo:s:tvx"),
+                              ACE_TEXT ("d:lo:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
-#else
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("3cd:f::hlmo:s:tvx"),
-#else
-                              ACE_TEXT ("d:f::hlo:s:tvx"),
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -380,29 +292,6 @@ do_processArguments (int argc_in,
             ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
-      case 'f':
-      {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
-        if (opt_arg)
-          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
-        else
-          targetFileName_out.clear ();
-        break;
-      }
-#if defined (GUI_SUPPORT)
-      case 'g':
-      {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
-        if (opt_arg)
-          UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
-        else
-        {
-          UIFile_out.clear ();
-          renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
-        } // end ELSE
-        break;
-      }
-#endif // GUI_SUPPORT
       case 'l':
       {
         logToFile_out = true;
@@ -419,14 +308,6 @@ do_processArguments (int argc_in,
       {
         displayDevice_out =
           Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
-        break;
-      }
-      case 's':
-      {
-        converter.clear ();
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argumentParser.opt_arg ();
-        converter >> statisticReportingInterval_out;
         break;
       }
       case 't':
@@ -481,81 +362,6 @@ do_processArguments (int argc_in,
   } // end WHILE
 
   return true;
-}
-
-void
-do_initializeSignals (bool allowUserRuntimeConnect_in,
-                      ACE_Sig_Set& signals_out,
-                      ACE_Sig_Set& ignoredSignals_out)
-{
-  STREAM_TRACE (ACE_TEXT ("::do_initializeSignals"));
-
-  int result = -1;
-
-  // initialize return value(s)
-  result = signals_out.empty_set ();
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Sig_Set::empty_set(): \"%m\", returning\n")));
-    return;
-  } // end IF
-  result = ignoredSignals_out.empty_set ();
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Sig_Set::empty_set(): \"%m\", returning\n")));
-    return;
-  } // end IF
-
-  // *PORTABILITY*: on Windows(TM) platforms most signals are not defined, and
-  //                ACE_Sig_Set::fill_set() doesn't really work as specified
-  // --> add valid signals (see <signal.h>)...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  signals_out.sig_add (SIGINT);            // 2       /* interrupt */
-  signals_out.sig_add (SIGILL);            // 4       /* illegal instruction - invalid function image */
-  signals_out.sig_add (SIGFPE);            // 8       /* floating point exception */
-  //  signals_out.sig_add (SIGSEGV);           // 11      /* segment violation */
-  signals_out.sig_add (SIGTERM);           // 15      /* Software termination signal from kill */
-  if (allowUserRuntimeConnect_in)
-  {
-    signals_out.sig_add (SIGBREAK);        // 21      /* Ctrl-Break sequence */
-    ignoredSignals_out.sig_add (SIGBREAK); // 21      /* Ctrl-Break sequence */
-  } // end IF
-  signals_out.sig_add (SIGABRT);           // 22      /* abnormal termination triggered by abort call */
-  signals_out.sig_add (SIGABRT_COMPAT);    // 6       /* SIGABRT compatible with other platforms, same as SIGABRT */
-#else
-  result = signals_out.fill_set ();
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
-    return;
-  } // end IF
-#if defined (DEBUG_DEBUGGER)
-  signals_out.sig_del (SIGTRAP);           // 5       /* Trace trap (POSIX) */
-#endif
-  // *NOTE*: cannot handle some signals --> registration fails for these...
-  signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
-  signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
-  // ---------------------------------------------------------------------------
-  if (!allowUserRuntimeConnect_in)
-  {
-    signals_out.sig_del (SIGUSR1);         // 10      /* User-defined signal 1 */
-    ignoredSignals_out.sig_add (SIGUSR1);  // 10      /* User-defined signal 1 */
-  } // end IF
-  // *NOTE* core dump on SIGSEGV
-  signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
-  // *NOTE* don't care about SIGPIPE
-  signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-
-#ifdef ENABLE_VALGRIND_SUPPORT
-  // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
-  // if the application installs its own handler (see documentation)
-  if (RUNNING_ON_VALGRIND)
-    signals_out.sig_del (SIGRTMAX);        // 64
-#endif
-#endif
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -968,7 +774,6 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 #else
 bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
-                   bool hasUI_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
                    struct Stream_MediaFramework_FFMPEG_MediaType& outputFormat_out)
@@ -1073,43 +878,12 @@ do_work (const std::string& captureinterfaceIdentifier_in,
          unsigned int statisticReportingInterval_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Stream_CamSave_DirectShow_Configuration& directShowConfiguration_in,
-         struct Stream_CamSave_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
+         struct Stream_CamSave_MediaFoundation_Configuration& mediaFoundationConfiguration_in)
 #else
-         struct Stream_CamSave_Configuration& configuration_in,
+         struct Stream_CamSave_Configuration& configuration_in)
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
-         const std::string& UIDefinitionFilename_in,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-         struct Stream_CamSave_DirectShow_UI_CBData& directShowCBData_in,
-         struct Stream_CamSave_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
-#else
-         struct Stream_CamSave_V4L_UI_CBData& CBData_in,
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (WXWIDGETS_USE)
-         Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
-#endif // WXWIDGETS_USE
-         enum Stream_Visualization_VideoRenderer renderer_in,
-#endif // GUI_SUPPORT
-         const ACE_Sig_Set& signalSet_in,
-         const ACE_Sig_Set& ignoredSignalSet_in,
-         Common_SignalActions_t& previousSignalActions_inout,
-         Stream_CamSave_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
-
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-    Common_UI_GTK_State_t& state_r =
-        const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-    //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-    //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
-    state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
@@ -1138,15 +912,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 #else
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
-  Stream_CamSave_V4L_EventHandler_t ui_event_handler (
-#if defined (GUI_SUPPORT)
-                                                      &CBData_in
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
-                                                      ,iapplication_in
-#endif
-#endif // GUI_SUPPORT
-                                                     );
+  Stream_CamSave_V4L_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1222,11 +988,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier.identifier =
       captureinterfaceIdentifier_in;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  modulehandler_configuration.pixelBufferLock = &state_r.lock;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   modulehandler_configuration.outputFormat =
@@ -1239,9 +1000,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     modulehandler_configuration.statisticReportingInterval =
       statisticReportingInterval_in;
   } // end IF
-#if defined (GUI_SUPPORT)
   modulehandler_configuration.subscriber = &ui_event_handler;
-#endif // GUI_SUPPORT
   modulehandler_configuration.targetFileName = targetFilename_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1277,11 +1036,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       //      bufferSize_in;
       directShowConfiguration_in.streamConfiguration.configuration_.messageAllocator =
           &directshow_message_allocator;
-#if defined (GUI_SUPPORT)
       directShowConfiguration_in.streamConfiguration.configuration_.module =
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
-#endif // GUI_SUPPORT
       directShowConfiguration_in.streamConfiguration.configuration_.renderer =
         renderer_in;
 
@@ -1318,11 +1075,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       //      bufferSize_in;
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.messageAllocator =
           &mediafoundation_message_allocator;
-#if defined (GUI_SUPPORT)
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
           (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
                                              : NULL);
-#endif // GUI_SUPPORT
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
         renderer_in;
 
@@ -1359,11 +1114,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //      bufferSize_in;
   configuration_in.streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
-#if defined (GUI_SUPPORT)
   configuration_in.streamConfiguration.configuration_.module =
       (!UIDefinitionFilename_in.empty () ? &message_handler
                                          : NULL);
-#endif // GUI_SUPPORT
   configuration_in.streamConfiguration.configuration_.renderer =
     renderer_in;
 
@@ -1448,7 +1201,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   } // end SWITCH
 #else
   if (!do_initialize_v4l (captureinterfaceIdentifier_in,
-                          !UIDefinitionFilename_in.empty (), // has UI ?
                           modulehandler_configuration.deviceIdentifier,
                           configuration_in.streamConfiguration.configuration_.format,
                           modulehandler_configuration.outputFormat))
@@ -1477,133 +1229,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   ACE_ASSERT (v4l_stream_iterator != configuration_in.streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-  switch (renderer_in)
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-    {
-      Common_Image_Resolution_t resolution_s = 
-        Stream_MediaFramework_DirectShow_Tools::toResolution (directShowConfiguration_in.streamConfiguration.configuration_.format);
-      //struct _D3DDISPLAYMODE display_mode_s =
-      //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
-      //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
-      //                                                          resolution_s);
-      ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
-      directShowConfiguration_in.direct3DConfiguration.focusWindow =
-        GetConsoleWindow ();
-      directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-        resolution_s.cx;
-      directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-        resolution_s.cy;
-      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-      UINT reset_token = 0;
-      if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
-                                                              direct3D_manager_p,
-                                                              reset_token))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
-        return;
-      } // end IF
-      ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
-      ACE_ASSERT (direct3D_manager_p);
-      ACE_ASSERT (reset_token);
-      direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-      reset_token = 0;
-      break;
-    }
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-#else
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-#endif // ACE_WIN32 || ACE_WIN64
-      break;
-#if defined (GTK_USE)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-      break;
-#endif // GTK_USE
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown video renderer (was: %d), returning\n"),
-                  renderer_in));
-      return;
-    }
-  } // end SWITCH
-#endif // GUI_SUPPORT
-
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  int result = -1;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-
-  // step0e: initialize signal handling
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_in)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-#if defined (GUI_SUPPORT)
-      directShowConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
-      directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
-        &directshow_message_allocator;
-      signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-#if defined (GUI_SUPPORT)
-      mediaFoundationConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
-      mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
-        &mediafoundation_message_allocator;
-      signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
-      return;
-    }
-  } // end SWITCH
-#else
-#if defined (GUI_SUPPORT)
-  configuration_in.signalHandlerConfiguration.hasUI =
-    !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
-  configuration_in.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
-#endif // ACE_WIN32 || ACE_WIN64
-  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                        signalSet_in,
-                                        ignoredSignalSet_in,
-                                        &signalHandler_in,
-                                        previousSignalActions_inout))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
-    return;
-  } // end IF
 
   // intialize timers
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
@@ -1619,110 +1246,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
   // [- signal timer expiration to perform server queries] (see above)
 
-#if defined (GUI_SUPPORT)
-  // step1a: start UI event loop ?
-  if (!UIDefinitionFilename_in.empty ())
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (mediaFramework_in)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        directShowCBData_in.stream = &directshow_stream;
-#if defined (GTK_USE)
-        directShowCBData_in.UIState = &state_r;
-        directShowCBData_in.progressData.state = &state_r;
-#elif defined (WXWIDGETS_USE)
-        struct Common_UI_wxWidgets_State& state_r =
-          const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
-        state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-          std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        mediaFoundationCBData_in.stream = &mediafoundation_stream;
-#if defined (GTK_USE)
-        mediaFoundationCBData_in.UIState = &state_r;
-        mediaFoundationCBData_in.progressData.state = &state_r;
-#elif defined (WXWIDGETS_USE)
-        struct Common_UI_wxWidgets_State& state_r =
-          const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
-        state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-          std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    mediaFramework_in));
-        return;
-      }
-    } // end SWITCH
-#else
-    CBData_in.stream = &stream;
-#if defined (GTK_USE)
-    CBData_in.UIState = &state_r;
-    CBData_in.progressData.state = &state_r;
-//    CBData_in.pixelBufferLock = &state_r.lock;
-#elif defined (WXWIDGETS_USE)
-    struct Common_UI_wxWidgets_State& state_r =
-      const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
-    state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    HWND window_p = GetConsoleWindow ();
-    if (!window_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      goto clean;
-    } // end IF
-    BOOL was_visible_b = false;
-    if (!showConsole_in)
-      was_visible_b = ShowWindow (window_p, SW_HIDE);
-    ACE_UNUSED_ARG (was_visible_b);
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (GTK_USE)
-    ACE_ASSERT (gtk_manager_p);
-    ACE_thread_t thread_id = 0;
-    gtk_manager_p->start (thread_id);
-    ACE_UNUSED_ARG (thread_id);
-    ACE_Time_Value timeout (0,
-                            COMMON_UI_GTK_TIMEOUT_DEFAULT_MANAGER_INITIALIZATION * 1000);
-    result = ACE_OS::sleep (timeout);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                  &timeout));
-    if (!gtk_manager_p->isRunning ())
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
-      goto clean;
-    } // end IF
-    gtk_manager_p->wait ();
-#elif (WXWIDGETS_USE)
-    if (unlikely (!iapplication_in->run ()))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_UI_wxWidgets_IApplicationBase_T::run(), returning\n")));
-      goto clean;
-    } // end IF
-#endif
-  } // end IF
-  else
-  {
-    Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
-                                     CBData_in.configuration->GTKConfiguration.argv);
-#endif // GUI_SUPPORT
     Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (mediaFramework_in)
@@ -1777,30 +1300,16 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //      return;
 //    } // end IF
     stream_p->wait (true, false, false);
-#if defined (GUI_SUPPORT)
-  } // end ELSE
-#endif // GUI_SUPPORT
 
   // step3: clean up
 clean:
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  gtk_manager_p->stop (true);
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   timer_manager_p->stop ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
       do_finalize_directshow (directShowCBData_in.streamConfiguration);
-#elif defined (WXWIDGETS_USE)
-      do_finalize_directshow (stream_config_p);
-#endif
-#endif // GUI_SUPPORT
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
@@ -1827,9 +1336,9 @@ clean:
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 void
-do_testMethods (const std::string& deviceIdentifier_in)
+do_test_methods (const std::string& deviceIdentifier_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_testMethods"));
+  STREAM_TRACE (ACE_TEXT ("::do_test_methods"));
 
   enum v4l2_memory method_e = V4L2_MEMORY_MMAP;
 
@@ -1968,25 +1477,6 @@ ACE_TMAIN (int argc_in,
 
   // initialize framework(s)
   Common_Tools::initialize (false); // initialize random number generator ?
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
-  if (!Common_UI_WxWidgets_Tools::initialize (argc_in,
-                                              argv_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_UI_WxWidgets_Tools::initialize(), aborting\n")));
-
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2027,19 +1517,6 @@ ACE_TMAIN (int argc_in,
   capture_device_identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  std::string target_filename = path;
-  path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (GUI_SUPPORT)
-  std::string UI_definition_filename = path;
-  UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_filename +=
-    ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
-#endif // GUI_SUPPORT
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2049,40 +1526,28 @@ ACE_TMAIN (int argc_in,
     STREAM_VIS_RENDERER_VIDEO_DEFAULT;
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
-  unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
   enum Stream_Camsave_ProgramMode program_mode_e =
-      STREAM_CAMSAVE_PROGRAMMODE_NORMAL;
+      STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
   //bool run_stress_test = false;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  bool result_2 = false;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
   // step1b: parse/process/validate configuration
-  if (!do_processArguments (argc_in,
-                            argv_in,
-                            capture_device_identifier,
+  if (!do_process_arguments (argc_in,
+                             argv_in,
+                             capture_device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            show_console,
+                             show_console,
 #endif // ACE_WIN32 || ACE_WIN64
-                            target_filename,
-#if defined (GUI_SUPPORT)
-                            UI_definition_filename,
-#endif // GUI_SUPPORT
-                            log_to_file,
+                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            media_framework_e,
+                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
-                            display_device_s,
-                            video_renderer_e,
-                            statistic_reporting_interval,
-                            trace_information,
-                            program_mode_e))
+                             display_device_s,
+                             video_renderer_e,
+                             trace_information,
+                             program_mode_e))
   {
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE::basename (argv_in[0]));
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -2098,22 +1563,15 @@ ACE_TMAIN (int argc_in,
   //                   reactor/proactor thread could (dead)lock on the
   //                   allocator lock, as it cannot dispatch events that would
   //                   free slots
-  if (TEST_I_MAX_MESSAGES)
+  if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (
-#if defined (GUI_SUPPORT)
-      (!UI_definition_filename.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_filename))
-#else
-      false
-#endif // GUI_SUPPORT
-     )
+  if (false)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE::basename (argv_in[0]));
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
@@ -2125,23 +1583,6 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1d: initialize logging and/or tracing
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  Common_MessageStack_t* logstack_p = NULL;
-  ACE_SYNCH_MUTEX* lock_p = NULL;
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-  logstack_p = &state_r.logStack;
-  lock_p = &state_r.logStackLock;
-
-  Common_Logger_t logger (logstack_p,
-                          lock_p);
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -2152,16 +1593,7 @@ ACE_TMAIN (int argc_in,
                                             false,                                        // log to syslog ?
                                             false,                                        // trace messages ?
                                             trace_information,                            // debug messages ?
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                                            (UI_definition_filename.empty () ? NULL
-                                                                             : &logger))) // (ui) logger ?
-#elif defined (WXWIDGETS_USE)
                                             NULL))                                        // (ui) logger ?
-#endif // XXX_USE
-#else
-                                            NULL))                                        // (ui) logger ?
-#endif // GUI_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
@@ -2179,9 +1611,9 @@ ACE_TMAIN (int argc_in,
   // step1f: handle specific program modes
   switch (program_mode_e)
   {
-    case STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION:
+    case STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION:
     {
-      do_printVersion (ACE::basename (argv_in[0]));
+      do_print_version (ACE::basename (argv_in[0]));
 
       Common_Log_Tools::finalizeLogging ();
       // *PORTABILITY*: on Windows, finalize ACE...
@@ -2193,9 +1625,9 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS:
+    case STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS:
     {
-      do_testMethods (capture_device_identifier);
+      do_test_methods (capture_device_identifier);
 
       Common_Log_Tools::finalizeLogging ();
       // *PORTABILITY*: on Windows, finalize ACE...
@@ -2207,7 +1639,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
-    case STREAM_CAMSAVE_PROGRAMMODE_NORMAL:
+    case STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL:
       break;
     default:
     {
@@ -2231,396 +1663,6 @@ ACE_TMAIN (int argc_in,
                                           true);
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-  struct Stream_CamSave_UI_CBData* ui_cb_data_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_CamSave_DirectShow_Configuration directshow_configuration;
-  struct Stream_CamSave_DirectShow_UI_CBData directshow_ui_cb_data;
-  struct Stream_CamSave_MediaFoundation_Configuration mediafoundation_configuration;
-  struct Stream_CamSave_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
-  Stream_MediaFramework_Tools::initialize (media_framework_e);
-  switch (media_framework_e)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_ui_cb_data.configuration = &directshow_configuration;
-      directshow_ui_cb_data.mediaFramework = media_framework_e;
-      ui_cb_data_p = &directshow_ui_cb_data;
-
-      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-          idle_finalize_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-          idle_initialize_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
-
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
-      mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
-      ui_cb_data_p = &mediafoundation_ui_cb_data;
-
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-          idle_finalize_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-          idle_initialize_UI_cb;
-      mediafoundation_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
-
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                  media_framework_e));
-
-      Common_Log_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-      return EXIT_FAILURE;
-    }
-  } // end SWITCH
-#else
-  struct Stream_CamSave_Configuration configuration;
-  struct Stream_CamSave_V4L_UI_CBData ui_cb_data;
-  ui_cb_data.configuration = &configuration;
-  ui_cb_data_p = &ui_cb_data;
-
-  ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_UI_cb;
-  ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
-#endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (ui_cb_data_p);
-#endif // GUI_SUPPORT
-
-  // step1h: initialize UI framework
-#if defined (GUI_SUPPORT)
-  struct Common_UI_State* ui_state_p = NULL;
-#if defined (GTK_USE)
-  ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
-#elif defined (WXWIDGETS_USE)
-  Common_UI_wxWidgets_IApplicationBase_t* iapplication_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (media_framework_e)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      ACE_NEW_NORETURN (iapplication_p,
-                        Stream_CamSave_DirectShow_WxWidgetsApplication_t (toplevel_widget_name_string_,
-                                                                          argc_in,
-                                                                          Common_UI_WxWidgets_Tools::convertArgV (argc_in, argv_in),
-                                                                          COMMON_UI_WXWIDGETS_APP_CMDLINE_DEFAULT_PARSE));
-      Stream_CamSave_DirectShow_WxWidgetsApplication_t::IINITIALIZE_T* iinitialize_p =
-        dynamic_cast<Stream_CamSave_DirectShow_WxWidgetsApplication_t::IINITIALIZE_T*> (iapplication_p);
-      iinitialize_p->initialize (directshow_ui_cb_data);
-      Stream_CamSave_DirectShow_WxWidgetsIApplication_t* iapplication_2 =
-        dynamic_cast<Stream_CamSave_DirectShow_WxWidgetsIApplication_t*> (iapplication_p);
-      ACE_ASSERT (iapplication_2);
-      Stream_CamSave_DirectShow_WxWidgetsApplication_t::STATE_T& state_r =
-        const_cast<Stream_CamSave_DirectShow_WxWidgetsApplication_t::STATE_T&> (iapplication_2->getR ());
-      Stream_CamSave_DirectShow_WxWidgetsApplication_t::CONFIGURATION_T& configuration_r =
-        const_cast<Stream_CamSave_DirectShow_WxWidgetsApplication_t::CONFIGURATION_T&> (iapplication_2->getR_2 ());
-      configuration_r.UIState = &state_r;
-      ACE_ASSERT (configuration_r.UIState);
-      ui_state_p =
-        const_cast<Stream_CamSave_DirectShow_WxWidgetsApplication_t::CONFIGURATION_T&> (configuration_r).UIState;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      ACE_NEW_NORETURN (iapplication_p,
-                        Stream_CamSave_MediaFoundation_WxWidgetsApplication_t (toplevel_widget_name_string_,
-                                                                               argc_in,
-                                                                               Common_UI_WxWidgets_Tools::convertArgV (argc_in,
-                                                                                                                       argv_in),
-                                                                               COMMON_UI_WXWIDGETS_APP_CMDLINE_DEFAULT_PARSE));
-      Stream_CamSave_MediaFoundation_WxWidgetsApplication_t::IINITIALIZE_T* iinitialize_p =
-        dynamic_cast<Stream_CamSave_MediaFoundation_WxWidgetsApplication_t::IINITIALIZE_T*> (iapplication_p);
-      iinitialize_p->initialize (mediafoundation_ui_cb_data);
-      Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t* iapplication_2 =
-        dynamic_cast<Stream_CamSave_MediaFoundation_WxWidgetsIApplication_t*> (iapplication_p);
-      ACE_ASSERT (iapplication_2);
-      const Stream_CamSave_MediaFoundation_WxWidgetsApplication_t::CONFIGURATION_T& configuration_r =
-        iapplication_2->getR_2 ();
-      ACE_ASSERT (configuration_r.UIState);
-      ui_state_p =
-        const_cast<Stream_CamSave_MediaFoundation_WxWidgetsApplication_t::CONFIGURATION_T&> (configuration_r).UIState;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  media_framework_e));
-
-      Common_Log_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-      return EXIT_FAILURE;
-    }
-  } // end SWITCH
-#else
-//  // *WORKAROUND*: this prevents crashing the wxGTK3 application in Fedora 29
-//  GtkCssProvider* css_provider_p = gtk_css_provider_new ();
-//  if (!css_provider_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to gtk_css_provider_new(), returning\n")));
-
-//    Common_Log_Tools::finalizeLogging ();
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    // *PORTABILITY*: on Windows, finalize ACE...
-//    result = ACE::fini ();
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-//#endif // ACE_WIN32 || ACE_WIN64
-//    return EXIT_FAILURE;
-//  } // end IF
-//  GError* error_p = NULL;
-  std::string css_profile_path = Common_File_Tools::getWorkingDirectory ();
-  css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
-  css_profile_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
-  css_profile_path +=ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_UI_CSS_FILE);
-//  if (!gtk_css_provider_load_from_path (css_provider_p,
-//                                        css_profile_path.c_str (),
-//                                        &error_p))
-//  { ACE_ASSERT (error_p);
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gtk_css_provider_load_from_path(\"%s\"): \"%s\", returning\n"),
-//                ACE_TEXT (css_profile_path.c_str ()),
-//                ACE_TEXT (error_p->message)));
-//    g_error_free (error_p); error_p = NULL;
-
-//    Common_Log_Tools::finalizeLogging ();
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    // *PORTABILITY*: on Windows, finalize ACE...
-//    result = ACE::fini ();
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-//#endif // ACE_WIN32 || ACE_WIN64
-//    return EXIT_FAILURE;
-//  } // end IF
-//  GdkDisplay* display_p = gdk_display_open (ACE_TEXT_ALWAYS_CHAR (":0"));
-//  ACE_ASSERT (display_p);
-//  gdk_display_manager_set_default_display (gdk_display_manager_get (),
-//                                           display_p);
-//  GdkScreen* screen_p = gdk_screen_get_default ();
-//  ACE_ASSERT (screen_p);
-//  gtk_style_context_add_provider_for_screen (screen_p,
-//                                             GTK_STYLE_PROVIDER (css_provider_p),
-//                                             GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  ACE_NEW_NORETURN (iapplication_p,
-                    Stream_CamSave_V4L_WxWidgetsApplication_t (toplevel_widget_name_string_,
-                                                               argc_in,
-                                                               Common_UI_WxWidgets_Tools::convertArgV (argc_in,
-                                                                                                       argv_in),
-                                                               COMMON_UI_WXWIDGETS_APP_CMDLINE_DEFAULT_PARSE));
-  Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Stream_CamSave_V4L_WxWidgetsApplication_t::IINITIALIZE_T*> (iapplication_p);
-  // *NOTE*: this sets ui_cb_data.UIState
-  iinitialize_p->initialize (ui_cb_data);
-  Stream_CamSave_V4L_WxWidgetsIApplication_t* iapplication_2 =
-    dynamic_cast<Stream_CamSave_V4L_WxWidgetsIApplication_t*> (iapplication_p);
-  ACE_ASSERT (iapplication_2);
-  const Stream_CamSave_V4L_WxWidgetsApplication_t::CONFIGURATION_T& configuration_r =
-    iapplication_2->getR_2 ();
-  ACE_ASSERT (configuration_r.UIState);
-  ui_state_p =
-    const_cast<Stream_CamSave_V4L_WxWidgetsApplication_t::CONFIGURATION_T&> (configuration_r).UIState;
-#endif // ACE_WIN32 || ACE_WIN64
-  if (!iapplication_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: %m, aborting\n")));
-
-    Common_Log_Tools::finalizeLogging ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *PORTABILITY*: on Windows, finalize ACE...
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-#endif
-  ACE_ASSERT (ui_state_p);
-#endif // GUI_SUPPORT
-
-  // step1e: pre-initialize signal handling
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
-  do_initializeSignals ((statistic_reporting_interval == 0), // handle SIGUSR1/SIGBREAK
-                                                             // iff regular reporting
-                                                             // is off
-                        signal_set,
-                        ignored_signal_set);
-  Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
-  result = ACE_OS::sigemptyset (&previous_signal_mask);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-
-    Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-  if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR),
-                                           previous_signal_actions,
-                                           previous_signal_mask))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Signal_Tools::preInitialize(), aborting\n")));
-
-    Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  lock_2 = &state_r.subscribersLock;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  Stream_CamSave_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                               lock_2);
-
-  // step1g: set process resource limits
-  // *NOTE*: settings will be inherited by any child processes
-  if (!Common_Tools::setResourceLimits (false,  // file descriptors
-                                        true,   // stack traces
-                                        false)) // pending signals
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
-
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                   signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
-    Common_Log_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-    return EXIT_FAILURE;
-  } // end IF
-
-#if defined (GUI_SUPPORT)
-  if (!UI_definition_filename.empty ())
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (media_framework_e)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-#if defined (GTK_USE)
-        result_2 = gtk_manager_p->initialize (directshow_ui_cb_data.configuration->GTKConfiguration);
-#endif // GTK_USE
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-#if defined (GTK_USE)
-        result_2 =
-          gtk_manager_p->initialize (mediafoundation_ui_cb_data.configuration->GTKConfiguration);
-#endif // GTK_USE
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
-                    media_framework_e));
-
-        Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                       signal_set,
-                                       previous_signal_actions,
-                                       previous_signal_mask);
-        Common_Log_Tools::finalizeLogging ();
-        Common_Tools::finalize ();
-        // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        result = ACE::fini ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-        return EXIT_FAILURE;
-      }
-    } // end SWITCH
-#else
-#if defined (GTK_USE)
-    result_2 =
-        gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
-#endif // GTK_USE
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_USE)
-    if (!result_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
-
-      Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                     signal_set,
-                                     previous_signal_actions,
-                                     previous_signal_mask);
-      Common_Log_Tools::finalizeLogging ();
-      Common_Tools::finalize ();
-      // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
-      return EXIT_FAILURE;
-    } // end IF
-#endif // GTK_USE
-  } // end IF
-#endif // GUI_SUPPORT
-
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
@@ -2628,35 +1670,16 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #endif // ACE_WIN32 || ACE_WIN64
-           target_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
            display_device_s,
-           statistic_reporting_interval,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
-           mediafoundation_configuration,
+           mediafoundation_configuration)
 #else
-           configuration,
+           configuration)
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
-           UI_definition_filename,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-           directshow_ui_cb_data,
-           mediafoundation_ui_cb_data,
-#else
-           ui_cb_data,
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (WXWIDGETS_USE)
-           iapplication_p,
-#endif // WXWIDGETS_USE
-           video_renderer_e,
-#endif // GUI_SUPPORT
-           signal_set,
-           ignored_signal_set,
-           previous_signal_actions,
-           signal_handler);
   timer.stop ();
 
   // debug info

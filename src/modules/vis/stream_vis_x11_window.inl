@@ -168,36 +168,25 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
+  ACE_ASSERT (!session_data_r.formats.empty ());
   const MediaType& media_type_r = session_data_r.formats.front ();
   enum AVPixelFormat pixel_format_e = getFormat (media_type_r);
   Common_Image_Resolution_t resolution_s = getResolution (media_type_r);
-  Common_Image_Resolution_t resolution_2 =
-      Stream_MediaFramework_Tools::toResolution (*display_,
-                                                 window_);
-  unsigned int row_stride_i = 0;
-//  bool release_lock = false;
-  bool refresh_b = true;
-  Status result_2 = -1;
-  XImage* image_p = NULL;
-#if defined (_DEBUG)
-  int result = -1;
-  int line_sizes_a[AV_NUM_DATA_POINTERS];
-  uint8_t* data_a[AV_NUM_DATA_POINTERS];
-  ACE_OS::memset (&line_sizes_a, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
-  ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  std::string filename_string = Common_File_Tools::getTempDirectory ();
-  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
-  filename_string += ACE_TEXT_ALWAYS_CHAR ("output.png");
-#endif // _DEBUG
+//  unsigned int row_stride_i = av_image_get_linesize (pixel_format_e,
+//                                                     resolution_s.width,
+//                                                     0);
 
   // sanity check(s)
   ACE_ASSERT (pixel_format_e == AV_PIX_FMT_RGB32);
+  Common_Image_Resolution_t resolution_2 =
+      Stream_MediaFramework_Tools::toResolution (*display_,
+                                                 window_);
   ACE_ASSERT ((resolution_s.width == resolution_2.width) && (resolution_s.height == resolution_2.height));
 
-  row_stride_i =
-      av_image_get_linesize (pixel_format_e,
-                             resolution_s.width,
-                             0);
+  //  bool release_lock = false;
+    bool refresh_b = true;
+    Status result_2 = -1;
+    XImage* image_p = NULL;
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a
@@ -210,25 +199,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   }
-
-//#if defined (_DEBUG)
-//  result =
-//      av_image_fill_linesizes (line_sizes_a,
-//                               AV_PIX_FMT_RGB32,
-//                               static_cast<int> (resolution_s.width));
-//  ACE_ASSERT (result >= 0);
-//  result =
-//      av_image_fill_pointers (data_a,
-//                              AV_PIX_FMT_RGB32,
-//                              static_cast<int> (resolution_s.height),
-//                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-//                              line_sizes_a);
-//  ACE_ASSERT (result >= 0);
-//  Common_Image_Tools::savePNG (resolution_s,
-//                               AV_PIX_FMT_RGB32,
-//                               data_a,
-//                               filename_string);
-//#endif // _DEBUG
 
   image_p =
       XCreateImage (display_,
@@ -615,6 +585,13 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //      return false;
 //    } // end IF
   } // end ELSE
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: display %@ (window: %d, depth: %d)\n"),
+                inherited::mod_->name (),
+                display_, window_,
+                DefaultDepth (display_, DefaultScreen (display_))));
+#endif // _DEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

@@ -138,7 +138,6 @@ class Stream_Visualization_ImageMagickResize1_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T (const Stream_Visualization_ImageMagickResize1_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T& operator= (const Stream_Visualization_ImageMagickResize1_T&))
 
-  size_t     frameSize_;
   PixelWand* pixelContext_;
 };
 
