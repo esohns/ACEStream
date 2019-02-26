@@ -34,6 +34,8 @@
 
 #include "stream_dev_tools.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 int libacestream_vis_x11_error_handler_cb (Display*, XErrorEvent*);
 int libacestream_vis_x11_io_error_handler_cb (Display*);
 
@@ -63,6 +65,12 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
  , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -76,6 +84,12 @@ class Stream_Module_Vis_X11_Window_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T*); // stream handle
@@ -98,20 +112,14 @@ class Stream_Module_Vis_X11_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
 
-  // helper methods
-  inline enum AVPixelFormat getFormat (const MediaType& mediaType_in) { return getFormat_impl (mediaType_in); }
-  inline Common_Image_Resolution_t getResolution (const MediaType& mediaType_in) { return getResolution_impl (mediaType_in); }
-  inline enum AVPixelFormat getFormat_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return Stream_Device_Tools::v4l2FormatToffmpegFormat (mediaType_in.format.pixelformat); }
-  inline Common_Image_Resolution_t getResolution_impl (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_Image_Resolution_t return_value; return_value.width = mediaType_in.format.width; return_value.height = mediaType_in.format.height; return return_value; }
-
 //  uint8_t*           buffer_;
-  bool               closeDisplay_;
-  bool               closeWindow_;
+  bool              closeDisplay_;
+  bool              closeWindow_;
 //  GC                 context_;
-  struct _XDisplay*  display_;
-  bool               isFirst_;
-  Pixmap             pixmap_;
-  Window             window_;
+  struct _XDisplay* display_;
+  bool              isFirst_;
+  XID               pixmap_;
+  XID               window_;
 };
 
 // include template definition

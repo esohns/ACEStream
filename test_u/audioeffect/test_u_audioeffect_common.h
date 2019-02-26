@@ -92,7 +92,7 @@ extern "C"
 #if defined (GTK_USE)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_gl_common.h"
-#include "common_ui_gtk_manager.h"
+//#include "common_ui_gtk_manager.h"
 #include "common_ui_gtk_manager_common.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT

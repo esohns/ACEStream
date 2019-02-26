@@ -216,7 +216,7 @@ class Stream_CameraScreen_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CameraScreen_StreamState,
-                        struct Stream_CameraScreen_StreamConfiguration,
+                        struct Stream_CameraScreen_V4L_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -234,7 +234,7 @@ class Stream_CameraScreen_Stream
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CameraScreen_StreamState,
-                        struct Stream_CameraScreen_StreamConfiguration,
+                        struct Stream_CameraScreen_V4L_StreamConfiguration,
                         struct Stream_CameraScreen_StatisticData,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
@@ -263,7 +263,8 @@ class Stream_CameraScreen_Stream
   // modules
   Stream_CameraScreen_V4L_Source_Module      source_;
   Stream_CameraScreen_StatisticReport_Module statisticReport_;
-  Stream_CameraScreen_LibAVResize_Module     resizer_; // --> window size/fullscreen
+  Stream_CameraScreen_LibAVConvert_Module    convert_; // --> BGRA (Xlib)
+  Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
   Stream_CameraScreen_Display_Module         display_;
   Stream_CameraScreen_Display_2_Module       display_2_;
 };

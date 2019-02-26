@@ -112,6 +112,11 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
+            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_X11)
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   std::string capture_device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -247,7 +252,7 @@ do_process_arguments (int argc_in,
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
-  renderer_out = STREAM_VIS_RENDERER_VIDEO_DEFAULT;
+  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
   traceInformation_out = false;
   mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
 
@@ -256,7 +261,7 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("3cd:lmo:tvx"),
 #else
-                              ACE_TEXT ("d:lo:tvx"),
+                              ACE_TEXT ("1d:lo:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -286,6 +291,11 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case '1':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+        break;
+      }
       case 'd':
       {
         captureinterfaceIdentifier_out =
@@ -317,12 +327,12 @@ do_process_arguments (int argc_in,
       }
       case 'v':
       {
-        mode_out = STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION;
+        mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION;
         break;
       }
       case 'x':
       {
-        mode_out = STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS;
+        mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS;
         break;
       }
       //case 'y':
@@ -816,19 +826,39 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
               captureFormat_out.format.width, captureFormat_out.format.height,
               captureFormat_out.frameRate.numerator, captureFormat_out.frameRate.denominator));
 #endif // _DEBUG
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s =
+      Stream_Device_Tools::convert (captureFormat_out);
+  if (!Stream_Module_Decoder_Tools::isRGB (media_type_s.format))
+  {
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("\"%s\" (%d): setting RGB24 capture format\n"),
+              ACE_TEXT (deviceIdentifier_in.c_str ()), deviceIdentifier_out.fileDescriptor));
+#endif // _DEBUG
+    struct v4l2_pix_format format_s =
+        Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+                                                    V4L2_PIX_FMT_RGB24,
+                                                    media_type_s.resolution,
+                                                    captureFormat_out.frameRate);
+    ACE_ASSERT (format_s.pixelformat == V4L2_PIX_FMT_RGB24);
+    if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
+                                         format_s))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_Tools::setFormat(), aborting\n")));
+      return false;
+    } // end IF
+    captureFormat_out.format = format_s;
+    media_type_s.format = AV_PIX_FMT_RGB24;
+  } // end IF
+
   // *NOTE*: Gtk 2 expects RGB24
   // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
   //         alpha in the upper 8 bits, then red, then green, then blue. The
   //         32-bit quantities are stored native-endian. ..."
-  // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
-  //         ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGB24;
-  outputFormat_out.frameRate.num =
-      static_cast<int> (captureFormat_out.frameRate.numerator);
-  outputFormat_out.frameRate.den =
-      static_cast<int> (captureFormat_out.frameRate.denominator);
-  outputFormat_out.resolution.height = captureFormat_out.format.height;
-  outputFormat_out.resolution.width = captureFormat_out.format.width;
+  // *TODO*: auto-determine color depth of selected (default) screen (i.e.
+  //         'Display' ":0")
+  outputFormat_out = media_type_s;
 
   return true;
 
@@ -870,56 +900,55 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         const std::string& targetFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const struct Common_UI_DisplayDevice& displayDevice_in,
-         unsigned int statisticReportingInterval_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         struct Stream_CamSave_DirectShow_Configuration& directShowConfiguration_in,
-         struct Stream_CamSave_MediaFoundation_Configuration& mediaFoundationConfiguration_in)
+         struct Stream_CameraScreen_DirectShow_Configuration& directShowConfiguration_in,
+         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
 #else
-         struct Stream_CamSave_Configuration& configuration_in)
+         struct Stream_CameraScreen_Configuration& configuration_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         enum Stream_Visualization_VideoRenderer renderer_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
 #if defined (GUI_SUPPORT)
-  Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
+  Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
 #if defined (GTK_USE)
                                                                        );
 #elif defined (WXWIDGETS_USE)
                                                                         ,iapplication_in);
 #endif
 #else
-  Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler;
+  Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
 #endif // GUI_SUPPORT
-  struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
 #if defined (GUI_SUPPORT)
-  Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
+  Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
 #if defined (GTK_USE)
                                                                                  );
 #elif defined (WXWIDGETS_USE)
                                                                                   ,iapplication_in);
 #endif
 #else
-  Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
+  Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
 #endif // GUI_SUPPORT
 #else
-  struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
-  Stream_CamSave_V4L_EventHandler_t ui_event_handler;
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  Stream_CameraScreen_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
-  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
+  Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_CameraScreen_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
+  Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator_2;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -980,8 +1009,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
+  Stream_CameraScreen_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
+  Stream_CameraScreen_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
   modulehandler_configuration.allocatorConfiguration =
     &configuration_in.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.buffers =
@@ -992,33 +1021,24 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   modulehandler_configuration.outputFormat =
       Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
-
-  if (statisticReportingInterval_in)
-  {
-    modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                 STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-    modulehandler_configuration.statisticReportingInterval =
-      statisticReportingInterval_in;
-  } // end IF
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.targetFileName = targetFilename_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Stream_CameraScreen_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
                                                                              true);               // block ?
-  Stream_CamSave_DirectShow_Stream directshow_stream;
-  Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
+  Stream_CameraScreen_DirectShow_Stream directshow_stream;
+  Stream_CameraScreen_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Stream_CameraScreen_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
-  Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
-  Stream_CamSave_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
+  Stream_CameraScreen_MediaFoundation_Stream mediafoundation_stream;
+  Stream_CameraScreen_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
                                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
@@ -1102,21 +1122,16 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Stream_CamSave_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,     // heap allocator handle
-                                                           true);               // block ?
-  Stream_CamSave_V4L_Stream stream;
-  Stream_CamSave_MessageHandler_Module message_handler (&stream,
-                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_CameraScreen_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                                            &heap_allocator,     // heap allocator handle
+                                                            true);               // block ?
+  Stream_CameraScreen_Stream stream;
+  Stream_CameraScreen_MessageHandler_Module message_handler (&stream,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  //if (bufferSize_in)
-  //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-  //      bufferSize_in;
   configuration_in.streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
-  configuration_in.streamConfiguration.configuration_.module =
-      (!UIDefinitionFilename_in.empty () ? &message_handler
-                                         : NULL);
+  configuration_in.streamConfiguration.configuration_.module = &message_handler;
   configuration_in.streamConfiguration.configuration_.renderer =
     renderer_in;
 
@@ -1210,18 +1225,17 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     return;
   } // end IF
 
+//  modulehandler_configuration.display = displayDevice_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    configuration_in.streamConfiguration.allocatorConfiguration_,
                                                    configuration_in.streamConfiguration.configuration_);
-  modulehandler_configuration.display = displayDevice_in;
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
-                                                               std::make_pair (module_configuration,
-                                                                               modulehandler_configuration)));
-  // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
-  //         content (see also avienc.c:448)
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB24;
-  configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
+  // *IMPORTANT NOTE*: i have not found a way to feed RGB24 data to Xlib;
+  //                   XCreateImage() only 'likes' 32-bit data, regardless of
+  //                   what 'depth' values are set (in fact, it requires BGRA on
+  //                   little-endian platforms) --> convert
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
   v4l_stream_iterator =
@@ -1246,52 +1260,52 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
   // [- signal timer expiration to perform server queries] (see above)
 
-    Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    switch (mediaFramework_in)
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
-        if (!directshow_stream.initialize (directShowConfiguration_in.streamConfiguration))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize stream, returning\n")));
-          goto clean;
-        } // end IF
-        stream_p = &directshow_stream;
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize stream, returning\n")));
-          goto clean;
-        } // end IF
-        stream_p = &mediafoundation_stream;
-        break;
-      }
-      default:
+      if (!directshow_stream.initialize (directShowConfiguration_in.streamConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                    mediaFramework_in));
-        return;
-      }
-    } // end SWITCH
-#else
-    if (!stream.initialize (configuration_in.streamConfiguration))
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean;
+      } // end IF
+      stream_p = &directshow_stream;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, returning\n")));
+        goto clean;
+      } // end IF
+      stream_p = &mediafoundation_stream;
+      break;
+    }
+    default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream, returning\n")));
-      goto clean;
-    } // end IF
-    stream_p = &stream;
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    }
+  } // end SWITCH
+#else
+  if (!stream.initialize (configuration_in.streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, returning\n")));
+    goto clean;
+  } // end IF
+  stream_p = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
-    ACE_ASSERT (stream_p);
+  ACE_ASSERT (stream_p);
     // *NOTE*: this will block until the file has been copied...
-    stream_p->start ();
+  stream_p->start ();
 //    if (!stream_p->isRunning ())
 //    {
 //      ACE_DEBUG ((LM_ERROR,
@@ -1299,7 +1313,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //      //timer_manager_p->stop ();
 //      return;
 //    } // end IF
-    stream_p->wait (true, false, false);
+  stream_p->wait (true, false, false);
 
   // step3: clean up
 clean:
@@ -1313,7 +1327,7 @@ clean:
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
+      Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
       mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
       do_finalize_mediafoundation ((*iterator).second.second.session);
@@ -1333,7 +1347,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 void
 do_test_methods (const std::string& deviceIdentifier_in)
@@ -1453,7 +1467,9 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE...
@@ -1482,7 +1498,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1a set defaults
-  //unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
+  //unsigned int buffer_size = TEST_U_Stream_CameraScreen_DEFAULT_BUFFER_SIZE;
   std::string capture_device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -1523,11 +1539,11 @@ ACE_TMAIN (int argc_in,
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   enum Stream_Visualization_VideoRenderer video_renderer_e =
-    STREAM_VIS_RENDERER_VIDEO_DEFAULT;
+    STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
-  enum Stream_Camsave_ProgramMode program_mode_e =
+  enum Stream_CameraScreen_ProgramMode program_mode_e =
       STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
   //bool run_stress_test = false;
 
@@ -1661,7 +1677,15 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Visualization_Tools::initialize (STREAM_VIS_FRAMEWORK_DEFAULT,
                                           true);
+
+  struct Stream_CameraScreen_DirectShow_Configuration directshow_configuration;
+  struct Stream_CameraScreen_MediaFoundation_Configuration mediafoundation_configuration;
+#else
+  struct Stream_CameraScreen_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
+
+  if (video_renderer_e == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+    Common_UI_GTK_Tools::initialize (argc_in, argv_in);
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1676,10 +1700,11 @@ ACE_TMAIN (int argc_in,
            display_device_s,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
-           mediafoundation_configuration)
+           mediafoundation_configuration,
 #else
-           configuration)
+           configuration,
 #endif // ACE_WIN32 || ACE_WIN64
+           video_renderer_e);
   timer.stop ();
 
   // debug info
@@ -1705,10 +1730,6 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                   signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
     Common_Log_Tools::finalizeLogging ();
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1762,10 +1783,6 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-                                 signal_set,
-                                 previous_signal_actions,
-                                 previous_signal_mask);
   Common_Log_Tools::finalizeLogging ();
 
   // *PORTABILITY*: on Windows, finalize ACE...

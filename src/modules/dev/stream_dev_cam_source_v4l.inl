@@ -193,7 +193,10 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       int toggle = 1;
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
 
-      // step1: set capture format
+      if (isPassive_)
+        goto next;
+
+      // step1: set capture format ?
       ACE_ASSERT (captureFileDescriptor_ != -1);
       ACE_ASSERT (!session_data_r.formats.empty ());
       media_type_s = getMediaType (session_data_r.formats.back ());
@@ -218,6 +221,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
+next:
       // step2: set buffering method
       if (unlikely (!Stream_Device_Tools::initializeCapture (captureFileDescriptor_,
                                                              inherited::configuration_->method,
@@ -234,7 +238,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         struct v4l2_window window_s;
         ACE_OS::memset (&window_s, 0, sizeof (struct v4l2_window));
     //    window_s.bitmap = configuration_in.window;
-        window_s.w = inherited::configuration_->area;
+//        window_s.w = inherited::configuration_->area;
         if (!Stream_Device_Tools::initializeOverlay (overlayFileDescriptor_,
                                                      window_s))
         {
@@ -542,7 +546,16 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   captureFileDescriptor_ = configuration_in.deviceIdentifier.fileDescriptor;
   if (unlikely (captureFileDescriptor_ != -1))
+  {
     isPassive_ = true;
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: passive mode: using v4l2 device \"%s\" (fd: %d)\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.deviceIdentifier.identifier.c_str ()),
+                captureFileDescriptor_));
+#endif // _DEBUG
+  } // end IF
   else
   {
     // *TODO*: remove type inference

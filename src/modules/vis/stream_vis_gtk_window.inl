@@ -46,6 +46,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
+ , mainLoop_ (NULL)
  , window_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::Stream_Module_Vis_GTK_Window_T"));
@@ -335,4 +336,6 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (mainLoop_);
 
   g_main_run (mainLoop_);
+
+  return 0;
 }

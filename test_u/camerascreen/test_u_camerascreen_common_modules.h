@@ -35,7 +35,7 @@
 #include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
-//#include "stream_dec_libav_converter.h"
+#include "stream_dec_libav_converter.h"
 //#include "stream_dec_libav_decoder.h"
 
 #include "stream_dev_cam_source_v4l.h"
@@ -103,6 +103,15 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Stream_CameraScreen_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Stream_CameraScreen_V4L_Source;
+
+typedef Stream_Decoder_LibAVConverter_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
+                                        Stream_ControlMessage_t,
+                                        Stream_CameraScreen_Message_t,
+                                        Stream_CameraScreen_SessionMessage_t,
+                                        Stream_CameraScreen_V4L_SessionData_t,
+                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVConvert;
 
 typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
                                            Common_TimePolicy_t,
@@ -185,7 +194,6 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_CameraScreen_V4L_SessionData_t> Stream_CameraScreen_Statistic_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
@@ -259,27 +267,6 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CameraScreen_MediaFoundation_SessionMessage_t,
                                             Stream_CameraScreen_MediaFoundation_SessionData,
                                             Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_MediaFoundationDisplayNull;
-
-#if defined (GTK_USE)
-typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_CameraScreen_DirectShow_Message_t,
-                                      Stream_CameraScreen_DirectShow_SessionMessage_t,
-                                      Stream_CameraScreen_DirectShow_SessionData,
-                                      Stream_CameraScreen_DirectShow_SessionData_t,
-                                      struct _AMMediaType> Stream_CameraScreen_DirectShow_GTKCairoDisplay;
-typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_CameraScreen_MediaFoundation_Message_t,
-                                      Stream_CameraScreen_MediaFoundation_SessionMessage_t,
-                                      Stream_CameraScreen_MediaFoundation_SessionData,
-                                      Stream_CameraScreen_MediaFoundation_SessionData_t,
-                                      IMFMediaType*> Stream_CameraScreen_MediaFoundation_GTKCairoDisplay;
-#endif // GTK_USE
 #else
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -296,6 +283,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_CameraScreen_SessionMessage_t,
                                        Stream_CameraScreen_V4L_SessionData_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_Display;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -352,6 +340,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,              
                               libacestream_default_dev_cam_source_v4l_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_V4L_Source);                       // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_converter_module_name_string,
+                              Stream_INotify_t,                                 // stream notification interface type
+                              Stream_CameraScreen_LibAVConvert);                      // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

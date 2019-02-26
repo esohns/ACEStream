@@ -68,6 +68,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 // , context_ ()
  , display_ (NULL)
  , isFirst_ (true)
+ , pixmap_ (0)
  , window_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::Stream_Module_Vis_X11_Window_T"));
@@ -166,22 +167,23 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (window_);
   ACE_ASSERT (pixmap_);
 
+  // sanity check(s)
   const typename SessionDataContainerType::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
   ACE_ASSERT (!session_data_r.formats.empty ());
   const MediaType& media_type_r = session_data_r.formats.front ();
-  enum AVPixelFormat pixel_format_e = getFormat (media_type_r);
-  Common_Image_Resolution_t resolution_s = getResolution (media_type_r);
-//  unsigned int row_stride_i = av_image_get_linesize (pixel_format_e,
-//                                                     resolution_s.width,
-//                                                     0);
-
-  // sanity check(s)
-  ACE_ASSERT (pixel_format_e == AV_PIX_FMT_RGB32);
-  Common_Image_Resolution_t resolution_2 =
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+  inherited2::getMediaType (media_type_r,
+                            media_type_2);
+  Common_Image_Resolution_t resolution_s =
       Stream_MediaFramework_Tools::toResolution (*display_,
                                                  window_);
-  ACE_ASSERT ((resolution_s.width == resolution_2.width) && (resolution_s.height == resolution_2.height));
+  int row_size_i =
+      av_image_get_linesize (media_type_2.format,
+                             media_type_2.resolution.width,
+                             0);
+  ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
+  ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
 
   //  bool release_lock = false;
     bool refresh_b = true;
@@ -203,14 +205,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   image_p =
       XCreateImage (display_,
                     DefaultVisual (display_, DefaultScreen (display_)),
-                    32,
+//                    32,
+                    DefaultDepth (display_, DefaultScreen (display_)),
                     ZPixmap,
                     0,
                     reinterpret_cast<char*> (message_inout->rd_ptr ()),
                     resolution_s.width, resolution_s.height,
                     32,
                     0);
-//                    row_stride_i);
+//                    row_size_i);
   if (unlikely (!image_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -234,7 +237,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                         DefaultGC (display_, DefaultScreen (display_)),
                         image_p,
                         0, 0, 0, 0,
-                        resolution_2.width, resolution_2.height);
+                        resolution_s.width, resolution_s.height);
 //  if (unlikely (result_2 != True))
 //  {
 //    ACE_DEBUG ((LM_ERROR,
@@ -324,18 +327,25 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       ACE_ASSERT (window_);
       const typename SessionDataContainerType::DATA_T& session_data_r =
           inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.front ();
+      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+      inherited2::getMediaType (media_type_r,
+                                media_type_2);
       Common_Image_Resolution_t resolution_s =
           Stream_MediaFramework_Tools::toResolution (*display_,
                                                      window_);
+      int row_size_i =
+          av_image_get_linesize (media_type_2.format,
+                                 media_type_2.resolution.width,
+                                 0);
       int depth_i =
-          av_image_get_linesize (getFormat (media_type_r),
-                                 resolution_s.width,
-                                 0) / resolution_s.width * 8;
+          (row_size_i / media_type_2.resolution.width) * 8;
       XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
                                                              window_);
       // *NOTE*: otherwise there will be 'BadMatch' errors
-      ACE_ASSERT (depth_i == attributes_s.depth);
+      ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
+//      ACE_ASSERT (depth_i == attributes_s.depth);
 
       // sanity check(s)
       ACE_ASSERT (!pixmap_);
@@ -343,7 +353,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       pixmap_ = XCreatePixmap (display_,
                                window_,
                                resolution_s.width, resolution_s.height,
-                               depth_i);
+                               attributes_s.depth);
       if (unlikely (!pixmap_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -351,7 +361,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     display_, window_,
                     resolution_s.width, resolution_s.height,
-                    depth_i));
+                    attributes_s.depth));
         goto error;
       } // end IF
 #if defined (_DEBUG)
@@ -359,7 +369,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
                   inherited::mod_->name (),
                   resolution_s.width, resolution_s.height,
-                  depth_i));
+                  attributes_s.depth));
 #endif // _DEBUG
 
       break;
@@ -477,8 +487,16 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
-  if (configuration_in.X11Display)
-    display_ = configuration_in.X11Display;
+  if (configuration_in.display_2.display)
+  {
+    display_ = configuration_in.display_2.display;
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: passive mode (display: %@, default depth: %d)\n"),
+                inherited::mod_->name (),
+                display_, DefaultDepth (display_, DefaultScreen (display_))));
+#endif // _DEBUG
+  } // end IF
   else
   {
     ACE_TCHAR* display_p =
@@ -496,9 +514,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     } // end IF
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: opened X11 connection (display: \"%s\")\n"),
+                ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
                 inherited::mod_->name (),
-                display_p));
+                display_p,
+                display_, DefaultDepth (display_, DefaultScreen (display_))));
 #endif // _DEBUG
     closeDisplay_ = true;
   } // end ELSE
@@ -508,7 +527,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
   if (configuration_in.window)
+  {
     window_ = configuration_in.window;
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: passive mode (display: %@, window: %u)\n"),
+                inherited::mod_->name (),
+                display_, window_));
+#endif // _DEBUG
+  } // end IF
   else
   {
     XSetWindowAttributes attributes_a;
@@ -522,9 +549,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
         XCreateWindow (display_,
                        XRootWindow (display_, DefaultScreen (display_)),
                        0, 0,
-                       COMMON_UI_WINDOW_DEFAULT_WIDTH, COMMON_UI_WINDOW_DEFAULT_HEIGHT,
+                       configuration_in.outputFormat.resolution.width, configuration_in.outputFormat.resolution.height,
                        0,
                        DefaultDepth (display_, DefaultScreen (display_)),
+//                       32,
                        InputOutput,
                        DefaultVisual (display_, DefaultScreen (display_)),
                        CWBackPixel | CWBorderPixel | CWOverrideRedirect,
@@ -539,7 +567,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     } // end IF
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: created X11 window (display: 0x%@, id: %u)\n"),
+                ACE_TEXT ("%s: created X11 window (display: %@, id: %u)\n"),
                 inherited::mod_->name (),
                 display_,
                 window_));
@@ -548,11 +576,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //    XSelectInput (display_,
 //                  window_,
 //                  (ExposureMask | ButtonPressMask | KeyPressMask));
-    int result = XMapWindow (display_, window_);
-    if (unlikely (result))
+    int result = XMapRaised (display_, window_);
+    if (unlikely (!result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to XMapWindow(0x%@,%u): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to XMapRaised(%@,%u): \"%m\", aborting\n"),
                   inherited::mod_->name (),
                   display_, window_));
       return false;
@@ -590,6 +618,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: display %@ (window: %d, depth: %d)\n"),
                 inherited::mod_->name (),
                 display_, window_,
+//                32));
                 DefaultDepth (display_, DefaultScreen (display_))));
 #endif // _DEBUG
 

@@ -89,7 +89,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaTypeConverter_T (const Stream_MediaFramework_MediaTypeConverter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaTypeConverter_T& operator= (const Stream_MediaFramework_MediaTypeConverter_T&))
 
-  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
+//  inline void setFormat_impl (enum AVPixelFormat format_in, enum AVPixelFormat& mediaType_inout) { mediaType_inout = format_in; }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  void setFormat_impl (enum AVPixelFormat, struct _AMMediaType*&);
 //  void setFormat_impl (enum AVPixelFormat, IMFMediaType*&);

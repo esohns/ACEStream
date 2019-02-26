@@ -88,22 +88,8 @@ struct ISampleGrabber;
 class Stream_IAllocator;
 template <typename NotificationType,
           typename DataMessageType,
-#if defined (GUI_SUPPORT)
-          typename UIStateType,
-#if defined (WXWIDGETS_USE)
-          typename InterfaceType, // implements Common_UI_wxWidgets_IApplicationBase_T
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
           typename SessionMessageType>
 class Stream_CameraScreen_EventHandler_T;
-#if defined (GUI_SUPPORT)
-#if defined (WXWIDGETS_USE)
-template <typename WidgetBaseClassType,
-          typename InterfaceType,
-          typename StreamType>
-class Stream_CameraScreen_WxWidgetsDialog_T;
-#endif // WXWIDGETS_USE
-#endif // GUI_SUPPORT
 
 enum Stream_CameraScreen_ProgramMode
 {
@@ -180,7 +166,7 @@ struct Stream_CameraScreen_StatisticData
   unsigned int capturedFrames;
 #endif // ACE_WIN32 || ACE_WIN64
 };
-typedef Common_StatisticHandler_T<struct Stream_CameraScreen_StatisticData> Test_U_StatisticHandler_t;
+typedef Common_StatisticHandler_T<struct Stream_CameraScreen_StatisticData> Stream_CameraScreen_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CameraScreen_DirectShow_StreamState;
@@ -189,7 +175,7 @@ class Stream_CameraScreen_DirectShow_SessionData
                                         struct _AMMediaType,
                                         struct Stream_CameraScreen_DirectShow_StreamState,
                                         struct Stream_CameraScreen_StatisticData,
-                                        struct Stream_CameraScreen_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CameraScreen_DirectShow_SessionData ()
@@ -197,7 +183,7 @@ class Stream_CameraScreen_DirectShow_SessionData
                                    struct _AMMediaType,
                                    struct Stream_CameraScreen_DirectShow_StreamState,
                                    struct Stream_CameraScreen_StatisticData,
-                                   struct Stream_CameraScreen_UserData> ()
+                                   struct Stream_UserData> ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , resetToken (0)
@@ -210,7 +196,7 @@ class Stream_CameraScreen_DirectShow_SessionData
                                   struct _AMMediaType,
                                   struct Stream_CameraScreen_DirectShow_StreamState,
                                   struct Stream_CameraScreen_StatisticData,
-                                  struct Stream_CameraScreen_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
     direct3DManagerResetToken =
@@ -241,7 +227,7 @@ class Stream_CameraScreen_MediaFoundation_SessionData
                                         IMFMediaType*,
                                         struct Stream_CameraScreen_MediaFoundation_StreamState,
                                         struct Stream_CameraScreen_StatisticData,
-                                        struct Stream_CameraScreen_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CameraScreen_MediaFoundation_SessionData ()
@@ -249,7 +235,7 @@ class Stream_CameraScreen_MediaFoundation_SessionData
                                    IMFMediaType*,
                                    struct Stream_CameraScreen_MediaFoundation_StreamState,
                                    struct Stream_CameraScreen_StatisticData,
-                                   struct Stream_CameraScreen_UserData> ()
+                                   struct Stream_UserData> ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , rendererNodeId (0)
@@ -264,7 +250,7 @@ class Stream_CameraScreen_MediaFoundation_SessionData
                                   IMFMediaType*,
                                   struct Stream_CameraScreen_MediaFoundation_StreamState,
                                   struct Stream_CameraScreen_StatisticData,
-                                  struct Stream_CameraScreen_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
     direct3DManagerResetToken =
@@ -299,7 +285,7 @@ class Stream_CameraScreen_V4L_SessionData
                                         struct Stream_MediaFramework_V4L_MediaType,
                                         struct Stream_CameraScreen_StreamState,
                                         struct Stream_CameraScreen_StatisticData,
-                                        struct Stream_CameraScreen_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CameraScreen_V4L_SessionData ()
@@ -307,7 +293,7 @@ class Stream_CameraScreen_V4L_SessionData
                                    struct Stream_MediaFramework_V4L_MediaType,
                                    struct Stream_CameraScreen_StreamState,
                                    struct Stream_CameraScreen_StatisticData,
-                                   struct Stream_CameraScreen_UserData> ()
+                                   struct Stream_UserData> ()
   {}
 
 //  Stream_CameraScreen_V4L_SessionData& operator+= (const Stream_CameraScreen_V4L_SessionData& rhs_in)
@@ -317,7 +303,7 @@ class Stream_CameraScreen_V4L_SessionData
 //                                  struct Stream_MediaFramework_V4L_MediaType,
 //                                  struct Stream_CameraScreen_V4L_StreamState,
 //                                  struct Stream_CameraScreen_StatisticData,
-//                                  struct Stream_CameraScreen_UserData>::operator+= (rhs_in);
+//                                  struct Stream_UserData>::operator+= (rhs_in);
 
 //    return *this;
 //  }
@@ -381,7 +367,13 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
    : Test_U_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
+   , display_2 ()
    , fullScreen (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , window (NULL)
+#else
+   , window (0)
+#endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
@@ -393,7 +385,13 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 
   struct Stream_Device_Identifier deviceIdentifier; // source module
   struct Common_UI_DisplayDevice  display; // display module
+  struct Common_UI_Display        display_2; // display module
   bool                            fullScreen;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                            window;
+#else
+  XID                             window;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -568,7 +566,7 @@ struct Stream_CameraScreen_DirectShow_StreamState
 
   Stream_CameraScreen_DirectShow_SessionData* sessionData;
 
-  struct Stream_CameraScreen_UserData*        userData;
+  struct Stream_UserData*        userData;
 };
 
 struct Stream_CameraScreen_MediaFoundation_StreamState
@@ -582,7 +580,7 @@ struct Stream_CameraScreen_MediaFoundation_StreamState
 
   Stream_CameraScreen_MediaFoundation_SessionData* sessionData;
 
-  struct Stream_CameraScreen_UserData*             userData;
+  struct Stream_UserData*             userData;
 };
 #else
 struct Stream_CameraScreen_StreamState
