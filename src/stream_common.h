@@ -372,6 +372,8 @@ struct Stream_UserData
 
 //////////////////////////////////////////
 
+typedef int Stream_CommandType_t;
+
 // *NOTE*: 'unsigned long' allows efficient atomic increments on many platforms
 //         (see: available ACE_Atomic_Op template specializations)
 typedef unsigned long Stream_MessageId_t;

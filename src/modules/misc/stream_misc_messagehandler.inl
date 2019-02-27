@@ -606,17 +606,17 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandlerA_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT ((configuration_in.subscribers && configuration_in.subscribersLock) ||
-              (!configuration_in.subscribers && !configuration_in.subscribersLock));
+  ACE_ASSERT ((configuration_in.subscribers && configuration_in.lock) ||
+              (!configuration_in.subscribers && !configuration_in.lock));
 
   if (inherited::isInitialized_)
     goto continue_2;
 
   // *TODO*: remove type inferences
   delete_ =
-      (!configuration_in.subscribersLock && !configuration_in.subscribers);
-  if (configuration_in.subscribersLock)
-    subscribersLock_ = configuration_in.subscribersLock;
+      (!configuration_in.lock && !configuration_in.subscribers);
+  if (configuration_in.lock)
+    subscribersLock_ = configuration_in.lock;
   else
   {
     if (subscribersLock_)

@@ -1601,7 +1601,7 @@ continue_:
       //         itself is finished() (see below), it sends its own session end
       //         message. Handle both scenarios (and race conditions) here, i.e.
       //         never process consecutive 'session end' messages
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         if (inherited::sessionEndProcessed_)
           break; // done
         inherited::sessionEndProcessed_ = true;
@@ -1615,7 +1615,7 @@ continue_:
 
       if (inherited::isRunning ())
       {
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+        { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
           inherited::sessionEndSent_ = true;
         } // end lock scope
       } // end IF

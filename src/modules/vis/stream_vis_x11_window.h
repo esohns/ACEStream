@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename MediaType>
+          typename MediaType> // *IMPORTANT NOTE*: must correspond to session data 'formats' member
 class Stream_Module_Vis_X11_Window_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

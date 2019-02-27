@@ -216,7 +216,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
-  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4Ls_MediaType));
+  ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   mediaType_out.format.pixelformat =
       Stream_Device_Tools::ffmpegFormatToV4L2Format (mediaType_in.format);
