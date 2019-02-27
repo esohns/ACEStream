@@ -321,9 +321,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   // *NOTE*: apparently (the implementation is of the finest "spaghetti" and
   //         needs careful analysis) ffmpeg processes data in 'chunks' and
   //         therefore supports/requires memory alignment, as well as 'padding'
-  //         bytes. Note that as the data may arrive in fragmented bits and
-  //         pieces, the required preprocessing overhead may defeat the whole
-  //         benefit of these features
+  //         bytes. Note that as the data may arrive in fragmented pieces, the
+  //         required preprocessing overhead may defeat the whole benefit of
+  //         these features
   // *TODO*: find/implement a suitably balanced tradeoff that suits most
   //         scenarios
 
@@ -354,14 +354,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   //                   --> defragment the buffer chain
 
   message_p = dynamic_cast<DataMessageType*> (message_block_p);
-  if (unlikely (!message_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType*>(0x%@): \"%m\", returning\n"),
-                inherited::mod_->name (),
-                message_block_p));
-    goto error;
-  } // end IF
+  ACE_ASSERT (message_p);
   try {
     message_p->defragment ();
   } catch (...) {
@@ -370,15 +363,20 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     goto error;
   }
-  ACE_ASSERT (!message_p->cont ());
+//  ACE_ASSERT (!message_p->cont ());
 
   // step2: (re-)pad [see above] the buffer chain
   // *IMPORTANT NOTE*: the message length does not change
   for (message_block_2 = message_block_p;
        message_block_2;
        message_block_2 = message_block_2->cont ())
-  { ACE_ASSERT ((message_block_2->capacity () - message_block_2->size ()) >= padding_bytes);
-    ACE_OS::memset (message_block_2->wr_ptr (), 0, padding_bytes);
+  {
+    if ((message_block_2->capacity () - message_block_2->size ()) >= padding_bytes)
+      ACE_OS::memset (message_block_2->wr_ptr (), 0, padding_bytes);
+//    else
+//      ACE_DEBUG ((LM_WARNING,
+//                  ACE_TEXT ("%s: no space in buffer to pad, continuing\n"),
+//                  inherited::mod_->name ()));
   } // end FOR
 
   do

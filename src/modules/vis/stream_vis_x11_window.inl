@@ -168,22 +168,22 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (pixmap_);
 
   // sanity check(s)
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.front ();
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
-  inherited2::getMediaType (media_type_r,
-                            media_type_2);
+//  const typename SessionDataContainerType::DATA_T& session_data_r =
+//      inherited::sessionData_->getR ();
+//  ACE_ASSERT (!session_data_r.formats.empty ());
+//  const MediaType& media_type_r = session_data_r.formats.front ();
+//  struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+//  inherited2::getMediaType (media_type_r,
+//                            media_type_2);
   Common_Image_Resolution_t resolution_s =
       Stream_MediaFramework_Tools::toResolution (*display_,
                                                  window_);
-  int row_size_i =
-      av_image_get_linesize (media_type_2.format,
-                             media_type_2.resolution.width,
-                             0);
-  ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
-  ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
+//  int row_size_i =
+//      av_image_get_linesize (media_type_2.format,
+//                             media_type_2.resolution.width,
+//                             0);
+//  ACE_ASSERT (media_type_2.format == AV_PIX_FMT_RGB32);
+//  ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
 
   //  bool release_lock = false;
     bool refresh_b = true;
