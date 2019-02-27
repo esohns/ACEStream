@@ -1539,8 +1539,7 @@ error:
 
       if (connection_)
       {
-        connection_->decrease ();
-        connection_ = NULL;
+        connection_->decrease (); connection_ = NULL;
       } // end IF
 
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
@@ -1704,8 +1703,7 @@ continue_2:
 
       if (connection_)
       {
-        connection_->decrease ();
-        connection_ = NULL;
+        connection_->decrease (); connection_ = NULL;
       } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)

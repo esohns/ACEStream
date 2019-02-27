@@ -112,7 +112,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   { ACE_ASSERT (display_);
     result = XFreePixmap (display_,
                           pixmap_);
-    if (unlikely (result))
+    if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XFreePixmap(0x%@,%u): \"%m\", continuing\n"),
                   inherited::mod_->name (),
@@ -121,7 +121,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   if (closeWindow_)
   { ACE_ASSERT (display_ && window_);
     result = XUnmapWindow (display_, window_);
-    if (unlikely (result))
+    if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XUnmapWindow(0x%@,%u): \"%m\", continuing\n"),
                   inherited::mod_->name (),
@@ -130,7 +130,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   if (closeDisplay_)
   { ACE_ASSERT (display_);
     result = XCloseDisplay (display_);
-    if (unlikely (result))
+    if (unlikely (!result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XCloseDisplay(0x%@): \"%m\", continuing\n"),
                   inherited::mod_->name (),
@@ -384,18 +384,16 @@ error:
       // sanity check(s)
       ACE_ASSERT (display_);
 
-      int result = XFreePixmap (display_, pixmap_);
-      if (unlikely (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to XFreePixmap(0x%@,%u): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    display_, pixmap_));
-      pixmap_ = 0;
-
-//      if (buffer_)
-//      {
-//        delete [] buffer_; buffer_ = NULL;
-//      } // end IF
+      if (pixmap_)
+      {
+        int result = XFreePixmap (display_, pixmap_);
+        if (unlikely (!result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to XFreePixmap(0x%@,%u): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
+                      display_, pixmap_));
+        pixmap_ = 0;
+      } // end IF
 
       break;
     }
