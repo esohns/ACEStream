@@ -3724,8 +3724,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT ((*opengl_contexts_iterator).first);
 #if GTK_CHECK_VERSION(3,0,0)
-  GdkGLContext* gl_context_p = NULL;
 #if GTK_CHECK_VERSION(3,16,0)
+  GdkGLContext* gl_context_p = NULL;
   GError* error_p = gtk_gl_area_get_error ((*opengl_contexts_iterator).first);
   if (error_p)
   {
@@ -5191,15 +5191,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       {
         directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
           value_i;
-        (*directshow_modulehandler_configuration_iterator).second.second.bufferSize =
-          value_i;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-          value_i;
-        (*mediafoundation_modulehandler_configuration_iterator).second.second.bufferSize =
           value_i;
         break;
       }

@@ -174,8 +174,11 @@ elseif (WIN32)
 
    if (GTKGL_SUPPORT)
     target_link_libraries (${PROJECT_NAME}_Test_I OpenGL32.lib)
-    target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../libepoxy/cmake/${CMAKE_BUILD_TYPE}/epoxy1_static.lib)
-    target_link_libraries (${PROJECT_NAME}_Test_I "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
+
+    if (GTKGLAREA_SUPPORT)
+     target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/libepoxy/lib/epoxy.lib)
+     target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
+    endif (GTKGLAREA_SUPPORT)
 
     target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
    endif (GTKGL_SUPPORT)

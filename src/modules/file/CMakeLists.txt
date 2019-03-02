@@ -1,16 +1,14 @@
-option (IMAGEMAGICK_SUPPORT "support ImageMagick" ON)
-
+set (IMAGEMAGICK_DEFAULT OFF)
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
 if (IMAGEMAGICK_SUPPORT)
- find_package (ImageMagick COMPONENTS MagickCore MagickWand)
+ if (UNIX)
+  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
+ endif (UNIX)
+
+ add_definitions (-DIMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
 
-set (LLVM_COMPILER_ID_STRING "Clang")
-string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
- add_compile_options (-std=c++11)
- add_compile_options (-fPIC)
-endif ()
+##########################################
 
 add_library (${PROJECT_NAME}_File STATIC "")
 
@@ -32,6 +30,21 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
+ if (DEFINED ENV{DXSDK_DIR})
+  target_include_directories (${PROJECT_NAME}_File PUBLIC
+                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+ else ()
+  set (DXSDK_DIR
+       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
+  target_include_directories (${PROJECT_NAME}_File PUBLIC
+                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+ endif (DEFINED ENV{DXSDK_DIR})
+
+ if (IMAGEMAGICK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_File PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
+ endif (IMAGEMAGICK_SUPPORT)
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_File PUBLIC
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)

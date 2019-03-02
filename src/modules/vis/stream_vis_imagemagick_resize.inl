@@ -574,20 +574,30 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_data_r.codec == AV_CODEC_ID_NONE);
   ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB24);
 
-  result = MagickNewImage (inherited::context_,
-                           message_data_r.resolution.width, message_data_r.resolution.height,
-                           pixelContext_);
+  result =
+    MagickNewImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                    message_data_r.resolution.cx, message_data_r.resolution.cy,
+#else
+                    message_data_r.resolution.width, message_data_r.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                    pixelContext_);
   ACE_ASSERT (result == MagickTrue);
 
-  result = MagickImportImagePixels (inherited::context_,
-                                    0, 0,
-                                    message_data_r.resolution.width, message_data_r.resolution.height,
-                                    ACE_TEXT_ALWAYS_CHAR ("RGB"),
-                                    CharPixel,
-                                    message_inout->rd_ptr ());
+  result =
+    MagickImportImagePixels (inherited::context_,
+                             0, 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                             message_data_r.resolution.cx, message_data_r.resolution.cy,
+#else
+                             message_data_r.resolution.width, message_data_r.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
+                             ACE_TEXT_ALWAYS_CHAR ("RGB"),
+                             CharPixel,
+                             message_inout->rd_ptr ());
 //  result = MagickReadImageBlob (inherited::context_,
-//                                message_inout->rd_ptr (),
-//                                message_inout->length ());
+//                                 message_inout->rd_ptr (),
+//                                  message_inout->length ());
   ACE_ASSERT (result == MagickTrue);
   message_inout->release (); message_inout = NULL;
 

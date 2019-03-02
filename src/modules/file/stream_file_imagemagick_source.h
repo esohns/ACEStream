@@ -21,8 +21,6 @@
 #ifndef STREAM_FILE_IMAGEMAGICK_SOURCE_T_H
 #define STREAM_FILE_IMAGEMAGICK_SOURCE_T_H
 
-#include "wand/magick_wand.h"
-
 #include "ace/Dirent_Selector.h"
 #include "ace/Global_Macros.h"
 
@@ -36,6 +34,7 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
+struct _MagickWand;
 
 extern const char libacestream_default_file_imagemagick_source_module_name_string[];
 
@@ -153,7 +152,7 @@ class Stream_File_ImageMagick_Source_T
   // helper methods
   virtual int svc (void);
 
-  MagickWand*         context_;
+  struct _MagickWand* context_;
   ACE_Dirent_Selector directory_;
 };
 

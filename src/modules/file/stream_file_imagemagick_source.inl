@@ -18,6 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "MagickWand/MagickWand.h"
+#else
+#include "wand/magick_wand.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -166,7 +172,11 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   {
     result = directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
                               configuration_in.fileIdentifier.selector,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              NULL);
+#else
                               alphasort);
+#endif // ACE_WIN32 || ACE_WIN64
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -357,8 +367,13 @@ done:
 
 //    media_type_s.codec =
 //        Common_Image_Tools::stringToCodecId (MagickGetImageFormat (context_));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    media_type_s.resolution.cx = MagickGetImageWidth (context_);
+    media_type_s.resolution.cy = MagickGetImageHeight (context_);
+#else
     media_type_s.resolution.width = MagickGetImageWidth (context_);
     media_type_s.resolution.height = MagickGetImageHeight (context_);
+#endif // ACE_WIN32 || ACE_WIN64
 
     result_3 = MagickSetImageFormat (context_, "RGB");
     ACE_ASSERT (result_3 == MagickTrue);

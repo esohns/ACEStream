@@ -31,7 +31,7 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
-//#include "stream_istreamcontrol.h"
+#include "stream_ilayout.h"
 
 // *IMPORTANT NOTE*: the current implementation uses an n-ary tree ADT as model;
 //                   this has the following implications:
@@ -96,6 +96,7 @@ class Stream_Layout_T
                           TimePolicyType>*,
                std::allocator<tree_node_<ACE_Module<ACE_SYNCH_USE,
                                                     TimePolicyType>*> > >
+ , public Stream_ILayout
  , public Common_IDumpState
 {
   typedef tree<ACE_Module<ACE_SYNCH_USE,

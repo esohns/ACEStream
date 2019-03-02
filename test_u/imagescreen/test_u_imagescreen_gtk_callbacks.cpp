@@ -161,9 +161,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
+#else
   (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
-      allocation_s.width;
+#endif // ACE_WIN32 || ACE_WIN64
+    allocation_s.width;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
+#else
   (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+#endif // ACE_WIN32 || ACE_WIN64
       allocation_s.height;
   ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
       (*stream_configuration_iterator).second.second.outputFormat.resolution;
@@ -952,9 +960,18 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (window_in),
                              &allocation_s);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
+#else
   (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+#endif // ACE_WIN32 || ACE_WIN64
       allocation_s.width;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
+#else
   (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+#endif // ACE_WIN32 || ACE_WIN64
       allocation_s.height;
   ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
       (*stream_configuration_iterator).second.second.outputFormat.resolution;
@@ -1051,13 +1068,8 @@ key_cb (GtkWidget* widget_in,
           !is_active_b)
         break; // <-- not in fullscreen mode, nothing to do
 
-#if GTK_CHECK_VERSION(3,0,0)
-      gtk_toggle_action_set_active (toggle_action_p,
-                                    !is_active_b);
-#elif GTK_CHECK_VERSION(2,0,0)
       gtk_toggle_button_set_active (toggle_button_p,
                                     !is_active_b);
-#endif // GTK_CHECK_VERSION
 
       break;
     }

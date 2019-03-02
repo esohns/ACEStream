@@ -199,7 +199,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
-      // *NOTE*: clone the session data for each processing branch
+      // *NOTE*: clone (!) the session data for each processing branch
       { ACE_GUARD (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_);
         for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
              iterator != heads_.end ();

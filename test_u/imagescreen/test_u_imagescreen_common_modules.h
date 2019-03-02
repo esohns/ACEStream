@@ -32,7 +32,7 @@
 
 //#include "stream_dec_libav_converter.h"
 //#include "stream_dec_libav_img_decoder.h"
-//#include "stream_dec_imagemagick_decoder.h"
+#include "stream_dec_imagemagick_decoder.h"
 
 //#include "stream_file_source.h"
 #include "stream_file_imagemagick_source.h"
@@ -43,12 +43,13 @@
 
 //#include "stream_stat_statistic_report.h"
 
+//#include "stream_vis_libav_resize.h"
+#include "stream_vis_imagemagick_resize.h"
+
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_vis_gtk_cairo.h"
 #else
-//#include "stream_vis_libav_resize.h"
-#include "stream_vis_imagemagick_resize.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"

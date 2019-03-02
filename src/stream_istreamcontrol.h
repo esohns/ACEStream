@@ -126,25 +126,19 @@ class Stream_IStream_T
 };
 
 template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename DistributorModuleType>
+          typename TimePolicyType>
 class Stream_IStreamLayout_T
  : public Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType>
 {
  public:
-  // convenient types
-  typedef Stream_Layout_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          DistributorModuleType> LAYOUT_T;
-
   inline virtual ~Stream_IStreamLayout_T () {}
 
   // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
   //                   derived classes need not synchronize this, and should not
   //                   block in this method
-  virtual bool load (LAYOUT_T&,  // return value: layout
-                     bool&) = 0; // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // layout handle
+                     bool&) = 0;      // return value: delete modules ?
 };
 
 #endif

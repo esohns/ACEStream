@@ -67,7 +67,7 @@ class Stream_ImageScreen_Message_T
 
  public:
   Stream_ImageScreen_Message_T (unsigned int); // size
-  virtual ~Stream_ImageScreen_Message_T ();
+  inline virtual ~Stream_ImageScreen_Message_T () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy that references the same packet

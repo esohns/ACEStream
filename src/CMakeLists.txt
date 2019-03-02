@@ -164,6 +164,7 @@ set (source_files
      stream_headmoduletask_base.h
      stream_headmoduletask_base.inl
      stream_iallocator.h
+     stream_ilayout.h
      stream_ilink.h
      stream_ilock.h
      stream_imessage.h
@@ -274,8 +275,8 @@ if (WIN32)
   endif ()
  endif (MSVC)
 # endif ()
- target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 
+ target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME} Common)
 target_link_libraries (${PROJECT_NAME} ${PROJECT_NAME}_Miscellaneous)
@@ -324,6 +325,7 @@ install (FILES
          stream_headmoduletask_base.h
          stream_headmoduletask_base.inl
          stream_iallocator.h
+         stream_ilayout.h
          stream_ilink.h
          stream_ilock.h
          stream_imessage.h

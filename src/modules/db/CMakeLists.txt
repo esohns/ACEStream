@@ -42,11 +42,10 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src>)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
+# target_include_directories (${PROJECT_NAME}_Database PUBLIC
+#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql/cmake/include>)
  target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql_2/cmake/include>)
- target_include_directories (${PROJECT_NAME}_Database PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql_2/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libmysql/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Database PUBLIC

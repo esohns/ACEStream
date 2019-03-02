@@ -175,9 +175,14 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
   if (configuration_in.fileIdentifier.identifierDiscriminator == Common_File_Identifier::DIRECTORY)
   {
-    result = directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
-                              configuration_in.fileIdentifier.selector,
-                              alphasort);
+    result =
+      directory_.open (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()),
+                       configuration_in.fileIdentifier.selector,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                       NULL);
+#else
+                       alphasort);
+#endif // ACE_WIN32 || ACE_WIN64
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,

@@ -53,8 +53,14 @@
 #include "stream_stat_statistic_report.h"
 
 #include "stream_vis_gtk_window.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_vis_target_direct3d.h"
+#include "stream_vis_target_directshow.h"
+#include "stream_vis_target_mediafoundation.h"
+#else
 #include "stream_vis_libav_resize.h"
 #include "stream_vis_x11_window.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_message.h"
@@ -248,7 +254,7 @@ typedef Stream_Vis_Target_DirectShow_T<ACE_MT_SYNCH,
                                        Stream_CameraScreen_DirectShow_SessionData,
                                        struct Stream_CameraScreen_DirectShow_FilterConfiguration,
                                        struct Stream_CameraScreen_DirectShow_PinConfiguration,
-                                       Stream_CameraScreen_DirectShowFilter_t> Stream_CameraScreen_DirectShow_DirectShowDisplay;
+                                       Stream_CameraScreen_DirectShowFilter_t> Stream_CameraScreen_DirectShow_Display;
 
 typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
@@ -258,7 +264,7 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Stream_CameraScreen_MediaFoundation_SessionMessage_t,
                                             Stream_CameraScreen_MediaFoundation_SessionData,
                                             Stream_CameraScreen_MediaFoundation_SessionData_t,
-                                            struct Stream_UserData> Stream_CameraScreen_MediaFoundation_MediaFoundationDisplay;
+                                            struct Stream_UserData> Stream_CameraScreen_MediaFoundation_Display;
 typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration,
@@ -266,7 +272,7 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CameraScreen_MediaFoundation_Message_t,
                                             Stream_CameraScreen_MediaFoundation_SessionMessage_t,
                                             Stream_CameraScreen_MediaFoundation_SessionData,
-                                            Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_MediaFoundationDisplayNull;
+                                            Stream_CameraScreen_MediaFoundation_SessionData_t> Stream_CameraScreen_MediaFoundation_DisplayNull;
 #else
 typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -405,20 +411,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_directshow_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CameraScreen_DirectShow_DirectShowDisplay);     // writer type
+                              Stream_CameraScreen_DirectShow_Display);     // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                      // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
-                              Stream_CameraScreen_MediaFoundation_MediaFoundationDisplay); // writer type
+                              Stream_CameraScreen_MediaFoundation_Display); // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_MediaFoundation_SessionData,                          // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_mediafoundation_module_name_string,
                               Stream_INotify_t,                                           // stream notification interface type
-                              Stream_CameraScreen_MediaFoundation_MediaFoundationDisplayNull); // writer type
+                              Stream_CameraScreen_MediaFoundation_DisplayNull); // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

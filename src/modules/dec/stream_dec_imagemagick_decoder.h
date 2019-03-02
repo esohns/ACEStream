@@ -21,29 +21,20 @@
 #ifndef STREAM_DEC_IMAGEMAGICK_DECODER_T_H
 #define STREAM_DEC_IMAGEMAGICK_DECODER_T_H
 
-#include "wand/magick_wand.h"
-
 #include "ace/Global_Macros.h"
 
 #include "common_ilock.h"
 #include "common_time_common.h"
 
-#include "common_ui_common.h"
-
 #include "stream_task_base_synch.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_dev_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
+#include "stream_lib_ffmpeg_common.h"
 #include "stream_lib_mediatype_converter.h"
 
 // forward declaration(s)
-struct AVFrame;
-struct SwsContext;
 class ACE_Message_Block;
 class Stream_IAllocator;
+struct _MagickWand;
 
 extern const char libacestream_default_dec_imagemagick_decoder_module_name_string[];
 
@@ -114,7 +105,7 @@ class Stream_Decoder_ImageMagick_Decoder_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  MagickWand*                                   context_;
+  struct _MagickWand*                           context_;
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat_;
 
  private:

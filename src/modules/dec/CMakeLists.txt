@@ -1,7 +1,27 @@
 ﻿option (FFMPEG_SUPPORT "support ffmpeg" ON)
-option (IMAGEMAGICK_SUPPORT "support ImageMagick" ON)
-option (OPENCV_SUPPORT "support OpenCV" OFF)
-option (SOX_SUPPORT "support SoX" OFF)
+if (FFMPEG_SUPPORT)
+ add_definitions (-DFFMPEG_SUPPORT)
+endif (FFMPEG_SUPPORT)
+
+set (IMAGEMAGICK_DEFAULT OFF)
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
+if (IMAGEMAGICK_SUPPORT)
+ add_definitions (-DIMAGEMAGICK_SUPPORT)
+endif (IMAGEMAGICK_SUPPORT)
+
+set (OPENCV_DEFAULT OFF)
+option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
+if (OPENCV_SUPPORT)
+ add_definitions (-DOPENCV_SUPPORT)
+endif (OPENCV_SUPPORT)
+
+set (SOX_DEFAULT OFF)
+option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
+if (SOX_SUPPORT)
+ add_definitions (-DSOX_SUPPORT)
+endif (SOX_SUPPORT)
+
+##########################################
 
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
@@ -93,6 +113,11 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
+
+ if (IMAGEMAGICK_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
+ endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
@@ -197,9 +222,6 @@ set (source_files
      stream_dec_h264_nal_decoder.cpp
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
-     stream_dec_imagemagick_decoder.cpp
-     stream_dec_imagemagick_decoder.h
-     stream_dec_imagemagick_decoder.inl
      stream_dec_libav_converter.cpp
      stream_dec_libav_converter.h
      stream_dec_libav_converter.inl
@@ -212,9 +234,6 @@ set (source_files
      stream_dec_mpeg_ts_decoder.cpp
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
-#     stream_dec_opencv_decoder.cpp # *TODO*
-     stream_dec_opencv_decoder.h
-     stream_dec_opencv_decoder.inl
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
      stream_dec_tools.cpp
@@ -222,6 +241,21 @@ set (source_files
      stream_dec_zip_decoder.cpp
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
+if (IMAGEMAGICK_SUPPORT)
+set (source_files
+     ${source_files}
+     stream_dec_imagemagick_decoder.cpp
+     stream_dec_imagemagick_decoder.h
+     stream_dec_imagemagick_decoder.inl)
+endif (IMAGEMAGICK_SUPPORT)
+if (OPENCV_SUPPORT)
+set (source_files
+     ${source_files}
+     stream_dec_opencv_decoder.cpp
+     stream_dec_opencv_decoder.h
+     stream_dec_opencv_decoder.inl)
+endif (OPENCV_SUPPORT)
+
 if (UNIX)
  set (source_files
       ${source_files}
@@ -229,6 +263,7 @@ if (UNIX)
       stream_dec_sox_effect.h
       stream_dec_sox_effect.inl)
 endif (UNIX)
+
 set (script_files
      scripts/avi_scanner.l
      scripts/avi_parser.y
@@ -283,7 +318,7 @@ if (UNIX)
 elseif (WIN32)
  set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set (DIRECTX_SDK_DIRECTORY
-      "C:/Program Files/Microsoft DirectX SDK (June 2010)")
+      $ENV{DXSDK_DIR})
 # message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
  link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
  target_link_libraries (${PROJECT_NAME}_Decoder "${DIRECTX_SDK_DIRECTORY}/Lib/x86/dxguid.lib")
@@ -297,16 +332,13 @@ elseif (WIN32)
    target_link_libraries (${PROJECT_NAME}_Decoder vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
   endif ()
  endif (MSVC)
- target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/avcodec.lib)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/avformat.lib)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
-# target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavcodec/libavcodec.a)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavformat/libavformat.a)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/libavutil.a)
- target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/libswscale.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavcodec/libavcodec.dll.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavformat/libavformat.dll.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavutil/libavutil.dll.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libswscale/libswscale.dll.a)
+
+ target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder Common)
 target_link_libraries (${PROJECT_NAME}_Decoder ${PROJECT_NAME})

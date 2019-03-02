@@ -480,7 +480,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
   typename CONFIGURATION_T::ITERATOR_T iterator_2;
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    if (unlikely (!load (layout_,
+    if (unlikely (!load (&layout_,
                          delete_)))
     {
       ACE_DEBUG ((LM_ERROR,

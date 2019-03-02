@@ -146,7 +146,7 @@ class Stream_MediaFramework_MediaFoundation_Source_T
                                                          MediaType,
                                                          UserDataType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
+  //ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T (const Stream_MediaFramework_MediaFoundation_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_MediaFoundation_Source_T& operator= (const Stream_MediaFramework_MediaFoundation_Source_T&))
 

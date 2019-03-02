@@ -106,23 +106,7 @@ class Stream_Base_T
                      TimePolicyType>
  , public Stream_Base
  , public Stream_IStreamLayout_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
-                                                                TimePolicyType,
-                                                                Stream_SessionId_t,
-                                                                SessionDataType,
-                                                                NotificationType,
-                                                                ModuleConfigurationType,
-                                                                HandlerConfigurationType,
-                                                                libacestream_default_misc_distributor_module_name_string,
-                                                                Stream_INotify_T<NotificationType>,
-                                                                Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
-                                                                                                   TimePolicyType,
-                                                                                                   HandlerConfigurationType,
-                                                                                                   ControlMessageType,
-                                                                                                   DataMessageType,
-                                                                                                   SessionMessageType,
-                                                                                                   SessionDataType> > >
+                                 TimePolicyType>
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
                                   StatusType,
@@ -144,7 +128,21 @@ class Stream_Base_T
                      TimePolicyType> inherited;
   typedef Stream_Base inherited2;
 
+ public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+  typedef Stream_IModule_T<Stream_SessionId_t,
+                           SessionDataType,
+                           NotificationType,
+                           ACE_SYNCH_USE,
+                           TimePolicyType,
+                           ModuleConfigurationType,
+                           HandlerConfigurationType> IMODULE_T;
   typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                              TimePolicyType,
                                              HandlerConfigurationType,
@@ -162,22 +160,6 @@ class Stream_Base_T
                                          libacestream_default_misc_distributor_module_name_string,
                                          Stream_INotify_T<NotificationType>,
                                          DISTRIBUTOR_TASK_T> DISTRIBUTOR_MODULE_T;
-
- public:
-  // convenient types
-  typedef ACE_Task<ACE_SYNCH_USE,
-                   TimePolicyType> TASK_T;
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
-  typedef ACE_Stream<ACE_SYNCH_USE,
-                     TimePolicyType> STREAM_T;
-  typedef Stream_IModule_T<Stream_SessionId_t,
-                           SessionDataType,
-                           NotificationType,
-                           ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ModuleConfigurationType,
-                           HandlerConfigurationType> IMODULE_T;
   typedef Stream_Layout_T<ACE_SYNCH_USE,
                           TimePolicyType,
                           DISTRIBUTOR_MODULE_T> LAYOUT_T;
@@ -271,7 +253,7 @@ class Stream_Base_T
   virtual typename ISTREAM_T::STREAM_T* downstream () const;
   virtual typename ISTREAM_T::STREAM_T* upstream (bool = false) const; // recurse (if any) ?
 
-  inline virtual bool load (LAYOUT_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  virtual bool load (Stream_ILayout*, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {}

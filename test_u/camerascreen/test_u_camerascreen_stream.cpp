@@ -55,15 +55,11 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , directShowDisplay_ (this,
                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
-#if defined (GTK_USE)
- , GTKCairoDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
+//#if defined (GTK_USE)
+// , GTKCairoDisplay_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+//#endif // GTK_USE
 #endif // GUI_SUPPORT
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream"));
 
@@ -99,8 +95,6 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
-  modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&encoder_);
 #if defined (GUI_SUPPORT)
   switch (inherited::configuration_->configuration_.renderer)
   {
@@ -118,11 +112,11 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     //case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
     //  modules_out.push_back (&mediaFoundationDisplay_);
     //  break;
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-      modules_out.push_back (&GTKCairoDisplay_);
+      //modules_out.push_back (&GTKCairoDisplay_);
       break;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -459,7 +453,7 @@ continue_:
   //  session_data_p->direct3DDevice =
   //    (*iterator).second.second.direct3DConfiguration->handle;
   //} // end IF
-  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
+  //session_data_p->targetFileName = (*iterator).second.second.targetFileName;
 
   // ---------------------------------------------------------------------------
   // step4: initialize module(s)
@@ -559,14 +553,10 @@ Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_
                             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
  , mediaFoundationDisplayNull_ (this,
                                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING))
-#if defined (GTK_USE)
- , GTKCairoDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
- , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
+//#if defined (GTK_USE)
+// , GTKCairoDisplay_ (this,
+//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+//#endif // GTK_USE
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
@@ -927,8 +917,6 @@ Stream_CameraScreen_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_o
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
-  modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&encoder_);
   switch (inherited::configuration_->configuration_.renderer)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
@@ -946,13 +934,11 @@ Stream_CameraScreen_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_o
       modules_out.push_back (&mediaFoundationDisplay_);
       //modules_out.push_back (&mediaFoundationDisplayNull_);
       break;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-      modules_out.push_back (&GTKCairoDisplay_);
+      //modules_out.push_back (&GTKCairoDisplay_);
       break;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+#endif // GTK_SUPPORT
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1018,7 +1004,7 @@ Stream_CameraScreen_MediaFoundation_Stream::initialize (const inherited::CONFIGU
   ACE_ASSERT (configuration_p);
 
   // *TODO*: remove type inferences
-  session_data_p->targetFileName = configuration_p->targetFileName;
+  //session_data_p->targetFileName = configuration_p->targetFileName;
 
   // ---------------------------------------------------------------------------
 

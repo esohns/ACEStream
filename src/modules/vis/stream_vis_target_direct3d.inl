@@ -26,6 +26,7 @@
 #include "ace/OS.h"
 
 #include "common_tools.h"
+#include "common_file_tools.h"
 
 #include "common_image_tools.h"
 
@@ -336,9 +337,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   if (likely (!snapShotNextFrame_))
     goto continue_;
   ACE_ASSERT (inherited::configuration_);
-  filename_string =
-    ACE_TEXT_ALWAYS_CHAR (ACE::dirname (inherited::configuration_->targetFileName.c_str (),
-                                        ACE_DIRECTORY_SEPARATOR_CHAR));
+  filename_string = Common_File_Tools::getTempDirectory ();
   filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
   filename_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_STRING);

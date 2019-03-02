@@ -129,8 +129,8 @@ class Stream_Module_Net_IO_Stream_T
                            ACE_HANDLE);                                // socket handle
 
   // override (part of) Stream_IStream_T
-  virtual bool load (typename inherited::LAYOUT_T&, // return value: layout
-                     bool&);                        // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: layout
+                     bool&);          // return value: delete modules ?
   inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); }
 
   // override (part of) Stream_IStreamControl_T

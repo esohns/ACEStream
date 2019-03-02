@@ -20,36 +20,19 @@
 
 #include <limits>
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavformat/avformat.h"
-#include "libavutil/frame.h"
-#include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
-}
-#endif /* __cplusplus */
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "MagickWand/MagickWand.h"
+#else
+#include "wand/magick_wand.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
 
-#include "common_tools.h"
-
 #if defined (_DEBUG)
 #include "common_file_tools.h"
-
-#include "common_image_tools.h"
 #endif // _DEBUG
 
 #include "stream_macros.h"
-
-#include "stream_dec_defines.h"
-#include "stream_dec_tools.h"
-
-#include "stream_dec_libav_decoder.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_lib_tools.h"
-#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -188,8 +171,13 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                             media_type_s);
   size_i =
       static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                           media_type_s.resolution.cx,
+                                                           media_type_s.resolution.cy,
+#else
                                                            media_type_s.resolution.width,
                                                            media_type_s.resolution.height,
+#endif // ACE_WIN32 || ACE_WIN64
                                                            1));
   ACE_ASSERT (size_i);
 

@@ -117,10 +117,13 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::load (typename inherited::LAYOUT_T& layout_out,
+                              UserDataType>::load (Stream_ILayout* layout_in,
                                                    bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
+
+  // sanity check(s)
+  ACE_ASSERT (layout_in);
 
   typename inherited::MODULE_T* module_p = NULL;
 
@@ -135,7 +138,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
     return false;
   } // end IF
-  layout_out.append (module_p, NULL, 0);
+  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 

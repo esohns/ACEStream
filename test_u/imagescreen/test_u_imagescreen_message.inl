@@ -64,20 +64,6 @@ Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Str
 }
 
 template <typename SessionDataType>
-Stream_ImageScreen_Message_T<SessionDataType>::~Stream_ImageScreen_Message_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::~Stream_ImageScreen_Message_T"));
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // release media sample ?
-  if (inherited::data_.sample)
-  {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
-  } // end IF
-#endif // ACE_WIN32 || ACE_WIN64
-}
-
-template <typename SessionDataType>
 ACE_Message_Block*
 Stream_ImageScreen_Message_T<SessionDataType>::duplicate (void) const
 {

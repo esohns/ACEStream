@@ -290,12 +290,13 @@ do_process_arguments (int argc_in,
         showConsole_out = true;
         break;
       }
-#endif // ACE_WIN32 || ACE_WIN64
+#else
       case '1':
       {
         renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
         break;
       }
+#endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
         captureinterfaceIdentifier_out =
@@ -330,11 +331,14 @@ do_process_arguments (int argc_in,
         mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
       case 'x':
       {
         mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS;
         break;
       }
+#endif // ACE_WIN32 || ACE_WIN64
       //case 'y':
       //{
       //  runStressTest_out = true;
@@ -918,27 +922,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-#if defined (GUI_SUPPORT)
-  Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
-#if defined (GTK_USE)
-                                                                       );
-#elif defined (WXWIDGETS_USE)
-                                                                        ,iapplication_in);
-#endif
-#else
   Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
-#endif // GUI_SUPPORT
   struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
-#if defined (GUI_SUPPORT)
-  Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
-#if defined (GTK_USE)
-                                                                                 );
-#elif defined (WXWIDGETS_USE)
-                                                                                  ,iapplication_in);
-#endif
-#else
   Stream_CameraScreen_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler;
-#endif // GUI_SUPPORT
 #else
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   Stream_CameraScreen_EventHandler_t ui_event_handler;
@@ -961,18 +947,17 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
-      directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
+      //directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
-      if (statisticReportingInterval_in)
-      {
-        directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-        directshow_modulehandler_configuration.statisticReportingInterval =
-          statisticReportingInterval_in;
-      } // end IF
+      //if (statisticReportingInterval_in)
+      //{
+      //  directshow_modulehandler_configuration.statisticCollectionInterval.set (0,
+      //                                                                          STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+      //  directshow_modulehandler_configuration.statisticReportingInterval =
+      //    statisticReportingInterval_in;
+      //} // end IF
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-      directshow_modulehandler_configuration.targetFileName = targetFilename_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -985,19 +970,17 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                       captureinterfaceIdentifier_in.c_str ());
       mediafoundation_modulehandler_configuration.direct3DConfiguration =
         &mediaFoundationConfiguration_in.direct3DConfiguration;
-      mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
+      //mediafoundation_modulehandler_configuration.lock = &state_r.subscribersLock;
 
-      if (statisticReportingInterval_in)
-      {
-        mediafoundation_modulehandler_configuration.statisticCollectionInterval.set (0,
-                                                                                     STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-        mediafoundation_modulehandler_configuration.statisticReportingInterval =
-          statisticReportingInterval_in;
-      } // end IF
+      //if (statisticReportingInterval_in)
+      //{
+      //  mediafoundation_modulehandler_configuration.statisticCollectionInterval.set (0,
+      //                                                                               STREAM_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+      //  mediafoundation_modulehandler_configuration.statisticReportingInterval =
+      //    statisticReportingInterval_in;
+      //} // end IF
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      mediafoundation_modulehandler_configuration.targetFileName =
-        targetFilename_in;
       break;
     }
     default:
@@ -1057,8 +1040,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       directShowConfiguration_in.streamConfiguration.configuration_.messageAllocator =
           &directshow_message_allocator;
       directShowConfiguration_in.streamConfiguration.configuration_.module =
-          (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
-                                             : NULL);
+        &directshow_message_handler;
       directShowConfiguration_in.streamConfiguration.configuration_.renderer =
         renderer_in;
 
@@ -1096,8 +1078,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.messageAllocator =
           &mediafoundation_message_allocator;
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
-          (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
-                                             : NULL);
+          &mediafoundation_message_handler;
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
         renderer_in;
 
@@ -1156,16 +1137,16 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
-  bool load_device = UIDefinitionFilename_in.empty ();
-  bool initialize_COM = UIDefinitionFilename_in.empty ();
+  bool load_device = true;
+  bool initialize_COM = true;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       struct _AMMediaType* media_type_p = NULL;
       if (!do_initialize_directshow (captureinterfaceIdentifier_in,
-                                     UIDefinitionFilename_in.empty (),  // initialize COM ?
-                                     !UIDefinitionFilename_in.empty (), // has UI ?
+                                     initialize_COM,                    // initialize COM ?
+                                     false,                             // has UI ?
                                      (*directshow_stream_iterator).second.second.builder,
                                      stream_config_p,
                                      directShowConfiguration_in.streamConfiguration.configuration_.format,
@@ -1175,10 +1156,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      if (UIDefinitionFilename_in.empty ())
-      { ACE_ASSERT (stream_config_p);
-        directShowCBData_in.streamConfiguration = stream_config_p;
-      } // end IF
+      ACE_ASSERT (stream_config_p);
+      //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
       ACE_ASSERT (media_type_p);
@@ -1323,8 +1302,12 @@ clean:
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      do_finalize_directshow (directShowCBData_in.streamConfiguration);
+    {
+      //do_finalize_directshow (directShowCBData_in.streamConfiguration);
+      IAMStreamConfig* dummy_p = NULL;
+      do_finalize_directshow (dummy_p);
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       Stream_CameraScreen_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
@@ -1349,6 +1332,8 @@ clean:
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 void
 do_test_methods (const std::string& deviceIdentifier_in)
 {
@@ -1460,6 +1445,7 @@ error:
                 ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                 fd));
 }
+#endif // ACE_WIN32 || ACE_WIN64
 
 int
 ACE_TMAIN (int argc_in,
@@ -1641,20 +1627,17 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS:
     {
       do_test_methods (capture_device_identifier);
 
       Common_Log_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
+
       return EXIT_SUCCESS;
     }
+#endif // ACE_WIN32 || ACE_WIN64
     case STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL:
       break;
     default:

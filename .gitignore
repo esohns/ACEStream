@@ -67,3 +67,4 @@ bak/
 Makefile.am.user
 CMakeLists.txt.user*
 
+/test_u/imagescreen/data/*.png

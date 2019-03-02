@@ -1,4 +1,14 @@
-﻿add_library (${PROJECT_NAME}_Document STATIC "")
+﻿set (OPENOFFICE_DEFAULT ON)
+option (OPENOFFICE_SUPPORT "support OpenOffice/LibreOffice" ${OPENOFFICE_DEFAULT})
+if (OPENOFFICE_SUPPORT)
+ message (STATUS "OpenOffice support set, set OO_SDK_HOME and UNO_PATH and run make_oo_headers.bat from 'scripts' to generate the necessary #include headers")
+
+ add_definitions (-DOPENOFFICE_SUPPORT)
+endif (OPENOFFICE_SUPPORT)
+
+##########################################
+
+add_library (${PROJECT_NAME}_Document STATIC "")
 
 if (UNIX)
  if (DEFINED ENV{OO_SDK_HOME})
@@ -15,6 +25,7 @@ if (UNIX)
   message (FATAL_ERROR "OpenOffice SDK directory not found (was: \"${OO_SDK_DIRECTORY}\"), aborting")
  endif (NOT EXISTS ${OO_SDK_DIRECTORY})
 elseif (WIN32)
+ message (STATUS "ENV{OO_SDK_HOME}: \"$ENV{OO_SDK_HOME}\")")
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
  elseif (DEFINED ENV{UNO_HOME})
@@ -76,7 +87,7 @@ target_include_directories (${PROJECT_NAME}_Document PUBLIC
 ############## next target ################
 set (source_files
      stream_document_defines.h
-     stream_document_exports.h
+#     stream_document_exports.h
      stream_module_libreoffice_document_handler.cpp
      stream_module_libreoffice_document_handler.h
      stream_module_libreoffice_document_writer.cpp

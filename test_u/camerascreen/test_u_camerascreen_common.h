@@ -94,7 +94,10 @@ class Stream_CameraScreen_EventHandler_T;
 enum Stream_CameraScreen_ProgramMode
 {
   STREAM_CAMERASCREEN_PROGRAMMODE_PRINT_VERSION = 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   STREAM_CAMERASCREEN_PROGRAMMODE_TEST_METHODS,
+#endif // ACE_WIN32 || ACE_WIN64
   STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL,
   ////////////////////////////////////////
   STREAM_CAMERASCREEN_PROGRAMMODE_MAX,
@@ -216,7 +219,7 @@ class Stream_CameraScreen_DirectShow_SessionData
   UINT                resetToken;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData (const Stream_CameraScreen_DirectShow_SessionData&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData (const Stream_CameraScreen_DirectShow_SessionData&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_DirectShow_SessionData& operator= (const Stream_CameraScreen_DirectShow_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CameraScreen_DirectShow_SessionData> Stream_CameraScreen_DirectShow_SessionData_t;
@@ -274,7 +277,7 @@ class Stream_CameraScreen_MediaFoundation_SessionData
   IMFMediaSession*                    session;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData (const Stream_CameraScreen_MediaFoundation_SessionData&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData (const Stream_CameraScreen_MediaFoundation_SessionData&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraScreen_MediaFoundation_SessionData& operator= (const Stream_CameraScreen_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CameraScreen_MediaFoundation_SessionData> Stream_CameraScreen_MediaFoundation_SessionData_t;
@@ -727,27 +730,11 @@ typedef Common_ISubscribe_T<Stream_CameraScreen_DirectShow_ISessionNotify_t> Str
 typedef Common_ISubscribe_T<Stream_CameraScreen_MediaFoundation_ISessionNotify_t> Stream_CameraScreen_MediaFoundation_ISubscribe_t;
 
 typedef Stream_CameraScreen_EventHandler_T<Stream_CameraScreen_DirectShow_ISessionNotify_t,
-                                      Stream_CameraScreen_DirectShow_Message_t,
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
-#elif defined (WXWIDGETS_USE)
-                                      struct Common_UI_wxWidgets_State,
-                                      Common_UI_wxWidgets_IApplicationBase_t,
-#endif
-#endif // GUI_SUPPORT
-                                      Stream_CameraScreen_DirectShow_SessionMessage_t> Stream_CameraScreen_DirectShow_EventHandler_t;
+                                           Stream_CameraScreen_DirectShow_Message_t,
+                                           Stream_CameraScreen_DirectShow_SessionMessage_t> Stream_CameraScreen_DirectShow_EventHandler_t;
 typedef Stream_CameraScreen_EventHandler_T<Stream_CameraScreen_MediaFoundation_ISessionNotify_t,
-                                      Stream_CameraScreen_MediaFoundation_Message_t,
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-                                      Common_UI_GTK_State_t,
-#elif defined (WXWIDGETS_USE)
-                                      struct Common_UI_wxWidgets_State,
-                                      Common_UI_wxWidgets_IApplicationBase_t,
-#endif
-#endif // GUI_SUPPORT
-                                      Stream_CameraScreen_MediaFoundation_SessionMessage_t> Stream_CameraScreen_MediaFoundation_EventHandler_t;
+                                           Stream_CameraScreen_MediaFoundation_Message_t,
+                                           Stream_CameraScreen_MediaFoundation_SessionMessage_t> Stream_CameraScreen_MediaFoundation_EventHandler_t;
 #else
 typedef Common_ISubscribe_T<Stream_CameraScreen_ISessionNotify_t> Stream_CameraScreen_ISubscribe_t;
 

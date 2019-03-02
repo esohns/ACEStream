@@ -29,11 +29,11 @@ goto Clean_Up
 @rem  goto Print_Usage
 @rem )
 if NOT exist "%OO_SDK_HOME%" (
- echo invalid directory ^(was: "%OO_SDK_HOME%"^)^, exiting
+ echo invalid directory OO_SDK_HOME ^(was: "%OO_SDK_HOME%"^)^, exiting
  goto Failed
 )
 if NOT exist "%UNO_PATH%" (
- echo invalid directory ^(was: "%UNO_PATH%"^)^, exiting
+ echo invalid directory UNO_PATH ^(was: "%UNO_PATH%"^)^, exiting
  goto Failed
 )
 
