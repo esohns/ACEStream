@@ -12,8 +12,9 @@ elseif (WIN32)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
 #               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
 #               PATH_SUFFIXES lib
-               PATHS $ENV{LIB_ROOT}/libmysql_2
-               PATH_SUFFIXES cmake/libmysql/Debug
+               PATHS $ENV{LIB_ROOT}/libmysql
+               PATH_SUFFIXES lib
+#               PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
  if (NOT MYSQL_LIBRARY)
   message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")

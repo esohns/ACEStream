@@ -19,9 +19,9 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libiconv-1.9.2-1/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libiconv/include>)
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../libxml2/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/libxml2/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_HTML PUBLIC

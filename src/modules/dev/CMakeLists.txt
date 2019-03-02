@@ -66,7 +66,7 @@ elseif (WIN32)
 # set(_PF86 "ProgramFiles(x86)")
  cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
+      "$ENV{LIB_ROOT}/DShowBaseClasses")
 #      "$ENV{PROGRAMFILES}/Microsoft Platform SDK/Samples/Multimedia/DirectShow/BaseClasses")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
@@ -75,7 +75,7 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -135,16 +135,7 @@ if (WIN32)
       stream_dev_mic_source_directshow.inl
       stream_dev_mic_source_mediafoundation.cpp
       stream_dev_mic_source_mediafoundation.h
-      stream_dev_mic_source_mediafoundation.inl
-      stream_directshow_allocator_base.cpp
-      stream_directshow_allocator_base.h
-      stream_directshow_allocator_base.inl
-      stream_directshow_message_base.cpp
-      stream_directshow_message_base.h
-      stream_directshow_message_base.inl
-      stream_mediafoundation_message_base.cpp
-      stream_mediafoundation_message_base.h
-      stream_mediafoundation_message_base.inl)
+      stream_dev_mic_source_mediafoundation.inl)
 elseif (UNIX)
  set (source_files
       ${source_files}
@@ -258,12 +249,6 @@ elseif (WIN32)
           stream_dev_mic_source_directshow.inl
           stream_dev_mic_source_mediafoundation.h
           stream_dev_mic_source_mediafoundation.inl
-          stream_directshow_allocator_base.h
-          stream_directshow_allocator_base.inl
-          stream_directshow_message_base.h
-          stream_directshow_message_base.inl
-          stream_mediafoundation_message_base.h
-          stream_mediafoundation_message_base.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif ()
