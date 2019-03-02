@@ -230,10 +230,8 @@ elseif (WIN32)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
 # *TODO*: repair WIN32 pkgconfig support
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/libavformat/libavformat.dll.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/libavcodec/libavcodec.dll.a)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 

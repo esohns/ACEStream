@@ -299,7 +299,6 @@ add_dependencies (${EXECUTABLE} ACEStream_Device)
 add_dependencies (${EXECUTABLE} ACEStream_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
@@ -330,10 +329,11 @@ elseif (WIN32)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 
- target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimpd.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}/assimp-vc140-mt.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})
+
+target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonImage)

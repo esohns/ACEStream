@@ -18,27 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/frame.h"
-#include "libavutil/imgutils.h"
-#include "libswscale/swscale.h"
-}
-#endif /* __cplusplus */
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "MagickWand/MagickWand.h"
+#else
+#include "wand/magick_wand.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
-#include "ace/OS.h"
-
-#include "common_tools.h"
-#include "common_file_tools.h"
-
-#include "common_image_tools.h"
 
 #include "stream_macros.h"
-
-#include "stream_lib_ffmpeg_common.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -48,15 +36,15 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType>
 Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   MediaType>::Stream_Visualization_ImageMagickResize_T (ISTREAM_T* stream_in)
+                                         MediaType>::Stream_Visualization_ImageMagickResize_T (ISTREAM_T* stream_in)
 #else
-                                   MediaType>::Stream_Visualization_ImageMagickResize_T (typename inherited::ISTREAM_T* stream_in)
+                                         MediaType>::Stream_Visualization_ImageMagickResize_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , sourceResolution_ ()
@@ -74,13 +62,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize_T::handleDataMessage"));
 
@@ -180,13 +168,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Visualization_ImageMagickResize_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                     bool& passMessageDownstream_out)
+                                         TimePolicyType,
+                                         ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                           bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize_T::handleSessionMessage"));
 
@@ -438,12 +426,12 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType>
 Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::~Stream_Visualization_ImageMagickResize1_T ()
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          MediaType>::~Stream_Visualization_ImageMagickResize1_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::~Stream_Visualization_ImageMagickResize1_T"));
 
@@ -460,13 +448,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 bool
 Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                           Stream_IAllocator* allocator_in)
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::initialize"));
 
@@ -499,13 +487,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::handleDataMessage"));
 
@@ -606,11 +594,17 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (result == MagickTrue);
 
   result =
-      MagickResizeImage (inherited::context_,
-                         inherited::configuration_->outputFormat.resolution.width,
-                         inherited::configuration_->outputFormat.resolution.height,
-                         LanczosFilter,
-                         1);
+    MagickResizeImage (inherited::context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                       inherited::configuration_->outputFormat.resolution.cx,
+                       inherited::configuration_->outputFormat.resolution.cy,
+                       LanczosFilter);
+#else
+                       inherited::configuration_->outputFormat.resolution.width,
+                       inherited::configuration_->outputFormat.resolution.height,
+                       LanczosFilter,
+                       1);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
 
 //  // Set the compression quality to 95 (high quality = low compression)
@@ -675,13 +669,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                     bool& passMessageDownstream_out)
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_ImageMagickResize1_T::handleSessionMessage"));
 

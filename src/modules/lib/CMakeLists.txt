@@ -215,9 +215,9 @@ elseif (WIN32)
  endif (DEFINED ENV{DXSDK_DIR})
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
  else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 # target_link_libraries (${PROJECT_NAME}_MediaFramework winmm.lib)
 

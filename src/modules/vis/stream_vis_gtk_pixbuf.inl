@@ -18,13 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/imgutils.h"
-}
-#endif /* __cplusplus */
-
 #include "gtk/gtk.h"
 
 #include "ace/Log_Msg.h"
@@ -59,29 +52,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename MediaType>
-Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
-
-//  if (buffer_)
-//    g_object_unref (buffer_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -147,9 +117,13 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   gdk_threads_enter ();
   leave_gdk = true;
 
+#if GTK_CHECK_VERSION (3,0,0)
+  gdk_window_get_size (inherited::configuration_->window,
+                       &width_i, &height_i);
+#else
   gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                          &width_i, &height_i);
-
+#endif // GTK_CHECK_VERSION (3,0,0)
   buffer_p =
 #if GTK_CHECK_VERSION (3,0,0)
       gdk_pixbuf_get_from_window (inherited::configuration_->window,
@@ -161,7 +135,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                     NULL,
                                     0, 0,
                                     0, 0, width_i, height_i);
-#endif
+#endif // GTK_CHECK_VERSION (3,0,0)
   if (!buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -184,13 +158,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //                       refresh, which takes care of that
 //  if (unlikely (!foreignBuffer_))
 //  {
-    gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
+#if GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (false); // *TODO*
+#else
+  gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
                      NULL,
 //                     buffer_,
                      buffer_p,
                      0, 0, 0, 0, -1, -1,
                      GDK_RGB_DITHER_NONE, 0, 0);
-
+#endif // GTK_CHECK_VERSION (3,0,0)
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
   //         the UI refresh and eventually crash (even though gdk_threads_enter/
@@ -335,9 +312,13 @@ error:
 
       gdk_threads_enter ();
 
-      gdk_window_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+#if GTK_CHECK_VERSION (3,0,0)
+      gdk_window_get_size (inherited::configuration_->window,
                            &width_i, &height_i);
-
+#else
+      gdk_rawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+                            &width_i, &height_i);
+#endif // GTK_CHECK_VERSION (3,0,0)
 //      buffer_ =
 //#if GTK_CHECK_VERSION (3,0,0)
 //          gdk_pixbuf_get_from_window (inherited::configuration_->window,
@@ -349,7 +330,7 @@ error:
 //                                        NULL,
 //                                        0, 0,
 //                                        0, 0, width_i, height_i);
-//#endif
+//#endif // GTK_CHECK_VERSION (3,0,0)
 //      if (!buffer_)
 //      { // *NOTE*: most probable reason: window is not mapped
 //        ACE_DEBUG ((LM_ERROR,

@@ -338,6 +338,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavutil/libavutil.dll.a)
  target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libswscale/libswscale.dll.a)
 
+ message (STATUS "ACE_LIBRARY: ${ACE_LIBRARY}")
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder Common)
