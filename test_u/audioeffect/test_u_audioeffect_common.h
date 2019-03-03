@@ -777,6 +777,9 @@ struct Test_U_AudioEffect_UI_CBDataBase
    , resizeNotification (NULL)
 #endif // GTK_USE
    , stream (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (false)
+#endif // ACE_WIN32 || ACE_WIN64
   {}
 
 #if defined (GTK_USE)
@@ -800,6 +803,9 @@ struct Test_U_AudioEffect_UI_CBDataBase
   Test_U_Common_ISet_t*                      resizeNotification;
 #endif // GTK_USE
   Stream_IStreamControlBase*                 stream;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                                       useMediaFoundation;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_UI_CBData

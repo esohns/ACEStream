@@ -118,8 +118,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   leave_gdk = true;
 
 #if GTK_CHECK_VERSION (3,0,0)
-  gdk_window_get_size (inherited::configuration_->window,
-                       &width_i, &height_i);
+  width_i = gdk_window_get_width (inherited::configuration_->window);
+  height_i = gdk_window_get_height (inherited::configuration_->window);
 #else
   gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                          &width_i, &height_i);
@@ -313,8 +313,8 @@ error:
       gdk_threads_enter ();
 
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_window_get_size (inherited::configuration_->window,
-                           &width_i, &height_i);
+      width_i = gdk_window_get_width (inherited::configuration_->window);
+      height_i = gdk_window_get_height (inherited::configuration_->window);
 #else
       gdk_rawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
                             &width_i, &height_i);

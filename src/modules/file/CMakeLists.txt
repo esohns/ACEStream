@@ -1,4 +1,4 @@
-set (IMAGEMAGICK_DEFAULT OFF)
+set (IMAGEMAGICK_DEFAULT ON)
 option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
 if (IMAGEMAGICK_SUPPORT)
  if (UNIX)
@@ -45,6 +45,9 @@ elseif (WIN32)
   target_include_directories (${PROJECT_NAME}_File PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
  endif (IMAGEMAGICK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_File PUBLIC
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
+
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_File PUBLIC
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)

@@ -43,6 +43,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 // forward declarations
 class Stream_IAllocator;
 
@@ -73,6 +75,7 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
  , public FilterType
 {
@@ -87,8 +90,9 @@ class Stream_MediaFramework_DirectShow_Target_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
-  typedef FilterType inherited3;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+  typedef FilterType inherited4;
 
  public:
   Stream_MediaFramework_DirectShow_Target_T (ISTREAM_T*); // stream handle

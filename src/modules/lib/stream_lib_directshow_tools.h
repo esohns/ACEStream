@@ -45,6 +45,8 @@
 #include "stream_lib_common.h"
 #include "stream_lib_directshow_common.h"
 
+#include "stream_lib_ffmpeg_common.h"
+
 class Stream_MediaFramework_DirectShow_Tools
 {
   friend class Stream_MediaFramework_Tools;
@@ -188,6 +190,9 @@ class Stream_MediaFramework_DirectShow_Tools
   static struct _AMMediaType toRGB (const struct _AMMediaType&); // media type
   static std::string toString (const struct _AMMediaType&, // media type
                                bool = false);              // condensed version ?
+
+  // *IMPORTANT NOTE*: callers must 'delete_' return values
+  static struct _AMMediaType* to (const struct Stream_MediaFramework_FFMPEG_MediaType&); // media type
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_Tools ())

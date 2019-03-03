@@ -257,7 +257,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     configuration_in.filterConfiguration->pinConfiguration->queue =
       inherited::msg_queue_;
 
-    if (!inherited3::initialize (*configuration_in.filterConfiguration))
+    if (!inherited4::initialize (*configuration_in.filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
@@ -424,21 +424,26 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
         ACE_ASSERT (!session_data_r.formats.empty ());
 
         ACE_ASSERT (inherited::configuration_->window);
+        struct _AMMediaType media_type_s;
         HWND window_h = NULL;
-        inherited2::getWindowType (inherited::configuration_->window,
+        inherited2::getMediaType (session_data_r.formats.back (),
+                                  media_type_s);
+        inherited3::getWindowType (inherited::configuration_->window,
                                    window_h);
         ACE_ASSERT (window_h);
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
-                        session_data_r.formats.back (),
+                        media_type_s,
                         window_h,
                         IGraphBuilder_))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Target_T::loadGraph(), aborting\n"),
                       inherited::mod_->name ()));
+          Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
           goto error;
         } // end IF
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       } // end IF
       ACE_ASSERT (IGraphBuilder_);
 #if defined (_DEBUG)

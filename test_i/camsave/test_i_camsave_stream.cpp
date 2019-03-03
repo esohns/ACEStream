@@ -63,7 +63,7 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
+                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream"));
 
@@ -566,7 +566,7 @@ Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream ()
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING))
+                ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING))
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)

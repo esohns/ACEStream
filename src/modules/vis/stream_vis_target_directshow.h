@@ -38,6 +38,7 @@
 #include "common_ui_windowtype_converter.h"
 
 #include "stream_lib_directshow_target.h"
+#include "stream_lib_mediatype_converter.h"
 
 #include "stream_vis_common.h"
 
@@ -74,6 +75,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     PinConfigurationType,
                                                     struct _AMMediaType,
                                                     FilterType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
 {
@@ -88,7 +90,8 @@ class Stream_Vis_Target_DirectShow_T
                                                     PinConfigurationType,
                                                     struct _AMMediaType,
                                                     FilterType> inherited;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited2;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
   Stream_Vis_Target_DirectShow_T (ISTREAM_T*); // stream handle

@@ -107,7 +107,7 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
  include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
 # libav
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/include)
 
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})
@@ -125,7 +125,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/ui)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_u)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/test_i)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
@@ -267,9 +267,9 @@ elseif (WIN32)
 
 # *TODO*: repair WIN32 pkgconfig support
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
@@ -293,7 +293,7 @@ endif (GUI_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} CommonXML)
 endif (UNIX)
-#target_link_libraries (${EXECUTABLE} Common_Test_U)
+#target_link_libraries (${EXECUTABLE} Common_Test_I)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
@@ -360,7 +360,7 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/Debug/ACENetwork.dll
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
-          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  install (FILES etc/${EXECUTABLE}.gtk3 ${EXECUTABLE}.gtk2 ${EXECUTABLE}.fbp
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
@@ -409,11 +409,11 @@ elseif (WIN32)
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           ${PROJECT_SOURCE_DIR}/../libpng/cmake/${CMAKE_BUILD_TYPE}
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                            ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()
@@ -421,7 +421,7 @@ create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camsave
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

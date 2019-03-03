@@ -1248,14 +1248,14 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
                                                                              true);               // block ?
   Stream_CamSave_DirectShow_Stream directshow_stream;
   Stream_CamSave_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Stream_CamSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                                        &heap_allocator,     // heap allocator handle
                                                                                        true);               // block ?
   Stream_CamSave_MediaFoundation_Stream mediafoundation_stream;
@@ -1720,8 +1720,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   } // end IF
   else
   {
-    Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
-                                     CBData_in.configuration->GTKConfiguration.argv);
 #endif // GUI_SUPPORT
     Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1729,6 +1727,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
+        Common_UI_GTK_Tools::initialize (directShowCBData_in.configuration->GTKConfiguration.argc,
+                                         directShowCBData_in.configuration->GTKConfiguration.argv);
+
         if (!directshow_stream.initialize (directShowConfiguration_in.streamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1740,6 +1741,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
+        Common_UI_GTK_Tools::initialize (mediaFoundationCBData_in.configuration->GTKConfiguration.argc,
+                                         mediaFoundationCBData_in.configuration->GTKConfiguration.argv);
+
         if (!mediafoundation_stream.initialize (mediaFoundationConfiguration_in.streamConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1758,6 +1762,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       }
     } // end SWITCH
 #else
+    Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
+                                     CBData_in.configuration->GTKConfiguration.argv);
+
     if (!stream.initialize (configuration_in.streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1826,6 +1833,8 @@ clean:
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 void
 do_testMethods (const std::string& deviceIdentifier_in)
 {
@@ -1937,6 +1946,7 @@ error:
                 ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                 fd));
 }
+#endif // ACE_WIN32 || ACE_WIN64
 
 int
 ACE_TMAIN (int argc_in,
@@ -2193,20 +2203,17 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
       return EXIT_SUCCESS;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case STREAM_CAMSAVE_PROGRAMMODE_TEST_METHODS:
     {
       do_testMethods (capture_device_identifier);
 
       Common_Log_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      result = ACE::fini ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif // ACE_WIN32 || ACE_WIN64
+
       return EXIT_SUCCESS;
     }
+#endif // ACE_WIN32 || ACE_WIN64
     case STREAM_CAMSAVE_PROGRAMMODE_NORMAL:
       break;
     default:

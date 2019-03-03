@@ -116,9 +116,9 @@ class Stream_Module_Vis_GTK_Cairo_T
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_t*                         buffer_; // target-
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
   GdkPixbuf*                               buffer_; // target-
 #endif // GTK_CHECK_VERSION
   cairo_t*                                 context_;

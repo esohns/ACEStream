@@ -21,7 +21,7 @@ if (UNIX)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui>)
 elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Statistic PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Statistic PUBLIC

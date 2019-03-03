@@ -120,7 +120,7 @@ elseif (WIN32)
  endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
 # target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 #                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/build>)
@@ -333,10 +333,10 @@ elseif (WIN32)
   endif ()
  endif (MSVC)
 
- target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavcodec/libavcodec.dll.a)
- target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavformat/libavformat.dll.a)
- target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libavutil/libavutil.dll.a)
- target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/libswscale/libswscale.dll.a)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/lib/avutil.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder $ENV{LIB_ROOT}/ffmpeg/lib/swscale.lib)
 
  message (STATUS "ACE_LIBRARY: ${ACE_LIBRARY}")
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})

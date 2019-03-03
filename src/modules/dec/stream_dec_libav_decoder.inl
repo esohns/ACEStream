@@ -1084,10 +1084,11 @@ continue_:
       unsigned int buffer_size = frameSize_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (!session_data_r.formats.empty ());
-      Common_UI_Resolution_t resolution_s =
-        Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
-      formatHeight_ = static_cast<unsigned int> (::abs (resolution_s.cy));
-      width = static_cast<unsigned int> (resolution_s.cx);
+      //Common_Image_Resolution_t resolution_s =
+      //  Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ());
+      //formatHeight_ = static_cast<unsigned int> (::abs (resolution_s.cy));
+      //width = static_cast<unsigned int> (resolution_s.cx);
+      ACE_ASSERT (false); // *TODO*
 #else
       ACE_ASSERT (false); // *TODO*
 //      formatHeight_ = session_data_r.inputFormat.height;

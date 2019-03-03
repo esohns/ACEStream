@@ -84,9 +84,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::~Stream_Module_Vis_GTK_Cairo_T"));
 
   if (buffer_)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
     cairo_surface_destroy (buffer_);
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
     g_object_unref (buffer_);
 #endif // GTK_CHECK_VERSION
   if (context_)
@@ -155,20 +155,20 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //gdk_threads_enter ();
   //leave_gdk = true;
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_flush (buffer_);
   ACE_OS::memcpy (cairo_image_surface_get_data (buffer_),
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
   ACE_OS::memcpy (gdk_pixbuf_get_pixels (buffer_),
 #endif // GTK_CHECK_VERSION
                   message_inout->rd_ptr (),
                   message_inout->length ());
 
   // step3: draw pixbuf to widget
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_surface_mark_dirty (buffer_);
   cairo_paint (context_);
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
   //  gint width, height;
   //  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->window),
   //                         &width, &height);
@@ -177,10 +177,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   //                   react kindly to multithreaded access
   //                   --> move this into the gtk context and simply schedule a
   //                       refresh, which takes care of that
-  //  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->window), NULL,
-  //                   buffer_,
-  //                   0, 0, 0, 0, width, height,
-  //                   GDK_RGB_DITHER_NONE, 0, 0);
+  //gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->window), NULL,
+  //                 buffer_,
+  //                 0, 0, 0, 0, width, height,
+  //                 GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION
 
   if (likely (release_lock))
@@ -291,7 +291,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                  0);
 //      ACE_UNUSED_ARG (row_stride_i);
       ACE_ASSERT (buffer_);
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
       ACE_ASSERT (cairo_surface_status (buffer_) == CAIRO_STATUS_SUCCESS);
       ACE_ASSERT (cairo_surface_get_type (buffer_) == CAIRO_SURFACE_TYPE_IMAGE);
       int width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
@@ -300,7 +300,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       height_2 = cairo_image_surface_get_height (buffer_);
       row_stride_2 = cairo_image_surface_get_stride (buffer_);
       format_e = cairo_image_surface_get_format (buffer_);
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
       gint width_2 = 0, height_2 = 0, row_stride_2 = 0, n_channels_i = 0;
       ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
       g_object_get (G_OBJECT (buffer_),
@@ -316,9 +316,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT ((media_type_s.resolution.width == static_cast<unsigned int> (width_2)) && (media_type_s.resolution.height == static_cast<unsigned int> (height_2)));
 #endif // ACE_WIN32 || ACE_WIN64
       ACE_ASSERT (row_stride_i == static_cast<unsigned int> (row_stride_2));
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
       ACE_ASSERT ((format_e == CAIRO_FORMAT_RGB24) || (format_e == CAIRO_FORMAT_ARGB32));
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
       ACE_ASSERT (gdk_pixbuf_get_colorspace (buffer_) == GDK_COLORSPACE_RGB);
       ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
 //      ACE_ASSERT (n_channels_i == 4);
@@ -404,9 +404,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   {
     if (buffer_)
     {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
       cairo_surface_destroy (buffer_); buffer_ = NULL;
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
       g_object_unref (buffer_); buffer_ = NULL;
 #endif // GTK_CHECK_VERSION
     } // end IF
@@ -422,7 +422,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.window)
     return true; // nothing to do
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   scale_i = gdk_window_get_scale_factor (configuration_in.window);
 #else
   scale_i = 1;
@@ -461,11 +461,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   lock_ = configuration_in.lock;
 
   gdk_threads_enter ();
-#if GTK_CHECK_VERSION(3,0,0)
   buffer_ =
-      gdk_window_create_similar_image_surface (configuration_in.window,
-                                               CAIRO_FORMAT_RGB24,
-                                               width_i, height_i, scale_i);
+#if GTK_CHECK_VERSION(3,10,0)
+    gdk_window_create_similar_image_surface (configuration_in.window,
+                                             CAIRO_FORMAT_RGB24,
+                                             width_i, height_i, scale_i);
 //                                               clip_area.width, clip_area.height,
 //                                               0); // scale {0: same as window}
   if (!buffer_)
@@ -476,13 +476,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     gdk_threads_leave ();
     goto error;
   } // end IF
-#elif GTK_CHECK_VERSION(2,0,0)
-// *TODO*: remove type inference
-  buffer_ =
-#if GTK_CHECK_VERSION (3,0,0)
+#elif GTK_CHECK_VERSION (3,0,0)
     gdk_pixbuf_get_from_window (configuration_in.window,
                                 0, 0,
                                 width_i, height_i);
+#elif GTK_CHECK_VERSION(2,0,0)
 #else
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (configuration_in.window),
@@ -498,11 +496,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   gdk_threads_leave ();
-#endif // GTK_CHECK_VERSION
   ACE_ASSERT (buffer_);
 
   // sanity check(s)
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (cairo_surface_status (buffer_) == CAIRO_STATUS_SUCCESS);
   ACE_ASSERT (cairo_surface_get_type (buffer_) == CAIRO_SURFACE_TYPE_IMAGE);
   width_2 = cairo_image_surface_get_width (buffer_);
@@ -514,7 +511,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (row_stride_i);
   ACE_UNUSED_ARG (n_channels_i);
   ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32);
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
   ACE_ASSERT (GDK_IS_PIXBUF (buffer_));
   g_object_get (G_OBJECT (buffer_),
                 ACE_TEXT_ALWAYS_CHAR ("width"),      &width_2,
@@ -527,15 +524,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (buffer_) == 8);
   ACE_ASSERT (n_channels_i == 4);
 //    ACE_ASSERT (!gdk_pixbuf_get_has_alpha (configuration_in.pixelBuffer));
-#else
-  ACE_ASSERT (false);
 #endif // GTK_CHECK_VERSION
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION(3,10,0)
   cairo_set_source_surface (context_,
                             buffer_,
                             0, 0);
-#elif GTK_CHECK_VERSION(2,0,0)
+#else
   gdk_cairo_set_source_pixbuf (context_,
                                buffer_,
                                0, 0);
@@ -547,7 +542,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 error:
   if (buffer_)
   {
+#if GTK_CHECK_VERSION(3,10,0)
+    cairo_surface_destroy (buffer_); buffer_ = NULL;
+#else
     g_object_unref (buffer_); buffer_ = NULL;
+#endif // GTK_CHECK_VERSION
   } // end IF
   if (context_)
   {

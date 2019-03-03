@@ -200,16 +200,8 @@ Stream_Decoder_LibAVConverter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_in.outputFormat);
-
-  media_type_s =
-        inherited2::getMediaType (*configuration_in.outputFormat);
-#else
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
-#endif // ACE_WIN32 || ACE_WIN64
   outputFormat_ = media_type_s.format;
   if (unlikely (outputFormat_ == AV_PIX_FMT_NONE))
     ACE_DEBUG ((LM_WARNING,

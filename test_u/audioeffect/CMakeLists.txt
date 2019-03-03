@@ -1,7 +1,9 @@
-﻿option (GTKGL_USE "enable GTK OpenGL" ON)
-if(GTKGL_USE)
- add_definitions (-DGTKGL_USE)
-endif (GTKGL_USE)
+﻿if (GTKGL_SUPPORT)
+ option (GTKGL_USE "enable GTK OpenGL" ON)
+ if(GTKGL_USE)
+  add_definitions (-DGTKGL_USE)
+ endif (GTKGL_USE)
+endif (GTKGL_SUPPORT)
 
 # Threads
 if (UNIX)
@@ -161,9 +163,7 @@ elseif (WIN32)
  # *NOTE*: workaround
 # set (_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      $ENV{LIB_ROOT}/DShowBaseClasses)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
 # DirectShow
@@ -174,7 +174,7 @@ elseif (WIN32)
  #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../assimp/include)
 
 # libav
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+ include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
 
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})
@@ -241,7 +241,9 @@ if (GUI_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
        test_u_audioeffect_callbacks.cpp
-       test_u_audioeffect_callbacks.h)
+       test_u_audioeffect_callbacks.h
+       test_u_audioeffect_gl_callbacks.cpp
+       test_u_audioeffect_gl_callbacks.h)
  elseif (WXWIDGETS_USE)
 #  set (${EXECUTABLE}_EXE_SRCS
 #       ${${EXECUTABLE}_EXE_SRCS}
@@ -326,6 +328,9 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} GlU32.lib)
 
 # *TODO*: repair WIN32 pkgconfig support
+ if (WIN32)
+  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+ endif (WIN32)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 
@@ -419,11 +424,9 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           $ENV{LIB_ROOT}/gtk3/bin
+                           $ENV{LIB_ROOT}/ffmpeg/bin
+                           $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()
 create_target_launcher (${EXECUTABLE}

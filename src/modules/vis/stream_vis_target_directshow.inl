@@ -236,16 +236,17 @@ get_mode:
     } // end IF
     else
     {
+      struct tagRECT area_s;
+      BOOL result = GetClientRect (window_, &area_s);
+      ACE_ASSERT (result);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
                      SWP_NOSIZE);
       if (unlikely (!SetWindowPos (window_,
                                    HWND_NOTOPMOST,
-                                   inherited::configuration_->area.left,
-                                   inherited::configuration_->area.top,
-                                   inherited::configuration_->area.right - inherited::configuration_->area.left,
-                                   inherited::configuration_->area.bottom - inherited::configuration_->area.top,
+                                   area_s.left, area_s.top,
+                                   area_s.right - area_s.left, area_s.bottom - area_s.top,
                                    uFlags)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -295,16 +296,17 @@ get_mode:
     } // end IF
     else
     {
+      struct tagRECT area_s;
+      BOOL result = GetClientRect (window_, &area_s);
+      ACE_ASSERT (result);
       UINT uFlags = (SWP_ASYNCWINDOWPOS |
                      SWP_NOACTIVATE     |
                      SWP_NOMOVE         |
                      SWP_NOSIZE);
       if (unlikely (!SetWindowPos (window_,
                                    HWND_TOPMOST,
-                                   inherited::configuration_->area.left,
-                                   inherited::configuration_->area.top,
-                                   inherited::configuration_->area.right - inherited::configuration_->area.left,
-                                   inherited::configuration_->area.bottom - inherited::configuration_->area.top,
+                                   area_s.left, area_s.top,
+                                   area_s.right - area_s.left, area_s.bottom - area_s.top,
                                    uFlags)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -420,7 +422,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
       unsigned int height, width;
-      struct _AMMediaType* media_type_p = NULL;
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
       struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
       bool is_running = false;
@@ -431,33 +434,25 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
       // step2: assemble display format
-      height =
-        (inherited::configuration_->area.bottom -
-         inherited::configuration_->area.top);
-      width =
-        (inherited::configuration_->area.right -
-         inherited::configuration_->area.left);
+      ACE_ASSERT (window_);
+      struct tagRECT area_s;
+      BOOL result = GetClientRect (window_, &area_s);
+      ACE_ASSERT (result);
+      height = area_s.bottom - area_s.top;
+      width = area_s.right - area_s.left;
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (session_data_r.formats.back ());
-      if (unlikely (!media_type_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::copy(), aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      ACE_ASSERT (media_type_p);
-      ACE_ASSERT (media_type_p->pbFormat);
-      if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo))
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                media_type_s);
+      ACE_ASSERT (media_type_s.pbFormat);
+      if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
       {
         video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
         video_info_header_p->bmiHeader.biWidth = width;
         video_info_header_p->bmiHeader.biHeight = height;
         video_info_header_p->bmiHeader.biSizeImage =
-          Stream_MediaFramework_Tools::frameSize (*media_type_p);
+          Stream_MediaFramework_Tools::frameSize (media_type_s);
         // *NOTE*: empty --> use entire video
         result_2 = SetRectEmpty (&video_info_header_p->rcSource);
         ACE_ASSERT (SUCCEEDED (result_2));
@@ -468,18 +463,18 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
           (video_info_header_p->bmiHeader.biSizeImage *
            8 *
            (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)));
-        media_type_p->lSampleSize =
+        media_type_s.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;
       } // end IF
-      else if (InlineIsEqualGUID (media_type_p->formattype, FORMAT_VideoInfo2))
+      else if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2))
       {
         video_info_header2_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
         video_info_header2_p->bmiHeader.biWidth = width;
         video_info_header2_p->bmiHeader.biHeight = height;
         video_info_header2_p->bmiHeader.biSizeImage =
-          Stream_MediaFramework_Tools::frameSize (*media_type_p);
-        media_type_p->lSampleSize =
+          Stream_MediaFramework_Tools::frameSize (media_type_s);
+        media_type_s.lSampleSize =
           video_info_header2_p->bmiHeader.biSizeImage;
       } // end ELSE IF
       else
@@ -487,7 +482,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_p->formattype).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (media_type_s.formattype).c_str ())));
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
         goto error;
       } // end ELSE
 
@@ -500,13 +496,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
         if (unlikely (!inherited::loadGraph (inherited::configuration_->filterCLSID,
                                              *inherited::configuration_->filterConfiguration,
-                                             *media_type_p,
+                                             media_type_s,
                                              window_,
                                              inherited::IGraphBuilder_)))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Target_T::loadGraph(), aborting\n"),
                       inherited::mod_->name ()));
+          Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
           goto error;
         } // end IF
         ACE_ASSERT (inherited::IGraphBuilder_);
@@ -524,19 +521,21 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
       if (unlikely (!initialize_DirectShow (inherited::IGraphBuilder_,
-                                            *media_type_p,
+                                            media_type_s,
                                             window_,
                                             inherited::configuration_->fullScreen,
-                                            inherited::configuration_->area,
+                                            area_s,
                                             IVideoWindow_,
                                             IMFVideoDisplayControl_)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize_DirectShow(), aborting\n"),
                     inherited::mod_->name ()));
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
         goto error;
       } // end IF
       ACE_ASSERT (IVideoWindow_ || IMFVideoDisplayControl_);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       // update configuration
       if (IVideoWindow_)
       {
@@ -553,11 +552,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         inherited::configuration_->windowController2 = IMFVideoDisplayControl_;
       }
       ACE_ASSERT (window_);
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: window handle: 0x%@\n"),
                   inherited::mod_->name (),
                   window_));
-      Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+#endif // _DEBUG
 
       // retrieve interfaces for media control and the event sink
       if (!inherited::IMediaControl_)
@@ -683,9 +683,6 @@ error:
                       inherited::mod_->name (),
                       ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       } // end IF
-
-      if (media_type_p)
-        Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
 
       if (COM_initialized)
         CoUninitialize ();
@@ -815,8 +812,9 @@ error:
 
       // update the source filter input media format and reconnect
       ACE_ASSERT (!session_data_r.formats.empty ());
-      Stream_MediaFramework_DirectShow_Tools::resize (Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ()),
-                                                      *filter_graph_configuration.front ().mediaType);
+      ACE_ASSERT (false); // *TODO*
+      //Stream_MediaFramework_DirectShow_Tools::resize (Stream_MediaFramework_DirectShow_Tools::toResolution (session_data_r.formats.front ()),
+      //                                                *filter_graph_configuration.front ().mediaType);
       if (unlikely (!Stream_MediaFramework_DirectShow_Tools::connect (inherited::IGraphBuilder_,
                                                                       filter_graph_configuration)))
       {
@@ -1044,7 +1042,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     window_ = NULL;
   } // end IF
 
-  inherited2::getWindowType (configuration_in.window,
+  inherited3::getWindowType (configuration_in.window,
                              window_);
 
   return inherited::initialize (configuration_in,

@@ -602,24 +602,25 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 #else
       IDirect3DDevice9* device_handle_p =
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-        session_data_r.direct3DDevice; // prefer session data over configuration
-      if (device_handle_p)
-      {
-        if (direct3DConfiguration_->handle)
-        {
-          direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
-        } // end IF
-        ACE_ASSERT (!direct3DConfiguration_->handle);
-        session_data_r.direct3DDevice->AddRef ();
-        direct3DConfiguration_->handle = session_data_r.direct3DDevice;
-        releaseDeviceHandle_ = true;
-      } // end IF
-      else
+      //  session_data_r.direct3DDevice; // prefer session data over configuration
+      //if (device_handle_p)
+      //{
+      //  if (direct3DConfiguration_->handle)
+      //  {
+      //    direct3DConfiguration_->handle->Release (); direct3DConfiguration_->handle = NULL;
+      //  } // end IF
+      //  ACE_ASSERT (!direct3DConfiguration_->handle);
+      //  session_data_r.direct3DDevice->AddRef ();
+      //  direct3DConfiguration_->handle = session_data_r.direct3DDevice;
+      //  releaseDeviceHandle_ = true;
+      //} // end IF
+      //else
+        NULL;
       {
         if (direct3DConfiguration_->handle)
         {
           direct3DConfiguration_->handle->AddRef ();
-          session_data_r.direct3DDevice = direct3DConfiguration_->handle;
+          //session_data_r.direct3DDevice = direct3DConfiguration_->handle;
           device_handle_p = direct3DConfiguration_->handle;
         } // end IF
       } // end ELSE

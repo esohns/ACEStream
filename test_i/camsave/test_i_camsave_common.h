@@ -271,7 +271,7 @@ class Stream_CamSave_DirectShow_SessionData
   UINT                resetToken;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData (const Stream_CamSave_DirectShow_SessionData&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData (const Stream_CamSave_DirectShow_SessionData&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_DirectShow_SessionData& operator= (const Stream_CamSave_DirectShow_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_DirectShow_SessionData> Stream_CamSave_DirectShow_SessionData_t;
@@ -329,7 +329,7 @@ class Stream_CamSave_MediaFoundation_SessionData
   IMFMediaSession*                    session;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData (const Stream_CamSave_MediaFoundation_SessionData&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData (const Stream_CamSave_MediaFoundation_SessionData&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_MediaFoundation_SessionData& operator= (const Stream_CamSave_MediaFoundation_SessionData&))
 };
 typedef Stream_SessionData_T<Stream_CamSave_MediaFoundation_SessionData> Stream_CamSave_MediaFoundation_SessionData_t;

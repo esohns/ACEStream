@@ -98,16 +98,10 @@ if (UNIX)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/test_u)
 elseif (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "D:/projects/DShowBaseClasses")
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+ include_directories ($ENV{LIB_ROOT}/ImageMagick/include)
 
-# *TODO*: repair pkgconfig support
- include_directories ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses")
 # libav
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+ include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
 
  if (DEFINED ENV{ACE_ROOT})
   include_directories ($ENV{ACE_ROOT})
@@ -266,10 +260,15 @@ elseif (WIN32)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
 # *TODO*: repair WIN32 pkgconfig support
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS "/SAFESEH:NO")
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
+
+# target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_Magick++_.lib)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_MagickCore_.lib)
+ target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ImageMagick/lib/CORE_RL_MagickWand_.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
@@ -410,10 +409,10 @@ elseif (WIN32)
  endif (GUI_SUPPORT)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                           ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
+#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
                            ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()

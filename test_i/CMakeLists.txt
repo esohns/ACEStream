@@ -67,6 +67,19 @@ if (UNIX)
   elseif (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+
+   if (GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
+   endif (GTKGLAREA_SUPPORT)
+
+   if (LIBGLADE_SUPPORT)
+    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                                $<BUILD_INTERFACE:${PKG_GLADE_INCLUDE_DIRS}>)
+   endif (LIBGLADE_SUPPORT)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>)
@@ -97,6 +110,14 @@ elseif (WIN32)
   elseif (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
                                $<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>)
+
+   if (GTKGLAREA_SUPPORT)
+# *NOTE*: check out the 'master' branch for gtk3-based applications
+# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
+# *TODO*: verify automatically
+    target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
+                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
+   endif (GTKGLAREA_SUPPORT)
 
 # libglade
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)

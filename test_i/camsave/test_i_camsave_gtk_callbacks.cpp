@@ -4033,7 +4033,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
-      (*directshow_stream_iterator).second.second.fullScreen = is_active;
+      (*directshow_stream_iterator).second.second.fullScreen = is_active_b;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4046,7 +4046,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-      (*mediafoundation_stream_iterator).second.second.fullScreen = is_active;
+      (*mediafoundation_stream_iterator).second.second.fullScreen = is_active_b;
       break;
     }
     default:

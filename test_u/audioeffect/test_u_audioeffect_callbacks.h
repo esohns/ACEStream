@@ -116,32 +116,6 @@ extern "C"
 #endif // GTK_CHECK_VERSION(3,0,0)
   G_MODULE_EXPORT void filechooserbutton_destination_file_set_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
-#if defined (GTKGL_SUPPORT)
-  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
-  G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
-  G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#else
-  G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
-#endif // GTKGLAREA_SUPPORT
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#else
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, GdkEvent*, gpointer);
-#endif /* GTKGLAREA_SUPPORT */
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-#endif /* GTKGL_SUPPORT */
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
 #ifdef __cplusplus

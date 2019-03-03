@@ -1,6 +1,6 @@
 option (FFMPEG_SUPPORT "support ffmpeg" ON)
 
-set (IMAGEMAGICK_DEFAULT OFF)
+set (IMAGEMAGICK_DEFAULT ON)
 option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
 if (IMAGEMAGICK_SUPPORT)
  add_definitions (-DIMAGEMAGICK_SUPPORT)
@@ -117,7 +117,7 @@ elseif (WIN32)
 
 # libavformat
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC

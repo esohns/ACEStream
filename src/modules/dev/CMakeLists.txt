@@ -75,7 +75,7 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
 
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Device PUBLIC

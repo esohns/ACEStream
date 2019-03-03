@@ -131,15 +131,19 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   ACE_ASSERT (result >= 0);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-                                                       sourceResolution_.cx, sourceResolution_.cy, inherited::inputFormat_,
+                                                       sourceResolution_.cx, sourceResolution_.cy,
+                                                       inherited::inputFormat_,
                                                        data_a,
-                                                       targetResolution_.cx, targetResolution_.cy, inherited::inputFormat_,
+                                                       inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
+                                                       inherited::inputFormat_,
                                                        inherited::frame_->data)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-                                                       sourceResolution_.width, sourceResolution_.height, inherited::inputFormat_,
+                                                       sourceResolution_.width, sourceResolution_.height,
+                                                       inherited::inputFormat_,
                                                        data_a,
-                                                       inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
+                                                       inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
+                                                       inherited::inputFormat_,
                                                        inherited::frame_->data)))
 #endif // ACE_WIN32 || ACE_WIN64
   {
@@ -276,8 +280,14 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       // *TODO*: remove type inferences
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (unlikely ((sourceResolution_.cx == inherited::configuration_->outputFormat.resolution.cx) &&
+                    (sourceResolution_.cy == inherited::configuration_->outputFormat.resolution.cy)))
+#else
       if (unlikely ((sourceResolution_.width == inherited::configuration_->outputFormat.resolution.width) &&
                     (sourceResolution_.height == inherited::configuration_->outputFormat.resolution.height)))
+#endif // ACE_WIN32 || ACE_WIN64
+
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: output size is input size, nothing to do\n"),
@@ -428,10 +438,11 @@ error:
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
+                                inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, inherited::inputFormat_,
 #else
                                 media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
-#endif // ACE_WIN32 || ACE_WIN64
                                 inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
+#endif // ACE_WIN32 || ACE_WIN64
                                 flags_i,                      // flags
                                 NULL, NULL,
                                 0);                           // parameters
