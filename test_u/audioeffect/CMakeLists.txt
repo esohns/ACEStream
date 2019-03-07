@@ -411,22 +411,24 @@ elseif (WIN32)
    if (GTK3_SUPPORT)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${PROJECT_SOURCE_DIR}/../gtk3/bin)
+                              G:/software/Development/dll)
+    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_PATH)
    elseif (GTK2_SUPPORT)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${PROJECT_SOURCE_DIR}/../gtk2/bin)
+                              G:/software/Development/dll)
+    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
    endif ()
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE} ASSIMP_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
-                           $ENV{LIB_ROOT}/gtk3/bin
-                           $ENV{LIB_ROOT}/ffmpeg/bin
-                           $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           ${GTK_PATH}
+                           ${FFMPEG_PATH}
+                           ${ASSIMP_PATH}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()
 create_target_launcher (${EXECUTABLE}

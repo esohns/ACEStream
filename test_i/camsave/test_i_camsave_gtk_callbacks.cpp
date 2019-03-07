@@ -5211,8 +5211,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              directshow_cb_data_p->configuration->streamConfiguration.configuration_.format);
 
-      ACE_ASSERT ((resolution_s.cx != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth) &&
-                  (resolution_s.cy != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight));
+      //ACE_ASSERT ((resolution_s.cx != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth) &&
+      //            (resolution_s.cy != directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight));
       directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferWidth =
         resolution_s.cx;
       directshow_cb_data_p->configuration->direct3DConfiguration.presentationParameters.BackBufferHeight =

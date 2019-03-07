@@ -408,13 +408,12 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${PROJECT_SOURCE_DIR}/../libpng/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-#                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           ${LIBPNG_PATH}
+                           ${FFMPEG_PATH}
+#                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
 endif ()
 create_target_launcher (${EXECUTABLE}

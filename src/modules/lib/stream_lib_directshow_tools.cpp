@@ -4201,13 +4201,14 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   struct _AMMediaType* result_p = CreateMediaType (NULL);
   ACE_ASSERT (result_p);
 
+  BOOL result_2 = FALSE;
   result_p->bFixedSizeSamples = TRUE;
   result_p->bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo))
   {
-    ACE_ASSERT (result_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
     struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_s.pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
     // *NOTE*: empty --> use entire video
     result_2 = SetRectEmpty (&video_info_header_p->rcSource);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -4226,7 +4227,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
     //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_s.subtype);
+      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
     ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
@@ -4239,14 +4240,14 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
       (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_s.lSampleSize =
+    result_p->lSampleSize =
       video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
-  else if (InlineIsEqualGUID (result_s.formattype, FORMAT_VideoInfo2))
+  else if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo2))
   {
-    ACE_ASSERT (result_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
     struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_s.pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_p->pbFormat);
     // *NOTE*: empty --> use entire video
     result_2 = SetRectEmpty (&video_info_header_p->rcSource);
     ACE_ASSERT (SUCCEEDED (result_2));
@@ -4271,7 +4272,7 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
     //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
     video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_s.subtype);
+      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
     ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
@@ -4284,15 +4285,15 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
     video_info_header_p->dwBitRate =
       (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
       (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_s.lSampleSize =
+    result_p->lSampleSize =
       video_info_header_p->bmiHeader.biSizeImage;
   } // end IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
       ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-      ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_s.formattype).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::free (result_s);
+      ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_p->formattype).c_str ())));
+    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
   } // end ELSE
 
   return result_p;
