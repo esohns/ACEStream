@@ -626,12 +626,12 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (!Common_File_Tools::isReadable (configuration_in.fileName))
+  if (!Common_File_Tools::isReadable (configuration_in.fileIdentifier.identifier))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: source file \"%s\" does not exist, aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.fileName.c_str ())));
+                ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
     return false;
   } // end IF
 
@@ -651,13 +651,13 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inferences
-  result = fileName_.set (ACE_TEXT (configuration_in.fileName.c_str ()));
+  result = fileName_.set (ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ()));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (configuration_in.fileName.c_str ())));
+                ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
     return false;
   } // end IF
   passDownstream_ = configuration_in.pushStatisticMessages;

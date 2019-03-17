@@ -25,6 +25,8 @@ extern "C"
 }
 #endif /* __cplusplus */
 
+#include "gtk/gtk.h"
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -481,12 +483,16 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                 0, 0,
                                 width_i, height_i);
 #elif GTK_CHECK_VERSION(2,0,0)
-#else
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (configuration_in.window),
                                   NULL,
                                   0, 0,
                                   0, 0, width_i, height_i);
+#else
+      NULL;
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
 #endif
   if (!buffer_)
   { // *NOTE*: most probable reason: window is not mapped

@@ -47,7 +47,6 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename ConnectionConfigurationIteratorType, // (const-)
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Target_T

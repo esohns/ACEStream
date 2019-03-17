@@ -46,15 +46,15 @@ add_library (${PROJECT_NAME}_Visualization STATIC "")
 if (GTK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
-# if (GTKGL_SUPPORT)
-#  if (GTKGLAREA_SUPPORT)
+ if (GTKGL_SUPPORT)
+  if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
-#   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-#                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
-#  endif (GTKGLAREA_SUPPORT)
-# endif (GTKGL_SUPPORT)
+   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
+  endif (GTKGLAREA_SUPPORT)
+ endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
 
 if (UNIX)

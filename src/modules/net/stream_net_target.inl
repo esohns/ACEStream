@@ -41,7 +41,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -51,7 +50,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
-                           ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                            ConnectorType>::Stream_Module_Net_Target_T (ISTREAM_T* stream_in,
@@ -61,8 +59,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                                                        bool isPassive_in)
  : inherited (stream_in)
  , connection_ (NULL)
- , connector_ (NULL,
-               ACE_Time_Value::zero)
+ , connector_ (true)
  , sessionEndProcessed_ (false)
  /////////////////////////////////////////
  , address_ ()
@@ -82,7 +79,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -92,7 +88,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
-                           ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
                            ConnectorType>::~Stream_Module_Net_Target_T ()
 {
@@ -148,7 +143,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -159,7 +153,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
-                           ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
                            ConnectorType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
@@ -172,14 +165,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     { ACE_ASSERT (connection_);
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-      if (!istream_connection_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(%@): \"%m\", continuing\n"),
-                    inherited::mod_->name (),
-                    connection_));
-        goto close;
-      } // end IF
+      ACE_ASSERT (istream_connection_p);
       typename inherited::ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       istream_p->_unlink ();
@@ -187,7 +173,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       unlink_ = false;
     } // end IF
 
-close:
     if (isOpen_ &&
         !isPassive_)
     { ACE_ASSERT (connection_);
@@ -203,8 +188,7 @@ close:
 
     if (connection_)
     {
-      connection_->decrease ();
-      connection_ = NULL;
+      connection_->decrease (); connection_ = NULL;
     } // end IF
     sessionEndProcessed_ = false;
   } // end IF
@@ -224,31 +208,32 @@ close:
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.connectionConfigurations);
-  ConnectionConfigurationIteratorType iterator =
+  Net_ConnectionConfigurationsIterator_t iterator =
     configuration_in.connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
   if (likely (iterator == configuration_in.connectionConfigurations->end ()))
     iterator =
       configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  //else
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("%s: applying connection configuration\n"),
-  //              inherited::mod_->name ()));
+#if defined (_DEBUG)
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: applying connection configuration\n"),
+                inherited::mod_->name ()));
+#endif // _DEBUG
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
-  ACE_ASSERT ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
   switch (connector_.transportLayer ())
   {
     case NET_TRANSPORTLAYER_TCP:
     {
-      struct Net_TCPSocketConfiguration* socket_configuration_p =
-          static_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      Net_TCPSocketConfiguration_t* socket_configuration_p =
+          dynamic_cast<Net_TCPSocketConfiguration_t*> ((*iterator).second);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->address;
       break;
     }
     case NET_TRANSPORTLAYER_UDP:
     {
-      struct Net_UDPSocketConfiguration* socket_configuration_p =
-          static_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      Net_UDPSocketConfiguration_t* socket_configuration_p =
+          dynamic_cast<Net_UDPSocketConfiguration_t*> ((*iterator).second);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->peerAddress;
       break;
@@ -274,7 +259,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -285,7 +269,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
-                           ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
                            ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -332,21 +315,17 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
-        (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
-                                                      : CONNECTION_MANAGER_SINGLETON_T::instance ());
+        ConnectionManagerType::SINGLETON_T::instance ();
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
-//      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      typename ConnectorType::CONFIGURATION_T* connection_configuration_p;
       bool notify_connect = false;
-//      bool clone_module, delete_module;
-      ConnectionConfigurationIteratorType iterator_2;
+      Net_ConnectionConfigurationsIterator_t iterator_2;
       typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
-//      bool is_inbound = true;
-//      CONFIGURATION_ITERATOR_T iterator;
-//      ConfigurationType* module_configuration_p = NULL;
       bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
+      bool result_2 = false;
 
       if (unlikely (isPassive_))
       {
@@ -397,32 +376,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       if (likely (iterator_2 == inherited::configuration_->connectionConfigurations->end ()))
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-      //else
-      //  ACE_DEBUG ((LM_DEBUG,
-      //              ACE_TEXT ("%s: applying connection configuration\n"),
-      //              inherited::mod_->name ()));
+#if defined (_DEBUG)
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: applying connection configuration\n"),
+                    inherited::mod_->name ()));
+#endif // _DEBUG
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
-//      // *NOTE*: the stream configuration may contain a module handle that is
-//      //         meant to be the final module of this processing stream. As
-//      //         the connection stream will be appended to this pipeline, the
-//      //         connection should not enqueue that same module again
-//      //         --> temporarily 'hide' the module handle, if any
-//      // *TODO*: remove this ASAP
-//      clone_module =
-//          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
-//      delete_module =
-//          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
-//      module_p =
-//          inherited::configuration_->streamConfiguration->configuration_.module;
-//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
-//          false;
-//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
-//          false;
-//      inherited::configuration_->streamConfiguration->configuration_.module =
-//          NULL;
-
-      if (unlikely (!iconnector_p->initialize ((*iterator_2).second)))
+      connection_configuration_p =
+          dynamic_cast<typename ConnectorType::CONFIGURATION_T*> ((*iterator_2).second);
+      ACE_ASSERT (connection_configuration_p);
+      if (unlikely (!iconnector_p->initialize (*connection_configuration_p)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize connector: \"%m\", aborting\n"),
@@ -430,15 +395,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         is_error = true;
         goto reset;
       } // end IF
-
-//      iterator =
-//          inherited::configuration_->streamConfiguration->find (ACE_TEXT_ALWAYS_CHAR (""));
-//      ACE_ASSERT (iterator != inherited::configuration_->streamConfiguration->end ());
-//      module_configuration_p =
-//          const_cast<ConfigurationType*> (static_cast<const ConfigurationType*> (&(*iterator).second));
-//      ACE_ASSERT (module_configuration_p);
-//      is_inbound = module_configuration_p->inbound;
-//      module_configuration_p->inbound = false;
 
       // step3: connect
       ACE_ASSERT (!connection_);

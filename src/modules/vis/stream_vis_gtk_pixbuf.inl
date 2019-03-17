@@ -315,9 +315,9 @@ error:
 #if GTK_CHECK_VERSION (3,0,0)
       width_i = gdk_window_get_width (inherited::configuration_->window);
       height_i = gdk_window_get_height (inherited::configuration_->window);
-#else
-      gdk_rawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
-                            &width_i, &height_i);
+#elif GTK_CHECK_VERSION (2,0,0)
+      gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
+                             &width_i, &height_i);
 #endif // GTK_CHECK_VERSION (3,0,0)
 //      buffer_ =
 //#if GTK_CHECK_VERSION (3,0,0)
