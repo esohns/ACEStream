@@ -96,7 +96,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Source_Writer_T
@@ -151,9 +150,9 @@ class Stream_Module_Net_Source_Writer_T
   //inline virtual const typename ConnectionManagerType::CONNECTION_T* const get () const { return connection_; };
 
  private:
-  // convenient types
-  typedef ACE_Singleton<ConnectionManagerType,
-                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+//  // convenient types
+//  typedef ACE_Singleton<ConnectionManagerType,
+//                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
@@ -186,7 +185,6 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
-          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType, // implements Net_IConnectionManager_T
           typename ConnectorType,
           ////////////////////////////////
@@ -229,7 +227,6 @@ class Stream_Module_Net_SourceH_T
   Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T*, // stream handle
                                bool = true,                    // generate session messages ?
                                ///////////
-                               ConnectionManagerType* = NULL,  // connection manager handle
                                bool = false);                  // passive ?
   virtual ~Stream_Module_Net_SourceH_T ();
 
@@ -268,9 +265,9 @@ class Stream_Module_Net_SourceH_T
   //virtual void report () const;
 
  private:
-  // convenient types
-  typedef ACE_Singleton<ConnectionManagerType,
-                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+//  // convenient types
+//  typedef ACE_Singleton<ConnectionManagerType,
+//                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T (const Stream_Module_Net_SourceH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T& operator= (const Stream_Module_Net_SourceH_T&))
