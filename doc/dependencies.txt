@@ -1,3 +1,10 @@
+*NOTE*: to disambiguate the ACEStream <--> ACENetwork interdependency:
+        1. temporarily comment: - src/modules/CMakeLists.txt:11
+                                - test_i/CMakeLists.txt:271-274
+        2. generate the ACEStream Makefiles
+        3. generate the ACENetwork Makefiles
+        4. uncomment 1.
+        5. re-generate the ACEStream Makefiles
 
 Linux Package Management:
 * Fedora 29 ('sudo dnf install')
