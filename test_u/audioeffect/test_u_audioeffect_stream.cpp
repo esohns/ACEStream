@@ -67,7 +67,7 @@ Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream ()
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
+Test_U_AudioEffect_DirectShow_Stream::load (typename inherited::LAYOUT_T& layout_out,
                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::load"));
@@ -1210,7 +1210,7 @@ Test_U_AudioEffect_ALSA_Stream::~Test_U_AudioEffect_ALSA_Stream ()
 }
 
 bool
-Test_U_AudioEffect_ALSA_Stream::load (Stream_ModuleList_t& modules_out,
+Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                                       bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::load"));
@@ -1230,6 +1230,58 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ModuleList_t& modules_out,
   //delete_out = false;
 
   Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_Dev_Mic_Source_ALSA_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_StatisticReport_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_StatisticAnalysis_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  if (!configuration_p->effect.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_SoXEffect_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+  if (!configuration_p->mute)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_Target_ALSA_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                    false);
+    layout_in->append (module_p, NULL, 0);
+    module_p = NULL;
+  } // end IF
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 //  ACE_NEW_RETURN (module_p,
 //                  Test_U_AudioEffect_Module_FileWriter_Module (this,
 //                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_FILE_SINK_DEFAULT_NAME_STRING)),
@@ -1238,57 +1290,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ModuleList_t& modules_out,
 //  module_p = NULL;
   // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
   //         itself
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  if (!configuration_p->mute)
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-                    false);
-    modules_out.push_back (module_p);
-    module_p = NULL;
-  } // end IF
-  if (!configuration_p->effect.empty ())
-  {
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_SoXEffect_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING)),
-                    false);
-    modules_out.push_back (module_p);
-    module_p = NULL;
-  } // end IF
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_StatisticAnalysis_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
 
   delete_out = true;
 

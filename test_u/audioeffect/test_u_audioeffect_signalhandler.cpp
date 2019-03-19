@@ -145,13 +145,10 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     //} // end IF
 
     // step2: stop UI event processing ?
-    if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
-                                                          false); // N/A
-#else
-      ;
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
+                                                        false); // N/A
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   } // end IF

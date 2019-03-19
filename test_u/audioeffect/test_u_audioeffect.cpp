@@ -1269,8 +1269,6 @@ do_work (unsigned int bufferSize_in,
     }
   } // end SWITCH
 #else
-  configuration_in.signalHandlerConfiguration.hasUI =
-    !UIDefinitionFile_in.empty ();
   configuration_in.signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
@@ -1785,6 +1783,7 @@ ACE_TMAIN (int argc_in,
 #else
   struct Test_U_AudioEffect_Configuration configuration;
   struct Test_U_AudioEffect_UI_CBData ui_cb_data;
+  ui_cb_data.configuration = &configuration;
 
 #if defined (GTK_USE)
   ui_cb_data.progressData.state = &state_r;
@@ -1804,7 +1803,6 @@ ACE_TMAIN (int argc_in,
     gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_USE
   cb_data_base_p = &ui_cb_data;
-  ui_cb_data.configuration = &configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (cb_data_base_p);
 #endif // GUI_SUPPORT

@@ -155,19 +155,14 @@ Stream_ImageScreen_SignalHandler::handle (const struct Common_Signal& signal_in)
     // step2: stop UI event processing ?
     // *TODO*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
-    if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                          false); // N/A
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                        false); // N/A
 #elif defined (WXWIDGETS_USE)
-    {
-      wxAppConsole* app_p = wxAppConsole::GetInstance ();
-      ACE_ASSERT (app_p);
-      app_p->ExitMainLoop ();
-    } // end IF
-#else
-      ;
+    wxAppConsole* app_p = wxAppConsole::GetInstance ();
+    ACE_ASSERT (app_p);
+    app_p->ExitMainLoop ();
 #endif
 #endif // GUI_SUPPORT
   } // end IF

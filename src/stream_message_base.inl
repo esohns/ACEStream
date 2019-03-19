@@ -559,7 +559,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
 
-  ACE_ASSERT (!inherited::isInitialized_);
+//  ACE_ASSERT (!inherited::isInitialized_);
 
   inherited::initialize (sessionId_in,
                          dataBlock_in);

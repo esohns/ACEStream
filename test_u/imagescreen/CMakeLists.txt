@@ -1,3 +1,12 @@
+option (FFMPEG_SUPPORT "support ffmpeg" ON)
+if (FFMPEG_SUPPORT)
+ add_definitions (-DFFMPEG_SUPPORT)
+endif (FFMPEG_SUPPORT)
+option (IMAGEMAGICK_SUPPORT "support ImageMagick" OFF)
+if (IMAGEMAGICK_SUPPORT)
+ add_definitions (-DIMAGEMAGICK_SUPPORT)
+endif (IMAGEMAGICK_SUPPORT)
+
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
