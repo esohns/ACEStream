@@ -197,7 +197,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (!window_ && !mainLoop_);
-      ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
+//      ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
 
       gdk_threads_enter ();
 
@@ -332,7 +332,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
+//  ACE_ASSERT (Common_UI_GTK_Tools::GTKInitialized);
   ACE_ASSERT (mainLoop_);
 
   g_main_run (mainLoop_);

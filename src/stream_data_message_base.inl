@@ -487,6 +487,33 @@ template <typename DataType,
           typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
+void
+Stream_DataMessageBase_2<DataType,
+                         AllocatorConfigurationType,
+                         MessageType,
+                         CommandType>::finalize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::finalize"));
+
+  if (data_)
+  {
+    try {
+      // *TODO*: remove type inference
+      data_->decrease ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Common_IReferenceCount::decrease(), continuing\n")));
+    }
+    data_ = NULL;
+  } // end IF
+
+  inherited::isInitialized_ = false;
+}
+
+template <typename DataType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 const DataType&
 Stream_DataMessageBase_2<DataType,
                          AllocatorConfigurationType,

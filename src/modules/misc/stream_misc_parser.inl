@@ -1004,6 +1004,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
 
+  message_inout->finalize (); // reset any data it might already have
   result = inherited::msg_queue_->enqueue_tail (message_inout,
                                                 NULL);
   if (result == -1)

@@ -139,6 +139,7 @@ class Stream_DataMessageBase_2
   void initialize (DataType*&,              // data handle
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
+  void finalize ();
 
   // implement Common_IGetR_T
   virtual const DataType& getR () const;
