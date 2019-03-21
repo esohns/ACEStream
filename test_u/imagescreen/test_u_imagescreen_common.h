@@ -21,6 +21,8 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
+#include <wx/apptrait.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -329,31 +331,14 @@ struct Stream_ImageScreen_UI_ThreadData
 extern const char toplevel_widget_classname_string_[];
 typedef Common_UI_WxWidgetsXRCDefinition_T<struct Common_UI_wxWidgets_State,
                                            toplevel_widget_classname_string_> Stream_ImageScreen_WxWidgetsXRCDefinition_t;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_DirectShow_WxWidgetsIApplication_t,
-                                         Stream_ImageScreen_DirectShow_Stream> Stream_ImageScreen_DirectShow_WxWidgetsDialog_t;
-typedef Comon_UI_WxWidgets_Application_T<Stream_ImageScreen_WxWidgetsXRCDefinition_t,
-                                         struct Common_UI_wxWidgets_State,
-                                         struct Stream_ImageScreen_DirectShow_UI_CBData,
-                                         Stream_ImageScreen_DirectShow_WxWidgetsDialog_t,
-                                         wxGUIAppTraits> Stream_ImageScreen_DirectShow_WxWidgetsApplication_t;
-typedef Stream_ImageScreen_WxWidgetsDialog_T<Stream_ImageScreen_MediaFoundation_WxWidgetsIApplication_t,
-                                         Stream_ImageScreen_MediaFoundation_Stream> Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t;
-typedef Comon_UI_WxWidgets_Application_T<Stream_ImageScreen_WxWidgetsXRCDefinition_t,
-                                         struct Common_UI_wxWidgets_State,
-                                         struct Stream_ImageScreen_MediaFoundation_UI_CBData,
-                                         Stream_ImageScreen_MediaFoundation_WxWidgetsDialog_t,
-                                         wxGUIAppTraits> Stream_ImageScreen_MediaFoundation_WxWidgetsApplication_t;
-#else
 typedef Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                         Stream_ImageScreen_WxWidgetsIApplication_t,
-                                         Stream_ImageScreen_Stream> Stream_ImageScreen_WxWidgetsDialog_t;
+                                             Stream_ImageScreen_WxWidgetsIApplication_t,
+                                             Stream_ImageScreen_Stream> Stream_ImageScreen_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_ImageScreen_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,
                                          struct Stream_ImageScreen_UI_CBData,
                                          Stream_ImageScreen_WxWidgetsDialog_t,
                                          wxGUIAppTraits> Stream_ImageScreen_WxWidgetsApplication_t;
-#endif // ACE_WIN32 || ACE_WIN64
 #endif
 
 #endif

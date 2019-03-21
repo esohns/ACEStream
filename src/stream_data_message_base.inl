@@ -308,6 +308,8 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
+  // *TODO*: this test doesn't suffice
+  inherited::isInitialized_ = false;
 }
 
 template <typename DataType,
@@ -323,6 +325,7 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
+  inherited::isInitialized_ = false;
   inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 }
 
@@ -373,6 +376,7 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
+  inherited::isInitialized_ = false;
   inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
@@ -398,6 +402,7 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
+  inherited::isInitialized_ = false;
   inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers

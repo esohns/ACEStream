@@ -52,15 +52,17 @@
 #else
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF
 #endif // GTK_CHECK_VERSION
+#elif defined (QT_USE)
+#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_X11
 #elif defined (WXWIDGETS_USE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D
 #else
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_X11
 #endif // ACE_WIN32 || ACE_WIN64
-#endif
 #else
 #define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_NULL
+#endif
 #endif // GUI_SUPPORT
 
 // renderers
