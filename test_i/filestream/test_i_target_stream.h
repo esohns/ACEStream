@@ -61,8 +61,8 @@ class Test_I_Target_Stream
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData>
+                                        Test_I_Target_TCPConnectionManager_t,
+                                        struct Stream_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -83,8 +83,8 @@ class Test_I_Target_Stream
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData> inherited;
+                                        Test_I_Target_TCPConnectionManager_t,
+                                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Target_Stream ();
@@ -115,7 +115,7 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Target_Net_IO_Module          netIO_;
+  Test_I_Target_TCP_IO_Module          netIO_;
   Test_I_Target_StatisticReport_Module statisticReport_;
   Test_I_FileWriter_Module             fileWriter_;
 };

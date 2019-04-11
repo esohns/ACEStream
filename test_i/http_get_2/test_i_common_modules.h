@@ -65,7 +65,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_HTTPGet_InetConnectionManager_t,
-                                     struct Test_I_HTTPGet_UserData> Test_I_Net_Reader_t;
+                                     struct Stream_UserData> Test_I_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
@@ -80,7 +80,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_HTTPGet_InetConnectionManager_t,
-                                     struct Test_I_HTTPGet_UserData> Test_I_Net_Writer_t;
+                                     struct Stream_UserData> Test_I_Net_Writer_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
@@ -109,7 +109,7 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Test_I_HTTPGet_SessionData_t,
                               Test_I_Statistic_t,
                               Common_Timer_Manager_t,
-                              struct Test_I_HTTPGet_UserData> Test_I_HTTPParser;
+                              struct Stream_UserData> Test_I_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type

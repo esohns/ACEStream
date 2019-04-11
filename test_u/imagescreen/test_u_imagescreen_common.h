@@ -21,7 +21,7 @@
 #ifndef TEST_U_IMAGESCREEN_COMMON_H
 #define TEST_U_IMAGESCREEN_COMMON_H
 
-#include <wx/apptrait.h>
+//#include <wx/apptrait.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -46,6 +46,8 @@ extern "C"
 #include "test_u_common.h"
 #if defined (GTK_USE)
 #include "test_u_gtk_common.h"
+#elif defined (QT_USE)
+#include "test_u_qt_common.h"
 #endif // GTK_USE
 
 // forward declarations
@@ -124,14 +126,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
 #if defined (GTK_USE)
-//   , pixelBuffer (NULL)
    , window (NULL)
-#elif defined (WXWIDGETS_USE)
-   , window (None)
-   , X11Display (NULL)
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
+#else
+   , window (None)
+   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTK_USE
   {
@@ -151,14 +152,13 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
 #if defined (GTK_USE)
-//  GdkPixbuf*                                    pixelBuffer;
   GdkWindow*                                    window;
-#elif defined (WXWIDGETS_USE)
-  Window                                        window;
-  Display*                                      X11Display;
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                                          window;
+#else
+  Window                                        window;
+  Display*                                      X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GTK_USE
 };
@@ -251,6 +251,8 @@ typedef Stream_ImageScreen_EventHandler_T<Stream_ImageScreen_ISessionNotify_t,
 #elif defined (WXWIDGETS_USE)
                                           struct Common_UI_wxWidgets_State,
                                           Common_UI_wxWidgets_IApplicationBase_t,
+#elif defined (QT_USE)
+                                          struct Common_UI_Qt_State,
 #endif
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_EventHandler_t;
 
@@ -261,6 +263,8 @@ struct Stream_ImageScreen_ProgressData
  : Test_U_GTK_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_ProgressData
+#elif defined (QT_USE)
+ : Test_U_Qt_ProgressData
 #endif
 {
   Stream_ImageScreen_ProgressData ()
@@ -268,6 +272,8 @@ struct Stream_ImageScreen_ProgressData
    : Test_U_GTK_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_ProgressData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_ProgressData ()
 #endif
    , current (0)
    , total (0)
@@ -281,6 +287,8 @@ class Stream_ImageScreen_Stream;
 struct Stream_ImageScreen_UI_CBData
 #if defined (GTK_USE)
  : Test_U_GTK_CBData
+#elif defined (QT_USE)
+ : Test_U_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_CBData
 #endif
@@ -288,6 +296,8 @@ struct Stream_ImageScreen_UI_CBData
   Stream_ImageScreen_UI_CBData ()
 #if defined (GTK_USE)
    : Test_U_GTK_CBData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_CBData ()
 #endif
@@ -310,6 +320,8 @@ struct Stream_ImageScreen_UI_CBData
 struct Stream_ImageScreen_UI_ThreadData
 #if defined (GTK_USE)
  : Test_U_GTK_ThreadData
+#elif defined (QT_USE)
+ : Test_U_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_U_wxWidgets_ThreadData
 #endif
@@ -317,6 +329,8 @@ struct Stream_ImageScreen_UI_ThreadData
   Stream_ImageScreen_UI_ThreadData ()
 #if defined (GTK_USE)
    : Test_U_GTK_ThreadData ()
+#elif defined (QT_USE)
+   : Test_U_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_U_wxWidgets_ThreadData ()
 #endif

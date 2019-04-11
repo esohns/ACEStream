@@ -611,10 +611,10 @@ do_work (unsigned int bufferSize_in,
   // *********************** socket configuration data ************************
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   int result =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (port_in,
-                                                                                           hostName_in.c_str (),
-                                                                                           1,
-                                                                                           ACE_ADDRESS_FAMILY_INET);
+    connection_configuration.address.set (port_in,
+                                          hostName_in.c_str (),
+                                          1,
+                                          ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -627,29 +627,22 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
+  connection_configuration.useLoopBackDevice =
+    connection_configuration.address.is_loopback ();
 //  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly =
 //    true;
-
-  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  connection_configuration.socketHandlerConfiguration.userData =
-    &configuration.userData;
-
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.userData = &configuration.userData;
   connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                        configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
-  Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator =
+                                                                 &connection_configuration));
+  Net_ConnectionConfigurationsIterator_t iterator =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
-  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** prser configuration data ***************************
@@ -703,17 +696,15 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
-
-    // clean up
-    delete stream_p;
-
+    delete stream_p; stream_p = NULL;
     return;
   } // end IF
 
   // step0c: initialize connection manager
+  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set ((*iterator).second,
-                             &configuration.userData);
+  connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+                             &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -740,11 +731,8 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
-
-      // clean up
       timer_manager_p->stop ();
-      delete stream_p;
-
+      delete stream_p; stream_p = NULL;
       return;
     } // end IF
   } // end IF
@@ -760,11 +748,8 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize signal handler, returning\n")));
-
-    // clean up
     timer_manager_p->stop ();
-    delete stream_p;
-
+    delete stream_p; stream_p = NULL;
     return;
   } // end IF
   if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
@@ -776,11 +761,8 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
-
-    // clean up
     timer_manager_p->stop ();
-    delete stream_p;
-
+    delete stream_p; stream_p = NULL;
     return;
   } // end IF
 
@@ -797,19 +779,8 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
-
-    // clean up
-    //		{ // synch access
-    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-    //					 iterator != CBData_in.event_source_ids.end();
-    //					 iterator++)
-    //				g_source_remove(*iterator);
-    //		} // end lock scope
     timer_manager_p->stop ();
-    delete stream_p;
-
+    delete stream_p; stream_p = NULL;
     return;
   } // end IF
 
@@ -817,14 +788,11 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
-
-    // clean up
     Common_Tools::finalizeEventDispatch (useReactor_in,
                                          !useReactor_in,
                                          group_id);
     timer_manager_p->stop ();
-    delete stream_p;
-
+    delete stream_p; stream_p = NULL;
     return;
   } // end IF
 
@@ -879,7 +847,7 @@ do_work (unsigned int bufferSize_in,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
   //              event_handler.name ()));
-  delete stream_p;
+  delete stream_p; stream_p = NULL;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

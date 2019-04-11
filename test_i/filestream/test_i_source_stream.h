@@ -41,7 +41,8 @@
 // forward declarations
 class Stream_IAllocator;
 
-template <typename ConnectorType>
+template <typename ConnectionManagerType,
+          typename ConnectorType>
 class Test_I_Source_Stream_T
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -62,8 +63,8 @@ class Test_I_Source_Stream_T
                                         Test_I_Source_Message_t,
                                         Test_I_Source_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Source_InetConnectionManager_t,
-                                        struct Test_I_Source_UserData>
+                                        ConnectionManagerType,
+                                        struct Stream_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -84,8 +85,8 @@ class Test_I_Source_Stream_T
                                         Test_I_Source_Message_t,
                                         Test_I_Source_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Source_InetConnectionManager_t,
-                                        struct Test_I_Source_UserData> inherited;
+                                        ConnectionManagerType,
+                                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Source_Stream_T ();
@@ -116,8 +117,7 @@ class Test_I_Source_Stream_T
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      Test_I_Source_SessionData_t,
-                                     Test_I_Source_ConnectionConfigurationIterator_t,
-                                     Test_I_Source_InetConnectionManager_t,
+                                     ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type
                                          Common_TimePolicy_t,                             // time policy
@@ -142,9 +142,14 @@ class Test_I_Source_Stream_T
 
 //////////////////////////////////////////
 
-typedef Test_I_Source_Stream_T<Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_UDPConnector_t> Test_I_Source_UDPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnectionManager_t,
+                               Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnectionManager_t,
+                               Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
+
+typedef Test_I_Source_Stream_T<Test_I_Source_UDPConnectionManager_t,
+                               Test_I_Source_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_UDPConnectionManager_t,
+                               Test_I_Source_UDPConnector_t> Test_I_Source_UDPStream_t;
 
 #endif

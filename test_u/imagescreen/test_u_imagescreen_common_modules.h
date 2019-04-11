@@ -58,7 +58,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"
-#elif defined (WXWIDGETS_USE)
+#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_vis_x11_window.h"
@@ -181,7 +181,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Stream_ImageScreen_SessionMessage_t,
                                        Stream_ImageScreen_SessionData_t,
                                        struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
-#elif defined (WXWIDGETS_USE)
+#else
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -276,7 +276,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_Display);                          // writer type
-#elif defined (WXWIDGETS_USE)
+#else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type

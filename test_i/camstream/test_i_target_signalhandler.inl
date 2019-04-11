@@ -154,13 +154,10 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     // step1: stop GTK event processing
     // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
-    if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
                                                           false); // N/A
-#else
-      ;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

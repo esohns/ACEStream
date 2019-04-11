@@ -111,21 +111,6 @@ typedef Test_I_StockItems_t::iterator Test_I_StockItemsIterator_t;
 typedef std::list<struct Test_I_StockRecord> Test_I_StockRecords_t;
 typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 
-//struct Test_I_HTTPGet_ConnectionConfiguration;
-//struct Test_I_HTTPGet_StreamConfiguration;
-struct Test_I_HTTPGet_UserData
- : Stream_UserData
-{
-  Test_I_HTTPGet_UserData ()
-   : Stream_UserData ()
-   //, connectionConfiguration (NULL)
-   //, streamConfiguration (NULL)
-  {}
-
-  //struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
-  //struct Test_I_HTTPGet_StreamConfiguration*     streamConfiguration;
-};
-
 struct Test_I_HTTPGet_SessionData
  : Test_I_SessionData
 {
@@ -135,7 +120,6 @@ struct Test_I_HTTPGet_SessionData
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    //, parserContext (NULL)
    , targetFileName ()
-   , userData (NULL)
   {}
   struct Test_I_HTTPGet_SessionData& operator+= (const struct Test_I_HTTPGet_SessionData& rhs_in)
   {
@@ -155,8 +139,6 @@ struct Test_I_HTTPGet_SessionData
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   //Test_I_SAXParserContext*                  parserContext; // html parser/handler module
   std::string                               targetFileName; // file writer module
-
-  struct Test_I_HTTPGet_UserData*           userData;
 };
 typedef Stream_SessionData_T<struct Test_I_HTTPGet_SessionData> Test_I_HTTPGet_SessionData_t;
 
@@ -253,7 +235,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   struct Common_FlexParserAllocatorConfiguration* allocatorConfiguration;
   struct Test_I_HTTPGet_Configuration*            configuration;
   Test_I_IConnection_t*                           connection; // net source/IO module
-  Test_I_HTTPGet_ConnectionConfigurations_t*      connectionConfigurations;
+  Net_ConnectionConfigurations_t*                 connectionConfigurations;
   Test_I_HTTPGet_InetConnectionManager_t*         connectionManager; // net source/IO module
   std::string                                     fileName; // spreadsheet writer module
   HTTP_Form_t                                     HTTPForm; // HTTP get module
@@ -276,10 +258,7 @@ struct Test_I_HTTPGet_StreamConfiguration
 {
   Test_I_HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
-   , userData (NULL)
   {}
-
-  struct Test_I_HTTPGet_UserData* userData;
 };
 
 struct Test_I_HTTPGet_StreamState
@@ -288,12 +267,9 @@ struct Test_I_HTTPGet_StreamState
   Test_I_HTTPGet_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_HTTPGet_SessionData* sessionData;
-
-  struct Test_I_HTTPGet_UserData*    userData;
 };
 
 //typedef std::map<std::string,
@@ -308,15 +284,12 @@ struct Test_I_HTTPGet_Configuration
    //, allocatorConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // *NOTE*: use the stream configurations' allocator configuration
   //struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
-  Test_I_HTTPGet_ConnectionConfigurations_t      connectionConfigurations;
-  Test_I_HTTPGet_StreamConfiguration_t           streamConfiguration;
-
-  struct Test_I_HTTPGet_UserData                 userData;
+  Net_ConnectionConfigurations_t       connectionConfigurations;
+  Test_I_HTTPGet_StreamConfiguration_t streamConfiguration;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

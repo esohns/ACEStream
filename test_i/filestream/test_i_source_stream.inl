@@ -26,16 +26,20 @@
 
 #include "test_i_common_modules.h"
 
-template <typename ConnectorType>
-Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
+template <typename ConnectionManagerType,
+          typename ConnectorType>
+Test_I_Source_Stream_T<ConnectionManagerType,
+                       ConnectorType>::Test_I_Source_Stream_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
 }
 
-template <typename ConnectorType>
-Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
+template <typename ConnectionManagerType,
+          typename ConnectorType>
+Test_I_Source_Stream_T<ConnectionManagerType,
+                       ConnectorType>::~Test_I_Source_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::~Test_I_Source_Stream_T"));
 
@@ -43,9 +47,11 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
   inherited::shutdown ();
 }
 
-template <typename ConnectorType>
+template <typename ConnectionManagerType,
+          typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+Test_I_Source_Stream_T<ConnectionManagerType,
+                       ConnectorType>::load (Stream_ModuleList_t& modules_out,
                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
@@ -78,19 +84,21 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   return true;
 }
 
-template <typename ConnectorType>
+template <typename ConnectionManagerType,
+          typename ConnectorType>
 bool
+Test_I_Source_Stream_T<ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_Source_Stream_T<ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
+                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
 #else
-Test_I_Source_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
+                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
 #endif
                                                    ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (!inherited::isRunning ());
 
 //  bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
@@ -195,9 +203,11 @@ failed:
   return false;
 }
 
-template <typename ConnectorType>
+template <typename ConnectionManagerType,
+          typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
+Test_I_Source_Stream_T<ConnectionManagerType,
+                       ConnectorType>::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::collect"));
 

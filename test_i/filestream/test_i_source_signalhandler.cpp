@@ -146,20 +146,17 @@ Test_I_Source_SignalHandler::handle (const struct Common_Signal& signal_in)
                                              true); // locked access
 
     // step2: stop/abort connection(s)
-    Test_I_Source_IInetConnectionManager_t* connection_manager_p =
-        TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+    Test_I_Source_ITCPConnectionManager_t* connection_manager_p =
+        TEST_I_SOURCE_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
     connection_manager_p->abort ();
 
     // step3: stop UI event processing ?
-    if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait ?
                                                           false); // N/A
-#else
-      ;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

@@ -316,12 +316,9 @@ struct Test_I_StreamState
   Test_I_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_SessionData* sessionData;
-
-  struct Stream_UserData*    userData;
 };
 
 struct Test_I_DirectShow_StreamState
@@ -330,12 +327,9 @@ struct Test_I_DirectShow_StreamState
   Test_I_DirectShow_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   Test_I_DirectShow_SessionData* sessionData;
-
-  struct Stream_UserData*        userData;
 };
 
 struct Test_I_MediaFoundation_StreamState
@@ -344,12 +338,9 @@ struct Test_I_MediaFoundation_StreamState
   Test_I_MediaFoundation_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   Test_I_MediaFoundation_SessionData* sessionData;
-
-  struct Stream_UserData*             userData;
 };
 #else
 struct Test_I_StreamState
@@ -358,12 +349,9 @@ struct Test_I_StreamState
   Test_I_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_SessionData* sessionData;
-
-  struct Stream_UserData*    userData;
 };
 
 struct Test_I_V4L_StreamState
@@ -372,12 +360,9 @@ struct Test_I_V4L_StreamState
   Test_I_V4L_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_V4L_SessionData* sessionData;
-
-  struct Stream_UserData*        userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

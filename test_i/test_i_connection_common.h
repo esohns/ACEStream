@@ -73,14 +73,11 @@ struct Test_I_ConnectionState
    : Net_ConnectionState ()
    //, configuration (NULL)
    , statistic ()
-   , userData (NULL)
-  {};
+  {}
 
   //struct Test_I_ConnectionConfiguration* configuration;
 
   Test_I_Statistic_t                     statistic;
-
-  struct Test_I_UserData*                userData;
 };
 
 /////////////////////////////////////////

@@ -83,7 +83,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
-  Test_I_Target_Module_Net_Writer_t* netIO_impl_p = NULL;
+  Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -132,7 +132,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
 
   // ******************* Net IO ***********************
   netIO_impl_p =
-    dynamic_cast<Test_I_Target_Module_Net_Writer_t*> (netIO_.writer ());
+    dynamic_cast<Test_I_Target_Module_TCP_Writer_t*> (netIO_.writer ());
   if (!netIO_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,

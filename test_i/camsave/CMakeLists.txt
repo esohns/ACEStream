@@ -215,21 +215,21 @@ set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
   if (GTK3_USE)
-   set (ui_definition_file ${EXECUTABLE}.gtk3)
+   set (ui_definition_file etc/${EXECUTABLE}.gtk3)
   elseif (GTK2_USE)
-   set (ui_definition_file ${EXECUTABLE}.gtk2)
+   set (ui_definition_file etc/${EXECUTABLE}.gtk2)
   endif ()
  elseif (WXWIDGETS_USE)
   if (WIN32)
    add_definitions(-DUNICODE -D_UNICODE)
   endif (WIN32)
-  set (ui_definition_file ${EXECUTABLE}.xrc)
+  set (ui_definition_file etc/${EXECUTABLE}.xrc)
  endif ()
 endif (GUI_SUPPORT)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
-                etc/${ui_definition_file})
+                ${ui_definition_file})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)
@@ -323,7 +323,7 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 if (UNIX)
- install (FILES etc/${ui_definition_file}
+ install (FILES ${ui_definition_file}
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
@@ -361,7 +361,7 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
- install (FILES etc/${EXECUTABLE}.gtk3 ${EXECUTABLE}.gtk2 ${EXECUTABLE}.fbp
+ install (FILES ${ui_definition_file} ${EXECUTABLE}.fbp
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()

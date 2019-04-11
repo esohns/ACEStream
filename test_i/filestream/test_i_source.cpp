@@ -554,17 +554,17 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  Test_I_Source_InetConnectionManager_t* iconnection_manager_p =
-    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Source_TCPConnectionManager_t* iconnection_manager_p =
+    TEST_I_SOURCE_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (iconnection_manager_p);
 
   // ********************** connection configuration data **********************
-  Test_I_Source_ConnectionConfiguration_t connection_configuration;
+  Test_I_Source_TCPConnectionConfiguration_t connection_configuration;
   int result =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (port_in,
-                                                                                           hostName_in.c_str (),
-                                                                                           1,
-                                                                                           ACE_ADDRESS_FAMILY_INET);
+    connection_configuration.address.set (port_in,
+                                          hostName_in.c_str (),
+                                          1,
+                                          ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -575,32 +575,25 @@ do_work (unsigned int bufferSize_in,
     delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
     return;
   } // end IF
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_3.writeOnly =
-    true;
+  connection_configuration.useLoopBackDevice =
+    connection_configuration.address.is_loopback ();
+//  connection_configuration.writeOnly = true;
 
-  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  connection_configuration.socketHandlerConfiguration.userData =
-    &configuration.userData;
 
-  connection_configuration.connectionManager =
-    iconnection_manager_p;
+//  connection_configuration.connectionManager = iconnection_manager_p;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.userData = &configuration.userData;
   connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                        configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
+                                                                 &connection_configuration));
 
-  Test_I_Source_ConnectionConfigurationIterator_t iterator =
+  Net_ConnectionConfigurationsIterator_t iterator =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
-  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
@@ -643,9 +636,10 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0c: initialize connection manager
+  struct Net_UserData user_data_s;
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  iconnection_manager_p->set ((*iterator).second,
-                              &configuration.userData);
+  iconnection_manager_p->set (*dynamic_cast<Test_I_Source_TCPConnectionConfiguration_t*> ((*iterator).second),
+                              &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =

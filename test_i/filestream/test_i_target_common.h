@@ -68,14 +68,6 @@
 // forward declarations
 class Stream_IAllocator;
 
-struct Test_I_Target_UserData
- : Stream_UserData
-{
-  Test_I_Target_UserData ()
-   : Stream_UserData ()
-  {}
-};
-
 struct Test_I_Target_SessionData
  : Test_I_SessionData
 {
@@ -83,7 +75,6 @@ struct Test_I_Target_SessionData
    : Test_I_SessionData ()
    , size (0)
    , targetFileName ()
-   , userData (NULL)
   {}
 
   struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
@@ -101,8 +92,6 @@ struct Test_I_Target_SessionData
 
   unsigned int                   size;
   std::string                    targetFileName;
-
-  struct Test_I_Target_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 
@@ -112,31 +101,29 @@ struct Test_I_Target_StreamState
   Test_I_Target_StreamState ()
    : Test_I_StreamState ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_Target_SessionData* sessionData;
-
-  struct Test_I_Target_UserData*    userData;
 };
 
 struct Test_I_Target_ListenerConfiguration
- : Net_ListenerConfiguration
+ : Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
+                               NET_TRANSPORTLAYER_TCP>
 {
   Test_I_Target_ListenerConfiguration ()
-   : Net_ListenerConfiguration ()
+   : Net_ListenerConfiguration_T ()
    , connectionConfiguration (NULL)
    , connectionManager (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {}
 
-  Test_I_Target_ConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_IInetConnectionManager_t*  connectionManager;
-  ACE_Time_Value                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
+  Test_I_Target_ITCPConnectionManager_t*      connectionManager;
+  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IListener_t;
+                        Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -185,10 +172,10 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , subscribers (NULL)
   {}
 
-  Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
-  Test_I_Target_StreamConfiguration_t*      streamConfiguration;
-  Test_I_Target_ISessionNotify_t*           subscriber;
-  Test_I_Target_Subscribers_t*              subscribers;
+  Net_ConnectionConfigurations_t*      connectionConfigurations;
+  Test_I_Target_StreamConfiguration_t* streamConfiguration;
+  Test_I_Target_ISessionNotify_t*      subscriber;
+  Test_I_Target_Subscribers_t*         subscribers;
 };
 
 struct Test_I_Target_StreamConfiguration
@@ -196,10 +183,7 @@ struct Test_I_Target_StreamConfiguration
 {
   Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , userData (NULL)
   {}
-
-  struct Test_I_Target_UserData* userData;
 };
 
 struct Test_I_Target_Configuration
@@ -230,18 +214,15 @@ struct Test_I_Target_Configuration
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , signalHandlerConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
-  Test_I_Target_ConnectionConfigurations_t        connectionConfigurations;
+  Net_ConnectionConfigurations_t                  connectionConfigurations;
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
   struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
   enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   Test_I_Target_StreamConfiguration_t             streamConfiguration;
-
-  struct Test_I_Target_UserData                   userData;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

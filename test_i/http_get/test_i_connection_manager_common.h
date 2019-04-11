@@ -38,7 +38,7 @@
 
 // forward declarations
 typedef Stream_Statistic Test_I_Statistic_t;
-struct Test_I_HTTPGet_UserData;
+struct Stream_UserData;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -47,14 +47,14 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_HTTPGet_UserData> Test_I_Stream_INetlinkConnectionManager_t;
+                                 struct Net_UserData> Test_I_Stream_INetlinkConnectionManager_t;
 #endif
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_HTTPGet_UserData> Test_I_Stream_IInetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Stream_IInetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -63,14 +63,14 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_HTTPGet_UserData> Test_I_Stream_NetlinkConnectionManager_t;
+                                 struct Net_UserData> Test_I_Stream_NetlinkConnectionManager_t;
 #endif
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_HTTPGet_UserData> Test_I_Stream_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Stream_InetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

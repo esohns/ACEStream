@@ -485,9 +485,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   ACE_ASSERT (!display_);
   // *TODO*: remove type inferences
-  if (configuration_in.display_2.display)
+  if (configuration_in.X11Display)
   {
-    display_ = configuration_in.display_2.display;
+    display_ = configuration_in.X11Display;
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: passive mode (display: %@, default depth: %d)\n"),

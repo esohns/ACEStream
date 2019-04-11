@@ -41,9 +41,11 @@ class Stream_ImageScreen_EventHandler_T
  public:
   Stream_ImageScreen_EventHandler_T (struct Stream_ImageScreen_UI_CBData* // UI callback data
 #if defined (GTK_USE)
-                                );
+                                    );
+#elif defined (QT_USE)
+                                    );
 #elif defined (WXWIDGETS_USE)
-                                 ,InterfaceType*);                // wxWidgets application handle
+                                     ,InterfaceType*);                // wxWidgets application handle
 #endif
   inline virtual ~Stream_ImageScreen_EventHandler_T () {}
 
@@ -64,10 +66,9 @@ class Stream_ImageScreen_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T& operator= (const Stream_ImageScreen_EventHandler_T&))
 
   struct Stream_ImageScreen_UI_CBData*             CBData_;
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
-#endif // GTK_USE
+#endif // WXWIDGETS_USE
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 

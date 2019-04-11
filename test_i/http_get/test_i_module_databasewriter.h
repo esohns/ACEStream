@@ -43,8 +43,7 @@ class Test_I_Module_DataBaseWriter
                                       Test_I_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData,
-                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t>
+                                      struct Test_I_Stream_SessionData>
 {
   typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -52,8 +51,7 @@ class Test_I_Module_DataBaseWriter
                                       Test_I_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData,
-                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t> inherited;
+                                      struct Test_I_Stream_SessionData> inherited;
 
  public:
   Test_I_Module_DataBaseWriter (inherited::ISTREAM_T*); // stream handle

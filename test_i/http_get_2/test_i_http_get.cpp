@@ -749,7 +749,7 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
-  Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator;
+  Net_ConnectionConfigurationsIterator_t iterator;
   struct Common_EventDispatchState event_dispatch_state_s;
 
   // step0a: initialize configuration and stream
@@ -787,29 +787,20 @@ do_work (const std::string& bootstrapFileName_in,
       numberOfDispatchThreads_in;
 
   // *********************** socket configuration data ************************
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
-    remoteHost_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
-  //connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly = true;
-
-  connection_configuration.socketHandlerConfiguration.userData =
-    &configuration.userData;
-
+  connection_configuration.address = remoteHost_in;
+  connection_configuration.useLoopBackDevice =
+    connection_configuration.address.is_loopback ();
+  //connection_configuration.writeOnly = true;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  connection_configuration.userData =
-    &configuration.userData;
   connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                        configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
+                                                                 &connection_configuration));
   iterator =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
-  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
@@ -899,7 +890,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   // step0c: (re-)configure connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set ((*iterator).second,
+  connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

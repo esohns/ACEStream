@@ -45,9 +45,15 @@ class Test_I_Stream_HTTPGet
                                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                               Test_I_ControlMessage_t,
                                               Test_I_Stream_Message,
-                                              Test_I_Stream_SessionMessage,
-                                              Test_I_HTTPGet_ConnectionConfigurationIterator_t>
+                                              Test_I_Stream_SessionMessage>
 {
+  typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
+                                              Common_TimePolicy_t,
+                                              struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                              Test_I_ControlMessage_t,
+                                              Test_I_Stream_Message,
+                                              Test_I_Stream_SessionMessage> inherited;
+
  public:
   Test_I_Stream_HTTPGet (ISTREAM_T*); // stream handle
   virtual ~Test_I_Stream_HTTPGet ();
@@ -59,14 +65,6 @@ class Test_I_Stream_HTTPGet
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
-                                              Common_TimePolicy_t,
-                                              struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                              Test_I_ControlMessage_t,
-                                              Test_I_Stream_Message,
-                                              Test_I_Stream_SessionMessage,
-                                              Test_I_HTTPGet_ConnectionConfigurationIterator_t> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet (const Test_I_Stream_HTTPGet&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet& operator= (const Test_I_Stream_HTTPGet&))

@@ -35,6 +35,7 @@
 #include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
 #include "net_common_tools.h"
+#include "net_connection_configuration.h"
 
 #include "stream_macros.h"
 
@@ -47,7 +48,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
@@ -56,7 +56,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
@@ -100,7 +99,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
@@ -109,7 +107,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
                                             DocumentType>::~Stream_Module_LibreOffice_Document_Writer_T () throw ()
 {
@@ -168,7 +165,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 void
@@ -178,7 +174,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
                                             DocumentType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                  bool& passMessageDownstream_out)
@@ -240,7 +235,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
 
-      ConnectionConfigurationIteratorType iterator =
+      Net_ConnectionConfigurationsIterator_t iterator =
         inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
@@ -256,21 +251,21 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       // *TODO*: remove type inferences
       result_p =
-        (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_addr (host_address,
-                                                                                                   sizeof (host_address));
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator).second)->address.get_host_addr (host_address,
+                                                                                       sizeof (host_address));
       if (unlikely (!result_p || (result_p != host_address)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address).c_str ())));
         goto error;
       } // end IF
 
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
       converter <<
-        (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =
@@ -386,7 +381,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 bool
@@ -396,7 +390,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
                                             DocumentType>::initialize (const ConfigurationType& configuration_in,
                                                                        Stream_IAllocator* allocator_in)

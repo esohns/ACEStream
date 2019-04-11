@@ -121,8 +121,8 @@ Stream_Target_SignalHandler::handle (const struct Common_Signal& signal_in)
     }
   } // end IF
 
-  Test_I_Target_IInetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_ITCPConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   if (close_all)
     connection_manager_p->abort ();

@@ -1328,7 +1328,7 @@ do_work (const std::string& deviceIdentifier_in,
                                          (*stream_iterator).second);
   ACE_ASSERT (result);
   V4L_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                      connection_configuration));
+                                                                     &connection_configuration));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1385,17 +1385,14 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L_ConnectionConfigurationIterator_t connection_iterator =
+  Net_ConnectionConfigurationsIterator_t connection_iterator =
     V4L_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (connection_iterator != V4L_configuration.connectionConfigurations.end ());
   Test_I_Source_V4L_InetConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  Test_I_Source_V4L_ConnectionConfigurationIterator_t iterator =
-    V4L_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != V4L_configuration.connectionConfigurations.end ());
-  connection_manager_p->set ((*iterator).second,
+  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*iterator).second),
                              &V4L_configuration.userData);
   (*modulehandler_iterator).second.second.connectionManager =
     connection_manager_p;
@@ -1542,10 +1539,10 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (port_in,
-                                                                                              hostName_in.c_str (),
-                                                                                              1,
-                                                                                              ACE_ADDRESS_FAMILY_INET);
+  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
+                                                                                  hostName_in.c_str (),
+                                                                                  1,
+                                                                                  ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1554,30 +1551,19 @@ do_work (const std::string& deviceIdentifier_in,
                 port_in));
     goto clean;
   } // end IF
-  (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
-    static_cast<int> (bufferSize_in);
-  (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
-  (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_3.writeOnly =
-    true;
-  (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration =
-    &(*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2;
-
-  (*connection_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
+  (*connection_iterator).second->bufferSize = static_cast<int> (bufferSize_in);
+  (*connection_iterator).second->useLoopBackDevice =
+      NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+//  (*connection_iterator).second.writeOnly = true;
+  (*connection_iterator).second->statisticReportingInterval =
     statisticReportingInterval_in;
-  (*connection_iterator).second.socketHandlerConfiguration.userData =
-    &V4L_configuration.userData;
+  dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
+      &message_allocator;
+  (*connection_iterator).second->PDUSize = bufferSize_in;
+  dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
+                                                                                                          (*stream_iterator).second);
 
-  (*connection_iterator).second.messageAllocator = &message_allocator;
-  (*connection_iterator).second.PDUSize = bufferSize_in;
-  (*connection_iterator).second.userData = &V4L_configuration.userData;
-  (*connection_iterator).second.initialize (*allocator_configuration_p,
-                                            (*stream_iterator).second);
-
-  (*connection_iterator).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*connection_iterator).second);
-
-  connection_manager_p->set ((*connection_iterator).second,
+  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second),
                              &V4L_configuration.userData);
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
@@ -1737,8 +1723,6 @@ do_work (const std::string& deviceIdentifier_in,
     TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
   V4L_configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
-  V4L_configuration.signalHandlerConfiguration.hasUI =
-    !UIDefinitionFilename_in.empty ();
   V4L_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;
   result =
     signal_handler.initialize (V4L_configuration.signalHandlerConfiguration);
@@ -2290,6 +2274,8 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_I_Source_V4L_UI_CBData ui_cb_data;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
@@ -2302,6 +2288,8 @@ ACE_TMAIN (int argc_in,
     ui_cb_data.configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_filename);
 
   gtk_configuration_p = &ui_cb_data.configuration->GTKConfiguration;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
   ui_cb_data_p = &ui_cb_data;
 #endif // GUI_SUPPORT

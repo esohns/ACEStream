@@ -103,9 +103,12 @@ extern "C"
 #include "stream_vis_defines.h"
 
 #include "test_i_common.h"
+#include "test_i_configuration.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "test_i_gtk_common.h"
+#elif defined (QT_USE)
+#include "test_i_qt_common.h"
 #elif defined (WXWIDGETS_USE)
 #include "test_i_wxwidgets_common.h"
 
@@ -371,10 +374,10 @@ typedef Stream_SessionData_T<Stream_CamSave_V4L_SessionData> Stream_CamSave_V4L_
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CamSave_SignalHandlerConfiguration
- : Stream_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   Stream_CamSave_SignalHandlerConfiguration ()
-   : Stream_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
    , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
@@ -933,6 +936,8 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
 #elif defined (WXWIDGETS_USE)
                                       struct Common_UI_wxWidgets_State,
                                       Common_UI_wxWidgets_IApplicationBase_t,
+#elif defined (QT_USE)
+                                      struct Common_UI_Qt_State,
 #endif
 #endif // GUI_SUPPORT
                                       Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_EventHandler_t;
@@ -944,6 +949,8 @@ typedef Stream_CamSave_EventHandler_T<Stream_CamSave_V4L_ISessionNotify_t,
 struct Stream_CamSave_ProgressData
 #if defined (GTK_USE)
  : Test_I_GTK_ProgressData
+#elif defined (QT_USE)
+ : Test_I_Qt_ProgressData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ProgressData
 #endif
@@ -951,6 +958,8 @@ struct Stream_CamSave_ProgressData
   Stream_CamSave_ProgressData ()
 #if defined (GTK_USE)
    : Test_I_GTK_ProgressData ()
+#elif defined (QT_USE)
+    : Test_I_Qt_ProgressData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ProgressData ()
 #endif

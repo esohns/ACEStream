@@ -66,29 +66,8 @@ class Test_I_Stream_SessionMessage;
 typedef Stream_Statistic Test_I_Statistic_t;
 struct Test_I_Stream_SessionData;
 typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
-struct Test_I_HTTPGet_UserData;
 
 //////////////////////////////////////////
-
-struct Test_I_HTTPGet_ConnectionConfiguration;
-struct Test_I_HTTPGet_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  Test_I_HTTPGet_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , socketConfiguration_2 ()
-   , connectionConfiguration (NULL)
-   , userData (NULL)
-  {
-    socketConfiguration = &socketConfiguration_2;
-  }
-
-  struct Net_TCPSocketConfiguration              socketConfiguration_2;
-  struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
-
-  struct Test_I_HTTPGet_UserData*                userData;
-};
 
 //extern const char stream_name_string_[];
 //struct Test_I_StreamConfiguration;
@@ -98,26 +77,9 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
-struct Test_I_HTTPGet_ConnectionConfiguration
- : Net_ConnectionConfiguration
-{
-  Test_I_HTTPGet_ConnectionConfiguration ()
-   : Net_ConnectionConfiguration ()
-   ///////////////////////////////////////
-   , socketHandlerConfiguration ()
-   , userData (NULL)
-  {}
-
-  struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-
-  struct Test_I_HTTPGet_UserData*                  userData;
-};
-typedef Net_ConnectionConfiguration_T<struct Test_I_HTTPGet_ConnectionConfiguration,
-                                      struct Common_FlexParserAllocatorConfiguration,
-                                      Test_I_StreamConfiguration_t> Test_I_HTTPGet_ConnectionConfiguration_t;
-typedef std::map<std::string,
-                 Test_I_HTTPGet_ConnectionConfiguration_t> Test_I_HTTPGet_ConnectionConfigurations_t;
-typedef Test_I_HTTPGet_ConnectionConfigurations_t::iterator Test_I_HTTPGet_ConnectionConfigurationIterator_t;
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
+                                      Test_I_StreamConfiguration_t,
+                                      NET_TRANSPORTLAYER_TCP> Test_I_HTTPGet_ConnectionConfiguration_t;
 
 struct Test_I_HTTPGet_ConnectionState
  : Net_ConnectionState
@@ -126,13 +88,10 @@ struct Test_I_HTTPGet_ConnectionState
    : Net_ConnectionState ()
    , configuration (NULL)
    , statistic ()
-   , userData (NULL)
   {}
 
   Test_I_HTTPGet_ConnectionConfiguration_t* configuration;
   Test_I_Statistic_t                        statistic;
-
-  struct Test_I_HTTPGet_UserData*           userData;
 };
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
@@ -140,7 +99,7 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_HTTPGet_UserData> Test_I_Stream_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Stream_InetConnectionManager_t;
 
 //////////////////////////////////////////
 
@@ -166,7 +125,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Stream_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Stream_InetConnectionManager_t,
-                                      struct Test_I_HTTPGet_UserData> Test_I_NetStream_t;
+                                      struct Stream_UserData> Test_I_NetStream_t;
 
 //////////////////////////////////////////
 
@@ -189,36 +148,27 @@ typedef Net_TCPSocketHandler_T<ACE_MT_SYNCH,
 typedef Net_AsynchTCPSocketHandler_T<struct Test_I_HTTPGet_SocketHandlerConfiguration> Test_I_AsynchTCPSocketHandler_t;
 
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
-                                Test_I_TCPSocketHandler_t,
                                 Test_I_HTTPGet_ConnectionConfiguration_t,
                                 struct Test_I_HTTPGet_ConnectionState,
                                 Test_I_Statistic_t,
-                                struct Test_I_HTTPGet_SocketHandlerConfiguration,
-                                struct Test_I_ListenerConfiguration,
                                 Test_I_NetStream_t,
                                 Common_Timer_Manager_t,
-                                struct Test_I_HTTPGet_UserData> Test_I_TCPConnection_t;
+                                struct Net_UserData> Test_I_TCPConnection_t;
 #if defined (SSL_SUPPORT)
-typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
-                                Test_I_SSLTCPSocketHandler_t,
+typedef Net_SSLConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_HTTPGet_ConnectionConfiguration_t,
                                 struct Test_I_HTTPGet_ConnectionState,
                                 Test_I_Statistic_t,
-                                struct Test_I_HTTPGet_SocketHandlerConfiguration,
-                                struct Test_I_ListenerConfiguration,
                                 Test_I_NetStream_t,
                                 Common_Timer_Manager_t,
-                                struct Test_I_HTTPGet_UserData> Test_I_SSLTCPConnection_t;
+                                struct Stream_UserData> Test_I_SSLTCPConnection_t;
 #endif // SSL_SUPPORT
-typedef Net_AsynchTCPConnectionBase_T<Test_I_AsynchTCPSocketHandler_t,
-                                      Test_I_HTTPGet_ConnectionConfiguration_t,
+typedef Net_AsynchTCPConnectionBase_T<Test_I_HTTPGet_ConnectionConfiguration_t,
                                       struct Test_I_HTTPGet_ConnectionState,
                                       Test_I_Statistic_t,
-                                      struct Test_I_HTTPGet_SocketHandlerConfiguration,
-                                      struct Test_I_ListenerConfiguration,
                                       Test_I_NetStream_t,
                                       Common_Timer_Manager_t,
-                                      struct Test_I_HTTPGet_UserData> Test_I_AsynchTCPConnection_t;
+                                      struct Net_UserData> Test_I_AsynchTCPConnection_t;
 
 /////////////////////////////////////////
 
@@ -233,10 +183,10 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      Test_I_HTTPGet_ConnectionConfiguration_t,
                                      struct Test_I_HTTPGet_ConnectionState,
                                      Test_I_Statistic_t,
-                                     struct Net_TCPSocketConfiguration,
-                                     struct Test_I_HTTPGet_SocketHandlerConfiguration,
+                                     Test_I_HTTPGet_ConnectionConfiguration_t,
+                                     Test_I_HTTPGet_ConnectionConfiguration_t,
                                      Test_I_NetStream_t,
-                                     struct Test_I_HTTPGet_UserData> Test_I_Stream_TCPAsynchConnector_t;
+                                     struct Net_UserData> Test_I_Stream_TCPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_TCPConnection_t,
                                Net_SOCK_Connector,
@@ -244,10 +194,10 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_HTTPGet_ConnectionConfiguration_t,
                                struct Test_I_HTTPGet_ConnectionState,
                                Test_I_Statistic_t,
-                               struct Net_TCPSocketConfiguration,
-                               struct Test_I_HTTPGet_SocketHandlerConfiguration,
+                               Test_I_HTTPGet_ConnectionConfiguration_t,
+                               Test_I_HTTPGet_ConnectionConfiguration_t,
                                Test_I_NetStream_t,
-                               struct Test_I_HTTPGet_UserData> Test_I_Stream_TCPConnector_t;
+                               struct Net_UserData> Test_I_Stream_TCPConnector_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Client_SSL_Connector_T<Test_I_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
@@ -257,7 +207,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_SSLTCPConnection_t,
                                    Test_I_Statistic_t,
                                    struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                    Test_I_NetStream_t,
-                                   struct Test_I_HTTPGet_UserData> Test_I_Stream_SSLTCPConnector_t;
+                                   struct Net_UserData> Test_I_Stream_SSLTCPConnector_t;
 #endif // SSL_SUPPORT
 
 #endif

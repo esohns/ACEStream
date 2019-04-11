@@ -54,8 +54,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ConnectionConfigurationIteratorType,
-          ////////////////////////////////
           typename SessionDataType,
           ////////////////////////////////
           typename DocumentType>

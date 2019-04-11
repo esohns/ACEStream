@@ -1341,7 +1341,7 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
   ACE_ASSERT (mediafoundation_event_handler_p || directshow_event_handler_p);
 #else
-  Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
+  Net_ConnectionConfigurationsIterator_t iterator_2;
   event_handler_p =
     dynamic_cast<Test_I_Target_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
@@ -1440,43 +1440,36 @@ do_work (unsigned int bufferSize_in,
     } // end ELSE
   } // end SWITCH
 #else
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
-                                                                                                     1);
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
-    bufferSize_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    useLoopBack_in;
-  if (connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
+  connection_configuration.address.set_port_number (listeningPortNumber_in,
+                                                    1);
+  connection_configuration.bufferSize = bufferSize_in;
+  connection_configuration.useLoopBackDevice = useLoopBack_in;
+  if (connection_configuration.useLoopBackDevice)
   {
     result =
-      connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
-                                                                                             INADDR_LOOPBACK,
-                                                                                             1,
-                                                                                             0);
+      connection_configuration.address.set (listeningPortNumber_in,
+                                            INADDR_LOOPBACK,
+                                            1,
+                                            0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
   if (bufferSize_in)
     connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  connection_configuration.socketHandlerConfiguration.userData =
-    &configuration.userData;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.userData = &configuration.userData;
   connection_configuration.initialize (*allocator_configuration_p,
                                        configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
+                                                                 &connection_configuration));
   iterator_2 =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != configuration.connectionConfigurations.end ());
-  (*iterator_2).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*iterator_2).second);
 
-  connection_manager_p->set ((*iterator_2).second,
+  connection_manager_p->set (*dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second),
                              &configuration.userData);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1615,12 +1608,11 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   configuration.listenerConfiguration.connectionConfiguration =
-      &((*iterator_2).second);
+      dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second);
   configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-      useLoopBack_in;
+  (*iterator_2).second->useLoopBackDevice = useLoopBack_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0d: initialize regular (global) statistic reporting
@@ -1707,8 +1699,6 @@ do_work (unsigned int bufferSize_in,
       connection_manager_p;
   configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
-  configuration.signalHandlerConfiguration.hasUI =
-      !UIDefinitionFilename_in.empty ();
   if (useReactor_in)
     configuration.signalHandlerConfiguration.listener =
         TEST_I_TARGET_LISTENER_SINGLETON::instance ();
@@ -1885,13 +1875,12 @@ do_work (unsigned int bufferSize_in,
 #else
       if (useReactor_in)
         ACE_NEW_NORETURN (iconnector_p,
-                          Test_I_Target_UDPConnector_t (connection_manager_p,
-                                                        (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+                          Test_I_Target_UDPConnector_t (true));
       else
         ACE_NEW_NORETURN (iconnector_p,
-                          Test_I_Target_UDPAsynchConnector_t (connection_manager_p,
-                                                              (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
-      result_2 = iconnector_p->initialize ((*iterator_2).second);
+                          Test_I_Target_UDPAsynchConnector_t (true));
+      result_2 =
+          iconnector_p->initialize (*dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second));
       if (!iconnector_p)
 #endif // ACE_WIN32 || ACE_WIN64
       {
@@ -2002,7 +1991,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       peer_address =
-          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
+          NET_SOCKET_CONFIGURATION_UDP_CAST ((*iterator_2).second)->listenAddress;
 #endif // ACE_WIN32 || ACE_WIN64
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -2034,7 +2023,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       configuration.handle =
-        iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address);
+        iconnector_p->connect (dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second)->address);
 #endif // ACE_WIN32 || ACE_WIN64
       if (!useReactor_in)
       {

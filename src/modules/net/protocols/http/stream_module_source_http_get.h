@@ -47,9 +47,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          ////////////////////////////////
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 class Stream_Module_Net_Source_HTTP_Get_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

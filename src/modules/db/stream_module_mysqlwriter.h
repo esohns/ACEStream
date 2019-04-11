@@ -45,9 +45,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType,
-          ////////////////////////////////
-          typename ConnectionConfigurationIteratorType>
+          typename SessionDataType>
 class Stream_Module_MySQLWriter_T
  : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,

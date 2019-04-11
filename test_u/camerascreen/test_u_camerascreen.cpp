@@ -1667,8 +1667,10 @@ ACE_TMAIN (int argc_in,
   struct Stream_CameraScreen_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (GTK_USE)
   if (video_renderer_e == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
     Common_UI_GTK_Tools::initialize (argc_in, argv_in);
+#endif // GTK_USE
 
   ACE_High_Res_Timer timer;
   timer.start ();

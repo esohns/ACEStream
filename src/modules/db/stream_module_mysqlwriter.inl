@@ -29,6 +29,7 @@
 #include "stream_module_db_defines.h"
 
 #include "net_common_tools.h"
+#include "net_configuration.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -36,19 +37,17 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionDataType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            ConnectionConfigurationIteratorType>::Stream_Module_MySQLWriter_T (ISTREAM_T* stream_in)
+                            SessionDataType>::Stream_Module_MySQLWriter_T (ISTREAM_T* stream_in)
 #else
-                            ConnectionConfigurationIteratorType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
+                            SessionDataType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
  , state_ (NULL)
@@ -76,16 +75,14 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionDataType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType,
-                            ConnectionConfigurationIteratorType>::~Stream_Module_MySQLWriter_T ()
+                            SessionDataType>::~Stream_Module_MySQLWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::~Stream_Module_MySQLWriter_T"));
 
@@ -129,8 +126,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionDataType>
 void
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -138,9 +134,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType,
-                            ConnectionConfigurationIteratorType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                        bool& passMessageDownstream_out)
+                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleSessionMessage"));
 
@@ -165,7 +160,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
 
-      ConnectionConfigurationIteratorType iterator =
+      Net_ConnectionConfigurationsIterator_t iterator =
         inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
@@ -179,7 +174,7 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       // *TODO*: remove type inferences
       ACE_INET_Addr host_address =
-        (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+          NET_SOCKET_CONFIGURATION_TCP_CAST((*iterator).second)->address;
       ACE_TCHAR host_address_string[BUFSIZ];
       ACE_OS::memset (host_address_string, 0, sizeof (host_address_string));
       unsigned long client_flags = 0;
@@ -187,8 +182,9 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       const char* password_string_p = NULL;
       const char* database_name_string_p = NULL;
       MYSQL* result_2 = NULL;
-      const char* result_p = host_address.get_host_addr (host_address_string,
-                                                         sizeof (host_address_string));
+      const char* result_p =
+          host_address.get_host_addr (host_address_string,
+                                      sizeof (host_address_string));
       if (unlikely (!result_p || (result_p != host_address_string)))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -381,8 +377,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionDataType>
 bool
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -390,9 +385,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType,
-                            ConnectionConfigurationIteratorType>::initialize (const ConfigurationType& configuration_in,
-                                                                              Stream_IAllocator* allocator_in)
+                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
 

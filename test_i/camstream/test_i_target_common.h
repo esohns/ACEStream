@@ -490,7 +490,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
   GdkRectangle                                  area;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  Test_I_Target_ConnectionConfigurations_t*     connectionConfigurations;
+  Net_ConnectionConfigurations_t*               connectionConfigurations;
   Test_I_Target_InetConnectionManager_t*        connectionManager; // net IO module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -545,11 +545,13 @@ struct Test_I_Target_MediaFoundation_ListenerConfiguration
 typedef Net_IListener_T<struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                         Test_I_Target_MediaFoundation_ConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
 #else
-struct Test_I_Target_ListenerConfiguration
- : Net_ListenerConfiguration
+class Test_I_Target_ListenerConfiguration
+ : Net_ListenerConfiguration_T<Test_I_Target_ConnectionConfiguration_t,
+                               NET_TRANSPORTLAYER_TCP>
 {
+ public:
   Test_I_Target_ListenerConfiguration ()
-   : Net_ListenerConfiguration ()
+   : Net_ListenerConfiguration_T ()
    , connectionConfiguration (NULL)
    , connectionManager (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
@@ -561,7 +563,7 @@ struct Test_I_Target_ListenerConfiguration
   Test_I_Target_InetConnectionManager_t*   connectionManager;
   ACE_Time_Value                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
-typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
+typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
                         Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IListener_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -789,7 +791,7 @@ struct Test_I_Target_Configuration
   {}
 
   // **************************** socket data **********************************
-  Test_I_Target_ConnectionConfigurations_t        connectionConfigurations;
+  Net_ConnectionConfigurations_t                  connectionConfigurations;
   // **************************** listener data ********************************
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;

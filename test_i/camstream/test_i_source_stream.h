@@ -339,7 +339,6 @@ class Test_I_Source_V4L_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     Test_I_Source_V4L_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type

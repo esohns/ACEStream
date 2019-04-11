@@ -197,7 +197,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   if (unlikely (configuration_in.connection &&
                 configuration_in.passive))
   {
-    connection_ = configuration_in.connection;
+//    connection_ = configuration_in.connection;
     connection_->increase ();
 
     isPassive_ = true;
@@ -325,7 +325,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
-      bool result_2 = false;
+//      bool result_2 = false;
 
       if (unlikely (isPassive_))
       {

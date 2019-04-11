@@ -89,10 +89,7 @@ struct Test_I_StreamConfiguration
 {
   Test_I_StreamConfiguration ()
    : Stream_Configuration ()
-   , userData (NULL)
   {}
-
-  struct Test_I_UserData* userData;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -152,14 +152,16 @@ do_printUsage (const std::string& programName_in)
 #if defined (GUI_SUPPORT)
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file +=
 #if defined (GTK_USE)
 #if GTK_CHECK_VERSION (3,0,0)
+  UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
+  UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
 #endif // GTK_CHECK_VERSION (3,0,0)
 #elif defined (WXWIDGETS_USE)
+  UI_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
 #endif
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
@@ -1590,14 +1592,16 @@ ACE_TMAIN (int argc_in,
   UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file +=
 #if defined (GTK_USE)
 #if GTK_CHECK_VERSION(3,0,0)
+  UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE);
 #else
+  UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE);
 #endif // GTK_CHECK_VERSION(3,0,0)
 #elif defined (WXWIDGETS_USE)
+  UI_definition_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_WXWIDGETS_XRC_FILE);
 #endif
 #if defined (GTK_USE)

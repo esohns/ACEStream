@@ -580,7 +580,7 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
 #endif // GUI_SUPPORT
   __u32                                          buffers; // v4l device buffers
   Test_I_Source_V4L_IConnection_t*              connection; // TCP target/IO module
-  Test_I_Source_V4L_ConnectionConfigurations_t* connectionConfigurations;
+  Net_ConnectionConfigurations_t*               connectionConfigurations;
   Test_I_Source_V4L_InetConnectionManager_t*    connectionManager; // TCP IO module
   int                                            fileDescriptor;
   enum v4l2_memory                               method; // v4l2 camera source
@@ -596,6 +596,8 @@ struct Test_I_Source_V4L_ModuleHandlerConfiguration
   GdkWindow*                                     window;
 #elif defined (WXWIDGETS_USE)
   wxWindow*                                      window;
+#elif defined (QT_USE)
+  XID                                            window;
 #endif
 #endif // GUI_SUPPORT
 
@@ -844,7 +846,7 @@ struct Test_I_Source_V4L_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_V4L_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_V4L_ConnectionConfigurations_t        connectionConfigurations;
+  Net_ConnectionConfigurations_t                      connectionConfigurations;
   // **************************** stream data **********************************
   Test_I_Source_V4L_StreamConfigurations_t            streamConfigurations;
 

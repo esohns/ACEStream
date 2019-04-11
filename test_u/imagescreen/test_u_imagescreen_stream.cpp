@@ -62,7 +62,7 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
-#elif defined (WXWIDGETS_USE)
+#else
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif

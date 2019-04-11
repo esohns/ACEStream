@@ -43,7 +43,7 @@ class Test_I_Source_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_SessionData_t,
-                                      struct Test_I_Source_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -58,7 +58,7 @@ class Test_I_Source_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_SessionData_t,
-                                      struct Test_I_Source_UserData> inherited;
+                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -66,7 +66,7 @@ class Test_I_Source_SessionMessage
   Test_I_Source_SessionMessage (Stream_SessionId_t,
                                 enum Stream_SessionMessageType,
                                 Test_I_Source_SessionData_t*&,   // session data container handle
-                                struct Test_I_Source_UserData*);
+                                struct Stream_UserData*);
   // copy ctor to be used by duplicate()
   Test_I_Source_SessionMessage (const Test_I_Source_SessionMessage&);
   inline virtual ~Test_I_Source_SessionMessage () {}
@@ -93,7 +93,7 @@ class Test_I_Target_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_SessionData_t,
-                                      struct Test_I_Target_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -108,7 +108,7 @@ class Test_I_Target_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_SessionData_t,
-                                      struct Test_I_Target_UserData> inherited;
+                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -116,7 +116,7 @@ class Test_I_Target_SessionMessage
   Test_I_Target_SessionMessage (Stream_SessionId_t,
                                 enum Stream_SessionMessageType,
                                 Test_I_Target_SessionData_t*&,   // session data container handle
-                                struct Test_I_Target_UserData*);
+                                struct Stream_UserData*);
   // copy ctor to be used by duplicate()
   Test_I_Target_SessionMessage (const Test_I_Target_SessionMessage&);
   inline virtual ~Test_I_Target_SessionMessage () {}

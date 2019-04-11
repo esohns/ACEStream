@@ -27,6 +27,8 @@
 #elif defined (GTK2_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.gtk2"
 #endif
+#elif defined (QT_USE)
+#define TEST_U_UI_DEFINITION_FILE              "imagescreen.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.xrc"
 #endif // WXWIDGETS_USE

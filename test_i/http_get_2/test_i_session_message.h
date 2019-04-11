@@ -43,8 +43,13 @@ class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_HTTPGet_SessionData_t,
-                                      struct Test_I_HTTPGet_UserData>
+                                      struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Test_I_HTTPGet_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_FlexParserAllocatorConfiguration,
@@ -58,18 +63,13 @@ class Test_I_Stream_SessionMessage
   Test_I_Stream_SessionMessage (Stream_SessionId_t,
                                 enum Stream_SessionMessageType,
                                 Test_I_HTTPGet_SessionData_t*&,   // session data container handle
-                                struct Test_I_HTTPGet_UserData*);
+                                struct Stream_UserData*);
   inline virtual ~Test_I_Stream_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_I_HTTPGet_SessionData_t,
-                                      struct Test_I_HTTPGet_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Test_I_Stream_SessionMessage (const Test_I_Stream_SessionMessage&);
 

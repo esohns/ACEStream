@@ -77,7 +77,6 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_ControlMessage_t,
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
-                                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t,
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument>
 {
@@ -87,7 +86,6 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_ControlMessage_t,
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
-                                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t,
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument> inherited;
 

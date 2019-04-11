@@ -340,8 +340,7 @@ do_work (int argc_in,
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data
-#if defined (GTK_USE)
-#elif defined (WXWIDGETS_USE)
+#if defined (WXWIDGETS_USE)
                                                       ,iapplication_in
 #endif
                                                      );
@@ -386,6 +385,7 @@ do_work (int argc_in,
 //  ACE_ASSERT (stream_configuration_iterator != configuration.streamConfiguration.end ());
 
   // initialize UI
+#if defined (GTK_USE)
   Common_UI_GTK_Configuration_t gtk_configuration;
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -401,10 +401,8 @@ do_work (int argc_in,
   gtk_configuration.eventHooks.initHook = idle_initialize_UI_cb;
   gtk_configuration.definition = &gtk_ui_definition;
 
-  ui_cb_data.configuration = &configuration;
   ui_cb_data.UIState = &state_r;
   ui_cb_data.progressData.state = &state_r;
-  ui_cb_data.stream = &stream;
 
   state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     std::make_pair (UIDefinitionFilePath_in, static_cast<GtkBuilder*> (NULL));
@@ -416,6 +414,9 @@ do_work (int argc_in,
                 ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), returning\n")));
     return;
   } // end IF
+#endif // GTK_USE
+  ui_cb_data.configuration = &configuration;
+  ui_cb_data.stream = &stream;
 
   // initialize signal handling
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
@@ -440,6 +441,7 @@ do_work (int argc_in,
   ACE_UNUSED_ARG (thread_id);
 
   // start UI
+#if defined (GTK_USE)
   gtk_manager_p->start (thread_id);
   ACE_UNUSED_ARG (thread_id);
   ACE_Time_Value timeout (0,
@@ -457,6 +459,7 @@ do_work (int argc_in,
     return;
   } // end IF
   gtk_manager_p->wait ();
+#endif // GTK_USE
 
   timer_manager_p->stop ();
 }

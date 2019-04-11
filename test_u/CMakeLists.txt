@@ -106,6 +106,9 @@ if (UNIX)
   if (GTK_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/gtk>)
+  elseif (QT_USE)
+   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/qt>)
   elseif (WXWIDGETS_USE)
    target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../modules/Common/src/ui/wxwidgets>)
@@ -257,6 +260,10 @@ if (GUI_SUPPORT)
        test_u_gtk_eventhandler.cpp
        test_u_gtk_eventhandler.h
        test_u_gtk_eventhandler.inl)
+ elseif (QT_USE)
+  set (source_files
+       ${source_files}
+       test_u_qt_common.h)
  elseif (WXWIDGETS_USE)
   set (source_files
        ${source_files}

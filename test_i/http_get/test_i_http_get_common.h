@@ -33,21 +33,6 @@
 #include "test_i_http_get_stream_common.h"
 #include "test_i_http_get_network.h"
 
-//struct Test_I_ConnectionConfiguration;
-//struct Test_I_StreamConfiguration;
-struct Test_I_HTTPGet_UserData
- : Stream_UserData
-{
-  Test_I_HTTPGet_UserData ()
-   : Stream_UserData ()
-//   , connectionConfiguration (NULL)
-//   , streamConfiguration (NULL)
-  {}
-
-//  struct Test_I_ConnectionConfiguration* connectionConfiguration;
-//  struct Test_I_StreamConfiguration*     streamConfiguration;
-};
-
 struct Test_I_HTTPGet_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
@@ -69,17 +54,14 @@ struct Test_I_HTTPGet_Configuration
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // **************************** signal data **********************************
   struct Test_I_HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_HTTPGet_ConnectionConfigurations_t        connectionConfigurations;
+  Net_ConnectionConfigurations_t                   connectionConfigurations;
   // **************************** stream data **********************************
   Test_I_StreamConfiguration_t                     streamConfiguration;
-
-  struct Test_I_HTTPGet_UserData                   userData;
 };
 
 #endif

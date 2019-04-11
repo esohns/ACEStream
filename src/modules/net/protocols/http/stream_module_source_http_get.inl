@@ -30,6 +30,8 @@
 
 #include "stream_dec_common.h"
 
+#include "net_connection_configuration.h"
+
 #include "http_codes.h"
 #include "http_common.h"
 #include "http_defines.h"
@@ -40,18 +42,16 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    ConnectionConfigurationIteratorType>::Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T* stream_in)
+                                    SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T* stream_in)
 #else
-                                    ConnectionConfigurationIteratorType>::Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T* stream_in)
+                                    SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
  , parsed_ (false)
@@ -66,17 +66,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 bool
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::initialize (const ConfigurationType& configuration_in,
-                                                                                      Stream_IAllocator* allocator_in)
+                                    SessionMessageType>::initialize (const ConfigurationType& configuration_in,
+                                                                     Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::initialize"));
 
@@ -97,17 +95,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 void
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                                             bool& passMessageDownstream_out)
+                                    SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleDataMessage"));
 
@@ -250,17 +246,15 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 void
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                                bool& passMessageDownstream_out)
+                                    SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleSessionMessage"));
 
@@ -303,18 +297,16 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 DataMessageType*
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::makeRequest (const std::string& URI_in,
-                                                                                       const HTTP_Headers_t& headers_in,
-                                                                                       const HTTP_Form_t& form_in)
+                                    SessionMessageType>::makeRequest (const std::string& URI_in,
+                                                                      const HTTP_Headers_t& headers_in,
+                                                                      const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
@@ -322,15 +314,17 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->connectionConfigurations);
 
-  ConnectionConfigurationIteratorType iterator =
+  Net_ConnectionConfigurationsIterator_t iterator =
     inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
   if (iterator == inherited::configuration_->connectionConfigurations->end ())
     iterator =
       inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  //else
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: applying connection configuration\n"),
-  //              inherited::mod_->name ()));
+#if defined (_DEBUG)
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: applying connection configuration\n"),
+                inherited::mod_->name ()));
+#endif // _DEBUG
   ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
 
   // step1: allocate message
@@ -371,13 +365,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: remove type inference
   DataMessageType* message_out =
-    inherited::allocateMessage ((*iterator).second.PDUSize);
+    inherited::allocateMessage ((*iterator).second->PDUSize);
   if (!message_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                 inherited::mod_->name (),
-                (*iterator).second.PDUSize));
+                (*iterator).second->PDUSize));
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
@@ -406,18 +400,16 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 bool
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::send (const std::string& URL_in,
-                                                                                const HTTP_Headers_t& headers_in,
-                                                                                const HTTP_Form_t& form_in)
+                                    SessionMessageType>::send (const std::string& URL_in,
+                                                               const HTTP_Headers_t& headers_in,
+                                                               const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::send"));
 
@@ -485,16 +477,14 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType,
-          typename ConnectionConfigurationIteratorType>
+          typename SessionMessageType>
 HTTP_Record*
 Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType,
-                                    ConnectionConfigurationIteratorType>::parse (DataMessageType& message_in)
+                                    SessionMessageType>::parse (DataMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::parse"));
 

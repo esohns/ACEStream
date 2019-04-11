@@ -60,6 +60,8 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
                               SessionMessageType>::Stream_ImageScreen_EventHandler_T (struct Stream_ImageScreen_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                                       )
+#elif defined (QT_USE)
+                                                                                      )
 #elif defined (WXWIDGETS_USE)
                                                                                       ,InterfaceType* interface_in)
 #endif // GTK_USE
@@ -104,19 +106,22 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #endif
   ACE_ASSERT (!sessionData_);
 
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
   sessionData_ =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 }
 
 template <typename NotificationType,
@@ -177,18 +182,19 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif // GTK_USE
 
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
 #if defined (GTK_USE)
   guint event_source_id = 0;
 #endif // GTK_USE
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     event_source_id = g_idle_add (idle_session_end_cb,
                                   CBData_);
     if (event_source_id == 0)
@@ -196,9 +202,9 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
     else
       state_r.eventSourceIds.insert (event_source_id);
-#endif // GTK_USE
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
+#endif // GTK_USE
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -235,17 +241,22 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif
 
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE || WXWIDGETS_USE
     CBData_->progressData.statistic.bytes += message_in.total_length ();
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 
 #if defined (GTK_USE)
   guint event_source_id = g_idle_add (idle_update_video_display_cb,
@@ -291,10 +302,11 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif // GTK_USE
 
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
@@ -310,7 +322,9 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
       if (!sessionData_)
         goto continue_;
 
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE || WXWIDGETS_USE
         if (sessionData_->lock)
         {
           result = sessionData_->lock->acquire ();
@@ -332,7 +346,9 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
         } // end IF
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
       } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 
 continue_:
       event_e = COMMON_UI_EVENT_STATISTIC;
@@ -342,7 +358,9 @@ continue_:
       return;
   } // end SWITCH
 
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 }

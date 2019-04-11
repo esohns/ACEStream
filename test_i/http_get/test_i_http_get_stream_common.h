@@ -173,7 +173,6 @@ struct Test_I_Stream_SessionData
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , parserContext (NULL)
    , targetFileName ()
-   , userData (NULL)
   {}
 
   struct Test_I_Stream_SessionData& operator+= (const struct Test_I_Stream_SessionData& rhs_in)
@@ -195,8 +194,6 @@ struct Test_I_Stream_SessionData
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   struct Test_I_SAXParserContext*           parserContext; // html parser/handler module
   std::string                               targetFileName; // file writer module
-
-  struct Test_I_HTTPGet_UserData*           userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
@@ -254,7 +251,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 
   struct Test_I_HTTPGet_Configuration*       configuration;
   Test_I_IConnection_t*                      connection; // TCP target/IO module
-  Test_I_HTTPGet_ConnectionConfigurations_t* connectionConfigurations;
+  Net_ConnectionConfigurations_t*            connectionConfigurations;
   Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
   std::string                                dataBaseOptionsFileName; // db writer module
   std::string                                dataBaseTable; // db writer module
@@ -275,10 +272,7 @@ struct Test_I_HTTPGet_StreamConfiguration
 {
   Test_I_HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
-   , userData (NULL)
   {}
-
-  struct Test_I_HTTPGet_UserData* userData;
 };
 
 struct Test_I_HTTPGet_StreamState
@@ -287,12 +281,9 @@ struct Test_I_HTTPGet_StreamState
   Test_I_HTTPGet_StreamState ()
    : Test_I_StreamState ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_Stream_SessionData* sessionData;
-
-  struct Test_I_HTTPGet_UserData*   userData;
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,

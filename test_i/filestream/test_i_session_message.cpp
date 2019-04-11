@@ -30,7 +30,7 @@
 Test_I_Source_SessionMessage::Test_I_Source_SessionMessage (Stream_SessionId_t sessionId_in,
                                                             Stream_SessionMessageType messageType_in,
                                                             Test_I_Source_SessionData_t*& sessionData_in,
-                                                            Test_I_Source_UserData* userData_in)
+                                                            Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
@@ -112,9 +112,9 @@ Test_I_Source_SessionMessage::duplicate (void) const
 //////////////////////////////////////////
 
 Test_I_Target_SessionMessage::Test_I_Target_SessionMessage (Stream_SessionId_t sessionId_in,
-                                                            Stream_SessionMessageType messageType_in,
+                                                            enum Stream_SessionMessageType messageType_in,
                                                             Test_I_Target_SessionData_t*& sessionData_in,
-                                                            Test_I_Target_UserData* userData_in)
+                                                            struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
