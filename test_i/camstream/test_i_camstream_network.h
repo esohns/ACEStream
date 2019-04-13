@@ -941,13 +941,15 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L_TCPConnectionConfigurati
                                       struct Net_UserData> Test_I_Source_V4L_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
+                                Net_UDPSocketHandler_t,
                                 Test_I_Source_V4L_UDPConnectionConfiguration_t,
                                 struct Test_I_Source_V4L_UDPConnectionState,
                                 struct Test_I_Source_Stream_StatisticData,
                                 Test_I_Source_V4L_Net_UDPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_UDPConnection_t;
-typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_V4L_UDPConnectionConfiguration_t,
+typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
+                                      Test_I_Source_V4L_UDPConnectionConfiguration_t,
                                       struct Test_I_Source_V4L_UDPConnectionState,
                                       struct Test_I_Source_Stream_StatisticData,
                                       Test_I_Source_V4L_Net_UDPStream_t,
@@ -1294,13 +1296,15 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_TCPConnectionConfiguration_t
                                       struct Net_UserData> Test_I_Target_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
+                                Net_UDPSocketHandler_t,
                                 Test_I_Target_UDPConnectionConfiguration_t,
                                 struct Test_I_Target_UDPConnectionState,
                                 Test_I_Statistic_t,
                                 Test_I_Target_Stream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_UDPConnection_t;
-typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_UDPConnectionConfiguration_t,
+typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
+                                      Test_I_Target_UDPConnectionConfiguration_t,
                                       struct Test_I_Target_UDPConnectionState,
                                       Test_I_Statistic_t,
                                       Test_I_Target_Stream,
