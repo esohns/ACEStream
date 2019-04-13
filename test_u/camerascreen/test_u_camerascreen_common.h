@@ -376,6 +376,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
    , window (NULL)
 #else
    , window (0)
+   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -394,6 +395,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
   HWND                            window;
 #else
   XID                             window;
+  Display*                        X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
 };
 //extern const char stream_name_string_[];
