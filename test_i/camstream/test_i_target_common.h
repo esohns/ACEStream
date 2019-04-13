@@ -538,8 +538,8 @@ typedef Net_IListener_T<struct Test_I_Target_MediaFoundation_ListenerConfigurati
                         Test_I_Target_MediaFoundation_ConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
 #else
 class Test_I_Target_ListenerConfiguration
- : Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
-                               NET_TRANSPORTLAYER_TCP>
+ : public Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
+                                      NET_TRANSPORTLAYER_TCP>
 {
  public:
   Test_I_Target_ListenerConfiguration ()

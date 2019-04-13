@@ -1232,7 +1232,6 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
-  Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_Target_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
   ACE_thread_t thread_id = 0;
@@ -1301,16 +1300,18 @@ do_work (unsigned int bufferSize_in,
     } // end ELSE
   } // end SWITCH
 #else
-  Test_I_Target_ConnectionConfiguration_t connection_configuration;
-  Test_I_Target_InetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
-  connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                  : std::numeric_limits<unsigned int>::max ());
-  iconnection_manager_p = connection_manager_p;
-  report_handler_p = connection_manager_p;
-  (*iterator).second.second.connectionManager = connection_manager_p;
+  Test_I_Target_TCPConnectionConfiguration_t connection_configuration;
+  Test_I_Target_TCPConnectionManager_t* tcp_connection_manager_p =
+    TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_UDPConnectionManager_t* udp_connection_manager_p =
+    TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+  tcp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                      : std::numeric_limits<unsigned int>::max ());
+  udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                      : std::numeric_limits<unsigned int>::max ());
+  report_handler_p = tcp_connection_manager_p;
+  (*iterator).second.second.connectionManager = tcp_connection_manager_p;
 #endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
   Test_I_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                report_handler_p,
@@ -1348,7 +1349,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to dynamic_cast<Test_I_Target_Module_EventHandler>, returning\n")));
-    goto clean;
+    return;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1469,8 +1470,9 @@ do_work (unsigned int bufferSize_in,
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != configuration.connectionConfigurations.end ());
 
-  connection_manager_p->set (*dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second),
-                             &configuration.userData);
+  struct Net_UserData user_data_s;
+  tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second),
+                                 &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // **************************** stream data **********************************
@@ -1608,10 +1610,11 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   configuration.listenerConfiguration.connectionConfiguration =
-      dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second);
-  configuration.listenerConfiguration.connectionManager = connection_manager_p;
+      dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second);
+  configuration.listenerConfiguration.connectionManager =
+      tcp_connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
+      statisticReportingInterval_in;
   (*iterator_2).second->useLoopBackDevice = useLoopBack_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1696,7 +1699,7 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   configuration.signalHandlerConfiguration.connectionManager =
-      connection_manager_p;
+      tcp_connection_manager_p;
   configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
   if (useReactor_in)
@@ -1828,7 +1831,8 @@ do_work (unsigned int bufferSize_in,
     Test_I_Target_MediaFoundation_IInetConnector_t* mediafoundation_iconnector_p =
       NULL;
 #else
-    Test_I_Target_IInetConnector_t* iconnector_p = NULL;
+    Test_I_Target_ITCPConnector_t* i_tcp_connector_p = NULL;
+    Test_I_Target_IUDPConnector_t* i_udp_connector_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
     if (useUDP_in)
     {
@@ -1874,14 +1878,15 @@ do_work (unsigned int bufferSize_in,
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
       if (useReactor_in)
-        ACE_NEW_NORETURN (iconnector_p,
+        ACE_NEW_NORETURN (i_udp_connector_p,
                           Test_I_Target_UDPConnector_t (true));
       else
-        ACE_NEW_NORETURN (iconnector_p,
+        ACE_NEW_NORETURN (i_udp_connector_p,
                           Test_I_Target_UDPAsynchConnector_t (true));
+      ACE_ASSERT (i_udp_connector_p);
       result_2 =
-          iconnector_p->initialize (*dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second));
-      if (!iconnector_p)
+          i_udp_connector_p->initialize (*dynamic_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));
+      if (!i_udp_connector_p)
 #endif // ACE_WIN32 || ACE_WIN64
       {
         ACE_DEBUG ((LM_CRITICAL,
@@ -1959,7 +1964,7 @@ do_work (unsigned int bufferSize_in,
           } // end ELSE
         } // end SWITCH
 #else
-        delete iconnector_p;
+        delete i_udp_connector_p;
 #endif // ACE_WIN32 || ACE_WIN64
         goto clean;
       } // end IF
@@ -2023,7 +2028,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       configuration.handle =
-        iconnector_p->connect (dynamic_cast<Test_I_Target_ConnectionConfiguration_t*> ((*iterator_2).second)->address);
+        i_udp_connector_p->connect (dynamic_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second)->listenAddress);
 #endif // ACE_WIN32 || ACE_WIN64
       if (!useReactor_in)
       {
@@ -2071,7 +2076,7 @@ do_work (unsigned int bufferSize_in,
             } // end ELSE
           } // end SWITCH
 #else
-          connection_p = connection_manager_p->get (peer_address);
+          connection_p = udp_connection_manager_p->get (peer_address);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           switch (mediaFramework_in)
@@ -2202,7 +2207,7 @@ do_work (unsigned int bufferSize_in,
           } // end ELSE
         } // end SWITCH
 #else
-        delete iconnector_p;
+        delete i_udp_connector_p;
 #endif // ACE_WIN32 || ACE_WIN64
         goto clean;
       } // end IF
@@ -2233,7 +2238,7 @@ do_work (unsigned int bufferSize_in,
         } // end ELSE
       } // end SWITCH
 #else
-      delete iconnector_p;
+      delete i_udp_connector_p;
 #endif // ACE_WIN32 || ACE_WIN64
     } // end IF
     else
@@ -2410,7 +2415,10 @@ clean:
     } // end ELSE
   } // end SWITCH
 #else
-  connection_manager_p->wait ();
+  if (useUDP_in)
+    udp_connection_manager_p->wait ();
+  else
+    tcp_connection_manager_p->wait ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   timer_manager_p->stop ();
