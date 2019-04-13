@@ -1317,7 +1317,7 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  Test_I_Source_V4L_ConnectionConfiguration_t connection_configuration;
+  Test_I_Source_V4L_TCPConnectionConfiguration_t connection_configuration;
 
   stream_iterator =
     V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
@@ -1388,12 +1388,13 @@ do_work (const std::string& deviceIdentifier_in,
   Net_ConnectionConfigurationsIterator_t connection_iterator =
     V4L_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (connection_iterator != V4L_configuration.connectionConfigurations.end ());
-  Test_I_Source_V4L_InetConnectionManager_t* connection_manager_p =
-    TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Source_V4L_TCPConnectionManager_t* connection_manager_p =
+    TEST_I_SOURCE_V4L_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
+  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*iterator).second),
-                             &V4L_configuration.userData);
+  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+                             &user_data_s);
   (*modulehandler_iterator).second.second.connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
@@ -1557,14 +1558,14 @@ do_work (const std::string& deviceIdentifier_in,
 //  (*connection_iterator).second.writeOnly = true;
   (*connection_iterator).second->statisticReportingInterval =
     statisticReportingInterval_in;
-  dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
+  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
   (*connection_iterator).second->PDUSize = bufferSize_in;
-  dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
-                                                                                                          (*stream_iterator).second);
+  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
+                                                                                                             (*stream_iterator).second);
 
-  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_ConnectionConfiguration_t*> ((*connection_iterator).second),
-                             &V4L_configuration.userData);
+  connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+                             &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1720,7 +1721,7 @@ do_work (const std::string& deviceIdentifier_in,
   } // end SWITCH
 #else
   V4L_configuration.signalHandlerConfiguration.connectionManager =
-    TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON::instance ();
+    TEST_I_SOURCE_V4L_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   V4L_configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
   V4L_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;

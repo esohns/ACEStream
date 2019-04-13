@@ -150,14 +150,6 @@ struct Test_I_Target_UserData
 //  //struct Test_I_Target_MediaFoundation_StreamConfiguration*     streamConfiguration;
 //};
 #else
-//struct Test_I_Target_ConnectionConfiguration;
-struct Test_I_Target_UserData
- : Stream_UserData
-{
-  Test_I_Target_UserData ()
-   : Stream_UserData ()
-  {}
-};
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_I_Target_ConnectionState;
@@ -237,7 +229,7 @@ class Test_I_Target_SessionData
                                         struct Stream_MediaFramework_FFMPEG_MediaType,
                                         struct Test_I_Target_StreamState,
                                         Test_I_Statistic_t,
-                                        struct Test_I_Target_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Test_I_Target_SessionData ()
@@ -245,8 +237,8 @@ class Test_I_Target_SessionData
                                    struct Stream_MediaFramework_FFMPEG_MediaType,
                                    struct Test_I_Target_StreamState,
                                    Test_I_Statistic_t,
-                                   struct Test_I_Target_UserData> ()
-   , targetFileName ()
+                                   struct Stream_UserData> ()
+//   , targetFileName ()
   {}
 
   Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
@@ -256,7 +248,7 @@ class Test_I_Target_SessionData
                                   struct Stream_MediaFramework_FFMPEG_MediaType,
                                   struct Test_I_Target_StreamState,
                                   Test_I_Statistic_t,
-                                  struct Test_I_Target_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     targetFileName =
       (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
@@ -264,7 +256,7 @@ class Test_I_Target_SessionData
     return *this;
   }
 
-  std::string targetFileName;
+//  std::string targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -491,7 +483,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
 #endif // GTK_USE
 #endif // GUI_SUPPORT
   Net_ConnectionConfigurations_t*               connectionConfigurations;
-  Test_I_Target_InetConnectionManager_t*        connectionManager; // net IO module
+  Test_I_Target_TCPConnectionManager_t*         connectionManager; // net IO module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint                                         contextId;
@@ -546,7 +538,7 @@ typedef Net_IListener_T<struct Test_I_Target_MediaFoundation_ListenerConfigurati
                         Test_I_Target_MediaFoundation_ConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
 #else
 class Test_I_Target_ListenerConfiguration
- : Net_ListenerConfiguration_T<Test_I_Target_ConnectionConfiguration_t,
+ : Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
                                NET_TRANSPORTLAYER_TCP>
 {
  public:
@@ -559,12 +551,12 @@ class Test_I_Target_ListenerConfiguration
     //address.set_port_number (TEST_I_DEFAULT_PORT, 1);
   }
 
-  Test_I_Target_ConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_InetConnectionManager_t*   connectionManager;
-  ACE_Time_Value                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
+  Test_I_Target_TCPConnectionManager_t*       connectionManager;
+  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_ConnectionConfiguration_t> Test_I_Target_IListener_t;
+                        Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -611,12 +603,12 @@ struct Test_I_Target_SignalHandlerConfiguration
    , statisticReportingHandler (NULL)
   {}
 
-  Test_I_Target_InetConnectionManager_t*     connectionManager;
+  Test_I_Target_TCPConnectionManager_t*      connectionManager;
   Test_I_Target_IListener_t*                 listener;
   Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration,
-                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_SignalHandler_t;
+                                      Test_I_Target_TCPConnectionManager_t> Test_I_Target_SignalHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -626,22 +618,16 @@ struct Test_I_Target_DirectShow_StreamConfiguration
   Test_I_Target_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , graphBuilder (NULL)
-   , userData (NULL)
   {}
 
   IGraphBuilder*                 graphBuilder;
-
-  struct Test_I_Target_UserData* userData;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   Test_I_Target_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , userData (NULL)
   {}
-
-  struct Test_I_Target_UserData* userData;
 };
 #else
 struct Test_I_Target_StreamConfiguration
@@ -655,7 +641,6 @@ struct Test_I_Target_StreamConfiguration
    , window (NULL)
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-   , userData (NULL)
   {}
 
   struct Stream_MediaFramework_FFMPEG_MediaType format;
@@ -664,8 +649,6 @@ struct Test_I_Target_StreamConfiguration
   GdkWindow*                                    window;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-
-  struct Test_I_Target_UserData*                userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -676,12 +659,9 @@ struct Test_I_Target_DirectShow_StreamState
   Test_I_Target_DirectShow_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   Test_I_Target_DirectShow_SessionData* sessionData;
-
-  struct Test_I_Target_UserData*        userData;
 };
 
 struct Test_I_Target_MediaFoundation_StreamState
@@ -690,12 +670,9 @@ struct Test_I_Target_MediaFoundation_StreamState
   Test_I_Target_MediaFoundation_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   Test_I_Target_MediaFoundation_SessionData* sessionData;
-
-  struct Test_I_Target_UserData*             userData;
 };
 #else
 struct Test_I_Target_StreamState
@@ -704,12 +681,9 @@ struct Test_I_Target_StreamState
   Test_I_Target_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
-  Test_I_Target_SessionData*     sessionData;
-
-  struct Test_I_Target_UserData* userData;
+  Test_I_Target_SessionData* sessionData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -727,7 +701,6 @@ struct Test_I_Target_DirectShow_Configuration
    , pinConfiguration ()
    , filterConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // **************************** socket data **********************************
@@ -742,8 +715,6 @@ struct Test_I_Target_DirectShow_Configuration
   struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
   struct Test_I_Target_DirectShow_FilterConfiguration            filterConfiguration;
   Test_I_Target_DirectShow_StreamConfiguration_t                 streamConfiguration;
-
-  struct Test_I_Target_UserData                                  userData;
 };
 struct Test_I_Target_MediaFoundation_Configuration
  : Test_I_CamStream_Configuration
@@ -757,7 +728,6 @@ struct Test_I_Target_MediaFoundation_Configuration
    //, listener (NULL)
    , listenerConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // **************************** media foundation *****************************
@@ -772,8 +742,6 @@ struct Test_I_Target_MediaFoundation_Configuration
   struct Test_I_Target_MediaFoundation_ListenerConfiguration      listenerConfiguration;
   // **************************** stream data **********************************
   Test_I_Target_MediaFoundation_StreamConfiguration_t             streamConfiguration;
-
-  struct Test_I_Target_UserData                                   userData;
 };
 #else
 struct Test_I_Target_Configuration
@@ -787,7 +755,6 @@ struct Test_I_Target_Configuration
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // **************************** socket data **********************************
@@ -800,8 +767,6 @@ struct Test_I_Target_Configuration
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
   Test_I_Target_StreamConfiguration_t             streamConfiguration;
-
-  struct Test_I_Target_UserData                   userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

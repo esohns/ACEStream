@@ -62,6 +62,8 @@ Stream_CamSave_EventHandler_T<NotificationType,
                               SessionMessageType>::Stream_CamSave_EventHandler_T (struct Stream_CamSave_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                                  )
+#elif defined (QT_USE)
+                                                                                 )
 #elif defined (WXWIDGETS_USE)
                                                                                   ,InterfaceType* interface_in)
 #endif // GTK_USE
@@ -118,10 +120,11 @@ Stream_CamSave_EventHandler_T<NotificationType,
   ACE_ASSERT (!sessionData_);
 
 #if defined (GUI_SUPPORT)
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -130,9 +133,11 @@ Stream_CamSave_EventHandler_T<NotificationType,
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 }
 
@@ -205,10 +210,11 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -219,6 +225,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #if defined (GTK_USE)
     event_source_id = g_idle_add (idle_session_end_cb,
@@ -231,6 +238,7 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // GTK_USE
     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
   if (sessionData_)
@@ -275,19 +283,22 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
@@ -343,10 +354,11 @@ Stream_CamSave_EventHandler_T<NotificationType,
 #endif // GUI_SUPPORT
 
 #if defined (GUI_SUPPORT)
-  UIStateType& state_r =
 #if defined (GTK_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (gtk_manager_p->getR_2 ());
 #elif defined (WXWIDGETS_USE)
+  UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 #endif // GUI_SUPPORT
@@ -364,7 +376,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
         goto continue_;
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+#endif // GTK_USE || WXWIDGETS_USE
         if (sessionData_->lock)
         {
           result = sessionData_->lock->acquire ();
@@ -386,7 +400,9 @@ Stream_CamSave_EventHandler_T<NotificationType,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
         } // end IF
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
       } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 
 continue_:
@@ -398,8 +414,10 @@ continue_:
   } // end SWITCH
 
 #if defined (GUI_SUPPORT)
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (event_e);
   } // end lock scope
+#endif // GTK_USE || WXWIDGETS_USE
 #endif // GUI_SUPPORT
 }

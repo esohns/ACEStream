@@ -57,13 +57,13 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_Statistic_t,
                                 Test_I_Target_Stream,
                                 Common_Timer_Manager_t,
-                                struct Stream_UserData> Test_I_Target_TCPConnection_t;
+                                struct Net_UserData> Test_I_Target_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_TCPConnectionConfiguration_t,
                                       struct Test_I_Target_ConnectionState,
                                       Test_I_Statistic_t,
                                       Test_I_Target_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Stream_UserData> Test_I_Target_AsynchTCPConnection_t;
+                                      struct Net_UserData> Test_I_Target_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_Target_UDPConnectionConfiguration_t,
@@ -71,13 +71,13 @@ typedef Net_UDPConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_Statistic_t,
                                 Test_I_Target_Stream,
                                 Common_Timer_Manager_t,
-                                struct Stream_UserData> Test_I_InboundUDPConnection_t;
+                                struct Net_UserData> Test_I_InboundUDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_UDPConnectionConfiguration_t,
                                       struct Test_I_Target_ConnectionState,
                                       Test_I_Statistic_t,
                                       Test_I_Target_Stream,
                                       Common_Timer_Manager_t,
-                                      struct Stream_UserData> Test_I_InboundAsynchUDPConnection_t;
+                                      struct Net_UserData> Test_I_InboundAsynchUDPConnection_t;
 
 //////////////////////////////////////////
 
@@ -87,7 +87,7 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     struct Test_I_Target_ConnectionState,
                                     Test_I_Target_TCPConnectionConfiguration_t,
                                     Test_I_Target_Stream,
-                                    struct Stream_UserData> Test_I_Target_AsynchListener_t;
+                                    struct Net_UserData> Test_I_Target_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
@@ -95,7 +95,7 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               struct Test_I_Target_ConnectionState,
                               Test_I_Target_TCPConnectionConfiguration_t,
                               Test_I_Target_Stream,
-                              struct Stream_UserData> Test_I_Target_Listener_t;
+                              struct Net_UserData> Test_I_Target_Listener_t;
 
 typedef Net_Client_AsynchConnector_T<Test_I_InboundAsynchUDPConnection_t,
                                      ACE_INET_Addr,
@@ -105,7 +105,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_InboundAsynchUDPConnection_t,
                                      Net_UDPSocketConfiguration_t,
                                      Net_UDPSocketConfiguration_t,
                                      Test_I_Target_Stream,
-                                     struct Stream_UserData> Test_I_InboundUDPAsynchConnector_t;
+                                     struct Net_UserData> Test_I_InboundUDPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Test_I_InboundUDPConnection_t,
                                ACE_SOCK_CONNECTOR,
@@ -116,7 +116,7 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Net_UDPSocketConfiguration_t,
                                Net_UDPSocketConfiguration_t,
                                Test_I_Target_Stream,
-                               struct Stream_UserData> Test_I_InboundUDPConnector_t;
+                               struct Net_UserData> Test_I_InboundUDPConnector_t;
 
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;

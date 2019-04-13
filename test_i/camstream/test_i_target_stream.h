@@ -48,20 +48,26 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration_t,
+                                 Test_I_Target_TCPConnectionConfiguration_t,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Target_TCPConnectionManager_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Target_UDPConnectionConfiguration_t,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_Statistic_t,
+                                 struct Net_UserData> Test_I_Target_UDPConnectionManager_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -86,7 +92,7 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData>
+                                        struct Stream_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -108,7 +114,7 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData> inherited;
+                                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Target_DirectShow_Stream ();
@@ -156,7 +162,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData>
+                                        struct Stream_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -178,7 +184,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_SessionMessage,
                                         ACE_INET_Addr,
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData> inherited;
+                                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Target_MediaFoundation_Stream ();
@@ -224,8 +230,8 @@ class Test_I_Target_Stream
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData>
+                                        Test_I_Target_TCPConnectionManager_t,
+                                        struct Stream_UserData>
 {
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -246,16 +252,16 @@ class Test_I_Target_Stream
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t,
-                                        struct Test_I_Target_UserData> inherited;
+                                        Test_I_Target_TCPConnectionManager_t,
+                                        struct Stream_UserData> inherited;
 
  public:
   Test_I_Target_Stream ();
   virtual ~Test_I_Target_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: module list
+                     bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

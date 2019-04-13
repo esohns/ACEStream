@@ -32,6 +32,8 @@
 #elif defined (GTK2_USE)
 #define TEST_I_UI_DEFINITION_FILE              "camsave.gtk2"
 #endif
+#elif defined (QT_USE)
+#define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
 #define TEST_I_UI_DEFINITION_FILE              "camsave.xrc"
 #endif // WXWIDGETS_USE

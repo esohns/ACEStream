@@ -192,7 +192,7 @@ Test_I_Source_MediaFoundation_SessionMessage::duplicate (void) const
 Test_I_Source_V4L_SessionMessage::Test_I_Source_V4L_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                     enum Stream_SessionMessageType messageType_in,
                                                                     Test_I_Source_V4L_SessionData_t*& sessionData_in,
-                                                                    struct Test_I_Source_V4L_UserData* userData_in)
+                                                                    struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,

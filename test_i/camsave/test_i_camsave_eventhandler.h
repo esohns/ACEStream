@@ -47,6 +47,8 @@ class Stream_CamSave_EventHandler_T
   Stream_CamSave_EventHandler_T (struct Stream_CamSave_UI_CBData* // UI callback data
 #if defined (GTK_USE)
                                 );
+#elif defined (QT_USE)
+                                );
 #elif defined (WXWIDGETS_USE)
                                  ,InterfaceType*);                // wxWidgets application handle
 #endif

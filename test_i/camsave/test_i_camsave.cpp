@@ -1586,10 +1586,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-#if defined (GUI_SUPPORT)
-  configuration_in.signalHandlerConfiguration.hasUI =
-    !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
   configuration_in.signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
@@ -1762,8 +1758,12 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       }
     } // end SWITCH
 #else
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
     Common_UI_GTK_Tools::initialize (CBData_in.configuration->GTKConfiguration.argc,
                                      CBData_in.configuration->GTKConfiguration.argv);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
     if (!stream.initialize (configuration_in.streamConfiguration))
     {
@@ -2166,6 +2166,8 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
                                             (UI_definition_filename.empty () ? NULL
                                                                              : &logger))) // (ui) logger ?
+#elif defined (QT_USE)
+                                            NULL))                                        // (ui) logger ?
 #elif defined (WXWIDGETS_USE)
                                             NULL))                                        // (ui) logger ?
 #endif // XXX_USE
@@ -2303,6 +2305,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
 
+#if defined (GTK_USE)
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
@@ -2311,6 +2314,7 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
       idle_initialize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+#endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (ui_cb_data_p);
 #endif // GUI_SUPPORT

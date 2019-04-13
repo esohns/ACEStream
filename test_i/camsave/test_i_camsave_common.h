@@ -972,6 +972,8 @@ struct Stream_CamSave_ProgressData
 struct Stream_CamSave_UI_CBData
 #if defined (GTK_USE)
  : Test_I_GTK_CBData
+#elif defined (QT_USE)
+ : Test_I_Qt_CBData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_CBData
 #endif
@@ -979,6 +981,8 @@ struct Stream_CamSave_UI_CBData
   Stream_CamSave_UI_CBData ()
 #if defined (GTK_USE)
    : Test_I_GTK_CBData ()
+#elif defined (QT_USE)
+   : Test_I_Qt_CBData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_CBData ()
 #endif
@@ -1062,6 +1066,8 @@ struct Stream_CamSave_V4L_UI_CBData
 struct Stream_CamSave_UI_ThreadData
 #if defined (GTK_USE)
  : Test_I_GTK_ThreadData
+#elif defined (QT_USE)
+ : Test_I_Qt_ThreadData
 #elif defined (WXWIDGETS_USE)
  : Test_I_wxWidgets_ThreadData
 #endif
@@ -1069,6 +1075,8 @@ struct Stream_CamSave_UI_ThreadData
   Stream_CamSave_UI_ThreadData ()
 #if defined (GTK_USE)
    : Test_I_GTK_ThreadData ()
+#elif defined (QT_USE)
+   : Test_I_Qt_ThreadData ()
 #elif defined (WXWIDGETS_USE)
    : Test_I_wxWidgets_ThreadData ()
 #endif

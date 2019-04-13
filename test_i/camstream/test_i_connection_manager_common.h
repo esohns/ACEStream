@@ -34,15 +34,6 @@
 
 #include "test_i_camstream_network.h"
 
-// forward declarations
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_UserData;
-struct Test_I_Source_MediaFoundation_UserData;
-#else
-struct Test_I_Source_V4L_UserData;
-#endif // ACE_WIN32 || ACE_WIN64
-struct Test_I_Target_UserData;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
@@ -82,23 +73,39 @@ typedef ACE_Singleton<Test_I_Target_MediaFoundation_InetConnectionManager_t,
 #else
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Source_V4L_ConnectionConfiguration_t,
+                                 Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                  struct Test_I_Source_V4L_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
-                                 struct Test_I_Source_V4L_UserData> Test_I_Source_V4L_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Source_V4L_TCPConnectionManager_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Source_V4L_UDPConnectionConfiguration_t,
+                                 struct Test_I_Source_V4L_ConnectionState,
+                                 struct Test_I_Source_Stream_StatisticData,
+                                 struct Net_UserData> Test_I_Source_V4L_UDPConnectionManager_t;
 
-typedef ACE_Singleton<Test_I_Source_V4L_InetConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Source_V4L_TCPConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L_TCP_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Source_V4L_UDPConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L_UDP_CONNECTIONMANAGER_SINGLETON;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration_t,
+                                 Test_I_Target_TCPConnectionConfiguration_t,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+                                 struct Net_UserData> Test_I_Target_TCPConnectionManager_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 Test_I_Target_UDPConnectionConfiguration_t,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_Statistic_t,
+                                 struct Net_UserData> Test_I_Target_UDPConnectionManager_t;
 
-typedef ACE_Singleton<Test_I_Target_InetConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_TCPConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_UDPConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON;
 #endif
 
 #endif

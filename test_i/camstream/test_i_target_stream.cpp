@@ -918,7 +918,7 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
 }
 
 bool
-Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
+Test_I_Target_Stream::load (Stream_ILayout* layout_in,
                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
@@ -926,40 +926,41 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 //  // initialize return value(s)
 //  modules_out.clear ();
 //  delete_out = false;
+  ACE_ASSERT (delete_out);
 
   Stream_Module_t* module_p = NULL;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Splitter_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  //Test_I_Target_Module_AVIDecoder_Module            decoder_;
-  //Test_I_Target_Module_Net_IO_Module                source_;
 
-  if (!inherited::load (modules_out,
+  if (!inherited::load (layout_in,
                         delete_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (delete_out);
+
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Splitter_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  //Test_I_Target_Module_AVIDecoder_Module            decoder_;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_StatisticReport_Module (this,
+                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Display_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
+  module_p = NULL;
 
   delete_out = true;
 

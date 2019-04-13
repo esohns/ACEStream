@@ -134,13 +134,10 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (const struct Common_Si
     //   exception handlers, ...
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
-    if (inherited::configuration_->hasUI)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                          false); // N/A
-#else
-      ;
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                        false); // N/A
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 

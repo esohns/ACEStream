@@ -134,7 +134,7 @@ class Test_I_Source_V4L_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L_SessionData_t,
-                                      struct Test_I_Source_V4L_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -146,7 +146,7 @@ class Test_I_Source_V4L_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L_SessionData_t,
-                                      struct Test_I_Source_V4L_UserData> inherited;
+                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -154,7 +154,7 @@ class Test_I_Source_V4L_SessionMessage
   Test_I_Source_V4L_SessionMessage (Stream_SessionId_t,
                                      enum Stream_SessionMessageType,
                                      Test_I_Source_V4L_SessionData_t*&,   // session data container handle
-                                     struct Test_I_Source_V4L_UserData*);
+                                     struct Stream_UserData*);
   inline virtual ~Test_I_Source_V4L_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

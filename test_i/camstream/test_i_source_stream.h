@@ -493,7 +493,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L_Stream_Message,
                                     Test_I_Source_V4L_SessionMessage,
-                                    Test_I_Source_V4L_InetConnectionManager_t,
+                                    Test_I_Source_V4L_TCPConnectionManager_t,
                                     Test_I_Source_V4L_TCPConnector_t> Test_I_Source_V4L_TCPStream_t;
 #if defined (SSL_SUPPORT)
 typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
@@ -517,7 +517,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L_Stream_Message,
                                     Test_I_Source_V4L_SessionMessage,
-                                    Test_I_Source_V4L_InetConnectionManager_t,
+                                    Test_I_Source_V4L_TCPConnectionManager_t,
                                     Test_I_Source_V4L_TCPAsynchConnector_t> Test_I_Source_V4L_AsynchTCPStream_t;
 
 typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
@@ -529,7 +529,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L_Stream_Message,
                                     Test_I_Source_V4L_SessionMessage,
-                                    Test_I_Source_V4L_InetConnectionManager_t,
+                                    Test_I_Source_V4L_UDPConnectionManager_t,
                                     Test_I_Source_V4L_UDPConnector_t> Test_I_Source_V4L_UDPStream_t;
 typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_Source_V4L_StreamConfiguration_t,
@@ -540,7 +540,7 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_ControlMessage_t,
                                     Test_I_Source_V4L_Stream_Message,
                                     Test_I_Source_V4L_SessionMessage,
-                                    Test_I_Source_V4L_InetConnectionManager_t,
+                                    Test_I_Source_V4L_UDPConnectionManager_t,
                                     Test_I_Source_V4L_UDPAsynchConnector_t> Test_I_Source_V4L_AsynchUDPStream_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
