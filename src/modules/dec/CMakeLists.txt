@@ -15,7 +15,7 @@ if (OPENCV_SUPPORT)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
-set (SOX_DEFAULT OFF)
+set (SOX_DEFAULT ON)
 option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
 if (SOX_SUPPORT)
  add_definitions (-DSOX_SUPPORT)
