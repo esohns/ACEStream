@@ -121,8 +121,13 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   gdk_threads_enter ();
   leave_gdk = true;
 
+#if GTK_CHECK_VERSION (3,0,0)
+  width_i = gdk_window_get_width (window_);
+  height_i = gdk_window_get_height (window_);
+#else
   gdk_drawable_get_size (GDK_DRAWABLE (window_),
                          &width_i, &height_i);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
   buffer_p =
 #if GTK_CHECK_VERSION (3,0,0)
@@ -135,7 +140,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                     NULL,
                                     0, 0,
                                     0, 0, width_i, height_i);
-#endif
+#endif // GTK_CHECK_VERSION (3,0,0)
   if (!buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -150,14 +155,15 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                   message_inout->rd_ptr (),
                   message_inout->length ());
 
-//    gint width_i, height_i;
-//    gdk_drawable_get_size (GDK_DRAWABLE (inherited::configuration_->window),
-//                           &width_i, &height_i);
+#if GTK_CHECK_VERSION (3,0,0)
+  ACE_ASSERT (false); // *TODO*
+#else
   gdk_draw_pixbuf (GDK_DRAWABLE (window_),
                    NULL,
                    buffer_p,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
     g_object_unref (buffer_p); buffer_p = NULL;
 
@@ -210,9 +216,12 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
       attributes_a.height =
           inherited::configuration_->outputFormat.resolution.height;
       attributes_a.wclass = GDK_INPUT_OUTPUT;
+#if GTK_CHECK_VERSION (3,0,0)
+#else
       attributes_a.colormap = gdk_rgb_get_cmap ();
 
       attributes_mask = GDK_WA_COLORMAP;
+#endif // GTK_CHECK_VERSION (3,0,0)
 
       window_ = gdk_window_new (NULL,
                                 &attributes_a, attributes_mask);
@@ -250,7 +259,6 @@ error:
       {
         g_main_destroy (mainLoop_); mainLoop_ = NULL;
       } // end IF
-
 
       break;
     }
