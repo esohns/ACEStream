@@ -26,8 +26,6 @@
 
 const char libacestream_default_dec_avi_encoder_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING);
-const char libacestream_default_dec_wav_encoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -36,17 +34,18 @@ stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
                                           uint8_t* buffer_in,
                                           int buf_size_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
+//  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
 
   // sanity check(s)
   ACE_ASSERT (opaque_in);
   ACE_Message_Block* message_block_p =
       static_cast<ACE_Message_Block*> (opaque_in);
   ACE_ASSERT (message_block_p);
+  ACE_UNUSED_ARG (buffer_in);
 
   // *NOTE*: the data has already been written at this point
   //         --> simply adjust the write pointer to update the message size
-  message_block_p->wr_ptr (buf_size_in);
+  message_block_p->wr_ptr (static_cast<size_t> (buf_size_in));
 
   return 0;
 }

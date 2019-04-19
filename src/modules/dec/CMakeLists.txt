@@ -216,7 +216,6 @@ set (source_files
      stream_dec_avi_parser_driver.h
      stream_dec_common.h
      stream_dec_defines.h
-#     stream_dec_exports.h
      stream_dec_h264_nal_bisector.cpp
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.cpp
@@ -238,6 +237,9 @@ set (source_files
      stream_dec_riff_scanner.h
      stream_dec_tools.cpp
      stream_dec_tools.h
+     stream_dec_wav_encoder.cpp
+     stream_dec_wav_encoder.h
+     stream_dec_wav_encoder.inl
      stream_dec_zip_decoder.cpp
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
@@ -365,7 +367,6 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_avi_parser_driver.h
      stream_dec_common.h
      stream_dec_defines.h
-#     stream_dec_exports.h
      stream_dec_h264_nal_bisector.h
      stream_dec_h264_nal_decoder.h
      stream_dec_h264_nal_decoder.inl
@@ -383,6 +384,8 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_opencv_decoder.inl
      stream_dec_riff_scanner.h
      stream_dec_tools.h
+     stream_dec_wav_encoder.h
+     stream_dec_wav_encoder.inl
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
 if (UNIX)

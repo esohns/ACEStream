@@ -357,8 +357,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end lock scope
 #if defined (_DEBUG)
-  layout_.dump_state ();
-  std::cerr << ACE_TEXT_ALWAYS_CHAR ("----------------------");
+//  layout_.dump_state ();
+//  std::cerr << ACE_TEXT_ALWAYS_CHAR ("----------------------\n");
   dump_state ();
 #endif // _DEBUG
 
@@ -490,6 +490,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
 
     if (configuration_->configuration_.module)
+    {
       if (!layout_.append (configuration_->configuration_.module,
                            configuration_->configuration_.moduleBranch))
       {
@@ -500,7 +501,14 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ())));
         return;
       } // end IF
-
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: appended \"%s\" to \"%s\" branch\n"),
+                  ACE_TEXT (StreamName),
+                  configuration_->configuration_.module->name (),
+                  (configuration_->configuration_.moduleBranch.empty () ? ACE_TEXT ("main") : ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ()))));
+#endif // _DEBUG
+    } // end IF
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
          ++iterator)
@@ -533,6 +541,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (StreamName), (*iterator)->name ()));
         return;
       } // end IF
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s/%s: initialized\n"),
+                  ACE_TEXT (StreamName), (*iterator)->name ()));
+#endif // _DEBUG
 
       task_p = (*iterator)->writer ();
       ACE_ASSERT (task_p);
@@ -2843,7 +2856,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   unsigned int indentation_i = 1;
   for (std::vector<Stream_IDistributorModule*>::const_iterator iterator = distributors_a.begin ();
        iterator != distributors_a.end ();
-       ++iterator)
+       ++iterator, ++indentation_i)
   {
     heads_a = (*iterator)->next ();
     stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR ("\n"));
@@ -2853,8 +2866,6 @@ Stream_Base_T<ACE_SYNCH_USE,
          ++iterator_2)
     {
 next:
-      ++indentation_i;
-
       std::vector<Stream_IDistributorModule*> distributors_2;
       module_p = *iterator_2;
       do {
@@ -2905,7 +2916,6 @@ next:
       --indentation_i;
     } // end FOR
   } // end FOR
-
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("%s: \"%s\"\n"),
               ACE_TEXT (StreamName),
