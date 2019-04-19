@@ -250,8 +250,8 @@ class Stream_CamSave_V4L_Stream
   virtual ~Stream_CamSave_V4L_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (typename inherited::LAYOUT_T&, // return value: layout
-                     bool&);                        // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: layout
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
@@ -271,11 +271,10 @@ class Stream_CamSave_V4L_Stream
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
-  Stream_CamSave_Display_Module         display_;
-  Stream_CamSave_Display_2_Module       display_2_;
-#elif defined (WXWIDGETS_USE)
-  Stream_CamSave_Display_Module         display_;
+//  Stream_CamSave_Display_Module         display_;
+//  Stream_CamSave_Display_2_Module       display_2_;
 #endif // GTK_USE
+  Stream_CamSave_Display_2_Module       display_2_;
 #endif // GUI_SUPPORT
   ////////////////////////////////////////
   Stream_CamSave_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)

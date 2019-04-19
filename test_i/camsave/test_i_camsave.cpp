@@ -968,7 +968,6 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 #else
 bool
 do_initialize_v4l (const std::string& deviceIdentifier_in,
-                   bool hasUI_in,
                    struct Stream_Device_Identifier& deviceIdentifier_out,
                    struct Stream_MediaFramework_V4L_MediaType& captureFormat_out,
                    struct Stream_MediaFramework_FFMPEG_MediaType& outputFormat_out)
@@ -1017,7 +1016,14 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
+  outputFormat_out.format = AV_PIX_FMT_RGB32;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+#if defined (GTK2_USE)
   outputFormat_out.format = AV_PIX_FMT_RGB24;
+#endif // GTK2_USE
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   outputFormat_out.frameRate.num =
       static_cast<int> (captureFormat_out.frameRate.numerator);
   outputFormat_out.frameRate.den =
@@ -1448,7 +1454,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   } // end SWITCH
 #else
   if (!do_initialize_v4l (captureinterfaceIdentifier_in,
-                          !UIDefinitionFilename_in.empty (), // has UI ?
                           modulehandler_configuration.deviceIdentifier,
                           configuration_in.streamConfiguration.configuration_.format,
                           modulehandler_configuration.outputFormat))

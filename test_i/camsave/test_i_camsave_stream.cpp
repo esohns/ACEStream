@@ -1277,14 +1277,13 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
 #if defined (GTK_USE)
 // , GTKCairoDisplay_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
+// , display_ (this,
+//             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
+// , display_2_ (this,
+//               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+#endif // GTK_USE
  , display_2_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#elif defined (WXWIDGETS_USE)
- , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#endif
+               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // GUI_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
@@ -1306,7 +1305,7 @@ Stream_CamSave_V4L_Stream::~Stream_CamSave_V4L_Stream ()
 }
 
 bool
-Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
+Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_V4L_Stream::load"));
@@ -1315,7 +1314,7 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   delete_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (layout_inout.empty ());
+//  ACE_ASSERT (layout_in->empty ());
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_INVALID);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
@@ -1335,14 +1334,14 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
-  layout_inout.append (&source_, NULL, 0);
+  layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
   if (display_b || save_to_file_b)
   {
-    layout_inout.append (&decoder_, NULL, 0); // output is uncompressed RGB
+    layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
     if (display_b && save_to_file_b)
     {
-      layout_inout.append (&distributor_, NULL, 0);
+      layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
       configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
       configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
@@ -1355,17 +1354,17 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
     if (display_b)
     { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
       //            native endianness)
-      layout_inout.append (&converter_, branch_p, 0); // output is uncompressed 24-bit RGB
-      layout_inout.append (&resizer_, branch_p, 0); // output is window size/fullscreen
+      layout_in->append (&converter_, branch_p, 0); // output is uncompressed 24-bit RGB
+      layout_in->append (&resizer_, branch_p, 0); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-      if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-        layout_inout.append (&display_, branch_p, 0);
-      else
-        layout_inout.append (&display_2_, branch_p, 0);
-//      layout_inout.append (&GTKCairoDisplay_, branch_p, 0);
+//      if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//        layout_in->append (&display_, branch_p, 0);
+//      else
+        layout_in->append (&display_2_, branch_p, 0);
+//      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
-      layout_inout.append (&display_, branch_p, 0);
+      layout_in->append (&display_, branch_p, 0);
 #endif
 #else
       ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());
@@ -1375,9 +1374,9 @@ Stream_CamSave_V4L_Stream::load (typename inherited::LAYOUT_T& layout_inout,
     } // end IF
     if (save_to_file_b)
     {
-      layout_inout.append (&converter_2, branch_p, index_i); // output is uncompressed 32-bit RGB
-      layout_inout.append (&encoder_, branch_p, index_i); // output is AVI
-      layout_inout.append (&fileWriter_, branch_p, index_i);
+      layout_in->append (&converter_2, branch_p, index_i); // output is uncompressed 32-bit RGB
+      layout_in->append (&encoder_, branch_p, index_i); // output is AVI
+      layout_in->append (&fileWriter_, branch_p, index_i);
     } // end IF
   } // end IF
 

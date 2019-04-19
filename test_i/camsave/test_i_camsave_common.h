@@ -442,16 +442,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , display ()
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-   , window (NULL)
-#elif defined (WXWIDGETS_USE)
    , window (None)
-   , X11Display (NULL)
-#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
+#else
+   , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
 #endif // GUI_SUPPORT
    , targetFileName ()
   {
@@ -468,8 +463,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   bool                            fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  GdkWindow*                      window;
-#elif defined (WXWIDGETS_USE)
+//  GdkWindow*                      window;
   Window                          window;
   Display*                        X11Display;
 #else

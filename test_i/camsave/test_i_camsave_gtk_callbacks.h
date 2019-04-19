@@ -23,48 +23,6 @@
 
 #include "gtk/gtk.h"
 
-//// forward declarations
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-////struct IAMStreamConfig;
-//#endif
-
-//// helper functions
-//bool load_capture_devices (GtkListStore*);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-////bool load_formats (IAMStreamConfig*, // filter handle
-////bool load_formats (IMFSourceReader*, // source reader handle
-//bool load_formats (IMFMediaSource*, // source handle
-//                   GtkListStore*);   // return value: supported media subtypes
-////bool load_resolutions (IAMStreamConfig*, // stream config handle
-////bool load_resolutions (IMFSourceReader*,    // source reader handle
-//bool load_resolutions (IMFMediaSource*,     // source handle
-//                       const struct _GUID&, // media subtype
-//                       GtkListStore*);      // return value: supported resolutions
-////bool load_rates (IAMStreamConfig*, // stream config handle
-////bool load_rates (IMFSourceReader*,    // source reader handle
-//bool load_rates (IMFMediaSource*,     // source handle
-//                 const struct _GUID&, // media subtype
-//                 unsigned int,        // resolution (width)
-//                 GtkListStore*);      // return value: supported rates
-//#else
-//int dirent_selector (const dirent*);
-//int dirent_comparator (const dirent**,
-//                       const dirent**);
-//bool load_formats (int,            // (capture) device file descriptor
-//                   GtkListStore*); // return value: supported formats (fourcc)
-//bool load_resolutions (int,            // (capture) device file descriptor
-//                       __u32,          // format (fourcc)
-//                       GtkListStore*); // return value: supported resolutions
-//bool load_rates (int,            // (capture) device file descriptor
-//                 __u32,          // format (fourcc)
-//                 unsigned int,   // resolution (width)
-//                 unsigned int,   // resolution (height)
-//                 GtkListStore*); // return value: supported rates
-//#endif
-//
-//// thread functions
-//ACE_THR_FUNC_RETURN stream_processing_function (void*);
-
 //------------------------------------------------------------------------------
 
 // idle routines
@@ -74,7 +32,7 @@ gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
 //gboolean idle_update_log_display_cb (gpointer);
 gboolean idle_update_progress_cb (gpointer);
-gboolean idle_update_video_display_cb (gpointer);
+//gboolean idle_update_video_display_cb (gpointer);
 
 //------------------------------------------------------------------------------
 

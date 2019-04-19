@@ -791,7 +791,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       MediaType media_type_s; 
       inherited2:: getMediaType (session_data_r.formats.front (),
                                  media_type_s);
-      unsigned int bits_per_sample = 24;
+//      unsigned int bits_per_sample = 24;
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       struct AVCodec* codec_p = NULL;
@@ -989,7 +989,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->debug_mv = 0;
 //      codec_context_p->dct_algo = FF_DCT_AUTO;
 //      codec_context_p->idct_algo = FF_IDCT_AUTO;
-      codec_context_p->bits_per_raw_sample = 24;
+//      codec_context_p->bits_per_raw_sample = 8;
 //      codec_context_p->thread_count = 0;
 //      codec_context_p->thread_type = 0;
 //      codec_context_p->thread_safe_callbacks = 0;

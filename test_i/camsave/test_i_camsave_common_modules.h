@@ -67,13 +67,9 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"
-#include "stream_vis_gtk_window.h"
-#elif defined (WXWIDGETS_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
+//#include "stream_vis_gtk_window.h"
+#endif // GTK_USE
 #include "stream_vis_x11_window.h"
-#endif // ACE_WIN32 || ACE_WIN64
-#endif
 #endif // GUI_SUPPORT
 
 #include "test_i_camsave_common.h"
@@ -409,15 +405,14 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Stream_CamSave_V4L_SessionMessage_t,
                                        Stream_CamSave_V4L_SessionData_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display;
-typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CamSave_Message_t,
-                                       Stream_CamSave_V4L_SessionMessage_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
-
-#elif defined (WXWIDGETS_USE)
+//typedef Stream_Module_Vis_GTK_Window_T<ACE_MT_SYNCH,
+//                                       Common_TimePolicy_t,
+//                                       struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+//                                       Stream_ControlMessage_t,
+//                                       Stream_CamSave_Message_t,
+//                                       Stream_CamSave_V4L_SessionMessage_t,
+//                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
+#endif // GTK_USE
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -425,8 +420,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_CamSave_Message_t,
                                        Stream_CamSave_V4L_SessionMessage_t,
                                        Stream_CamSave_V4L_SessionData_t,
-                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display;
-#endif
+                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
@@ -658,26 +652,25 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
 //                              libacestream_default_vis_gtk_cairo_module_name_string,
 //                              Stream_INotify_t,                                     // stream notification interface type
 //                              Stream_CamSave_Display);                              // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_pixbuf_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_Display);                          // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_window_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_Display_2);                        // writer type
-#elif defined (WXWIDGETS_USE)
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_gtk_pixbuf_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CamSave_Display);                          // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_gtk_window_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CamSave_Display_2);                        // writer type
+#endif // GTK_USE
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_Display);                          // writer type
-#endif
+                              Stream_CamSave_Display_2);                        // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 

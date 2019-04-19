@@ -1472,7 +1472,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-  g_value_init (&value, G_TYPE_STRING);
+//  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1506,7 +1506,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   GValue value_2;
   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
-  g_value_init (&value_2, G_TYPE_UINT);
+//  g_value_init (&value_2, G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_3,
                             1, &value);
@@ -1546,9 +1546,9 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                             &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  unsigned int framerate_numerator_i, framerate_denominator_i;
-  framerate_numerator_i = g_value_get_uint (&value);
-  framerate_denominator_i = g_value_get_uint (&value_2);
+  struct v4l2_fract framerate_s;
+  framerate_s.numerator = g_value_get_uint (&value);
+  framerate_s.denominator = g_value_get_uint (&value_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
   {
@@ -1636,10 +1636,10 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-//  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-//                                  pixel_format_s);
-//  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
-//                                     framerate_s);
+  Stream_Device_Tools::setFormat ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                                  pixel_format_s);
+  Stream_Device_Tools::setFrameRate ((*iterator_2).second.second.deviceIdentifier.fileDescriptor,
+                                     framerate_s);
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -1701,10 +1701,10 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif
 
-//  GtkSpinButton* spin_button_p =
-//    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-//                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
-//  ACE_ASSERT (spin_button_p);
+  GtkSpinButton* spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  ACE_ASSERT (spin_button_p);
   unsigned int frame_size_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (CBData_in->mediaFramework)
@@ -1753,8 +1753,8 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
   frame_size_i =
       ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.sizeimage;
 #endif
-//  gtk_spin_button_set_value (spin_button_p,
-//                             static_cast<gdouble> (frame_size_i));
+  gtk_spin_button_set_value (spin_button_p,
+                             static_cast<gdouble> (frame_size_i));
 }
 
 //////////////////////////////////////////
@@ -2023,6 +2023,14 @@ idle_initialize_UI_cb (gpointer userData_in)
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_DATA_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -2454,11 +2462,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (drawing_area_p);
 
   // step5: initialize updates
-//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, G_SOURCE_REMOVE);
-//    // schedule asynchronous updates of the log views
-//    guint event_source_id = g_timeout_add_seconds (1,
-//                                                   idle_update_log_display_cb,
-//                                                   userData_in);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, G_SOURCE_REMOVE);
+    // schedule asynchronous updates of the log views
+    guint event_source_id =
+//        g_timeout_add_seconds (1,
+//                               idle_update_log_display_cb,
+//                               userData_in);
 //    if (event_source_id > 0)
 //      ui_cb_data_base_p->UIState->eventSourceIds.insert (event_source_id);
 //    else
@@ -2469,18 +2478,18 @@ idle_initialize_UI_cb (gpointer userData_in)
 //    } // end ELSE
 //    // schedule asynchronous updates of the info view
 //    event_source_id =
-//      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
-//                     idle_update_info_display_cb,
-//                     userData_in);
-//    if (event_source_id > 0)
-//      ui_cb_data_base_p->UIState->eventSourceIds.insert (event_source_id);
-//    else
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-//      return G_SOURCE_REMOVE;
-//    } // end ELSE
-//  } // end lock scope
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET,
+                     idle_update_info_display_cb,
+                     userData_in);
+    if (event_source_id > 0)
+      ui_cb_data_base_p->UIState->eventSourceIds.insert (event_source_id);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
+      return G_SOURCE_REMOVE;
+    } // end ELSE
+  } // end lock scope
 
   // step6: disable some functions ?
 #if GTK_CHECK_VERSION(3,0,0)
@@ -2678,14 +2687,14 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  (*iterator_3).second.second.X11Display = GDK_WINDOW_XDISPLAY (window_p);
 //  (*iterator_2).second.second.window = GDK_WINDOW_XID (window_p);
 //  (*iterator_3).second.second.window = GDK_WINDOW_XID (window_p);
-  (*iterator_2).second.second.window = window_p;
-  (*iterator_3).second.second.window = window_p;
-  ACE_ASSERT ((*iterator_2).second.second.window);
-  ACE_ASSERT ((*iterator_3).second.second.window);
+//  (*iterator_2).second.second.window = window_p;
+//  (*iterator_3).second.second.window = window_p;
+//  ACE_ASSERT ((*iterator_2).second.second.window);
+//  ACE_ASSERT ((*iterator_3).second.second.window);
 
-  (*iterator_3).second.second.area.height =
+  (*iterator_3).second.second.outputFormat.resolution.height =
       static_cast<__u32> (allocation.height);
-  (*iterator_3).second.second.area.width =
+  (*iterator_3).second.second.outputFormat.resolution.width =
       static_cast<__u32> (allocation.width);
   (*iterator_2).second.second.area =
       (*iterator_3).second.second.area;
@@ -3331,33 +3340,33 @@ idle_update_progress_cb (gpointer userData_in)
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
 }
 
-gboolean
-idle_update_video_display_cb (gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
+//gboolean
+//idle_update_video_display_cb (gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
 
-  // sanity check(s)
-  ACE_ASSERT (userData_in);
+//  // sanity check(s)
+//  ACE_ASSERT (userData_in);
 
-  struct Stream_CamSave_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+//  struct Stream_CamSave_UI_CBData* ui_cb_data_p =
+//    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
+//  Common_UI_GTK_BuildersIterator_t iterator =
+//    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+//  // sanity check(s)
+//  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
+//  GtkDrawingArea* drawing_area_p =
+//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
+//  ACE_ASSERT (drawing_area_p);
 
-  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
-                              NULL,
-                              false);
+//  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
+//                              NULL,
+//                              false);
 
-  return G_SOURCE_REMOVE;
-}
+//  return G_SOURCE_REMOVE;
+//}
 
 //////////////////////////////////////////
 
@@ -4816,7 +4825,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 
@@ -5058,7 +5067,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 } // combobox_format_changed_cb
@@ -5345,13 +5354,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-  if (!!n_rows)
+  if (n_rows)
   {
     GtkComboBox* combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_RATE_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 } // combobox_resolution_changed_cb
@@ -5565,7 +5574,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //    return TRUE; // --> widget has not been realized yet
   ACE_ASSERT (window_p);
 
-  XLockDisplay (GDK_WINDOW_XDISPLAY (window_p));
+//  XLockDisplay (GDK_WINDOW_XDISPLAY (window_p));
 
 //  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock, FALSE);
 //#if GTK_CHECK_VERSION(3,0,0)
@@ -5585,8 +5594,9 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //    cairo_fill (context_in);
 //  } // end lock scope
 
-  int result = XClearWindow (GDK_WINDOW_XDISPLAY (window_p),
-                             GDK_WINDOW_XID (window_p));
+  int result = True;
+//  result = XClearWindow (GDK_WINDOW_XDISPLAY (window_p),
+//                         GDK_WINDOW_XID (window_p));
   if (unlikely (result != True))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -5595,7 +5605,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                 GDK_WINDOW_XID (window_p)));
     goto unlock;
   } // end IF
-  result = XFlush (GDK_WINDOW_XDISPLAY (window_p));
+//  result = XFlush (GDK_WINDOW_XDISPLAY (window_p));
   if (unlikely (result != True))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -5606,7 +5616,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   } // end IF
 
 unlock:
-  XUnlockDisplay (GDK_WINDOW_XDISPLAY (window_p));
+//  XUnlockDisplay (GDK_WINDOW_XDISPLAY (window_p));
 #endif // ACE_WIN32 || ACE_WIN64
 
   return TRUE;
@@ -5754,273 +5764,17 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  //GtkToggleAction* toggle_action_p =
-  //    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-  //                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME)));
-  //ACE_ASSERT (toggle_action_p);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT result = E_FAIL;
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      //// sanity check(s)
-      //ACE_ASSERT (ui_cb_data_base_p->pixelBuffer == (*directshow_stream_iterator).second.second.pixelBuffer);
-      //ACE_ASSERT (ui_cb_data_base_p->pixelBufferLock == (*directshow_stream_iterator).second.second.pixelBufferLock);
-
-      (*directshow_stream_iterator).second.second.area.bottom =
-        allocation_in->y + allocation_in->height;
-      (*directshow_stream_iterator).second.second.area.left = allocation_in->x;
-      (*directshow_stream_iterator).second.second.area.right =
-        allocation_in->x + allocation_in->width;
-      (*directshow_stream_iterator).second.second.area.top = allocation_in->y;
-
-      if ((*directshow_stream_iterator).second.second.windowController)
-        result =
-          (*directshow_stream_iterator).second.second.windowController->SetWindowPosition ((*directshow_stream_iterator).second.second.area.left,
-                                                                                           (*directshow_stream_iterator).second.second.area.top,
-                                                                                           ((*directshow_stream_iterator).second.second.area.right -
-                                                                                            (*directshow_stream_iterator).second.second.area.left),
-                                                                                           ((*directshow_stream_iterator).second.second.area.bottom -
-                                                                                            (*directshow_stream_iterator).second.second.area.top));
-      else if ((*directshow_stream_iterator).second.second.windowController2)
-      {
-        struct tagRECT destination_rectangle_s;
-        result = SetRectEmpty (&destination_rectangle_s);
-        ACE_ASSERT (SUCCEEDED (result));
-        destination_rectangle_s.right =
-          ((*directshow_stream_iterator).second.second.area.right -
-           (*directshow_stream_iterator).second.second.area.left);
-        destination_rectangle_s.bottom =
-          ((*directshow_stream_iterator).second.second.area.bottom -
-           (*directshow_stream_iterator).second.second.area.top);
-        result =
-          (*directshow_stream_iterator).second.second.windowController2->SetVideoPosition (NULL,                      // <-- default: entire video
-                                                                                           &destination_rectangle_s); // <-- entire window
-      } // end ELSE IF
-      else
-        break;
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-                    (*directshow_stream_iterator).second.second.area.left, (*directshow_stream_iterator).second.second.area.top,
-                    (*directshow_stream_iterator).second.second.area.right, (*directshow_stream_iterator).second.second.area.bottom,
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      //// sanity check(s)
-      //ACE_ASSERT (ui_cb_data_base_p->pixelBuffer == (*mediafoundation_stream_iterator).second.second.pixelBuffer);
-      //ACE_ASSERT (ui_cb_data_base_p->pixelBufferLock == (*mediafoundation_stream_iterator).second.second.pixelBufferLock);
-
-      (*mediafoundation_stream_iterator).second.second.area.bottom =
-        allocation_in->y + allocation_in->height;
-      (*mediafoundation_stream_iterator).second.second.area.left =
-        allocation_in->x;
-      (*mediafoundation_stream_iterator).second.second.area.right =
-        allocation_in->x + allocation_in->width;
-      (*mediafoundation_stream_iterator).second.second.area.top =
-        allocation_in->y;
-
-      if (!(*mediafoundation_stream_iterator).second.second.windowController)
-        break;
-      struct tagRECT destination_rectangle_s;
-      result = SetRectEmpty (&destination_rectangle_s);
-      ACE_ASSERT (SUCCEEDED (result));
-      destination_rectangle_s.right =
-        ((*mediafoundation_stream_iterator).second.second.area.right -
-         (*mediafoundation_stream_iterator).second.second.area.left);
-      destination_rectangle_s.bottom =
-        ((*mediafoundation_stream_iterator).second.second.area.bottom -
-         (*mediafoundation_stream_iterator).second.second.area.top);
-      result =
-        (*mediafoundation_stream_iterator).second.second.windowController->SetVideoPosition (NULL,                      // <-- default: entire video
-                                                                                             &destination_rectangle_s); // <-- entire window
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFVideoDisplayControl::SetVideoPosition (NULL,%d,%d,%d,%d): \"%s\", continuing\n"),
-                    destination_rectangle_s.left, destination_rectangle_s.top,
-                    destination_rectangle_s.right, destination_rectangle_s.bottom,
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p->pixelBuffer);
-//  ACE_ASSERT (ui_cb_data_p->pixelBuffer == (*iterator_3).second.second.pixelBuffer);
-//  ACE_ASSERT (ui_cb_data_p->pixelBufferLock);
-//  ACE_ASSERT (ui_cb_data_p->pixelBufferLock == (*iterator_3).second.second.pixelBufferLock);
-
-  (*iterator_2).second.second.area.height = allocation_in->height;
-  (*iterator_2).second.second.area.width = allocation_in->width;
-  (*iterator_3).second.second.area.height = allocation_in->height;
-  (*iterator_3).second.second.area.width = allocation_in->width;
+  (*iterator_2).second.second.outputFormat.resolution.height =
+      allocation_in->height;
+  (*iterator_2).second.second.outputFormat.resolution.width =
+      allocation_in->width;
+  (*iterator_3).second.second.outputFormat.resolution.height =
+      allocation_in->height;
+  (*iterator_3).second.second.outputFormat.resolution.width =
+      allocation_in->width;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
               allocation_in->width, allocation_in->height));
-
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-//  GdkPixbuf* pixbuf_p =
-//    gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-//                    TRUE,
-//                    8,
-//                    allocation_in->width, allocation_in->height);
-//  if (!pixbuf_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_pixbuf_new(), returning\n")));
-//    return;
-//  } // end IF
-#endif // GTK_CHECK_VERSION
-
-//  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *ui_cb_data_p->pixelBufferLock);
-//    if (ui_cb_data_p->pixelBuffer)
-//    {
-//      g_object_unref (ui_cb_data_p->pixelBuffer); ui_cb_data_p->pixelBuffer = NULL;
-//    } // end IF
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    switch (ui_cb_data_base_p->mediaFramework)
-//    {
-//      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//        (*directshow_stream_iterator).second.second.pixelBuffer = NULL;
-//        break;
-//      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//        (*mediafoundation_stream_iterator).second.second.pixelBuffer = NULL;
-//        break;
-//      default:
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                    ui_cb_data_base_p->mediaFramework));
-//        return;
-//      }
-//    } // end SWITCH
-//#else
-//    (*iterator_3).second.second.pixelBuffer = NULL;
-//#endif
-
-#if GTK_CHECK_VERSION (3,0,0)
-//    GdkPixbuf* pixbuf_p =
-//        gdk_pixbuf_get_from_window (window_p,
-//                                    0, 0,
-//                                    allocation_in->width, allocation_in->height);
-//    if (!pixbuf_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
-//                  window_p));
-//      return;
-//    } // end IF
-#endif // GTK_CHECK_VERSION
-
-//    ui_cb_data_p->pixelBuffer =
-//#if GTK_CHECK_VERSION (3,0,0)
-//        gdk_cairo_surface_create_from_pixbuf (pixbuf_p,
-//                                              0,       // scale
-//                                              window_p);
-//    g_object_unref (pixbuf_p); pixbuf_p = NULL;
-//#elif GTK_CHECK_VERSION (2,0,0)
-//        gdk_pixbuf_get_from_drawable (pixbuf_p,
-//                                      GDK_DRAWABLE (window_p),
-//                                      NULL,
-//                                      0, 0,
-//                                      0, 0, allocation_in->width, allocation_in->height);
-//#else
-//      gdk_pixbuf_get_from_drawable (pixbuf_p,
-//                                    GDK_DRAWABLE (window_p),
-//                                    NULL,
-//                                    0, 0,
-//                                    0, 0, allocation_in->width, allocation_in->height);
-//#endif // GTK_CHECK_VERSION
-//    if (!ui_cb_data_p->pixelBuffer)
-//    {
-//#if GTK_CHECK_VERSION (3,0,0)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to gdk_cairo_surface_create_from_pixbuf(%@), returning\n"),
-//                  window_p));
-//#elif GTK_CHECK_VERSION (2,0,0)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to gdk_pixbuf_get_from_window(%@), returning\n"),
-//                  window_p));
-//#else
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(%@), returning\n"),
-//                  GDK_DRAWABLE (window_p)));
-//      gdk_pixbuf_unref (pixbuf_p); pixbuf_p = NULL;
-//#endif // GTK_CHECK_VERSION
-//      return;
-//    } // end IF
-
-    //    GHashTable* hash_table_p = gdk_pixbuf_get_options (cb_data_p->pixelBuffer);
-    //    GHashTableIter iterator;
-    //    g_hash_table_iter_init (&iterator, hash_table_p);
-    //    gpointer key, value;
-    //    for (unsigned int i = 0;
-    //         g_hash_table_iter_next (iterator, &key, &value);
-    //         ++i)
-    //      ACE_DEBUG ((LM_DEBUG,
-    //                  ACE_TEXT ("%u: \"\" --> \"\"\n"),
-    //                  i,
-    //                  static_cast<gchar*> (key),
-    //                  static_cast<gchar*> (value)));
-
-    // sanity check(s)
-#if GTK_CHECK_VERSION (3,0,0)
-//  ACE_ASSERT (cairo_surface_status (ui_cb_data_p->pixelBuffer) == CAIRO_STATUS_SUCCESS);
-//  ACE_ASSERT (cairo_surface_get_type (ui_cb_data_p->pixelBuffer) == CAIRO_SURFACE_TYPE_IMAGE);
-//  ACE_ASSERT (cairo_image_surface_get_format (ui_cb_data_p->pixelBuffer) == CAIRO_FORMAT_ARGB32);
-#elif GTK_CHECK_VERSION (2,0,0)
-//    ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (ui_cb_data_p->pixelBuffer) == 8);
-//    ACE_ASSERT (gdk_pixbuf_get_colorspace (ui_cb_data_p->pixelBuffer) == GDK_COLORSPACE_RGB);
-//    ACE_ASSERT (gdk_pixbuf_get_n_channels (ui_cb_data_p->pixelBuffer) == 4);
-//    if (!gdk_pixbuf_get_has_alpha (data_p->pixelBuffer))
-//    { ACE_ASSERT (gdk_pixbuf_get_n_channels (data_p->pixelBuffer) == 3);
-//      GdkPixbuf* pixbuf_p =
-//          gdk_pixbuf_add_alpha (data_p->pixelBuffer,
-//                                FALSE, 0, 0, 0);
-//      ACE_ASSERT (pixbuf_p);
-//      gdk_pixbuf_unref (data_p->pixelBuffer);
-//      data_p->pixelBuffer = pixbuf_p;
-//    } // end IF
-//    // sanity check(s)
-//    ACE_ASSERT (gdk_pixbuf_get_has_alpha (data_p->pixelBuffer));
-#endif // GTK_CHECK_VERSION
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    switch (ui_cb_data_base_p->mediaFramework)
-//    {
-//      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//        (*directshow_stream_iterator).second.second.pixelBuffer =
-//          ui_cb_data_base_p->pixelBuffer;
-//        break;
-//      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//        (*mediafoundation_stream_iterator).second.second.pixelBuffer =
-//          ui_cb_data_base_p->pixelBuffer;
-//        break;
-//      default:
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                    ui_cb_data_base_p->mediaFramework));
-//        return;
-//      }
-//    } // end SWITCH
-//#else
-//    (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
-//#endif
-//  } // end lock scope
-#endif // ACE_WIN32 || ACE_WIN64
 } // drawingarea_size_allocate_cb
 
 void

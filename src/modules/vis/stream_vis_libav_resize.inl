@@ -120,12 +120,12 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   result =
       av_image_fill_linesizes (line_sizes_a,
                                inherited::inputFormat_,
-                               static_cast<int> (inherited::frame_->width));
+                               static_cast<int> (sourceResolution_.width));
   ACE_ASSERT (result >= 0);
   result =
       av_image_fill_pointers (data_a,
                               inherited::inputFormat_,
-                              static_cast<int> (inherited::frame_->height),
+                              static_cast<int> (sourceResolution_.height),
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
@@ -270,6 +270,11 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                                media_type_2);
       inherited::inputFormat_ = media_type_2.format;
       sourceResolution_ = media_type_2.resolution;
+
+      struct Stream_MediaFramework_FFMPEG_MediaType media_type_3;
+      inherited::getMediaType (inherited::configuration_->outputFormat,
+                               media_type_3);
+
       // sanity check(s)
       if (unlikely (Stream_Module_Decoder_Tools::isCompressedVideo (inherited::inputFormat_)))
       {
@@ -318,10 +323,10 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 sourceResolution_.cx, sourceResolution_.cy, inherited::inputFormat_,
-                                inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, inherited::inputFormat_,
+                                media_type_3.resolution.cx, media_type_3.resolution.cy, inherited::inputFormat_,
 #else
                                 sourceResolution_.width, sourceResolution_.height, inherited::inputFormat_,
-                                inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
+                                media_type_3.resolution.width, media_type_3.resolution.height, inherited::inputFormat_,
 #endif // ACE_WIN32 || ACE_WIN64
                                 flags_i,                      // flags
                                 NULL, NULL,
@@ -335,13 +340,11 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
       } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      resolution_s.cx = inherited::configuration_->outputFormat.resolution.cx;
-      resolution_s.cy = inherited::configuration_->outputFormat.resolution.cy;
+      resolution_s.cx = media_type_3.resolution.cx;
+      resolution_s.cy = media_type_3.resolution.cy;
 #else
-      resolution_s.width =
-          inherited::configuration_->outputFormat.resolution.width;
-      resolution_s.height =
-          inherited::configuration_->outputFormat.resolution.height;
+      resolution_s.width = media_type_3.resolution.width;
+      resolution_s.height = media_type_3.resolution.height;
 #endif // ACE_WIN32 || ACE_WIN64
       media_type_s = media_type_r;
       inherited::setResolution (resolution_s,
@@ -351,25 +354,29 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
         session_data_r.formats.push_front (media_type_s);
       } // end lock scope
 
-      // adjust buffer
+      ACE_ASSERT (!inherited::frame_);
+      inherited::frame_ = av_frame_alloc ();
+      if (unlikely (!inherited::frame_))
+      {
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      inherited::frame_->format = media_type_3.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      inherited::frame_->width =
-          inherited::configuration_->outputFormat.resolution.cx;
-      inherited::frame_->height =
-          inherited::configuration_->outputFormat.resolution.cy;
+      inherited::frame_->width = media_type_3.resolution.cx;
+      inherited::frame_->height = media_type_3.resolution.cy;
 #else
-      inherited::frame_->width =
-          inherited::configuration_->outputFormat.resolution.width;
-      inherited::frame_->height =
-          inherited::configuration_->outputFormat.resolution.height;
+      inherited::frame_->width = media_type_3.resolution.width;
+      inherited::frame_->height = media_type_3.resolution.height;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited::frameSize_ =
           av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
                                     inherited::frame_->width, inherited::frame_->height,
                                     1); // *TODO*: linesize alignment
       ACE_ASSERT (inherited::frameSize_ >= 0);
-      ACE_ASSERT (inherited::buffer_);
-      inherited::buffer_->release (); inherited::buffer_ = NULL;
+      ACE_ASSERT (!inherited::buffer_);
       inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
       if (unlikely (!inherited::buffer_))
       {

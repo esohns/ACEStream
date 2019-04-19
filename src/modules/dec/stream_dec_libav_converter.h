@@ -127,13 +127,6 @@ class Stream_Decoder_LibAVConverter_T
   struct AVFrame*    frame_;
   unsigned int       frameSize_; // output-
   enum AVPixelFormat inputFormat_;
-  enum AVPixelFormat outputFormat_;
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  static char        paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
-//#else
-//  static char        paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
-//#endif
 
  private:
   // convenient types

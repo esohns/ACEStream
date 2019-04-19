@@ -21,6 +21,8 @@
 #ifndef STREAM_VIS_GTK_PIXBUF_H
 #define STREAM_VIS_GTK_PIXBUF_H
 
+#include "gtk/gtk.h"
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -31,9 +33,6 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
-
-// forward declarations
-struct SwsContext;
 
 extern const char libacestream_default_vis_gtk_pixbuf_module_name_string[];
 
@@ -94,7 +93,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 #else
   Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Module_Vis_GTK_Pixbuf_T () {}
+  virtual ~Stream_Module_Vis_GTK_Pixbuf_T ();
 
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -113,8 +112,10 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 
-  // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); }
+  GdkPixbuf* buffer_;
+#if GTK_CHECK_VERSION (3,0,0)
+  cairo_t*   context_;
+#endif // GTK_CHECK_VERSION (3,0,0)
 };
 
 // include template definition
