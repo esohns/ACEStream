@@ -358,7 +358,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end lock scope
 #if defined (_DEBUG)
   layout_.dump_state ();
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("----------------------");
+  std::cerr << ACE_TEXT_ALWAYS_CHAR ("----------------------");
   dump_state ();
 #endif // _DEBUG
 

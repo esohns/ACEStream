@@ -1473,7 +1473,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                                                modulehandler_configuration)));
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
   //         content (see also avienc.c:448)
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_BGR24;
   configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
