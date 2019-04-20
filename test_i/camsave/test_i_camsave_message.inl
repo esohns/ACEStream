@@ -181,8 +181,8 @@ Stream_CamSave_Message_T<DataType,
   ACE_ASSERT (inherited::data_block_);
 
   // *IMPORTANT NOTE*: handle race condition here
-  { ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
-    if (inherited::size ()) // is device-data ?
+  { ACE_GUARD_RETURN (ACE_Lock, aGuard, *inherited::data_block_->locking_strategy (), NULL);
+    if (inherited::data_.device != -1) // is device-data ?
       goto requeue;
 
     return inherited::release ();

@@ -130,25 +130,23 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-                                                       sourceResolution_.cx, sourceResolution_.cy,
-                                                       inherited::inputFormat_,
-                                                       data_a,
-                                                       inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
-                                                       inherited::inputFormat_,
-                                                       inherited::frame_->data)))
+  if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
+                                                     sourceResolution_.cx, sourceResolution_.cy,
+                                                     inherited::inputFormat_,
+                                                     data_a,
+                                                     inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
+                                                     inherited::frame_->data)))
 #else
-  if (unlikely (!Stream_Module_Decoder_Tools::convert (inherited::context_,
-                                                       sourceResolution_.width, sourceResolution_.height,
-                                                       inherited::inputFormat_,
-                                                       data_a,
-                                                       inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
-                                                       inherited::inputFormat_,
-                                                       inherited::frame_->data)))
+  if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
+                                                     sourceResolution_.width, sourceResolution_.height,
+                                                     inherited::inputFormat_,
+                                                     data_a,
+                                                     inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
+                                                     inherited::frame_->data)))
 #endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::scale(), returning\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF

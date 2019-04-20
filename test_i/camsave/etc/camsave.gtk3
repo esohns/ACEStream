@@ -2,103 +2,6 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.0"/>
-  <object class="GtkActionGroup" id="actiongroup">
-    <property name="name">actions</property>
-    <child>
-      <object class="GtkToggleAction" id="toggleaction_record">
-        <property name="label" translatable="yes">Record</property>
-        <property name="short_label" translatable="yes">Record</property>
-        <property name="tooltip" translatable="yes">toggle recording</property>
-        <property name="stock_id">gtk-media-record</property>
-        <property name="sensitive">False</property>
-        <signal name="toggled" handler="toggleaction_record_toggled_cb" swapped="no"/>
-      </object>
-      <accelerator key="r"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_cut">
-        <property name="label" translatable="yes">Cut</property>
-        <property name="short_label" translatable="yes">Cut</property>
-        <property name="tooltip" translatable="yes">split save file</property>
-        <property name="stock_id">gtk-cut</property>
-        <property name="sensitive">False</property>
-        <signal name="activate" handler="action_cut_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="c"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_report">
-        <property name="label" translatable="yes">Report</property>
-        <property name="short_label" translatable="yes">Report</property>
-        <property name="tooltip" translatable="yes">show report</property>
-        <property name="stock_id">gtk-properties</property>
-        <property name="sensitive">False</property>
-        <signal name="activate" handler="action_report_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="t"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_reset">
-        <property name="label" translatable="yes">Reset</property>
-        <property name="short_label" translatable="yes">Reset</property>
-        <property name="tooltip" translatable="yes">reset configuration</property>
-        <property name="stock_id">gtk-revert-to-saved</property>
-        <signal name="activate" handler="action_reset_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="e"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_settings">
-        <property name="label" translatable="yes">Settings</property>
-        <property name="short_label" translatable="yes">Settings</property>
-        <property name="tooltip" translatable="yes">show display settings</property>
-        <property name="stock_id">gtk-preferences</property>
-        <signal name="activate" handler="action_settings_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="s"/>
-    </child>
-    <child>
-      <object class="GtkToggleAction" id="toggleaction_save">
-        <property name="label" translatable="yes">Save</property>
-        <property name="short_label" translatable="yes">Save</property>
-        <property name="tooltip" translatable="yes">save to a file ?</property>
-        <property name="stock_id">gtk-save</property>
-        <signal name="toggled" handler="toggleaction_save_toggled_cb" swapped="no"/>
-      </object>
-      <accelerator key="f"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_snapshot">
-        <property name="label" translatable="yes">Snapshot</property>
-        <property name="short_label" translatable="yes">Snapshot</property>
-        <property name="tooltip" translatable="yes">save current frame</property>
-        <property name="stock_id">gtk-missing-image</property>
-        <property name="sensitive">False</property>
-        <signal name="activate" handler="action_snapshot_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="p"/>
-    </child>
-    <child>
-      <object class="GtkToggleAction" id="toggleaction_fullscreen">
-        <property name="label" translatable="yes">Fullscreen</property>
-        <property name="short_label" translatable="yes">Fullscreen</property>
-        <property name="tooltip" translatable="yes">toggle fullscreen display</property>
-        <property name="stock_id">gtk-fullscreen</property>
-        <signal name="toggled" handler="toggleaction_fullscreen_toggled_cb" swapped="no"/>
-      </object>
-      <accelerator key="o"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="action_hw_settings">
-        <property name="label" translatable="yes">Hardware Settings</property>
-        <property name="short_label" translatable="yes">Hardware Settings</property>
-        <property name="tooltip" translatable="yes">show hardware settings</property>
-        <property name="stock_id">gtk-preferences</property>
-        <signal name="activate" handler="action_hw_settings_activate_cb" swapped="no"/>
-      </object>
-      <accelerator key="h"/>
-    </child>
-  </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
@@ -108,11 +11,6 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment_connections">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">1</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_data">
     <property name="upper">100</property>
@@ -128,13 +26,6 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment_port">
-    <property name="lower">1</property>
-    <property name="upper">65535</property>
-    <property name="value">10001</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">100</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_session_messages">
     <property name="upper">100</property>
@@ -190,6 +81,22 @@
     <property name="text" translatable="yes">output.avi</property>
   </object>
   <object class="GtkFileFilter" id="filefilter_avi"/>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name identifier -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name identifier -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststore_format">
     <columns>
       <!-- column-name text -->
@@ -326,8 +233,8 @@
                                 <property name="homogeneous">True</property>
                                 <property name="layout_style">spread</property>
                                 <child>
-                                  <object class="GtkToggleButton" id="record">
-                                    <property name="related_action">toggleaction_record</property>
+                                  <object class="GtkToggleButton" id="togglebutton_record">
+                                    <property name="label">gtk-media-record</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="has_focus">True</property>
@@ -339,6 +246,7 @@
                                     <property name="tooltip_text" translatable="yes">record</property>
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
+                                    <signal name="toggled" handler="togglebutton_record_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -347,8 +255,8 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="snapshot">
-                                    <property name="related_action">action_snapshot</property>
+                                  <object class="GtkButton" id="button_snapshot">
+                                    <property name="label" translatable="yes">Snapshot</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
@@ -356,7 +264,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_text" translatable="yes">snapshot</property>
                                     <property name="relief">half</property>
-                                    <property name="use_stock">True</property>
+                                    <signal name="clicked" handler="button_snapshot_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -365,8 +273,8 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="cut">
-                                    <property name="related_action">action_cut</property>
+                                  <object class="GtkButton" id="button_cut">
+                                    <property name="label" translatable="yes">Cut</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
@@ -374,7 +282,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_text" translatable="yes">cut</property>
                                     <property name="relief">half</property>
-                                    <property name="use_stock">True</property>
+                                    <signal name="clicked" handler="button_cut_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -383,8 +291,8 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="report">
-                                    <property name="related_action">action_report</property>
+                                  <object class="GtkButton" id="button_report">
+                                    <property name="label" translatable="yes">Report</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
@@ -392,7 +300,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_text" translatable="yes">report</property>
                                     <property name="relief">half</property>
-                                    <property name="use_stock">True</property>
+                                    <signal name="clicked" handler="button_report_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -707,7 +615,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="button_hw_settings">
-                                    <property name="related_action">action_hw_settings</property>
+                                    <property name="label">gtk-properties</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
@@ -718,6 +626,7 @@
                                     <property name="tooltip_text" translatable="yes">hardware settings</property>
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
+                                    <signal name="clicked" handler="button_hw_settings_clicked_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -839,8 +748,8 @@
                                                 <property name="homogeneous">True</property>
                                                 <property name="layout_style">start</property>
                                                 <child>
-                                                  <object class="GtkButton" id="button_reset">
-                                                    <property name="related_action">action_reset</property>
+                                                  <object class="GtkButton" id="button_format_reset">
+                                                    <property name="label">gtk-revert-to-saved</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="focus_on_click">False</property>
@@ -851,6 +760,7 @@
                                                     <property name="tooltip_text" translatable="yes">reset format</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_stock">True</property>
+                                                    <signal name="clicked" handler="button_format_reset_clicked_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -911,20 +821,14 @@
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <child>
-                                  <object class="GtkCheckButton" id="checkbutton_save">
+                                  <object class="GtkToggleButton" id="togglebutton_save">
                                     <property name="label" translatable="yes">Save</property>
-                                    <property name="related_action">toggleaction_save</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="has_tooltip">True</property>
-                                    <property name="tooltip_markup" translatable="yes">save to a file ?</property>
-                                    <property name="tooltip_text" translatable="yes">save to a file ?</property>
                                     <property name="relief">half</property>
-                                    <property name="xalign">0</property>
-                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1030,13 +934,13 @@
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <child>
-                                  <object class="GtkCheckButton" id="checkbutton_display">
+                                  <object class="GtkToggleButton" id="togglebutton_display">
                                     <property name="label" translatable="yes">Display</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="focus_on_click">False</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="draw_indicator">True</property>
+                                    <property name="receives_default">True</property>
+                                    <signal name="toggled" handler="togglebutton_display_toggled_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1047,7 +951,10 @@
                                 <child>
                                   <object class="GtkComboBox" id="combobox_adapter">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="model">liststore_adapter</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1063,6 +970,8 @@
                                       <object class="GtkComboBox" id="combobox_display">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="focus_on_click">False</property>
+                                        <property name="model">liststore_display</property>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -1071,7 +980,8 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkButton" id="button_settings">
+                                      <object class="GtkButton" id="button_display_settings">
+                                        <property name="label" translatable="yes">Properties</property>
                                         <property name="related_action">action_settings</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
@@ -1081,7 +991,7 @@
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_markup" translatable="yes">display settings</property>
                                         <property name="tooltip_text" translatable="yes">display settings</property>
-                                        <property name="use_stock">True</property>
+                                        <signal name="clicked" handler="button_display_settings_clicked_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1103,7 +1013,7 @@
                                     <property name="layout_style">start</property>
                                     <child>
                                       <object class="GtkToggleButton" id="togglebutton_fullscreen">
-                                        <property name="related_action">toggleaction_fullscreen</property>
+                                        <property name="label" translatable="yes">Fullscreen</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="focus_on_click">False</property>
@@ -1112,9 +1022,9 @@
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_markup" translatable="yes">fullscreen display ?</property>
                                         <property name="tooltip_text" translatable="yes">fullscreen display ?</property>
-                                        <property name="use_stock">True</property>
                                         <property name="xalign">0</property>
                                         <property name="yalign">0</property>
+                                        <signal name="toggled" handler="togglebutton_fullscreen_toggled_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -1123,7 +1033,21 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <placeholder/>
+                                      <object class="GtkButton" id="button_display_reset">
+                                        <property name="label">gtk-revert-to-saved</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="focus_on_click">False</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="relief">half</property>
+                                        <property name="use_stock">True</property>
+                                        <signal name="clicked" handler="button_display_reset_clicked_cb" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
                                     </child>
                                     <child>
                                       <placeholder/>
@@ -1175,6 +1099,8 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkDrawingArea" id="drawingarea">
+                        <property name="width_request">320</property>
+                        <property name="height_request">240</property>
                         <property name="visible">True</property>
                         <property name="app_paintable">True</property>
                         <property name="can_focus">False</property>

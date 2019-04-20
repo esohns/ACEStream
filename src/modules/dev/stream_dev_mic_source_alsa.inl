@@ -66,7 +66,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
   do
   {
     available_frames = snd_pcm_avail_update (handle_p);
-    if (available_frames < 0)
+    if (unlikely (available_frames < 0))
     {
       // overrun ? --> recover
       if (available_frames == -EPIPE)
@@ -77,12 +77,12 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                   ACE_TEXT (snd_strerror (result))));
       goto error;
     } // end IF
-    if (available_frames == 0)
+    if (unlikely (available_frames == 0))
       break;
 
     if (!message_block_p)
     {
-      if (data_p->allocator)
+      if (likely (data_p->allocator))
       {
         try {
           message_block_p =
@@ -97,7 +97,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       else
         ACE_NEW_NORETURN (message_block_p,
                           ACE_Message_Block (data_p->bufferSize));
-      if (!message_block_p)
+      if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, aborting\n")));
@@ -112,7 +112,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     frames_read = snd_pcm_readi (handle_p,
                                  message_block_p->wr_ptr (),
                                  frames_to_read);
-    if (frames_read < 0)
+    if (unlikely (frames_read < 0))
     {
       // overrun ? --> recover
       if (frames_read == -EPIPE)
@@ -123,22 +123,22 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                   ACE_TEXT (snd_strerror (result))));
       goto error;
     } // end IF
-    message_block_p->wr_ptr (frames_read * data_p->sampleSize);
+    message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->sampleSize);
     data_p->statistic->capturedFrames += frames_read;
 
     // generate sinus ?
-    if (data_p->sinus)
+    if (unlikely (data_p->sinus))
       Stream_Module_Decoder_Tools::sinus (*data_p->frequency,
                                           data_p->sampleRate,
                                           data_p->sampleSize,
                                           data_p->channels,
-                                          message_block_p->rd_ptr (),
-                                          frames_read,
+                                          reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                          static_cast<unsigned int> (frames_read),
                                           data_p->phase);
 
     result = data_p->queue->enqueue_tail (message_block_p,
                                           NULL);
-    if (result < 0)
+    if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
@@ -156,10 +156,10 @@ recover:
     result = snd_pcm_recover (handle_p,
                               -EPIPE,
                               1);
-    if (result < 0)
+    if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_pcm_prepare(): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to snd_pcm_recover(): \"%s\", returning\n"),
                   ACE_TEXT (snd_strerror (result))));
       return;
     } // end IF

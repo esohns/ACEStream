@@ -1393,6 +1393,62 @@ load_rates (int fd_in,
 
   return true;
 }
+
+bool
+load_display_adapters (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_display_adapters"));
+
+  // sanity check(s)
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  Common_UI_DisplayAdapters_t display_adapters_a =
+      Common_UI_Tools::getAdapters();
+  GtkTreeIter iterator;
+  for (Common_UI_DisplayAdaptersIterator_t iterator_2 = display_adapters_a.begin ();
+       iterator_2 != display_adapters_a.end ();
+       ++iterator_2)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, (*iterator_2).description.c_str (),
+                        1, (*iterator_2).device.c_str (),
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_display_devices (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_display_devices"));
+
+  // sanity check(s)
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  Common_UI_DisplayDevices_t display_devices_a =
+      Common_UI_Tools::getDisplays ();
+  GtkTreeIter iterator;
+  for (Common_UI_DisplayDevicesIterator_t iterator_2 = display_devices_a.begin ();
+       iterator_2 != display_devices_a.end ();
+       ++iterator_2)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, (*iterator_2).description.c_str (),
+                        1, (*iterator_2).device.c_str (),
+                        -1);
+  } // end FOR
+
+  return true;
+}
 #endif
 
 void
@@ -2072,8 +2128,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  //"cell-background", 0,
-                                  //"text", 1,
                                   "text", 0,
                                   NULL);
 
@@ -2229,8 +2283,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  //"cell-background", 0,
-                                  //"text", 1,
                                   "text", 0,
                                   NULL);
 
@@ -2259,8 +2311,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  //"cell-background", 0,
-                                  //"text", 1,
                                   "text", 0,
                                   NULL);
 
@@ -2289,26 +2339,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  //"cell-background", 0,
-                                  //"text", 1,
                                   "text", 0,
                                   NULL);
 
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_SAVE_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_toggle_action_set_active (toggle_action_p,
-                                !filename_string.empty ());
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 !filename_string.empty ());
-#endif // GTK_CHECK_VERSION
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -2337,27 +2376,95 @@ idle_initialize_UI_cb (gpointer userData_in)
       !(*iterator_2).second.second.deviceIdentifier.identifier.empty ();
   is_fullscreen_b = (*iterator_2).second.second.fullScreen;
 #endif
-#if GTK_CHECK_VERSION(3,0,0)
-  toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_toggle_action_set_active (toggle_action_p,
-                                is_fullscreen_b);
-#elif GTK_CHECK_VERSION(2,0,0)
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 is_display_b);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME)));
+  ACE_ASSERT (list_store_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_display_devices (ui_cb_data_base_p->mediaFramework,
+                             list_store_p))
+#else
+  if (!load_display_adapters (list_store_p))
+#endif
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_display_adapters(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_DESCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+  ACE_ASSERT (combo_box_p);
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  "text", 0,
+                                  NULL);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+  ACE_ASSERT (list_store_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_display_devices (ui_cb_data_base_p->mediaFramework,
+                             list_store_p))
+#else
+  if (!load_display_devices (list_store_p))
+#endif
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_display_devices(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_DESCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  "text", 0,
+                                  NULL);
+
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 is_fullscreen_b);
-#endif // GTK_CHECK_VERSION
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -2492,20 +2599,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end lock scope
 
   // step6: disable some functions ?
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, FALSE);
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p),
                             FALSE);
-#endif // GTK_CHECK_VERSION
 
   // step2: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
@@ -2935,19 +3034,6 @@ idle_session_end_cb (gpointer userData_in)
   //                   mutually exclusive, so there could be a race:
   //                   - user pressed stop
   //                   - there was an asynchronous error on the stream
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p),
-                           GTK_STOCK_MEDIA_RECORD);
-  if (gtk_toggle_action_get_active (toggle_action_p))
-  {
-    un_toggling_stream = true;
-    gtk_action_activate (GTK_ACTION (toggle_action_p));
-  } // end IF
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
@@ -2960,24 +3046,6 @@ idle_session_end_cb (gpointer userData_in)
     gtk_toggle_button_set_active (toggle_button_p,
                                   FALSE);
   } // end IF
-#endif // GTK_CHECK_VERSION
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_REPORT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_SNAPSHOT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
@@ -2993,7 +3061,6 @@ idle_session_end_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_SNAPSHOT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
-#endif // GTK_CHECK_VERSION
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -3375,43 +3442,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 void
-textview_size_allocate_cb (GtkWidget* widget_in,
-                           GdkRectangle* rectangle_in,
-                           gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::textview_size_allocate_cb"));
-
-  ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (rectangle_in);
-
-  // sanity check(s)
-  ACE_ASSERT (userData_in);
-
-  struct Stream_CamSave_UI_CBData* ui_cb_data_p =
-      static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  Common_UI_GTK_BuildersIterator_t iterator =
-    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT(iterator != ui_cb_data_p->UIState->builders.end ());
-
-  GtkScrolledWindow* scrolled_window_p =
-    GTK_SCROLLED_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLEDWINDOW_NAME)));
-  ACE_ASSERT (scrolled_window_p);
-  GtkAdjustment* adjustment_p =
-    gtk_scrolled_window_get_vadjustment (scrolled_window_p);
-  ACE_ASSERT (adjustment_p);
-  gtk_adjustment_set_value (adjustment_p,
-                            gtk_adjustment_get_upper (adjustment_p) - gtk_adjustment_get_page_size (adjustment_p));
-} // textview_size_allocate_cb
-
-void
-#if GTK_CHECK_VERSION(3,0,0)
-toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
-#endif // GTK_CHECK_VERSION
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_record_toggled_cb"));
@@ -3423,12 +3454,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     return; // done
   } // end IF
 
-  bool is_active_b =
-#if GTK_CHECK_VERSION(3,0,0)
-      gtk_toggle_action_get_active (toggleAction_in);
-#elif GTK_CHECK_VERSION(2,0,0)
-      gtk_toggle_button_get_active (toggleButton_in);
-#endif // GTK_CHECK_VERSION
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
 
   // --> user pressed play/pause/stop
 
@@ -3504,11 +3530,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     return;
   } // end IF
 
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkAction* action_p = NULL;
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkButton* button_p = NULL;
-#endif // GTK_CHECK_VERSION
   GtkFrame* frame_p = NULL;
 
   // --> user pressed record
@@ -3531,26 +3553,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     ui_cb_data_base_p->isFirst = false;
 
   // step0: modify widgets
-#if GTK_CHECK_VERSION(3,0,0)
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
-                           GTK_STOCK_MEDIA_STOP);
-
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_REPORT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ACTION_SNAPSHOT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-#elif GTK_CHECK_VERSION(2,0,0)
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),
                         GTK_STOCK_MEDIA_STOP);
 
@@ -3569,7 +3571,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_SNAPSHOT_NAME)));
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
-#endif // GTK_CHECK_VERSION
 
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
   //                          false);
@@ -3591,26 +3592,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // step2: update configuration
   // *NOTE*: the source device configuration is kept up-to-date automatically
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_SAVE_NAME)));
-  ACE_ASSERT (toggle_action_p);
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));
   ACE_ASSERT (toggle_button_p);
-#endif // GTK_CHECK_VERSION
   GtkFileChooserButton* file_chooser_button_p = NULL;
 //  GError* error_p = NULL;
   std::string filename_string;
   GtkEntry* entry_p = NULL;
-#if GTK_CHECK_VERSION(3,0,0)
-  if (!gtk_toggle_action_get_active (toggle_action_p))
-#elif GTK_CHECK_VERSION(2,0,0)
   if (!gtk_toggle_button_get_active (toggle_button_p))
-#endif // GTK_CHECK_VERSION
     goto continue_;
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3853,11 +3843,7 @@ continue_:
   return;
 
 error:
-#if GTK_CHECK_VERSION(3,0,0)
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
-#elif GTK_CHECK_VERSION(2,0,0)
   gtk_button_set_label (GTK_BUTTON (toggleButton_in),
-#endif // GTK_CHECK_VERSION
                         GTK_STOCK_MEDIA_RECORD);
   //gtk_action_set_sensitive (action_p, false);
   //gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
@@ -3865,10 +3851,10 @@ error:
 } // toggleaction_record_toggled_cb
 
 void
-toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
                               gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_save_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_save_toggled_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -3932,7 +3918,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
   GError* error_p = NULL;
   GFile* file_p = NULL;
   std::string filename_string;
-  if (gtk_toggle_action_get_active (toggleAction_in))
+  if (gtk_toggle_button_get_active (toggleButton_in))
   {
     file_p =
       gtk_file_chooser_get_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p));
@@ -3991,19 +3977,7 @@ void
 togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
                                  gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_display_toggled_cb"));
-
-}
-
-void
-#if GTK_CHECK_VERSION(3,0,0)
-toggleaction_fullscreen_toggled_cb (GtkToggleAction* toggleAction_in,
-#elif GTK_CHECK_VERSION(2,0,0)
-togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
-#endif // GTK_CHECK_VERSION
-                                    gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_fullscreen_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_display_toggled_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4011,12 +3985,64 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
-  bool is_active_b =
-#if GTK_CHECK_VERSION(3,0,0)
-      gtk_toggle_action_get_active (toggleAction_in);
-#elif GTK_CHECK_VERSION(2,0,0)
-      gtk_toggle_button_get_active (toggleButton_in);
-#endif // GTK_CHECK_VERSION
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (cb_data_p->configuration->streamConfiguration.configuration_.renderer));
+  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+
+  if (!gtk_toggle_button_get_active (toggleButton_in))
+  {
+    (*iterator_2).second.second.deviceIdentifier.identifier.clear ();
+    return;
+  } // end IF
+
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkTreeIter iterator_3;
+  gboolean result = gtk_combo_box_get_active_iter (combo_box_p,
+                                                   &iterator_3);
+  ACE_ASSERT (result);
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  (*iterator_2).second.second.deviceIdentifier.identifier =
+      g_value_get_string (&value);
+  g_value_unset (&value);
+}
+
+void
+togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_fullscreen_toggled_cb"));
+
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
 
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -4161,14 +4187,10 @@ button_display_reset_clicked_cb (GtkButton* button_in,
 }
 
 void
-#if GTK_CHECK_VERSION(3,0,0)
-action_cut_activate_cb (GtkAction* action_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 button_cut_clicked_cb (GtkButton* button_in,
-#endif // GTK_CHECK_VERSION
                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_cut_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_cut_clicked_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4216,14 +4238,10 @@ button_cut_clicked_cb (GtkButton* button_in,
 } // action_cut_activate_cb
 
 void
-#if GTK_CHECK_VERSION(3,0,0)
-action_report_activate_cb (GtkAction* action_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 button_report_clicked_cb (GtkButton* button_in,
-#endif // GTK_CHECK_VERSION
-                           gpointer userData_in)
+                          gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_report_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_report_clicked_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4234,14 +4252,10 @@ button_report_clicked_cb (GtkButton* button_in,
 
 
 void
-#if GTK_CHECK_VERSION(3,0,0)
-action_hw_settings_activate_cb (GtkAction* action_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 button_hw_settings_clicked_cb (GtkButton* button_in,
-#endif // GTK_CHECK_VERSION
                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_hw_settings_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_hw_settings_clicked_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4251,14 +4265,10 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 } // action_hw_settings_activate_cb
 
 void
-#if GTK_CHECK_VERSION(3,0,0)
-action_reset_activate_cb (GtkAction* action_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 button_format_reset_clicked_cb (GtkButton* button_in,
-#endif // GTK_CHECK_VERSION
                                 gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_reset_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_format_reset_clicked_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4281,14 +4291,10 @@ button_format_reset_clicked_cb (GtkButton* button_in,
 //} // action_settings_activate_cb
 
 void
-#if GTK_CHECK_VERSION(3,0,0)
-action_snapshot_activate_cb (GtkAction* action_in,
-#elif GTK_CHECK_VERSION(2,0,0)
 button_snapshot_clicked_cb (GtkButton* button_in,
-#endif // GTK_CHECK_VERSION
                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_snapshot_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_snapshot_clicked_cb"));
 
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
@@ -4546,11 +4552,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   gint n_rows = 0;
 
-#if GTK_CHECK_VERSION(3,0,0)
-  GtkToggleAction* toggle_action_p = NULL;
-#elif GTK_CHECK_VERSION(2,0,0)
   GtkToggleButton* toggle_button_p = NULL;
-#endif // GTK_CHECK_VERSION
   bool result = false;
 
   list_store_p =
@@ -4829,19 +4831,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 
-#if GTK_CHECK_VERSION(3,0,0)
-  toggle_action_p =
-      GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), TRUE);
-#elif GTK_CHECK_VERSION(2,0,0)
   toggle_button_p =
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
-#endif // GTK_CHECK_VERSION
 
 //  GtkFrame* frame_p =
 //    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -5949,19 +5943,11 @@ key_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION(3,0,0)
     {
       bool is_active_b = false;
-#if GTK_CHECK_VERSION(3,0,0)
-      GtkToggleAction* toggle_action_p =
-        GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEACTION_FULLSCREEN_NAME)));
-      ACE_ASSERT (toggle_action_p);
-      is_active_b = gtk_toggle_action_get_active (toggle_action_p);
-#elif GTK_CHECK_VERSION(2,0,0)
       GtkToggleButton* toggle_button_p =
         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                    ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
       ACE_ASSERT (toggle_button_p);
       is_active_b = gtk_toggle_button_get_active (toggle_button_p);
-#endif // GTK_CHECK_VERSION
 
       // sanity check(s)
 #if GTK_CHECK_VERSION(3,0,0)
@@ -5972,13 +5958,8 @@ key_cb (GtkWidget* widget_in,
           !is_active_b)
         break; // <-- not in fullscreen mode, nothing to do
 
-#if GTK_CHECK_VERSION(3,0,0)
-      gtk_toggle_action_set_active (toggle_action_p,
-                                    !is_active_b);
-#elif GTK_CHECK_VERSION(2,0,0)
       gtk_toggle_button_set_active (toggle_button_p,
                                     !is_active_b);
-#endif // GTK_CHECK_VERSION
 
       break;
     }

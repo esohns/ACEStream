@@ -183,9 +183,9 @@ class Stream_Module_Decoder_Tools
                      unsigned int, // sample rate (Hz)
                      unsigned int, // 'data' sample size (bytes)
                      unsigned int, // #channels
-                     char*,        // target buffer
+                     uint8_t*,     // target buffer
                      unsigned int, // #'data' samples to write
-                     double&);     // (return value:) current phase
+                     double&);     // in/out: current phase
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())

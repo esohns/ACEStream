@@ -637,39 +637,40 @@ Stream_Module_Decoder_Tools::sinus (double frequency_in,
                                     unsigned int sampleRate_in,
                                     unsigned int sampleSize_in, // 'data'-
                                     unsigned int channels_in,
-                                    char* buffer_in,
+                                    uint8_t* buffer_in,
                                     unsigned int samplesToWrite_in, // #'data' samples
                                     double& phase_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
 
-  static double maximum_phase = 2.0 * M_PI;
-  double step =
-    (maximum_phase * frequency_in) / static_cast<double> (sampleRate_in);
-  unsigned int bytes_per_sample = sampleSize_in / channels_in;
-  unsigned int maximum_value = (1 << ((bytes_per_sample * 8) - 1)) - 1;
-  double phase = phase_inout;
-  int value = 0;
-  char* pointer_p = buffer_in;
+  static double maximum_phase_d = 2.0 * M_PI;
+  double step_d =
+    (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
+  unsigned int bytes_per_sample_i = sampleSize_in / channels_in;
+  unsigned int maximum_value_i = (1 << ((bytes_per_sample_i * 8) - 1)) - 1;
+  double phase_d = phase_inout;
+  int value_i = 0;
+  uint8_t* pointer_p = buffer_in;
   for (unsigned int i = 0; i < samplesToWrite_in; ++i)
   {
-    value = static_cast<int> (std::sin (phase) * maximum_value);
+    value_i = static_cast<int> (std::sin (phase_d) * maximum_value_i);
     for (unsigned int j = 0; j < channels_in; ++j)
     {
-      for (unsigned int k = 0; k < bytes_per_sample; ++k)
+      for (unsigned int k = 0; k < bytes_per_sample_i; ++k)
       {
         if (likely (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN))
-          *(pointer_p + k) = (value >> (k * 8)) & 0xFF;
+          *(pointer_p + k) = (value_i >> (k * 8)) & 0xFF;
         else
-          *(pointer_p + bytes_per_sample - 1 - k) = (value >> (k * 8)) & 0xFF;
+          *(pointer_p + bytes_per_sample_i - 1 - k) =
+            (value_i >> (k * 8)) & 0xFF;
       } // end FOR
-      pointer_p += bytes_per_sample;
+      pointer_p += bytes_per_sample_i;
     } // end FOR
-    phase += step;
-    if (unlikely (phase >= maximum_phase))
-      phase -= maximum_phase;
+    phase_d += step_d;
+    if (unlikely (phase_d >= maximum_phase_d))
+      phase_d -= maximum_phase_d;
   } // end FOR
-  phase_inout = phase;
+  phase_inout = phase_d;
 }
 
 bool
@@ -686,8 +687,8 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::convert"));
 
   // sanity check(s)
-  if (!sws_isSupportedInput (sourcePixelFormat_in) ||
-      !sws_isSupportedOutput (targetPixelFormat_in))
+  if (unlikely (!sws_isSupportedInput (sourcePixelFormat_in) ||
+                !sws_isSupportedOutput (targetPixelFormat_in)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("unsupported format conversion (was: %s --> %s), aborting\n"),
@@ -695,7 +696,8 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                 ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (targetPixelFormat_in).c_str ())));
     return false;
   } // end IF
-//  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
+  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
+
 // *TODO*: define a balanced scaler parametrization that suits most
 //         applications, or expose this as a parameter
   int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation

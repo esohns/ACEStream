@@ -40,28 +40,16 @@ gboolean idle_update_progress_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
-#if GTK_CHECK_VERSION(3,0,0)
-G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
-G_MODULE_EXPORT void action_snapshot_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_reset_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_hw_settings_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
-//G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void toggleaction_fullscreen_toggled_cb (GtkToggleAction*, gpointer);
-#elif GTK_CHECK_VERSION(2,0,0)
-G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void button_snapshot_clicked_cb (GtkButton*, gpointer);
 G_MODULE_EXPORT void button_cut_clicked_cb (GtkButton*, gpointer);
-G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
+G_MODULE_EXPORT void button_display_reset_clicked_cb (GtkButton*, gpointer);
 G_MODULE_EXPORT void button_format_reset_clicked_cb (GtkButton*, gpointer);
 G_MODULE_EXPORT void button_hw_settings_clicked_cb (GtkButton*, gpointer);
-G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
+G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
 G_MODULE_EXPORT void togglebutton_display_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void togglebutton_fullscreen_toggled_cb (GtkToggleButton*, gpointer);
-G_MODULE_EXPORT void button_display_reset_clicked_cb (GtkButton*, gpointer);
-#endif // GTK_CHECK_VERSION
+G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
+G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
 
 //G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
