@@ -35,7 +35,7 @@
 #include "test_i_camsave_common.h"
 
 // forward declaratation(s)
-struct Stream_CamSave_UserData;
+struct Stream_UserData;
 
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
@@ -50,7 +50,7 @@ class Stream_CamSave_SessionMessage_T
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       SessionDataType,
-                                      struct Stream_CamSave_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -71,7 +71,7 @@ class Stream_CamSave_SessionMessage_T
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       SessionDataType,
-                                      struct Stream_CamSave_UserData> inherited;
+                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -79,7 +79,7 @@ class Stream_CamSave_SessionMessage_T
   Stream_CamSave_SessionMessage_T (Stream_SessionId_t,
                                    enum Stream_SessionMessageType,
                                    SessionDataType*&,   // session data container handle
-                                   struct Stream_CamSave_UserData*);
+                                   struct Stream_UserData*);
   inline virtual ~Stream_CamSave_SessionMessage_T () {}
 
   // overloaded from ACE_Message_Block

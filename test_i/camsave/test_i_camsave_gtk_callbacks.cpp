@@ -1442,7 +1442,8 @@ load_display_devices (GtkListStore* listStore_in)
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, (*iterator_2).description.c_str (),
+//                        0, (*iterator_2).description.c_str (),
+                        0, (*iterator_2).device.c_str (),
                         1, (*iterator_2).device.c_str (),
                         -1);
   } // end FOR
@@ -2232,7 +2233,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+    ui_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
   resolution_s.width =
       ui_cb_data_p->configuration->streamConfiguration.configuration_.format.format.width;
@@ -2373,7 +2374,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   is_display_b =
-      !(*iterator_2).second.second.deviceIdentifier.identifier.empty ();
+      !(*iterator_3).second.second.deviceIdentifier.identifier.empty ();
   is_fullscreen_b = (*iterator_2).second.second.fullScreen;
 #endif
   toggle_button_p =
@@ -2865,10 +2866,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                            1);
     ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
     gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
-
-//    // *NOTE*: this populates the other device settings widgets (see below)
-//    while (gtk_events_pending ())
-//      gtk_main_iteration ();
   } // end IF
 
   // select default capture format
@@ -2896,14 +2893,8 @@ idle_initialize_UI_cb (gpointer userData_in)
       Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                          value,
                                          1);
-  if (index_i != std::numeric_limits<unsigned int>::max ())
-  {
-    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
-
-//    // *NOTE*: this populates the other device settings widgets (see below)
-//    while (gtk_events_pending ())
-//      gtk_main_iteration ();
-  } // end IF
+  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -2933,14 +2924,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                                value,
                                                0);
-  if (index_i != std::numeric_limits<unsigned int>::max ())
-  {
-    gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
-
-//    // *NOTE*: this populates the other device settings widgets (see below)
-//    while (gtk_events_pending ())
-//      gtk_main_iteration ();
-  } // end IF
+  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+  gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -2963,8 +2948,19 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                0);
   ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
   gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
-
   g_value_unset (&value);
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+  ACE_ASSERT (combo_box_p);
+  g_value_unset (&value);
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value,
+                      (*iterator_3).second.second.display.device.c_str ());
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
 
   return G_SOURCE_REMOVE;
 }
@@ -3545,7 +3541,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
 
-  GtkSpinButton* spin_button_p = NULL;
+//  GtkSpinButton* spin_button_p = NULL;
 //  unsigned int buffer_size_i = 0;
   gdouble value_d = 0.0;
 
@@ -3993,12 +3989,12 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (cb_data_p->configuration->streamConfiguration.configuration_.renderer));
+    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
 
   if (!gtk_toggle_button_get_active (toggleButton_in))
   {
-    (*iterator_2).second.second.deviceIdentifier.identifier.clear ();
+    (*iterator_2).second.second.display.device.clear ();
     return;
   } // end IF
 
@@ -4025,7 +4021,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
                             &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-  (*iterator_2).second.second.deviceIdentifier.identifier =
+  (*iterator_2).second.second.display.device =
       g_value_get_string (&value);
   g_value_unset (&value);
 }
@@ -5536,6 +5532,108 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   update_buffer_size (ui_cb_data_base_p);
 } // combobox_rate_changed_cb
 
+void
+combobox_display_changed_cb (GtkWidget* widget_in,
+                             gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_display_changed_cb"));
+
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      ACE_ASSERT (directshow_cb_data_p->configuration);
+      directshow_stream_iterator =
+        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
+      mediafoundation_stream_iterator =
+        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Stream_CamSave_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+//  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+//    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+//  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
+  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    ui_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkTreeIter iterator_4;
+  gboolean result = gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                                   &iterator_4);
+  ACE_ASSERT (result);
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  (*iterator_3).second.second.display.device = g_value_get_string (&value);
+  g_value_unset (&value);
+
+  // select corresponding adapter
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+  ACE_ASSERT (combo_box_p);
+  struct Common_UI_DisplayAdapter display_adapter_s =
+      Common_UI_Tools::getAdapter ((*iterator_3).second.second.display);
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value,
+                      display_adapter_s.device.c_str ());
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
+} // combobox_display_changed_cb
+
 gboolean
 drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
@@ -5753,7 +5851,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (ui_cb_data_p->configuration->streamConfiguration.configuration_.renderer).c_str ()));
+    ui_cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());

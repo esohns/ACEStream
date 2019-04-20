@@ -90,7 +90,7 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_CamSave_DirectShow_SessionData_t,
                                            struct Stream_CamSave_StatisticData,
                                            Common_Timer_Manager_t,
-                                           struct Stream_CamSave_UserData> Stream_CamSave_DirectShow_Source;
+                                           struct Stream_UserData> Stream_CamSave_DirectShow_Source;
 
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
@@ -104,7 +104,7 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_CamSave_MediaFoundation_SessionData_t,
                                                 struct Stream_CamSave_StatisticData,
                                                 Common_Timer_Manager_t,
-                                                struct Stream_CamSave_UserData> Stream_CamSave_MediaFoundation_Source;
+                                                struct Stream_UserData> Stream_CamSave_MediaFoundation_Source;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
@@ -118,7 +118,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_CamSave_V4L_SessionData_t,
                                       struct Stream_CamSave_StatisticData,
                                       Common_Timer_Manager_t,
-                                      struct Stream_CamSave_UserData> Stream_CamSave_V4L_Source;
+                                      struct Stream_UserData> Stream_CamSave_V4L_Source;
 
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -236,7 +236,7 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_DirectShow_SessionData_t,
                                                Stream_CamSave_DirectShow_SessionData,
                                                struct _AMMediaType,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_DirectShow_AVIEncoder_ReaderTask_t;
+                                               struct Stream_UserData> Stream_CamSave_DirectShow_AVIEncoder_ReaderTask_t;
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
@@ -246,7 +246,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_DirectShow_SessionData_t,
                                                Stream_CamSave_DirectShow_SessionData,
                                                struct _AMMediaType,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_DirectShow_AVIEncoder_WriterTask_t;
+                                               struct Stream_UserData> Stream_CamSave_DirectShow_AVIEncoder_WriterTask_t;
 
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
@@ -257,7 +257,7 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_MediaFoundation_SessionData_t,
                                                Stream_CamSave_MediaFoundation_SessionData,
                                                IMFMediaType*,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_ReaderTask_t;
+                                               struct Stream_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_ReaderTask_t;
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
@@ -267,7 +267,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_MediaFoundation_SessionData_t,
                                                Stream_CamSave_MediaFoundation_SessionData,
                                                IMFMediaType*,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_WriterTask_t;
+                                               struct Stream_UserData> Stream_CamSave_MediaFoundation_AVIEncoder_WriterTask_t;
 #else
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
@@ -278,7 +278,7 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_V4L_SessionData_t,
                                                Stream_CamSave_V4L_SessionData,
                                                struct Stream_MediaFramework_V4L_MediaType,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_V4L_AVIEncoder_ReaderTask_t;
+                                               struct Stream_UserData> Stream_CamSave_V4L_AVIEncoder_ReaderTask_t;
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -288,7 +288,7 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_V4L_SessionData_t,
                                                Stream_CamSave_V4L_SessionData,
                                                struct Stream_MediaFramework_V4L_MediaType,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_V4L_AVIEncoder_WriterTask_t;
+                                               struct Stream_UserData> Stream_CamSave_V4L_AVIEncoder_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
@@ -356,7 +356,7 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
                                             Stream_CamSave_MediaFoundation_SessionMessage_t,
                                             Stream_CamSave_MediaFoundation_SessionData,
                                             Stream_CamSave_MediaFoundation_SessionData_t,
-                                            struct Stream_CamSave_UserData> Stream_CamSave_MediaFoundation_MediaFoundationDisplay;
+                                            struct Stream_UserData> Stream_CamSave_MediaFoundation_MediaFoundationDisplay;
 typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
@@ -461,7 +461,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_CamSave_DirectShow_SessionMessage_t,
                                        Stream_SessionId_t,
                                        Stream_CamSave_DirectShow_SessionData,
-                                       struct Stream_CamSave_UserData> Stream_CamSave_DirectShow_MessageHandler;
+                                       struct Stream_UserData> Stream_CamSave_DirectShow_MessageHandler;
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -471,7 +471,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_CamSave_MediaFoundation_SessionMessage_t,
                                        Stream_SessionId_t,
                                        Stream_CamSave_MediaFoundation_SessionData,
-                                       struct Stream_CamSave_UserData> Stream_CamSave_MediaFoundation_MessageHandler;
+                                       struct Stream_UserData> Stream_CamSave_MediaFoundation_MessageHandler;
 #else
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -481,7 +481,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_CamSave_V4L_SessionMessage_t,
                                        Stream_SessionId_t,
                                        Stream_CamSave_V4L_SessionData,
-                                       struct Stream_CamSave_UserData> Stream_CamSave_MessageHandler;
+                                       struct Stream_UserData> Stream_CamSave_MessageHandler;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////

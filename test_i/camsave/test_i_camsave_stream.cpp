@@ -1316,17 +1316,14 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
 //  ACE_ASSERT (layout_in->empty ());
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_INVALID);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_->configuration_.renderer).c_str ()));
+      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
   ACE_ASSERT (iterator_2 != configuration_->end ());
-  bool display_b =
-      (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_NULL);
+  bool display_b = !(*iterator_2).second.second.display.device.empty ();
   bool save_to_file_b = !(*iterator).second.second.targetFileName.empty ();
-//  ACE_ASSERT ((display_b && (*iterator_2).second.second.window) || (!display_b && !(*iterator_2).second.second.window));
 
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen

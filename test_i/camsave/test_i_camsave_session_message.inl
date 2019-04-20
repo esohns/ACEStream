@@ -28,7 +28,7 @@ Stream_CamSave_SessionMessage_T<DataMessageType,
                                 SessionDataType>::Stream_CamSave_SessionMessage_T (Stream_SessionId_t sessionId_in,
                                                                                    enum Stream_SessionMessageType messageType_in,
                                                                                    SessionDataType*& sessionData_in,
-                                                                                   struct Stream_CamSave_UserData* userData_in)
+                                                                                   struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,

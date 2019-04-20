@@ -497,25 +497,31 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    ACE_TCHAR* display_p =
-        (!configuration_in.display.device.empty () ? ACE_TEXT (const_cast<char*> (configuration_in.display.device.c_str ()))
-                                                   : ACE_OS::getenv (ACE_TEXT (STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE)));
-    ACE_ASSERT (display_p);
-    display_ = XOpenDisplay (ACE_TEXT_ALWAYS_CHAR (display_p));
+    std::string x11_display_name =
+        Common_UI_Tools::getX11DisplayName (configuration_in.display.device);
+    if (unlikely (x11_display_name.empty ()))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Common_UI_Tools::getX11DisplayName(\"%s\"), aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.display.device.c_str ())));
+    const char* display_name_p =
+        (x11_display_name.empty () ? NULL
+                                   : x11_display_name.c_str ());
+    display_ = XOpenDisplay (display_name_p);
     if (unlikely (!display_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to XOpenDisplay(\"%s\"): \"%m\", aborting\n"),
                   inherited::mod_->name (),
-                  display_p));
+                  display_name_p));
       return false;
     } // end IF
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: opened X11 connection to \"%s\" (display: %@, default depth: %d)\n"),
                 inherited::mod_->name (),
-                display_p,
-                display_, DefaultDepth (display_, DefaultScreen (display_))));
+                display_name_p, display_,
+                DefaultDepth (display_, DefaultScreen (display_))));
 #endif // _DEBUG
     closeDisplay_ = true;
   } // end ELSE

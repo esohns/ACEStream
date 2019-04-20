@@ -150,15 +150,6 @@ enum Stream_Camsave_ProgramMode
   STREAM_CAMSAVE_PROGRAMMODE_INVALID
 };
 
-
-struct Stream_CamSave_UserData
- : Stream_UserData
-{
-  Stream_CamSave_UserData ()
-   : Stream_UserData ()
-  {}
-};
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_MessageData
 {
@@ -233,7 +224,7 @@ class Stream_CamSave_DirectShow_SessionData
                                         struct _AMMediaType,
                                         struct Stream_CamSave_DirectShow_StreamState,
                                         struct Stream_CamSave_StatisticData,
-                                        struct Stream_CamSave_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CamSave_DirectShow_SessionData ()
@@ -241,7 +232,7 @@ class Stream_CamSave_DirectShow_SessionData
                                    struct _AMMediaType,
                                    struct Stream_CamSave_DirectShow_StreamState,
                                    struct Stream_CamSave_StatisticData,
-                                   struct Stream_CamSave_UserData> ()
+                                   struct Stream_UserData> ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , resetToken (0)
@@ -254,7 +245,7 @@ class Stream_CamSave_DirectShow_SessionData
                                   struct _AMMediaType,
                                   struct Stream_CamSave_DirectShow_StreamState,
                                   struct Stream_CamSave_StatisticData,
-                                  struct Stream_CamSave_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
     direct3DManagerResetToken =
@@ -285,7 +276,7 @@ class Stream_CamSave_MediaFoundation_SessionData
                                         IMFMediaType*,
                                         struct Stream_CamSave_MediaFoundation_StreamState,
                                         struct Stream_CamSave_StatisticData,
-                                        struct Stream_CamSave_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CamSave_MediaFoundation_SessionData ()
@@ -293,7 +284,7 @@ class Stream_CamSave_MediaFoundation_SessionData
                                    IMFMediaType*,
                                    struct Stream_CamSave_MediaFoundation_StreamState,
                                    struct Stream_CamSave_StatisticData,
-                                   struct Stream_CamSave_UserData> ()
+                                   struct Stream_UserData> ()
    , direct3DDevice (NULL)
    , direct3DManagerResetToken (0)
    , rendererNodeId (0)
@@ -308,7 +299,7 @@ class Stream_CamSave_MediaFoundation_SessionData
                                   IMFMediaType*,
                                   struct Stream_CamSave_MediaFoundation_StreamState,
                                   struct Stream_CamSave_StatisticData,
-                                  struct Stream_CamSave_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
     direct3DManagerResetToken =
@@ -343,7 +334,7 @@ class Stream_CamSave_V4L_SessionData
                                         struct Stream_MediaFramework_V4L_MediaType,
                                         struct Stream_CamSave_V4L_StreamState,
                                         struct Stream_CamSave_StatisticData,
-                                        struct Stream_CamSave_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Stream_CamSave_V4L_SessionData ()
@@ -351,7 +342,7 @@ class Stream_CamSave_V4L_SessionData
                                    struct Stream_MediaFramework_V4L_MediaType,
                                    struct Stream_CamSave_V4L_StreamState,
                                    struct Stream_CamSave_StatisticData,
-                                   struct Stream_CamSave_UserData> ()
+                                   struct Stream_UserData> ()
   {}
 
 //  Stream_CamSave_V4L_SessionData& operator+= (const Stream_CamSave_V4L_SessionData& rhs_in)
@@ -361,7 +352,7 @@ class Stream_CamSave_V4L_SessionData
 //                                  struct Stream_MediaFramework_V4L_MediaType,
 //                                  struct Stream_CamSave_V4L_StreamState,
 //                                  struct Stream_CamSave_StatisticData,
-//                                  struct Stream_CamSave_UserData>::operator+= (rhs_in);
+//                                  struct Stream_UserData>::operator+= (rhs_in);
 
 //    return *this;
 //  }
@@ -657,7 +648,7 @@ struct Stream_CamSave_DirectShow_StreamState
 
   Stream_CamSave_DirectShow_SessionData* sessionData;
 
-  struct Stream_CamSave_UserData*        userData;
+  struct Stream_UserData*        userData;
 };
 
 struct Stream_CamSave_MediaFoundation_StreamState
@@ -671,7 +662,7 @@ struct Stream_CamSave_MediaFoundation_StreamState
 
   Stream_CamSave_MediaFoundation_SessionData* sessionData;
 
-  struct Stream_CamSave_UserData*             userData;
+  struct Stream_UserData*             userData;
 };
 #else
 struct Stream_CamSave_V4L_StreamState
@@ -680,12 +671,9 @@ struct Stream_CamSave_V4L_StreamState
   Stream_CamSave_V4L_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
   Stream_CamSave_V4L_SessionData* sessionData;
-
-  struct Stream_CamSave_UserData* userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -694,15 +682,9 @@ struct Stream_CamSave_StreamConfiguration
 {
   Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-   , renderer (STREAM_VIS_RENDERER_VIDEO_DEFAULT)
-   , userData (NULL)
   {
     printFinalReport = true;
   }
-
-  enum Stream_Visualization_VideoRenderer renderer;
-
-  struct Stream_CamSave_UserData*         userData;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_DirectShow_StreamConfiguration
@@ -784,7 +766,7 @@ struct Stream_CamSave_DirectShow_Configuration
   struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
   Stream_CamSave_DirectShow_StreamConfiguration_t     streamConfiguration;
 
-  struct Stream_CamSave_UserData                      userData;
+  struct Stream_UserData                      userData;
 };
 
 struct Stream_CamSave_MediaFoundation_Configuration
@@ -816,7 +798,7 @@ struct Stream_CamSave_MediaFoundation_Configuration
   struct Stream_MediaFramework_Direct3D_Configuration  direct3DConfiguration;
   Stream_CamSave_MediaFoundation_StreamConfiguration_t streamConfiguration;
 
-  struct Stream_CamSave_UserData                       userData;
+  struct Stream_UserData                       userData;
 };
 #else
 struct Stream_CamSave_Configuration
@@ -842,15 +824,12 @@ struct Stream_CamSave_Configuration
 #endif // GUI_SUPPORT
    , signalHandlerConfiguration ()
    , streamConfiguration ()
-   , userData ()
   {}
 
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
   Stream_CamSave_V4L_StreamConfiguration_t         streamConfiguration;
-
-  struct Stream_CamSave_UserData                   userData;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

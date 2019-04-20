@@ -45,26 +45,6 @@
 #define STREAM_VIS_FRAMEWORK_DEFAULT                                      STREAM_VISUALIZATION_FRAMEWORK_DIRECTDRAW
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#if GTK_CHECK_VERSION (3,0,0)
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO
-#else
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF
-#endif // GTK_CHECK_VERSION
-#elif defined (QT_USE)
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_X11
-#elif defined (WXWIDGETS_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D
-#else
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_X11
-#endif // ACE_WIN32 || ACE_WIN64
-#else
-#define STREAM_VIS_RENDERER_VIDEO_DEFAULT                                 STREAM_VISUALIZATION_VIDEORENDERER_NULL
-#endif
-#endif // GUI_SUPPORT
-
 // renderers
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#define STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_DEFAULT_FORMAT       D3DFMT_X8R8G8B8
@@ -83,11 +63,6 @@
 ////          native-endian. Pre-multiplied alpha is used. (That is, 50%
 ////          transparent red is 0x80800000, not 0x80ff0000.) ..."
 //#define STREAM_VIS_DEFAULT_CAIRO_FORMAT      CAIRO_FORMAT_ARGB32
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#define STREAM_VIS_X11_DISPLAY_ENVIRONMENT_VARIABLE                       "DISPLAY"
-#endif // ACE_WIN32 || ACE_WIN64
 
 #define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_STRING                     "screenshot"
 

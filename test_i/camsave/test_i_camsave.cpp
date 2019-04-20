@@ -265,7 +265,6 @@ do_processArguments (int argc_in,
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
                      struct Common_UI_DisplayDevice& displayDevice_out,
-                     enum Stream_Visualization_VideoRenderer& renderer_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      enum Stream_Camsave_ProgramMode& mode_out)
@@ -326,7 +325,6 @@ do_processArguments (int argc_in,
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
-  renderer_out = STREAM_VIS_RENDERER_VIDEO_DEFAULT;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   mode_out = STREAM_CAMSAVE_PROGRAMMODE_NORMAL;
@@ -335,13 +333,13 @@ do_processArguments (int argc_in,
                               argv_in,
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("3cd:f::g::hlmo:s:tvx"),
+                              ACE_TEXT ("cd:f::g::hlmo:s:tvx"),
 #else
                               ACE_TEXT ("d:f::g::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
 #else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("3cd:f::hlmo:s:tvx"),
+                              ACE_TEXT ("cd:f::hlmo:s:tvx"),
 #else
                               ACE_TEXT ("d:f::hlo:s:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
@@ -358,16 +356,6 @@ do_processArguments (int argc_in,
     switch (option)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      case '2':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
-        break;
-      }
-      case '3':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
-        break;
-      }
       case 'c':
       {
         showConsole_out = true;
@@ -396,10 +384,7 @@ do_processArguments (int argc_in,
         if (opt_arg)
           UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-        {
           UIFile_out.clear ();
-          renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
-        } // end ELSE
         break;
       }
 #endif // GUI_SUPPORT
@@ -1094,7 +1079,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
 #endif // WXWIDGETS_USE
-         enum Stream_Visualization_VideoRenderer renderer_in,
 #endif // GUI_SUPPORT
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -1370,8 +1354,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       (!UIDefinitionFilename_in.empty () ? &message_handler
                                          : NULL);
 #endif // GUI_SUPPORT
-  configuration_in.streamConfiguration.configuration_.renderer =
-    renderer_in;
 
   if (!heap_allocator.initialize (configuration_in.streamConfiguration.allocatorConfiguration_))
   {
@@ -1468,7 +1450,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                                    configuration_in.streamConfiguration.allocatorConfiguration_,
                                                    configuration_in.streamConfiguration.configuration_);
   modulehandler_configuration.display = displayDevice_in;
-  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                std::make_pair (module_configuration,
                                                                                modulehandler_configuration)));
   // *NOTE*: apparently, Windows Media Player supports only RGB 5:5:5 16bpp AVI
@@ -1483,69 +1465,36 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GUI_SUPPORT)
-  switch (renderer_in)
-  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-    {
-      Common_Image_Resolution_t resolution_s = 
-        Stream_MediaFramework_DirectShow_Tools::toResolution (directShowConfiguration_in.streamConfiguration.configuration_.format);
-      //struct _D3DDISPLAYMODE display_mode_s =
-      //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
-      //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
-      //                                                          resolution_s);
-      ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
-      directShowConfiguration_in.direct3DConfiguration.focusWindow =
-        GetConsoleWindow ();
-      directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-        resolution_s.cx;
-      directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-        resolution_s.cy;
-      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-      UINT reset_token = 0;
-      if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
-                                                              direct3D_manager_p,
-                                                              reset_token))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
-        return;
-      } // end IF
-      ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
-      ACE_ASSERT (direct3D_manager_p);
-      ACE_ASSERT (reset_token);
-      direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-      reset_token = 0;
-      break;
-    }
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-#else
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+  Common_Image_Resolution_t resolution_s =
+      Stream_MediaFramework_DirectShow_Tools::toResolution (directShowConfiguration_in.streamConfiguration.configuration_.format);
+  //struct _D3DDISPLAYMODE display_mode_s =
+  //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
+  //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
+  //                                                          resolution_s);
+  ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
+  directShowConfiguration_in.direct3DConfiguration.focusWindow =
+      GetConsoleWindow ();
+  directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
+      resolution_s.cx;
+  directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
+      resolution_s.cy;
+  IDirect3DDeviceManager9* direct3D_manager_p = NULL;
+  UINT reset_token = 0;
+  if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
+                                                          direct3D_manager_p,
+                                                          reset_token))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
+    return;
+  } // end IF
+  ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
+  ACE_ASSERT (direct3D_manager_p);
+  ACE_ASSERT (reset_token);
+  direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+  reset_token = 0;
 #endif // ACE_WIN32 || ACE_WIN64
-      break;
-#if defined (GTK_USE)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
-      break;
-#endif // GTK_USE
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown video renderer (was: %d), returning\n"),
-                  renderer_in));
-      return;
-    }
-  } // end SWITCH
 #endif // GUI_SUPPORT
 
   struct Common_TimerConfiguration timer_configuration;
@@ -2060,8 +2009,6 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  enum Stream_Visualization_VideoRenderer video_renderer_e =
-    STREAM_VIS_RENDERER_VIDEO_DEFAULT;
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   unsigned int statistic_reporting_interval =
@@ -2092,7 +2039,6 @@ ACE_TMAIN (int argc_in,
                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
                             display_device_s,
-                            video_renderer_e,
                             statistic_reporting_interval,
                             trace_information,
                             program_mode_e))
@@ -2667,7 +2613,6 @@ ACE_TMAIN (int argc_in,
 #if defined (WXWIDGETS_USE)
            iapplication_p,
 #endif // WXWIDGETS_USE
-           video_renderer_e,
 #endif // GUI_SUPPORT
            signal_set,
            ignored_signal_set,
