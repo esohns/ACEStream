@@ -187,7 +187,7 @@ struct Stream_ImageScreen_StreamConfiguration
   Stream_ImageScreen_StreamConfiguration ()
    : Stream_Configuration ()
    , format ()
-   , renderer (STREAM_VIS_RENDERER_VIDEO_DEFAULT)
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
   {
     printFinalReport = true;
   }

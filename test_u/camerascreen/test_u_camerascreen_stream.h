@@ -246,8 +246,8 @@ class Stream_CameraScreen_Stream
   virtual ~Stream_CameraScreen_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (typename inherited::LAYOUT_T&, // return value: layout
-                     bool&);                        // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: layout
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration

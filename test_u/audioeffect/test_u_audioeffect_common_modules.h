@@ -29,7 +29,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_dec_avi_encoder.h"
+#include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mic_source_directshow.h"
 #include "stream_dev_mic_source_mediafoundation.h"

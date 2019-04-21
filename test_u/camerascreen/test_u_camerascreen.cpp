@@ -101,11 +101,11 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
-            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D)
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
-            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
+            << true
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
@@ -114,7 +114,7 @@ do_print_usage (const std::string& programName_in)
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-1          : use X11 renderer [")
-            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_X11)
+            << true
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64

@@ -1273,7 +1273,7 @@ Stream_CameraScreen_Stream::~Stream_CameraScreen_Stream ()
 }
 
 bool
-Stream_CameraScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
+Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
                                   bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::load"));
@@ -1282,25 +1282,19 @@ Stream_CameraScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   delete_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (layout_inout.empty ());
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_INVALID);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
-  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != configuration_->end ());
 
-  layout_inout.append (&source_, NULL, 0);
-//  layout_inout.append (&statisticReport_, NULL, 0);
-  if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-    layout_inout.append (&convert_, NULL, 0);
-//  layout_inout.append (&resize_, NULL, 0); // output is window size/fullscreen
-  if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-   layout_inout.append (&display_, NULL, 0);
-  else
-    layout_inout.append (&display_2_, NULL, 0);
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&convert_, NULL, 0);
+  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+//  if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+   layout_in->append (&display_, NULL, 0);
+//  else
+//  layout_in->append (&display_2_, NULL, 0);
 
   return true;
 }

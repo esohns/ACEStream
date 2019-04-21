@@ -605,7 +605,7 @@ struct Stream_CameraScreen_StreamConfiguration
 {
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
-   , renderer (STREAM_VIS_RENDERER_VIDEO_DEFAULT)
+   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
   {
     printFinalReport = true;
   }
