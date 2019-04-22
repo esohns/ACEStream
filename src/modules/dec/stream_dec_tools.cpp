@@ -82,6 +82,7 @@ extern "C"
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_string_tools.h"
 #include "common_tools.h"
 
 #include "common_error_tools.h"
@@ -603,6 +604,24 @@ Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (enum AVPixelFormat pixelF
   } // end SWITCH
 
   return result;
+}
+
+enum AVCodecID
+Stream_Module_Decoder_Tools::filenameExtensionToAVCodecId (const std::string& filenameExtension_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::filenameExtensionToAVCodecId"));
+
+  std::string extension_string =
+      Common_String_Tools::toupper (filenameExtension_in);
+
+  if (extension_string == ACE_TEXT_ALWAYS_CHAR ("PNG"))
+    return AV_CODEC_ID_PNG;
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown filename extension (was: \"%s\"), aborting\n"),
+                ACE_TEXT (filenameExtension_in.c_str ())));
+
+  return AV_CODEC_ID_NONE;
 }
 
 std::string

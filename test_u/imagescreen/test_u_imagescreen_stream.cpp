@@ -37,21 +37,14 @@
 
 Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
-#if defined (FFMPEG_SUPPORT)
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
- , decode_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
- , resize_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#elif defined (IMAGEMAGICK_SUPPORT)
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING))
- , decode_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
+// , decode_ (this,
+//            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
+ , convert_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
-#endif
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , delay_ (this,
@@ -81,7 +74,7 @@ Stream_ImageScreen_Stream::~Stream_ImageScreen_Stream ()
 }
 
 bool
-Stream_ImageScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
+Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Stream::load"));
@@ -89,15 +82,13 @@ Stream_ImageScreen_Stream::load (typename inherited::LAYOUT_T& layout_inout,
   // initialize return value(s)
   delete_out = false;
 
-  // sanity check(s)
-  ACE_ASSERT (layout_inout.empty ());
-
-  layout_inout.append (&source_, NULL, 0);
-//  layout_inout.append (&statisticReport_, NULL, 0);
-//  layout_inout.append (&decode_, NULL, 0); // output is uncompressed RGB
-  layout_inout.append (&resize_, NULL, 0); // output is window size/fullscreen
-  layout_inout.append (&delay_, NULL, 0);
-  layout_inout.append (&display_, NULL, 0);
+  layout_in->append (&source_, NULL, 0);
+//  layout_in->append (&statisticReport_, NULL, 0);
+//  layout_in->append (&decode_, NULL, 0); // output is uncompressed RGBA
+  layout_in->append (&convert_, NULL, 0); // output is uncompressed RGBA
+  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&delay_, NULL, 0);
+  layout_in->append (&display_, NULL, 0);
 
   return true;
 }
@@ -115,7 +106,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
-  Stream_ImageScreen_Source* source_impl_p = NULL;
+  Stream_ImageScreen_ImageMagickSource* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -138,7 +129,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
     &const_cast<Stream_ImageScreen_SessionData&> (inherited::sessionData_->getR ());
   ACE_ASSERT (session_data_p->formats.empty ());
   // *TODO*: remove type inferences
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
+//  session_data_p->formats.push_back (configuration_in.configuration_.format);
 
   // sanity check(s)
   iterator =
@@ -171,11 +162,11 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // ******************* Camera Source ************************
   source_impl_p =
-    dynamic_cast<Stream_ImageScreen_Source*> (source_.writer ());
+    dynamic_cast<Stream_ImageScreen_ImageMagickSource*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_CamSource> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_ImageScreen_ImageMagickSource> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF

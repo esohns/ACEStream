@@ -265,7 +265,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                                            data_p)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_Image_Tools::convert(), returning\n"),
+                ACE_TEXT ("%s: failed to Common_Image_Tools::load(), returning\n"),
                 inherited::mod_->name ()));
     message_inout->release (); message_inout = NULL;
     message_block_p->release (); message_block_p = NULL;

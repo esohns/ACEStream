@@ -128,9 +128,9 @@ class Stream_Visualization_LibAVResize1_T
 #endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Visualization_LibAVResize1_T () {}
 
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+//  // override (part of) Stream_IModuleHandler_T
+//  virtual bool initialize (const ConfigurationType&,
+//                           Stream_IAllocator*);
 
   // override (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle

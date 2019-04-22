@@ -335,7 +335,8 @@ do_work (int argc_in,
   modulehandler_configuration.fileIdentifier.selector =
       dirent_selector_cb;
   //  modulehandler_configuration.display = displayDevice_in;
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB24;
+  // X11 requires RGB32
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32_1;
   modulehandler_configuration.slurpFiles = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
@@ -368,10 +369,11 @@ do_work (int argc_in,
   configuration.streamConfiguration.configuration_.module = &message_handler;
 #endif // GUI_SUPPORT
 
-  configuration.streamConfiguration.configuration_.format.format =
-      AV_PIX_FMT_RGB24;
+  // X11 requires RGB32
+//  configuration.streamConfiguration.configuration_.format.format =
+//      AV_PIX_FMT_RGB32;
   configuration.streamConfiguration.configuration_.renderer =
-      STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF;
+      STREAM_VISUALIZATION_VIDEORENDERER_X11;
 
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,

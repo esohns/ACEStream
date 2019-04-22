@@ -552,84 +552,84 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename MediaType>
-bool
-Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
-                                   TimePolicyType,
-                                   ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                           Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::initialize"));
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename MediaType>
+//bool
+//Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
+//                                   TimePolicyType,
+//                                   ConfigurationType,
+//                                   ControlMessageType,
+//                                   DataMessageType,
+//                                   SessionMessageType,
+//                                   MediaType>::initialize (const ConfigurationType& configuration_in,
+//                                                           Stream_IAllocator* allocator_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_LibAVResize1_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
-  if (!inherited::initialize (configuration_in,
-                              allocator_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Decoder_LibAVConverter_T::initialize, aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
+//  if (!inherited::initialize (configuration_in,
+//                              allocator_in))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to Stream_Decoder_LibAVConverter_T::initialize, aborting\n"),
+//                inherited::mod_->name ()));
+//    return false;
+//  } // end IF
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::frame_);
-  ACE_ASSERT (inherited::buffer_);
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::frame_);
+//  ACE_ASSERT (inherited::buffer_);
 
-  inherited::frame_->format =
-      inherited::configuration_->outputFormat.format;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  inherited::frame_->width =
-      inherited::configuration_->outputFormat.resolution.cx;
-  inherited::frame_->height =
-      inherited::configuration_->outputFormat.resolution.cy;
-#else
-  inherited::frame_->width =
-      inherited::configuration_->outputFormat.resolution.width;
-  inherited::frame_->height =
-      inherited::configuration_->outputFormat.resolution.height;
-#endif // ACE_WIN32 || ACE_WIN64
-  inherited::frameSize_ =
-      av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
-                                inherited::frame_->width, inherited::frame_->height,
-                                1); // *TODO*: linesize alignment
-  ACE_ASSERT (inherited::frameSize_ >= 0);
-  inherited::buffer_->release (); inherited::buffer_ = NULL;
-  inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
-  if (unlikely (!inherited::buffer_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
-                inherited::mod_->name (),
-                inherited::frameSize_));
-    return false;
-  } // end IF
-  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
-  result =
-      av_image_fill_linesizes (inherited::frame_->linesize,
-                               static_cast<enum AVPixelFormat> (inherited::frame_->format),
-                               static_cast<int> (inherited::frame_->width));
-  ACE_ASSERT (result >= 0);
-  result =
-      av_image_fill_pointers (inherited::frame_->data,
-                              static_cast<enum AVPixelFormat> (inherited::frame_->format),
-                              static_cast<int> (inherited::frame_->height),
-                              reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                              inherited::frame_->linesize);
-  ACE_ASSERT (result >= 0);
+//  inherited::frame_->format =
+//      inherited::configuration_->outputFormat.format;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  inherited::frame_->width =
+//      inherited::configuration_->outputFormat.resolution.cx;
+//  inherited::frame_->height =
+//      inherited::configuration_->outputFormat.resolution.cy;
+//#else
+//  inherited::frame_->width =
+//      inherited::configuration_->outputFormat.resolution.width;
+//  inherited::frame_->height =
+//      inherited::configuration_->outputFormat.resolution.height;
+//#endif // ACE_WIN32 || ACE_WIN64
+//  inherited::frameSize_ =
+//      av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
+//                                inherited::frame_->width, inherited::frame_->height,
+//                                1); // *TODO*: linesize alignment
+//  ACE_ASSERT (inherited::frameSize_ >= 0);
+//  inherited::buffer_->release (); inherited::buffer_ = NULL;
+//  inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
+//  if (unlikely (!inherited::buffer_))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
+//                inherited::mod_->name (),
+//                inherited::frameSize_));
+//    return false;
+//  } // end IF
+//  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
+//  result =
+//      av_image_fill_linesizes (inherited::frame_->linesize,
+//                               static_cast<enum AVPixelFormat> (inherited::frame_->format),
+//                               static_cast<int> (inherited::frame_->width));
+//  ACE_ASSERT (result >= 0);
+//  result =
+//      av_image_fill_pointers (inherited::frame_->data,
+//                              static_cast<enum AVPixelFormat> (inherited::frame_->format),
+//                              static_cast<int> (inherited::frame_->height),
+//                              reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+//                              inherited::frame_->linesize);
+//  ACE_ASSERT (result >= 0);
 
-  return true;
-}
+//  return true;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -863,6 +863,59 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      int result = -1;
+
+      // sanity check(s)
+      struct Stream_MediaFramework_FFMPEG_MediaType media_type_3;
+      inherited::getMediaType (inherited::configuration_->outputFormat,
+                               media_type_3);
+
+      ACE_ASSERT (!inherited::frame_);
+      inherited::frame_ = av_frame_alloc ();
+      if (unlikely (!inherited::frame_))
+      {
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      inherited::frame_->format = media_type_3.format;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      inherited::frame_->width = media_type_3.resolution.cx;
+      inherited::frame_->height = media_type_3.resolution.cy;
+#else
+      inherited::frame_->width = media_type_3.resolution.width;
+      inherited::frame_->height = media_type_3.resolution.height;
+#endif // ACE_WIN32 || ACE_WIN64
+      inherited::frameSize_ =
+          av_image_get_buffer_size (static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                    inherited::frame_->width, inherited::frame_->height,
+                                    1); // *TODO*: linesize alignment
+      ACE_ASSERT (inherited::frameSize_ >= 0);
+      ACE_ASSERT (!inherited::buffer_);
+      inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
+      if (unlikely (!inherited::buffer_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    inherited::frameSize_));
+        goto error;
+      } // end IF
+      ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
+      result =
+          av_image_fill_linesizes (inherited::frame_->linesize,
+                                   static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                   static_cast<int> (inherited::frame_->width));
+      ACE_ASSERT (result >= 0);
+      result =
+          av_image_fill_pointers (inherited::frame_->data,
+                                  static_cast<enum AVPixelFormat> (inherited::frame_->format),
+                                  static_cast<int> (inherited::frame_->height),
+                                  reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                                  inherited::frame_->linesize);
+      ACE_ASSERT (result >= 0);
+
       break;
 
 error:

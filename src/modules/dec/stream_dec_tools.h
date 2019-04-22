@@ -151,6 +151,7 @@ class Stream_Module_Decoder_Tools
                                           IMFTopology*&);      // input/return value: topology handle
 #endif // ACE_WIN32 || ACE_WIN64
   static enum AVCodecID AVPixelFormatToAVCodecId (enum AVPixelFormat); // pixel format
+  static enum AVCodecID filenameExtensionToAVCodecId (const std::string&); // filename extension
 
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 

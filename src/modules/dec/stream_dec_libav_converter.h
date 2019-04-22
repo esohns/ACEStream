@@ -144,6 +144,91 @@ class Stream_Decoder_LibAVConverter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter_T& operator= (const Stream_Decoder_LibAVConverter_T&))
 };
 
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataContainerType,
+          typename MediaType> // session data-
+class Stream_Decoder_LibAVConverter1_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    >
+#else
+                                                     ,typename SessionDataContainerType::DATA_T>
+#endif // ACE_WIN32 || ACE_WIN64
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionDataContainerType::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
+
+ public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Decoder_LibAVConverter1_T (ISTREAM_T*); // stream handle
+#else
+  Stream_Decoder_LibAVConverter1_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  inline virtual ~Stream_Decoder_LibAVConverter1_T () {}
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
+  // convenient types
+  typedef Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
+                                           TimePolicyType,
+                                           ConfigurationType,
+                                           ControlMessageType,
+                                           DataMessageType,
+                                           SessionMessageType,
+                                           SessionDataContainerType,
+                                           MediaType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter1_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter1_T (const Stream_Decoder_LibAVConverter1_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVConverter1_T& operator= (const Stream_Decoder_LibAVConverter1_T&))
+};
+
 // include template definition
 #include "stream_dec_libav_converter.inl"
 

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_VIS_LIBAV_RESIZE_T_H
-#define STREAM_VIS_LIBAV_RESIZE_T_H
+#ifndef STREAM_VIS_IMAGEMAGICK_RESIZE_T_H
+#define STREAM_VIS_IMAGEMAGICK_RESIZE_T_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

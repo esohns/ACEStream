@@ -327,24 +327,24 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       ACE_ASSERT (window_);
       const typename SessionDataContainerType::DATA_T& session_data_r =
           inherited::sessionData_->getR ();
-      ACE_ASSERT (!session_data_r.formats.empty ());
-      const MediaType& media_type_r = session_data_r.formats.front ();
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
-      inherited2::getMediaType (media_type_r,
-                                media_type_2);
+//      ACE_ASSERT (!session_data_r.formats.empty ());
+//      const MediaType& media_type_r = session_data_r.formats.front ();
+//      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
+//      inherited2::getMediaType (media_type_r,
+//                                media_type_2);
       Common_Image_Resolution_t resolution_s =
           Stream_MediaFramework_Tools::toResolution (*display_,
                                                      window_);
-      int row_size_i =
-          av_image_get_linesize (media_type_2.format,
-                                 media_type_2.resolution.width,
-                                 0);
-      int depth_i =
-          (row_size_i / media_type_2.resolution.width) * 8;
+//      int row_size_i =
+//          av_image_get_linesize (media_type_2.format,
+//                                 media_type_2.resolution.width,
+//                                 0);
+//      int depth_i =
+//          (row_size_i / media_type_2.resolution.width) * 8;
       XWindowAttributes attributes_s = Common_UI_Tools::get (*display_,
                                                              window_);
       // *NOTE*: otherwise there will be 'BadMatch' errors
-      ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
+//      ACE_ASSERT ((media_type_2.resolution.width == resolution_s.width) && (media_type_2.resolution.height == resolution_s.height));
 //      ACE_ASSERT (depth_i == attributes_s.depth);
 
       // sanity check(s)

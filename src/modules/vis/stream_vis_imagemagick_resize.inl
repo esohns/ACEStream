@@ -18,6 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include "libswscale/swscale.h"
+}
+#endif /* __cplusplus */
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
 #else
@@ -26,7 +33,11 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_image_tools.h"
+
 #include "stream_macros.h"
+
+#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -560,7 +571,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
   ACE_ASSERT (message_data_r.codec == AV_CODEC_ID_NONE);
-  ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB24);
+  ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB32_1);
 
   result =
     MagickNewImage (inherited::context_,
@@ -580,7 +591,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #else
                              message_data_r.resolution.width, message_data_r.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                             ACE_TEXT_ALWAYS_CHAR ("RGB"),
+                             ACE_TEXT_ALWAYS_CHAR ("RGBA"),
                              CharPixel,
                              message_inout->rd_ptr ());
 //  result = MagickReadImageBlob (inherited::context_,
@@ -590,7 +601,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   message_inout->release (); message_inout = NULL;
 
   result = MagickSetImageFormat (inherited::context_,
-                                 ACE_TEXT_ALWAYS_CHAR ("RGB"));
+                                 ACE_TEXT_ALWAYS_CHAR ("RGBA"));
   ACE_ASSERT (result == MagickTrue);
 
   result =
@@ -614,7 +625,14 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
   data_p = MagickGetImageBlob (inherited::context_,
                                &size_i);
-  ACE_ASSERT (data_p);
+  if (!data_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to MagickGetImageBlob(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (inherited::context_).c_str ())));
+    goto error;
+  } // end IF
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_i,
                    0);
@@ -688,8 +706,8 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inference
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.front ();
+//  ACE_ASSERT (!session_data_r.formats.empty ());
+//  const MediaType& media_type_r = session_data_r.formats.front ();
 
   switch (message_inout->type ())
   {
@@ -698,41 +716,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
       break;
 
 error:
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
-
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_RESIZE:
-    {
-      // sanity check(s)
-      if (!inherited::context_)
-        break; // nothing to do
-
-      int result = -1;
-      int flags_i = 0;
-      struct Stream_MediaFramework_FFMPEG_MediaType media_type_2;
-      inherited::getMediaType (media_type_r,
-                               media_type_2);
-
-#if defined (_DEBUG)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  media_type_2.resolution.cx, media_type_2.resolution.cy,
-                  inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy));
-#else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  media_type_2.resolution.width, media_type_2.resolution.height,
-                  inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
-#endif // ACE_WIN32 || ACE_WIN64
-#endif // _DEBUG
-
-      break;
-
-error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

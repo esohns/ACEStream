@@ -126,15 +126,14 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
 #if defined (GTK_USE)
-   , window (NULL)
-#else
+//   , window (NULL)
+#endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
 #else
    , window (None)
    , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
     hasHeader = true;
@@ -152,15 +151,14 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
 #if defined (GTK_USE)
-  GdkWindow*                                    window;
-#else
+//  GdkWindow*                                    window;
+#endif // GTK_USE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                                          window;
 #else
   Window                                        window;
   Display*                                      X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
 };
 //extern const char stream_name_string_[];
 struct Stream_ImageScreen_StreamConfiguration;
@@ -186,13 +184,13 @@ struct Stream_ImageScreen_StreamConfiguration
 {
   Stream_ImageScreen_StreamConfiguration ()
    : Stream_Configuration ()
-   , format ()
+//   , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
   {
     printFinalReport = true;
   }
 
-  struct Stream_MediaFramework_FFMPEG_MediaType format;
+//  struct Stream_MediaFramework_FFMPEG_MediaType format;
   enum Stream_Visualization_VideoRenderer       renderer;
 };
 

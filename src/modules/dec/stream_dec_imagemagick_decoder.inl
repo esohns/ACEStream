@@ -20,6 +20,13 @@
 
 #include <limits>
 
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavutil/imgutils.h"
+}
+#endif /* __cplusplus */
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "MagickWand/MagickWand.h"
 #else
@@ -31,6 +38,8 @@
 #if defined (_DEBUG)
 #include "common_file_tools.h"
 #endif // _DEBUG
+
+#include "common_image_tools.h"
 
 #include "stream_macros.h"
 
@@ -59,6 +68,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::Stream_Decoder_ImageMagick_Decoder_T"));
 
+//  InitializeMagick (NULL);
   MagickWandGenesis ();
 }
 
@@ -91,13 +101,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 bool
 Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                      Stream_IAllocator* allocator_in)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::initialize"));
 
@@ -119,8 +129,8 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  MagickSetImageType (context_, TrueColorType);
-  MagickSetImageColorspace (context_, sRGBColorspace);
+//  MagickSetImageType (context_, TrueColorType);
+//  MagickSetImageColorspace (context_, sRGBColorspace);
 
   inherited2::getMediaType (configuration_in.outputFormat,
                             outputFormat_);
@@ -131,7 +141,7 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     outputFormat_.format == AV_PIX_FMT_RGB24;
   } // end IF
-  ACE_ASSERT (outputFormat_.format == AV_PIX_FMT_RGB24);
+//  ACE_ASSERT (outputFormat_.format == AV_PIX_FMT_RGB24);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -146,13 +156,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::handleDataMessage"));
 
@@ -197,18 +207,42 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                          message_p->sessionId (),
                          NULL);
 
-  ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_PNG);
-  MagickBooleanType result = MagickSetImageFormat (context_, "PNG");
+  ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
+  MagickBooleanType result = MagickSetFormat (context_, "RGB");
+  ACE_ASSERT (result == MagickTrue);
+  result = MagickSetSize (context_,
+                          media_type_s.resolution.width,
+                          media_type_s.resolution.height);
   ACE_ASSERT (result == MagickTrue);
 
   result = MagickReadImageBlob (context_,
                                 message_inout->rd_ptr (),
                                 message_inout->length ());
-  ACE_ASSERT (result == MagickTrue);
+  if (unlikely (result != MagickTrue))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to MagickReadImageBlob(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (context_).c_str ())));
+    return;
+  } // end IF
   message_inout->release (); message_inout = NULL;
 
-  result = MagickSetImageFormat (context_, "RGB");
+//  result = MagickSetImageDepth (context_, 8);
+//  ACE_ASSERT (result == MagickTrue);
+  result = MagickSetImageChannelDepth (context_,
+                                       AllChannels,
+//                                       static_cast<ChannelType> (RedChannel | GreenChannel | BlueChannel | AlphaChannel),
+                                       8);
   ACE_ASSERT (result == MagickTrue);
+  result = MagickSetImageFormat (context_, "RGBA");
+  ACE_ASSERT (result == MagickTrue);
+  result = MagickSetImageAlphaChannel (context_,
+                                       OpaqueAlphaChannel);
+  ACE_ASSERT (result == MagickTrue);
+//  result = MagickSetImageAlphaChannel (context_,
+//                                       ActivateAlphaChannel);
+//  ACE_ASSERT (result == MagickTrue);
 
   data_p = MagickGetImageBlob (context_,
                                &size_2);
@@ -254,13 +288,13 @@ template <ACE_SYNCH_DECL,
           typename MediaType>
 void
 Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ImageMagick_Decoder_T::handleSessionMessage"));
 

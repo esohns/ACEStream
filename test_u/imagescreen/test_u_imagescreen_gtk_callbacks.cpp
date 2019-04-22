@@ -155,9 +155,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve window handle
-  (*stream_configuration_iterator).second.second.window =
-      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*stream_configuration_iterator).second.second.window);
+//  (*stream_configuration_iterator).second.second.window =
+//      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+//  ACE_ASSERT ((*stream_configuration_iterator).second.second.window);
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation_s);
@@ -173,8 +173,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
 #endif // ACE_WIN32 || ACE_WIN64
       allocation_s.height;
-  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
-      (*stream_configuration_iterator).second.second.outputFormat.resolution;
+//  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
+//      (*stream_configuration_iterator).second.second.outputFormat.resolution;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("initial window size: %ux%u\n"),
               allocation_s.width, allocation_s.height));
@@ -973,8 +973,8 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
 #endif // ACE_WIN32 || ACE_WIN64
       allocation_s.height;
-  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
-      (*stream_configuration_iterator).second.second.outputFormat.resolution;
+//  ui_cb_data_p->configuration->streamConfiguration.configuration_.format.resolution =
+//      (*stream_configuration_iterator).second.second.outputFormat.resolution;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("resized window to %ux%u\n"),
               allocation_s.width, allocation_s.height));
