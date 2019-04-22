@@ -145,8 +145,8 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   struct Common_UI_DisplayDevice                display; // display module
   Common_File_Identifier                        fileIdentifier; // source module
   // *NOTE*: treat each image separately (different sizes)
-  bool                                          individualFormat;
   bool                                          fullScreen;
+  bool                                          individualFormat;
   struct Stream_MediaFramework_FFMPEG_MediaType outputFormat;
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;

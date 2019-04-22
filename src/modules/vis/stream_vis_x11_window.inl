@@ -542,24 +542,40 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
+    int x =
+        (configuration_in.fullScreen ? configuration_in.display.clippingArea.x
+                                     : 0);
+    int y =
+        (configuration_in.fullScreen ? configuration_in.display.clippingArea.y
+                                     : 0);
+    unsigned int width_i =
+        (configuration_in.fullScreen ? configuration_in.display.clippingArea.width
+                                     : configuration_in.outputFormat.resolution.width);
+    unsigned int height_i =
+        (configuration_in.fullScreen ? configuration_in.display.clippingArea.height
+                                     : configuration_in.outputFormat.resolution.height);
+    unsigned long valuemask_i =
+        (CWBackPixel       |
+         CWBorderPixel     |
+         CWOverrideRedirect);
     XSetWindowAttributes attributes_a;
     ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
     attributes_a.background_pixel  =
-        XWhitePixel (display_, DefaultScreen (display_));
+        XBlackPixel (display_, DefaultScreen (display_));
     attributes_a.border_pixel =
         XBlackPixel (display_, DefaultScreen (display_));
-    attributes_a.override_redirect = 0;
+    attributes_a.override_redirect = True;
     window_ =
         XCreateWindow (display_,
-                       XRootWindow (display_, DefaultScreen (display_)),
-                       0, 0,
-                       configuration_in.outputFormat.resolution.width, configuration_in.outputFormat.resolution.height,
+                       DefaultRootWindow (display_),
+                       x, y,
+                       width_i, height_i,
                        0,
                        DefaultDepth (display_, DefaultScreen (display_)),
 //                       32,
                        InputOutput,
                        DefaultVisual (display_, DefaultScreen (display_)),
-                       CWBackPixel | CWBorderPixel | CWOverrideRedirect,
+                       valuemask_i,
                        &attributes_a);
     if (unlikely (!window_))
     {

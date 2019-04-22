@@ -28,6 +28,22 @@
       </object>
     </child>
   </object>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -91,6 +107,7 @@
           <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
             <child>
               <object class="GtkToggleButton" id="togglebutton_start">
                 <property name="label">gtk-media-play</property>
@@ -108,35 +125,175 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToggleButton" id="togglebutton_fullscreen">
-                <property name="label">gtk-fullscreen</property>
+              <object class="GtkFrame">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
-                <property name="use_stock">True</property>
-                <signal name="toggled" handler="togglebutton_fullscreen_toggled_cb" swapped="no"/>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkAlignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkToggleButton" id="togglebutton_fullscreen">
+                            <property name="label">gtk-fullscreen</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="focus_on_click">False</property>
+                            <property name="receives_default">False</property>
+                            <property name="use_stock">True</property>
+                            <signal name="toggled" handler="togglebutton_fullscreen_toggled_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkFileChooserButton" id="filechooserbutton">
+              <object class="GtkFrame">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="action">select-folder</property>
-                <property name="local_only">False</property>
-                <property name="show_hidden">True</property>
-                <property name="title" translatable="yes">Select a Directory</property>
-                <signal name="current-folder-changed" handler="filechooserbutton_current_folder_changed_cb" swapped="no"/>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkAlignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkFileChooserButton" id="filechooserbutton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">data directory</property>
+                        <property name="action">select-folder</property>
+                        <property name="local_only">False</property>
+                        <property name="show_hidden">True</property>
+                        <property name="title" translatable="yes">Select a Directory</property>
+                        <signal name="current-folder-changed" handler="filechooserbutton_current_folder_changed_cb" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFrame">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkAlignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkComboBox" id="combobox_adapter">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="focus_on_click">False</property>
+                            <property name="tooltip_text" translatable="yes">display adapter</property>
+                            <property name="model">liststore_adapter</property>
+                            <signal name="changed" handler="combobox_adapter_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBox" id="combobox_display">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="focus_on_click">False</property>
+                            <property name="tooltip_text" translatable="yes">display device</property>
+                            <property name="model">liststore_display</property>
+                            <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFrame">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkAlignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkSpinButton" id="spinbutton_delay">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">delay (s)</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
               </packing>
             </child>
           </object>
@@ -144,20 +301,6 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkDrawingArea" id="drawingarea">
-            <property name="width_request">320</property>
-            <property name="height_request">240</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <signal name="configure-event" handler="drawingarea_configure_event_cb" swapped="no"/>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
           </packing>
         </child>
         <child>

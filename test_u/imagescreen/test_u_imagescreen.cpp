@@ -134,6 +134,10 @@ do_print_usage (const std::string& programName_in)
             << image_file_path
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : fullscreen [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -153,9 +157,10 @@ do_print_usage (const std::string& programName_in)
 bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
+                      std::string& ImageFilePath_out,
+                      bool& fullscreen_out,
                       bool& traceInformation_out,
-                      std::string& UIDefinitionFilePath_out,
-                      std::string& ImageFilePath_out)
+                      std::string& UIDefinitionFilePath_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -163,6 +168,11 @@ do_process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
+  ImageFilePath_out = path_root;
+  ImageFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  ImageFilePath_out +=
+      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
+  fullscreen_out = false;
   traceInformation_out = false;
   UIDefinitionFilePath_out = path_root;
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -170,14 +180,10 @@ do_process_arguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIDefinitionFilePath_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
-  ImageFilePath_out = path_root;
-  ImageFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  ImageFilePath_out +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("d:tu:"),
+                               ACE_TEXT ("d:ftu:"),
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -193,6 +199,11 @@ do_process_arguments (int argc_in,
       {
         ImageFilePath_out =
           ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
+      case 'f':
+      {
+        fullscreen_out = true;
         break;
       }
       case 't':
@@ -310,6 +321,7 @@ do_work (int argc_in,
          ACE_TCHAR* argv_in[],
          const std::string& UIDefinitionFilePath_in,
          const std::string& imageFilePath_in,
+         bool fullscreen_in,
          /////////////////////////////////
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -329,12 +341,13 @@ do_work (int argc_in,
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.codecId = AV_CODEC_ID_PNG;
+  modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
   modulehandler_configuration.fileIdentifier.identifier = imageFilePath_in;
   modulehandler_configuration.fileIdentifier.identifierDiscriminator =
       Common_File_Identifier::DIRECTORY;
   modulehandler_configuration.fileIdentifier.selector =
       dirent_selector_cb;
-  //  modulehandler_configuration.display = displayDevice_in;
+  modulehandler_configuration.fullScreen = fullscreen_in;
   // X11 requires RGB32
   modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   modulehandler_configuration.slurpFiles = true;
@@ -345,7 +358,7 @@ do_work (int argc_in,
                                                       ,iapplication_in
 #endif
                                                      );
- modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.subscriber = &ui_event_handler;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
@@ -372,8 +385,8 @@ do_work (int argc_in,
   // X11 requires RGB32
 //  configuration.streamConfiguration.configuration_.format.format =
 //      AV_PIX_FMT_RGB32;
-  configuration.streamConfiguration.configuration_.renderer =
-      STREAM_VISUALIZATION_VIDEORENDERER_X11;
+//  configuration.streamConfiguration.configuration_.renderer =
+//      STREAM_VISUALIZATION_VIDEORENDERER_X11;
 
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
@@ -511,6 +524,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   std::string path_root = Common_File_Tools::getWorkingDirectory ();
+  bool fullscreen_b = false;
   bool trace_information = false;
   std::string ui_definition_file_path = path_root;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -526,9 +540,10 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
+                             image_file_path,
+                             fullscreen_b,
                              trace_information,
-                             ui_definition_file_path,
-                             image_file_path))
+                             ui_definition_file_path))
   {
     do_print_usage (ACE::basename (argv_in[0]));
     goto clean;
@@ -583,6 +598,7 @@ ACE_TMAIN (int argc_in,
            argv_in,
            ui_definition_file_path,
            image_file_path,
+           fullscreen_b,
            ///////////////////////////////
            signal_set,
            ignored_signal_set,
