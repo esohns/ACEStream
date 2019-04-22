@@ -605,8 +605,8 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in),
                               FALSE);
 
-    ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
-    ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
+//    ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
+//    ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
 
     // stop stream
     ui_cb_data_p->stream->stop (false,  // wait ?
