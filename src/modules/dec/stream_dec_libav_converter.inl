@@ -675,8 +675,8 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   int flags_i = 0;
   size_t size_i = 0, size_2 = 0;
   AVFrame* frame_p = NULL;
-  const typename DataMessageType::DATA_T& message_data_r =
-      message_inout->getR ();
+  typename DataMessageType::DATA_T& message_data_r =
+      const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
@@ -720,7 +720,8 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   } // end IF
   message_p = dynamic_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
-  message_p->initialize (inherited::configuration_->outputFormat,
+  message_data_r.format = inherited::configuration_->outputFormat.format;
+  message_p->initialize (message_data_r,
                          message_p->sessionId (),
                          NULL);
 
@@ -814,11 +815,11 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   message_p->set (message_inout->type ());
   message_inout->release (); message_inout = NULL;
 
-#if defined (_DEBUG)
-  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.rgb"),
-                            reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                            size_i);
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.rgb"),
+//                            reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+//                            size_i);
+//#endif // _DEBUG
 
   sws_freeContext (context_p); context_p = NULL;
   av_frame_free (&frame_p); frame_p = NULL;

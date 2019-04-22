@@ -336,7 +336,7 @@ do_work (int argc_in,
       dirent_selector_cb;
   //  modulehandler_configuration.display = displayDevice_in;
   // X11 requires RGB32
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32_1;
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   modulehandler_configuration.slurpFiles = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (

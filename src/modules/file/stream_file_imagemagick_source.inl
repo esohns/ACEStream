@@ -240,7 +240,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   MagickBooleanType result_3= MagickTrue;
   unsigned char* data_p = NULL;
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  media_type_s.format = AV_PIX_FMT_RGB24;
+  media_type_s.format = AV_PIX_FMT_BGR32;
   MediaType media_type_2;
 
   // sanity check(s)
@@ -375,12 +375,18 @@ done:
     media_type_s.resolution.height = MagickGetImageHeight (context_);
 #endif // ACE_WIN32 || ACE_WIN64
 
-    result_3 = MagickSetImageFormat (context_, "RGB");
+    result_3 = MagickSetImageFormat (context_, "RGBA");
     ACE_ASSERT (result_3 == MagickTrue);
 
     data_p = MagickGetImageBlob (context_,
                                  &file_size_i);
     ACE_ASSERT (data_p);
+
+//#if defined (_DEBUG)
+//  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.rgba"),
+//                            reinterpret_cast<uint8_t*> (data_p),
+//                            file_size_i);
+//#endif // _DEBUG
 
     message_p =
         inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);

@@ -571,7 +571,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
   ACE_ASSERT (message_data_r.codec == AV_CODEC_ID_NONE);
-  ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB32_1);
+  ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB32);
 
   result =
     MagickNewImage (inherited::context_,
@@ -642,17 +642,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                          NULL);
 
 //#if defined (_DEBUG)
-//    filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-//    if (!Common_File_Tools::store (filename_string,
-//                                   data_p,
-//                                   size_i))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-//                  ACE_TEXT (filename_string.c_str ())));
-//      message_p->release (); message_p = NULL;
-//      goto error;
-//    } // end IF
+//  Common_File_Tools::store (ACE_TEXT_ALWAYS_CHAR ("output.rgb"),
+//                            reinterpret_cast<uint8_t*> (data_p),
+//                            size_i);
 //#endif // _DEBUG
 
   // forward the converted frame

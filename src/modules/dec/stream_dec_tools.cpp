@@ -715,7 +715,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                 ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (targetPixelFormat_in).c_str ())));
     return false;
   } // end IF
-  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
+//  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
 
 // *TODO*: define a balanced scaler parametrization that suits most
 //         applications, or expose this as a parameter
