@@ -2793,11 +2793,13 @@ idle_initialize_UI_cb (gpointer userData_in)
 //  ACE_ASSERT ((*iterator_3).second.second.window);
 
   (*iterator_3).second.second.outputFormat.resolution.height =
-      static_cast<__u32> (allocation.height);
+//      static_cast<__u32> (allocation.height);
+      480;
   (*iterator_3).second.second.outputFormat.resolution.width =
-      static_cast<__u32> (allocation.width);
-  (*iterator_2).second.second.area =
-      (*iterator_3).second.second.area;
+      640;
+//      static_cast<__u32> (allocation.width);
+//  (*iterator_2).second.second.area =
+//      (*iterator_3).second.second.area;
 
 //  (*iterator_3).second.second.pixelBuffer = ui_cb_data_p->pixelBuffer;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -5856,14 +5858,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  (*iterator_2).second.second.outputFormat.resolution.height =
-      allocation_in->height;
-  (*iterator_2).second.second.outputFormat.resolution.width =
-      allocation_in->width;
-  (*iterator_3).second.second.outputFormat.resolution.height =
-      allocation_in->height;
-  (*iterator_3).second.second.outputFormat.resolution.width =
-      allocation_in->width;
+//  (*iterator_2).second.second.outputFormat.resolution.height =
+//      allocation_in->height;
+//  (*iterator_2).second.second.outputFormat.resolution.width =
+//      allocation_in->width;
+//  (*iterator_3).second.second.outputFormat.resolution.height =
+//      allocation_in->height;
+//  (*iterator_3).second.second.outputFormat.resolution.width =
+//      allocation_in->width;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("window resized to %dx%d\n"),
               allocation_in->width, allocation_in->height));

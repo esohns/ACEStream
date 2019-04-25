@@ -104,33 +104,18 @@ Stream_CamSave_Message_T<DataType,
 
   OWN_TYPE_T* message_p = NULL;
 
-  // create a new Stream_CamSave_Message_T that contains unique copies of
-  // the message block fields, but a (reference counted) shallow duplicate of
-  // the ACE_Data_Block
-
   // if there is no allocator, use the standard new and delete calls.
-  if (unlikely (!inherited::message_block_allocator_))
-    ACE_NEW_NORETURN (message_p,
-                      OWN_TYPE_T (*this));
-  else // otherwise, use the existing message_block_allocator
-  {
-    // *NOTE*: the argument to alloc() does not really matter, as this creates
-    //         a shallow copy of the existing data block
-    ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                    '\0')),
-                             OWN_TYPE_T (*this));
-  } // end ELSE
+  ACE_NEW_NORETURN (message_p,
+                    OWN_TYPE_T (this->length ()));
   if (unlikely (!message_p))
   {
-    Stream_IAllocator* allocator_p =
-      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate Stream_CamSave_Message_T: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate Stream_CamSave_Message_T: \"%m\", aborting\n")));
     return NULL;
   } // end IF
+  int result = message_p->copy (this->rd_ptr (),
+                                this->length ());
+  ACE_ASSERT (result == 0);
 
   // increment the reference counts of any continuation messages
   if (inherited::cont_)

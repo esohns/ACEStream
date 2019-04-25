@@ -103,6 +103,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
       {
         case ACE_Message_Block::MB_DATA:
         case ACE_Message_Block::MB_PROTO:
+        case ACE_Message_Block::MB_STOP:
           break;
         case ACE_Message_Block::MB_USER:
         {
@@ -133,7 +134,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
           break;
         }
         case STREAM_MESSAGE_CONTROL:
-//        case ACE_Message_Block::MB_STOP:
           break;
         default:
         {
@@ -233,6 +233,8 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
+      forward (message_inout, false);
+
       break;
 
 error:
@@ -242,6 +244,8 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      forward (message_inout, false);
+
       stop (false, // wait for completion ?
             true); // locked access ?
 
@@ -258,10 +262,12 @@ error:
       break;
     }
     default:
-      break;
-  } // end SWITCH
+    {
+      forward (message_inout, false);
 
-  forward (message_inout, false);
+      break;
+    }
+  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,
@@ -287,7 +293,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 
   { ACE_GUARD_RETURN (typename inherited::ITASKCONTROL_T::MUTEX_T, aGuard, inherited::lock_, false);
     // sanity check(s)
-    ACE_ASSERT (branches_.empty ());
+//    ACE_ASSERT (branches_.empty ());
     branches_ = branches_in;
     inherited::threadCount_ = branches_.size ();
   } // end lock scope
@@ -531,118 +537,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onLink"));
 
-  // sanity check(s)
-  const MODULE_T* module_p = dynamic_cast<MODULE_T*> (module_in);
-  ACE_ASSERT (module_p);
-  const MODULE_T* module_2 = const_cast<MODULE_T*> (module_p)->next ();
-  ACE_ASSERT (module_2);
-
-//  const MODULE_T* tail_p = NULL;
-//  typename inherited::IGET_T* iget_p = NULL;
-//  typename inherited::STREAM_T* stream_p = NULL;
-//  typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
-
-//  // sanity check(s)
-//  if (!ACE_OS::strcmp (module_p->name (),
-//                       ACE_TEXT ("ACE_Stream_Tail")) ||
-//      !ACE_OS::strcmp (module_p->name (),
-//                       ACE_TEXT (STREAM_MODULE_TAIL_NAME)))
-//  {
-//    // *NOTE*: 'this' is being push()ed onto the stream
-//    //         --> nothing to do
-//    return;
-//  } // end IF
-//  if (!ACE_OS::strcmp (inherited::mod_->name (),
-//                       module_2->name ()))
-//  {
-//    // *NOTE*: 'this' is 'downstream'
-//    //         --> nothing to do
-//    return;
-//  } // end IF
-
-//  // *NOTE*: 'this' is (the tail end of-) 'upstream' --> proceed
-
-//  // step1: retrieve a stream handle of the module
-//  iget_p =
-//      dynamic_cast<typename inherited::IGET_T*> (const_cast<MODULE_T*> (module_p));
-//  if (!iget_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed, returning\n"),
-//                module_p->name (),
-//                module_p));
-//    return;
-//  } // end IF
-//  stream_p =
-//      &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
-//  tail_p = stream_p->tail ();
-//  ACE_ASSERT (tail_p);
-//  istream_p =
-//      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-//  if (unlikely (!istream_p))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
-//                module_p->name (),
-//                stream_p));
-//    return;
-//  } // end IF
-//  stream_p = istream_p->upstream (false); // do not recurse
-//  ACE_ASSERT (stream_p);
-//  istream_p =
-//      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
-//  if (unlikely (!istream_p))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
-//                module_p->name (),
-//                stream_p));
-//    return;
-//  } // end IF
-
-//  // step2: find upstream module (on that stream)
-//  for (STREAM_ITERATOR_T iterator (*stream_p);
-//       iterator.next (module_2);
-//       iterator.advance ())
-//  { ACE_ASSERT (const_cast<MODULE_T*> (module_2)->next ());
-//    if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_2)->next ()->name (),
-//                         inherited::mod_->name ()))
-//      break;
-//  } // end FOR
-//  if (unlikely (!module_2))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: could not find upstream module, returning\n"),
-//                module_p->name ()));
-//    return;
-//  } // end IF
-
-//  // step3: add map entry
-//  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-//    readerLinks_.insert (std::make_pair (istream_p->name (),
-//                                         const_cast<MODULE_T*> (module_2)));
-//    writerLinks_.insert (std::make_pair (istream_p->name (),
-//                                         const_cast<MODULE_T*> (module_p)));
-//  } // end lock scope
-
-//  // step4: reset 'next' module to the stream tail
-//  // *IMPORTANT NOTE*: 'this' always references the tail of the modules' stream
-//  //                   most recently linked; that may not be accurate
-//  // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
-//  //         Stream_Module_Base_T::next(), which would effectively remove the
-//  //         reader/writer link(s) (see above) again
-//  //inherited::mod_->link (tail_p);
-//  inherited::mod_->writer ()->next (const_cast<MODULE_T*> (tail_p)->writer ());
-//  const_cast<MODULE_T*> (tail_p)->reader ()->next (inherited::mod_->reader ());
-//  inherited::mod_->MODULE_T::next (const_cast<MODULE_T*> (tail_p));
-
-//#if defined (_DEBUG)
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: linked (%s --> x --> %s)\n"),
-//              inherited::mod_->name (),
-//              module_2->name (),
-//              module_p->name ()));
-//#endif // _DEBUG
 }
 
 template <ACE_SYNCH_DECL,
@@ -663,9 +557,6 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::onUnlink"));
 
-  // sanity check(s)
-  MODULE_T* module_p = dynamic_cast<MODULE_T*> (module_in);
-  ACE_ASSERT (module_p);
 }
 
 template <ACE_SYNCH_DECL,
