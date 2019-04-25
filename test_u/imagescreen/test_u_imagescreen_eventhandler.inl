@@ -120,6 +120,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     state_r.eventStack.push (COMMON_UI_EVENT_STARTED);
+    CBData_->progressData.total = sessionData_->statistic.totalFrames;
   } // end lock scope
 #endif // GTK_USE || WXWIDGETS_USE
 }
@@ -254,6 +255,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #endif // GTK_USE || WXWIDGETS_USE
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     ++CBData_->progressData.statistic.dataMessages;
+    ++CBData_->progressData.current;
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope

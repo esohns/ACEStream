@@ -248,6 +248,17 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gint width, height;
+  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (width));
+  gtk_progress_bar_set_show_text (progress_bar_p,
+                                  TRUE);
+
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
@@ -431,102 +442,56 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  struct Common_UI_GTK_ProgressData* data_p =
-      static_cast<struct Common_UI_GTK_ProgressData*> (userData_in);
+  struct Stream_ImageScreen_ProgressData* data_p =
+      static_cast<struct Stream_ImageScreen_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
 
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-
-//  int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
     data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->state->builders.end ());
 
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  bool done = false;
+  std::ostringstream converter;
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+    for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+         iterator_3 != data_p->completedActions.end ();
+         ++iterator_3)
+    {
+      iterator_2 = data_p->pendingActions.find (*iterator_3);
+      ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
+
+      data_p->state->eventSourceIds.erase (*iterator_3);
+      data_p->pendingActions.erase (iterator_2);
+    } // end FOR
+    data_p->completedActions.clear ();
+
+    if (data_p->pendingActions.empty ())
+    {
+      data_p->eventSourceId = 0;
+      done = true;
+    } // end IF
+  } // end lock scope
+
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-
-//  ACE_THR_FUNC_RETURN exit_status;
-//  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-//  ACE_ASSERT (thread_manager_p);
-  Common_UI_GTK_PendingActionsIterator_t iterator_2;
-  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
-       iterator_3 != data_p->completedActions.end ();
-       ++iterator_3)
-  {
-    iterator_2 = data_p->pendingActions.find (*iterator_3);
-    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-//    ACE_thread_t thread_id = (*iterator_2).second.id ();
-//    result = thread_manager_p->join (thread_id, &exit_status);
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-//                  thread_id));
-//    else
-//    {
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("thread %u has joined (status was: %u)\n"),
-//                  thread_id,
-//                  exit_status));
-//#else
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
-//                  thread_id,
-//                  exit_status));
-//#endif
-//    } // end ELSE
-
-    data_p->state->eventSourceIds.erase (*iterator_3);
-    data_p->pendingActions.erase (iterator_2);
-  } // end FOR
-  data_p->completedActions.clear ();
-
-  bool done = false;
-  if (data_p->pendingActions.empty ())
-  {
-    //if (data_p->cursorType != GDK_LAST_CURSOR)
-    //{
-    //  GdkCursor* cursor_p = gdk_cursor_new (data_p->cursorType);
-    //  if (!cursor_p)
-    //  {
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
-    //                data_p->cursorType));
-    //    return G_SOURCE_REMOVE;
-    //  } // end IF
-    //  GtkWindow* window_p =
-    //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-    //                                        ACE_TEXT_ALWAYS_CHAR (IRC_CLIENT_GUI_GTK_WINDOW_MAIN)));
-    //  ACE_ASSERT (window_p);
-    //  GdkWindow* window_2 = gtk_widget_get_window (GTK_WIDGET (window_p));
-    //  ACE_ASSERT (window_2);
-    //  gdk_window_set_cursor (window_2, cursor_p);
-    //  data_p->cursorType = GDK_LAST_CURSOR;
-    //} // end IF
-
-    data_p->eventSourceId = 0;
-
-    done = true;
-  } // end IF
-
-  // synch access
-  std::ostringstream converter;
-  converter  << data_p->statistic.dataMessages;
-  converter  << ACE_TEXT_ALYWAYS_CHAR (" / ");
-  converter  << data_p->statistic.totalFrames;
+//  ACE_ASSERT (data_p->total);
+  converter  << data_p->current;
+  converter  << ACE_TEXT_ALWAYS_CHAR (" / ");
+  converter  << data_p->total;
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
                                    : converter.str ().c_str ()));
   gtk_progress_bar_set_fraction (progress_bar_p,
-                                 data_p->statistic.dataMessages / data_p->statistic.totalFrames);
-  gtk_progress_bar_pulse (progress_bar_p);
+                                 (gfloat)data_p->current / (gfloat)data_p->total);
+//  gtk_progress_bar_pulse (progress_bar_p);
 
   // reschedule ?
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
@@ -563,6 +528,9 @@ idle_session_end_cb (gpointer userData_in)
 
   ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
   ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
+
+  ui_cb_data_p->progressData.current = 0;
+  ui_cb_data_p->progressData.total = 0;
 
   return G_SOURCE_REMOVE;
 }
