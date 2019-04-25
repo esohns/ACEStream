@@ -208,6 +208,7 @@ set (source_files
      stream_statemachine_control.cpp
      stream_statemachine_control.h
      stream_statemachine_control.inl
+     stream_statistic.h
      stream_streammodule_base.cpp
      stream_streammodule_base.h
      stream_streammodule_base.inl
@@ -356,6 +357,7 @@ install (FILES
          stream_session_data.inl
          stream_session_message_base.h
          stream_session_message_base.inl
+         stream_statistic.h
          stream_statemachine_control.h
          stream_statemachine_control.inl
          stream_streammodule_base.h

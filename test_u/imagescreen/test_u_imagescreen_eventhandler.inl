@@ -253,6 +253,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
 #endif // GTK_USE || WXWIDGETS_USE
     CBData_->progressData.statistic.bytes += message_in.total_length ();
+    ++CBData_->progressData.statistic.dataMessages;
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
   } // end lock scope

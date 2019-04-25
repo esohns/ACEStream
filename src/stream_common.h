@@ -40,6 +40,7 @@
 #include "stream_ilock.h"
 #include "stream_inotify.h"
 #include "stream_statemachine_common.h"
+#include "stream_statistic.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_common.h"
@@ -186,54 +187,6 @@ enum Stream_SessionMessageType : int
   STREAM_SESSION_MESSAGE_INVALID
 };
 
-struct Stream_Statistic
-{
-  Stream_Statistic ()
-   : capturedFrames (0)
-   , droppedFrames (0)
-   , bytes (0.0F)
-   , dataMessages (0)
-   , bytesPerSecond (0.0F)
-   , messagesPerSecond (0.0F)
-   , timeStamp (ACE_Time_Value::zero)
-  {}
-
-  struct Stream_Statistic operator~ ()
-  {
-    capturedFrames = 0;
-    droppedFrames = 0;
-    bytes = 0.0F;
-    dataMessages = 0;
-    bytesPerSecond = 0.0F;
-    messagesPerSecond = 0.0F;
-    timeStamp = ACE_Time_Value::zero;
-
-    return *this;
-  }
-  struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
-  {
-    capturedFrames += rhs_in.capturedFrames;
-    droppedFrames += rhs_in.droppedFrames;
-
-    bytes += rhs_in.bytes;
-    dataMessages += rhs_in.dataMessages;
-
-    return *this;
-  }
-
-  unsigned int   capturedFrames; // captured/generated frames
-  unsigned int   droppedFrames;  // dropped frames (i.e. driver congestion, buffer overflow, etc)
-
-  float          bytes;          // amount of processed data
-  unsigned int   dataMessages;   // (protocol) messages
-
-  // (current) runtime performance
-  float          bytesPerSecond;
-  float          messagesPerSecond;
-
-  ACE_Time_Value timeStamp;
-};
-
 // *NOTE*: 'unsigned long' allows efficient atomic increments on many platforms
 //         (see: available ACE_Atomic_Op template specializations)
 typedef unsigned long Stream_SessionId_t;
@@ -283,9 +236,8 @@ struct Stream_SessionData
     startOfSession =
         (startOfSession >= rhs_in.startOfSession ? startOfSession
                                                  : rhs_in.startOfSession);
-    statistic =
-        ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
-                                                             : rhs_in.statistic);
+
+    statistic += rhs_in.statistic;
 
     userData = (userData ? userData : rhs_in.userData);
 

@@ -518,11 +518,14 @@ idle_update_progress_cb (gpointer userData_in)
 
   // synch access
   std::ostringstream converter;
-  converter << data_p->eventSourceId;
-  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  converter  << data_p->statistic.dataMessages;
+  converter  << ACE_TEXT_ALYWAYS_CHAR (" / ");
+  converter  << data_p->statistic.totalFrames;
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
                                    : converter.str ().c_str ()));
+  gtk_progress_bar_set_fraction (progress_bar_p,
+                                 data_p->statistic.dataMessages / data_p->statistic.totalFrames);
   gtk_progress_bar_pulse (progress_bar_p);
 
   // reschedule ?
@@ -548,12 +551,15 @@ idle_session_end_cb (gpointer userData_in)
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
   ACE_ASSERT (toggle_button_p);
+
+  if (gtk_toggle_button_get_active (toggle_button_p))
+  {
+    untoggling_stream_b = true;
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  FALSE);
+  } // end IF
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
                             TRUE);
-
-  untoggling_stream_b = true;
-  gtk_toggle_button_set_active (toggle_button_p,
-                                FALSE);
 
   ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
   ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
@@ -629,6 +635,32 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (file_chooser_button_p);
   (*stream_configuration_iterator).second.second.fileIdentifier.identifier =
     gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
+
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkTreeIter iterator_4;
+  gboolean result = gtk_combo_box_get_active_iter (combo_box_p,
+                                                   &iterator_4);
+  ACE_ASSERT (result);
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  (*stream_configuration_iterator).second.second.display =
+      Common_UI_Tools::getDisplay (g_value_get_string (&value));
 
   if (!ui_cb_data_p->stream->initialize (ui_cb_data_p->configuration->streamConfiguration))
   {

@@ -247,9 +247,10 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
-  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+      const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 //  ACE_ASSERT (session_data_r.lock);
+  session_data_r.statistic.totalFrames = directory_.length ();
 
 next:
   file_path_string = inherited::configuration_->fileIdentifier.identifier;
