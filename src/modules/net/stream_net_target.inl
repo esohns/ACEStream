@@ -236,6 +236,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           dynamic_cast<Net_UDPSocketConfiguration_t*> ((*iterator).second);
       ACE_ASSERT (socket_configuration_p);
       address_ = socket_configuration_p->peerAddress;
+//#if defined (_DEBUG)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: peer address: %s\n"),
+//                  inherited::mod_->name (),
+//                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+//#endif // _DEBUG
       break;
     }
     default:
