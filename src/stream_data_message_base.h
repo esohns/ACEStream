@@ -134,12 +134,11 @@ class Stream_DataMessageBase_2
   typedef DataType DATA_T;
 
   // initialization-after-construction
-  using inherited::initialize;
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
-  void initialize (DataType*&,              // data handle
-                   Stream_SessionId_t,      // session id
-                   ACE_Data_Block* = NULL); // data block to use
-  void finalize ();
+  virtual void initialize (DataType*&,              // data handle
+                           Stream_SessionId_t,      // session id
+                           ACE_Data_Block* = NULL); // data block to use
+  virtual void finalize ();
 
   // implement Common_IGetR_T
   virtual const DataType& getR () const;
@@ -174,6 +173,8 @@ class Stream_DataMessageBase_2
                             bool = true);       // increment running message counter ?
 
   virtual ~Stream_DataMessageBase_2 ();
+
+  inline virtual void initialize (Stream_SessionId_t, ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   DataType* data_;
 

@@ -46,6 +46,7 @@ class Stream_MessageBase_T
  , public Stream_IDataMessage_T<MessageType,
                                 CommandType>
  , public Common_ISet_T<MessageType>
+ , public Common_ISet_T<Stream_SessionId_t>
  , public Common_IDumpState
 {
   typedef ACE_Message_Block inherited;
@@ -67,15 +68,16 @@ class Stream_MessageBase_T
   virtual void defragment ();
 
   // implement Common_ISet_T
+  inline virtual void set (const Stream_SessionId_t sessionId_in) { sessionId_ = sessionId_in; }
   inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; }
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
   // used for pre-allocated messages
-  void initialize (Stream_SessionId_t,         // session id
-                   ACE_Data_Block*             // data block to use
-                   /*const ACE_Time_Value&*/); // scheduled execution time
+  virtual void initialize (Stream_SessionId_t,         // session id
+                           ACE_Data_Block*             // data block to use
+                           /*const ACE_Time_Value&*/); // scheduled execution time
   inline bool isInitialized () const { return isInitialized_; }
 
   // debug tools

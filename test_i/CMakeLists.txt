@@ -279,6 +279,9 @@ add_subdirectory (http_get_2)
 add_custom_target (test_i ALL
                    COMMENT "building test_i...")
 add_dependencies (test_i camsave camsource camtarget filesource filetarget HTTP_get_1 HTTP_get_2)
+if (WIN32)
+ add_dependencies (test_i camtarget_source camtarget_source_mf)
+endif (WIN32)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_I)

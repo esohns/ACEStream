@@ -371,8 +371,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     if (likely (inherited::sessionData_))
     {
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-      message_inout->initialize (session_data_r.sessionId, // session id
-                                 NULL);                    // data block
+      message_inout->set (session_data_r.sessionId); // session id
     } // end IF
     else
       ACE_DEBUG ((LM_WARNING, // *TODO*

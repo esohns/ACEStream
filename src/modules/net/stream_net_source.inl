@@ -1028,15 +1028,15 @@ close:
   } // end IF
 
   // *TODO*: remove type inferences
-  if (configuration_in.connection &&
-      configuration_in.passive)
-  {
-    connection_ = configuration_in.connection;
-    connection_->increase ();
+//  if (configuration_in.connection &&
+//      configuration_in.passive)
+//  {
+//    connection_ = configuration_in.connection;
+//    connection_->increase ();
 
-    isPassive_ = true;
-  } // end IF
-  else
+//    isPassive_ = true;
+//  } // end IF
+//  else
     isPassive_ = false;
 
   // sanity check(s)

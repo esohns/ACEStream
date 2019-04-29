@@ -40,7 +40,7 @@ class Stream_SessionBase_T
                                       SessionMessageType>
 {
  public:
-  inline virtual ~Stream_SessionBase_T () {};
+  inline virtual ~Stream_SessionBase_T () {}
 
   // convenient types
   typedef Stream_ISessionNotify_T<SessionIdType,
@@ -75,10 +75,10 @@ class Stream_SessionBase_T
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id
                       const SessionDataType&); // session data
-  inline virtual void notify (SessionIdType, const SessionEventType&) {};
+  inline virtual void notify (SessionIdType, const SessionEventType&) {}
   virtual void end (SessionIdType); // session id
-  inline virtual void notify (SessionIdType, const MessageType&) {};
-  inline virtual void notify (SessionIdType, const SessionMessageType&) {};
+  inline virtual void notify (SessionIdType, const MessageType&) {}
+  inline virtual void notify (SessionIdType, const SessionMessageType&) {}
 
   ACE_SYNCH_CONDITION condition_;
 };
