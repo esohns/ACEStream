@@ -38,7 +38,7 @@
 #include <Unknwn.h>
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
-//#include <wxdebug.h>
+#include <wxdebug.h>
 #include <combase.h>
 #include <dllsetup.h>
 #include <strsafe.h>

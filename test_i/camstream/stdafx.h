@@ -16,13 +16,13 @@
 
 #include <strmif.h>
 #include <reftime.h>
-#if defined (DEBUG)
+//#if defined (DEBUG)
 // *NOTE*: wxWidgets may have #defined __WXDEBUG__
-#if defined (__WXDEBUG__)
-#undef __WXDEBUG__
-#endif // __WXDEBUG__
+//#if defined (__WXDEBUG__)
+//#undef __WXDEBUG__
+//#endif // __WXDEBUG__
 #include <wxdebug.h>
-#endif // DEBUG
+//#endif // DEBUG
 // *NOTE*: uuids.h doesn't have double include protection
 #if defined (UUIDS_H)
 #else

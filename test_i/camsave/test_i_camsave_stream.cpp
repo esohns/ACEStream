@@ -50,16 +50,12 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
-#if defined (GUI_SUPPORT)
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- , directShowDisplay_ (this,
-                       ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
-#if defined (GTK_USE)
- , GTKCairoDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+ //, directShowDisplay_ (this,
+ //                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+ //, GTKCairoDisplay_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -78,7 +74,7 @@ Stream_CamSave_DirectShow_Stream::~Stream_CamSave_DirectShow_Stream ()
 }
 
 bool
-Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                         bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_DirectShow_Stream::load"));
@@ -99,42 +95,14 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
-  modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&encoder_);
-#if defined (GUI_SUPPORT)
-  switch (inherited::configuration_->configuration_.renderer)
-  {
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-      break;
-    //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-    //  modules_out.push_back (&direct2DDisplay_);
-    //  break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-      modules_out.push_back (&direct3DDisplay_);
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-      modules_out.push_back (&directShowDisplay_);
-      break;
-    //case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
-    //  modules_out.push_back (&mediaFoundationDisplay_);
-    //  break;
-#if defined (GTK_USE)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-      modules_out.push_back (&GTKCairoDisplay_);
-      break;
-#endif // GTK_USE
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_.renderer));
-      return false;
-    }
-  } // end SWITCH
-#endif // GUI_SUPPORT
-  modules_out.push_back (&statisticReport_);
-  modules_out.push_back (&source_);
+
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&direct3DDisplay_, NULL, 0);
+  //modules_out.push_back (&directShowDisplay_);
+  //modules_out.push_back (&GTKCairoDisplay_);
+  layout_in->append (&encoder_, NULL, 0);
+  layout_in->append (&fileWriter_, NULL, 0);
 
   return true;
 }
@@ -171,7 +139,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_.renderer).c_str ()));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
@@ -270,7 +238,8 @@ continue_:
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_.format,
                                                             (*iterator).second.second.outputFormat,
-                                                            ((configuration_in.configuration_.renderer == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW) ? (*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow : NULL),
+                                                            //(*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow
+                                                            NULL,
                                                             (*iterator).second.second.builder,
                                                             graph_configuration))
   {
@@ -555,14 +524,12 @@ Stream_CamSave_MediaFoundation_Stream::Stream_CamSave_MediaFoundation_Stream ()
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
- , mediaFoundationDisplay_ (this,
-                            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
- , mediaFoundationDisplayNull_ (this,
-                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING))
-#if defined (GTK_USE)
- , GTKCairoDisplay_ (this,
-                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_USE
+ //, mediaFoundationDisplay_ (this,
+ //                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
+ //, mediaFoundationDisplayNull_ (this,
+ //                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING))
+ //, GTKCairoDisplay_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , encoder_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_AVI_DEFAULT_NAME_STRING))
  , fileWriter_ (this,
@@ -916,7 +883,7 @@ error:
 }
 
 bool
-Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_CamSave_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_MediaFoundation_Stream::load"));
@@ -927,43 +894,15 @@ Stream_CamSave_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
-  modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&encoder_);
-  switch (inherited::configuration_->configuration_.renderer)
-  {
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-      break;
-    //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
-    //  modules_out.push_back (&direct2DDisplay_);
-    //  break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-      modules_out.push_back (&direct3DDisplay_);
-      break;
-    //case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
-    //  modules_out.push_back (&directShowDisplay_);
-    //  break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
-      modules_out.push_back (&mediaFoundationDisplay_);
-      //modules_out.push_back (&mediaFoundationDisplayNull_);
-      break;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-      modules_out.push_back (&GTKCairoDisplay_);
-      break;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown video renderer (was: %d), aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  inherited::configuration_->configuration_.renderer));
-      return false;
-    }
-  } // end SWITCH
-  modules_out.push_back (&statisticReport_);
-  modules_out.push_back (&source_);
+
+  layout_in->append (&source_, NULL, 0);
+  layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&direct3DDisplay_, NULL, 0);
+  //modules_out.push_back (&mediaFoundationDisplay_);
+  //modules_out.push_back (&mediaFoundationDisplayNull_);
+  //modules_out.push_back (&GTKCairoDisplay_);
+  layout_in->append (&encoder_, NULL, 0);
+  layout_in->append (&fileWriter_, NULL, 0);
 
   return true;
 }

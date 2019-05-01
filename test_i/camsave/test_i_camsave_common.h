@@ -432,13 +432,12 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , display ()
    , fullScreen (false)
-#if defined (GUI_SUPPORT)
-   , window (None)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , window (NULL)
 #else
+   , window (None)
    , X11Display (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -452,17 +451,12 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   struct Stream_Device_Identifier deviceIdentifier; // source module
   struct Common_UI_DisplayDevice  display; // display module
   bool                            fullScreen;
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-//  GdkWindow*                      window;
-  Window                          window;
-  Display*                        X11Display;
-#else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                            window;
+#else
+  Window                          window;
+  Display*                        X11Display;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GTK_USE
-#endif // GUI_SUPPORT
   std::string                     targetFileName;
 };
 //extern const char stream_name_string_[];

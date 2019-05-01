@@ -1007,6 +1007,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     ACE_ASSERT (inherited::configuration_);
     // *TODO*: remove type inference
     ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+    ACE_ASSERT (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
 
     // *TODO*: remove type inference
     message_p =

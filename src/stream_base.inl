@@ -3971,7 +3971,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   MODULE_T* module_p = NULL;
 
   // step0: if not properly initialized, this needs to deactivate any hitherto
-  // enqueued ACTIVE modules, or the stream will wait forever during closure...
+  // enqueued ACTIVE modules, or the stream will wait forever during closure
   // --> possible scenarios:
   // - (re-)init() failed halfway through (i.e. MAYBE some modules push()ed
   //   correctly)
@@ -4008,7 +4008,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         {
           if (unlikely (!remove (module_p,
                                  false,   // lock ?
-                                 true)))  // reset ? (see above)
+                                 false))) // reset ? (see above)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
@@ -4024,40 +4024,6 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
     } // end lock scope
   } // end ELSE
-
-  // step1: iterator over modules which are NOT on the stream
-  //        --> close() these manually before they do so in their dtors
-  //   ACE_DEBUG ((LM_DEBUG,
-  //               ACE_TEXT ("deactivating offline module(s)...\n")));
-
-  //for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-  //     iterator != modules_.end ();
-  //     iterator++)
-  //{
-  //  // sanity check: on the stream ?
-  //  if ((*iterator)->next () == NULL)
-  //  {
-  //    //ACE_DEBUG ((LM_WARNING,
-  //    //            ACE_TEXT ("closing module: \"%s\"\n"),
-  //    //            module->name ()));
-
-  //    try {
-  //      result = (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
-  //    } catch (...) {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-  //                  (*iterator)->name ()));
-  //      result = -1;
-  //    }
-  //    if (result == -1)
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
-  //                  (*iterator)->name ()));
-  //  } // end IF
-  //} // end FOR
-
-  //   ACE_DEBUG ((LM_DEBUG,
-  //               ACE_TEXT ("deactivating offline module(s)...DONE\n")));
 
   // step2: shutdown stream
   // check the ACE documentation on ACE_Stream to understand why this is needed

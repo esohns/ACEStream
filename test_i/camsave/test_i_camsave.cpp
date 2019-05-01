@@ -141,11 +141,11 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
-            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D)
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
-            << (STREAM_VIS_RENDERER_VIDEO_DEFAULT == STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
@@ -1167,6 +1167,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       } // end IF
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
+      directshow_modulehandler_configuration.subscribers =
+        &directShowCBData_in.subscribers;
       directshow_modulehandler_configuration.targetFileName = targetFilename_in;
       break;
     }
@@ -1263,34 +1265,33 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       } // end IF
 
       //if (bufferSize_in)
-      //  directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        //directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       //      bufferSize_in;
-      directShowConfiguration_in.streamConfiguration.configuration_.messageAllocator =
-          &directshow_message_allocator;
 #if defined (GUI_SUPPORT)
       directShowConfiguration_in.streamConfiguration.configuration_.module =
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
-      directShowConfiguration_in.streamConfiguration.configuration_.renderer =
-        renderer_in;
+      //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
+      //  renderer_in;
 
+      directshow_modulehandler_configuration.display = displayDevice_in;
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
                                                                  directShowConfiguration_in.streamConfiguration.configuration_);
-      directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
-        Stream_Device_Identifier::STRING;
-      ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
-                      displayDevice_in.device.c_str ());
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+      //directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+      //  Stream_Device_Identifier::STRING;
+      //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
+      //                displayDevice_in.device.c_str ());
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING),
                                                                              std::make_pair (module_configuration,
                                                                                              directshow_modulehandler_configuration)));
       directshow_stream_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
       directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()));
+        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
@@ -1313,8 +1314,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
           (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
-        renderer_in;
+      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
+      //  renderer_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1324,7 +1325,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
       mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()));
+        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
       break;
     }
@@ -1511,10 +1512,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-#if defined (GUI_SUPPORT)
-      directShowConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
       directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &directshow_message_allocator;
       signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
@@ -1522,10 +1519,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if defined (GUI_SUPPORT)
-      mediaFoundationConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFilename_in.empty ();
-#endif // GUI_SUPPORT
       mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
       signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);

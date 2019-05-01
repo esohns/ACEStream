@@ -64,12 +64,8 @@
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_libav_resize.h"
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_USE)
-#include "stream_vis_gtk_pixbuf.h"
-//#include "stream_vis_gtk_window.h"
-#endif // GTK_USE
 #include "stream_vis_x11_window.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
 #include "test_i_camsave_common.h"
@@ -291,7 +287,6 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                struct Stream_UserData> Stream_CamSave_V4L_AVIEncoder_WriterTask_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
@@ -366,28 +361,25 @@ typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Stream_CamSave_MediaFoundation_SessionData,
                                             Stream_CamSave_MediaFoundation_SessionData_t> Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull;
 
-#if defined (GTK_USE)
-typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_CamSave_DirectShow_Message_t,
-                                      Stream_CamSave_DirectShow_SessionMessage_t,
-                                      Stream_CamSave_DirectShow_SessionData,
-                                      Stream_CamSave_DirectShow_SessionData_t,
-                                      struct _AMMediaType> Stream_CamSave_DirectShow_GTKCairoDisplay;
-typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_CamSave_MediaFoundation_Message_t,
-                                      Stream_CamSave_MediaFoundation_SessionMessage_t,
-                                      Stream_CamSave_MediaFoundation_SessionData,
-                                      Stream_CamSave_MediaFoundation_SessionData_t,
-                                      IMFMediaType*> Stream_CamSave_MediaFoundation_GTKCairoDisplay;
-#endif // GTK_USE
+//typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+//                                      Stream_ControlMessage_t,
+//                                      Stream_CamSave_DirectShow_Message_t,
+//                                      Stream_CamSave_DirectShow_SessionMessage_t,
+//                                      Stream_CamSave_DirectShow_SessionData,
+//                                      Stream_CamSave_DirectShow_SessionData_t,
+//                                      struct _AMMediaType> Stream_CamSave_DirectShow_GTKCairoDisplay;
+//typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,
+//                                      Stream_ControlMessage_t,
+//                                      Stream_CamSave_MediaFoundation_Message_t,
+//                                      Stream_CamSave_MediaFoundation_SessionMessage_t,
+//                                      Stream_CamSave_MediaFoundation_SessionData,
+//                                      Stream_CamSave_MediaFoundation_SessionData_t,
+//                                      IMFMediaType*> Stream_CamSave_MediaFoundation_GTKCairoDisplay;
 #else
-#if defined (GTK_USE)
 //typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,
 //                                      struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -412,7 +404,6 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 //                                       Stream_CamSave_Message_t,
 //                                       Stream_CamSave_V4L_SessionMessage_t,
 //                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
-#endif // GTK_USE
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
@@ -422,7 +413,6 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_CamSave_V4L_SessionData_t,
                                        struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_Display_2;
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
@@ -594,7 +584,6 @@ DATASTREAM_MODULE_DUPLEX (Stream_CamSave_V4L_SessionData,                // sess
                           Stream_CamSave_V4L_AVIEncoder);                  // name
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -630,22 +619,19 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
                               Stream_INotify_t,                                           // stream notification interface type
                               Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull); // writer type
 
-#if defined (GTK_USE)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_cairo_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_DirectShow_GTKCairoDisplay);       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_cairo_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_MediaFoundation_GTKCairoDisplay);  // writer type
-#endif // GTK_USE
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_gtk_cairo_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CamSave_DirectShow_GTKCairoDisplay);       // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,                // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_vis_gtk_cairo_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_CamSave_MediaFoundation_GTKCairoDisplay);  // writer type
 #else
-#if defined (GTK_USE)
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                       // session data type
 //                              enum Stream_SessionMessageType,                       // session event type
 //                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -664,7 +650,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,       
 //                              libacestream_default_vis_gtk_window_module_name_string,
 //                              Stream_INotify_t,                                 // stream notification interface type
 //                              Stream_CamSave_Display_2);                        // writer type
-#endif // GTK_USE
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_V4L_ModuleHandlerConfiguration, // module handler configuration type
@@ -672,7 +657,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CamSave_Display_2);                        // writer type
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // GUI_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type

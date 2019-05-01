@@ -319,11 +319,11 @@ Stream_Layout_T<ACE_SYNCH_USE,
         return_value.push_back (*iterator_2);
       continue;
     } // end IF
-    if (unlikely (!ACE_OS::strcmp ((*iterator)->name (),
+    if (unlikely (!ACE_OS::strcmp (module_p->name (),
                                    ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
-                  !ACE_OS::strcmp ((*iterator)->name (),
+                  !ACE_OS::strcmp (module_p->name (),
                                    ACE_TEXT ("ACE_Stream_Tail"))))
-      continue;
+      continue; // --> module is the tail
     return_value.push_back (module_p);
   } // end FOR
 

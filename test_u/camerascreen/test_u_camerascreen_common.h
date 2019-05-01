@@ -605,12 +605,9 @@ struct Stream_CameraScreen_StreamConfiguration
 {
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
-   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
   {
     printFinalReport = true;
   }
-
-  enum Stream_Visualization_VideoRenderer renderer;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CameraScreen_DirectShow_StreamConfiguration

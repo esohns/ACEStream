@@ -35,8 +35,8 @@ add_definitions (-DACE_HAS_DLL)
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "${CMAKE_CURRENT_SOURCE_DIR}/../../../DShowBaseClasses/baseclasses")
-#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{LIB_ROOT}/DShowBaseClasses")
+      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 endif (WIN32)
 
 if (UNIX)
@@ -393,15 +393,17 @@ if (WIN32)
 
  set (CMAKE_MODULE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-
+ set_target_properties (${LIBRARY_DS} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+ 
  target_link_libraries (${LIBRARY_DS} strmiids.lib)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/../cmake/baseclasses/Debug/strmbasd.lib)
+#  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
  else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/../cmake/baseclasses/Release/strmbase.lib)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)
  endif ()
  target_link_libraries (${LIBRARY_DS} ${ACE_LIBRARY})
 

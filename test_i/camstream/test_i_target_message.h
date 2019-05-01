@@ -25,10 +25,11 @@
 #include "ace/Global_Macros.h"
 
 #include "stream_message_base.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_directshow_message_base.h"
-#include "stream_mediafoundation_message_base.h"
-#endif
+#include "stream_lib_directshow_message_base.h"
+#include "stream_lib_mediafoundation_message_base.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "test_i_target_common.h"
 
@@ -51,10 +52,14 @@ class Test_I_Target_SessionMessage;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
- : public Stream_DirectShowMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                         enum Stream_MessageType,
-                                         Test_I_CommandType_t>
+ : public Stream_MediaFramework_DirectShow_MessageBase_T<struct Test_I_AllocatorConfiguration,
+                                                         enum Stream_MessageType,
+                                                         Test_I_CommandType_t>
 {
+  typedef Stream_MediaFramework_DirectShow_MessageBase_T<struct Test_I_AllocatorConfiguration,
+                                                         enum Stream_MessageType,
+                                                         Test_I_CommandType_t> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Test_I_AllocatorConfiguration,
@@ -82,10 +87,6 @@ class Test_I_Target_DirectShow_Stream_Message
   Test_I_Target_DirectShow_Stream_Message (const Test_I_Target_DirectShow_Stream_Message&);
 
  private:
-  typedef Stream_DirectShowMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                         enum Stream_MessageType,
-                                         Test_I_CommandType_t> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
   Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t, // session id
@@ -98,13 +99,13 @@ class Test_I_Target_DirectShow_Stream_Message
 };
 
 class Test_I_Target_MediaFoundation_Stream_Message
- : public Stream_MediaFoundationMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                              enum Stream_MessageType,
-                                              struct Test_I_Target_MediaFoundation_MessageData>
+ : public Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+                                                              struct Test_I_AllocatorConfiguration,
+                                                              enum Stream_MessageType>
 {
-  typedef Stream_MediaFoundationMessageBase_T<struct Test_I_AllocatorConfiguration,
-                                              enum Stream_MessageType,
-                                              struct Test_I_Target_MediaFoundation_MessageData> inherited;
+  typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+                                                              struct Test_I_AllocatorConfiguration,
+                                                              enum Stream_MessageType> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
