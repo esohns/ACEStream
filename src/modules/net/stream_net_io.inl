@@ -505,14 +505,6 @@ continue_:
       //         - one when the connection stream is appended to the processing
       //           stream
 
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
-
-//      const SessionDataType& session_data_r =
-//        inherited::sessionData_->getR ();
-      ConnectionManagerType* connection_manager_p = NULL;
-      typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
-
       if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
       {
@@ -560,71 +552,9 @@ continue_2:
       if (!inbound_)
         goto continue_3;
 
-      // sanity check(s)
-      // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->socketHandle != ACE_INVALID_HANDLE);
-
-      connection_manager_p = ConnectionManagerType::SINGLETON_T::instance ();
-      ACE_ASSERT (connection_manager_p);
-      connection_p =
-          connection_manager_p->get (inherited::configuration_->socketHandle);
-      if (unlikely (!connection_p))
-      {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), aborting\n"),
-                    inherited::mod_->name (),
-                    inherited::configuration_->socketHandle));
-#else
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    inherited::configuration_->socketHandle));
-#endif
-        goto error;
-      } // end IF
-
-      //// set up reactor/proactor notification ?
-      //// *IMPORTANT NOTE*: how this does not work in all scenarios; in
-      ////                   particular, when there are several connections
-      ////                   involved in a processing stream, the (input/)output
-      ////                   (Note that this module only handles 'output'
-      ////                   notification ATM) connection pertaining to
-      ////                   one stream may best be specified at a different level
-      ////                   of abstraction, and/or a different time (i.e. after
-      ////                   the stream/session has been completely set up)
-      //if (outboundNotificationHandle_)
-      //{
-      //  std::string module_name_string;
-      //  try {
-      //    if (unlikely (!outboundNotificationHandle_->initialize_2 (connection_p->notification (),
-      //                                                              module_name_string)))
-      //    {
-      //      ACE_DEBUG ((LM_ERROR,
-      //                    ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), aborting\n"),
-      //                    inherited::mod_->name (),
-      //                    connection_p->notification (),
-      //                    ACE_TEXT (module_name_string.c_str ())));
-      //      goto error;
-      //    } // end IF
-      //  } catch (...) {
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), aborting\n"),
-      //                inherited::mod_->name (),
-      //                connection_p->notification (),
-      //                ACE_TEXT (module_name_string.c_str ())));
-      //    goto error;
-      //  }
-      //} // end IF
-
-      connection_p->decrease ();
-
       goto continue_3;
 
 error:
-      if (connection_p)
-        connection_p->decrease ();
-
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -674,11 +604,6 @@ continue_3:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
-
-//      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-
       if (likely (inherited::timerId_ != -1))
       {
         // sanity check(s)
@@ -701,27 +626,6 @@ continue_3:
 
       if (!inbound_)
         goto continue_4;
-
-      //// reset reactor/proactor notification
-      //if (outboundNotificationHandle_)
-      //{
-      //  std::string module_name_string;
-      //  try {
-      //    if (unlikely (!outboundNotificationHandle_->initialize_2 (NULL,
-      //                                                              module_name_string)))
-      //      ACE_DEBUG ((LM_ERROR,
-      //                    ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), continuing\n"),
-      //                    inherited::mod_->name (),
-      //                    NULL,
-      //                    ACE_TEXT (module_name_string.c_str ())));
-      //  } catch (...) {
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize_2(0x%@,\"%s\"), continuing\n"),
-      //                inherited::mod_->name (),
-      //                NULL,
-      //                ACE_TEXT (module_name_string.c_str ())));
-      //  }
-      //} // end IF
 
 continue_4:
       break;
