@@ -1940,10 +1940,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                               SessionDataContainerType (streamState_->sessionData));
         } // end ELSE IF
         // *NOTE*: "fire-and-forget" the second argument
-        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,          // session message type
-                                                     session_data_container_p,              // session data
-                                                     (streamState_ ? streamState_->userData
-                                                                   : NULL))))               // user data handle
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,                     // session message type
+                                                     session_data_container_p,                         // session data
+                                                     (streamState_ ? streamState_->userData : NULL)))) // user data handle
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
                       inherited::mod_->name ()));

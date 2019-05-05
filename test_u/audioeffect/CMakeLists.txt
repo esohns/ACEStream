@@ -328,9 +328,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} GlU32.lib)
 
 # *TODO*: repair WIN32 pkgconfig support
- if (WIN32)
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
- endif (WIN32)
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/libavformat.a)
 

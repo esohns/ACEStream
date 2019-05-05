@@ -454,10 +454,6 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (data_inout);
-  ACE_ASSERT (sesssionId_in);
-
   if (inherited::isInitialized_)
   {
     if (data_)
@@ -472,6 +468,9 @@ Stream_DataMessageBase_2<DataType,
       data_ = NULL;
     } // end IF
   } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (!data_);
 
   if (data_inout)
   {

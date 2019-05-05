@@ -433,7 +433,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (resetSessionData_in)
   {
     // sanity check(s)
-    ACE_ASSERT (!sessionData_);
+    if (unlikely (sessionData_))
+    {
+      sessionData_->decrease (); sessionData_ = NULL;
+    } // end IF
 
     SessionDataType* session_data_p = NULL;
     ACE_NEW_NORETURN (session_data_p,
