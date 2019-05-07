@@ -789,22 +789,41 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
                               frame_p->linesize);
   ACE_ASSERT (result >= 0);
 
-  result = av_image_fill_linesizes (line_sizes,
-                                    media_type_s.format,
-                                    static_cast<int> (media_type_s.resolution.width));
+  result =
+    av_image_fill_linesizes (line_sizes,
+                             media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                             static_cast<int> (media_type_s.resolution.cx));
+#else
+                             static_cast<int> (media_type_s.resolution.width));
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
       av_image_fill_pointers (data,
                               media_type_s.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              static_cast<int> (media_type_s.resolution.cy),
+#else
                               static_cast<int> (media_type_s.resolution.height),
-                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+#endif // ACE_WIN32 || ACE_WIN64
+        reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes);
   ACE_ASSERT (result >= 0);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!Stream_Module_Decoder_Tools::convert (context_p,
-                                                       media_type_s.resolution.width, media_type_s.resolution.height, media_type_s.format,
+                                                       media_type_s.resolution.cx, media_type_s.resolution.cy,
+                                                       media_type_s.format,
                                                        data,
                                                        frame_p->width, frame_p->height, static_cast<AVPixelFormat> (frame_p->format),
                                                        frame_p->data)))
+#else
+  if (unlikely (!Stream_Module_Decoder_Tools::convert (context_p,
+                                                       media_type_s.resolution.width, media_type_s.resolution.height,
+                                                       media_type_s.format,
+                                                       data,
+                                                       frame_p->width, frame_p->height, static_cast<AVPixelFormat> (frame_p->format),
+                                                       frame_p->data)))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),

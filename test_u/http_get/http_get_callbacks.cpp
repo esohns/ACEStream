@@ -1071,7 +1071,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  HTTPGet_ConnectionConfigurationIterator_t iterator_3 =
+  Net_ConnectionConfigurationsIterator_t iterator_3 =
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
 
@@ -1108,8 +1108,8 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string_2 += converter.str ();
   } // end IF
   result =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set (hostname_string_2.c_str (),
-                                                                                       AF_INET);
+	  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.set (hostname_string_2.c_str (),
+		                                                                     AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1117,8 +1117,8 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF
-  (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
+  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->useLoopBackDevice =
+	  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.is_loopback ();
 
   // save to file ?
   check_button_p =

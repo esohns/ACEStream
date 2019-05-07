@@ -187,10 +187,10 @@ struct Test_U_AudioEffect_MessageData
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_AudioEffect_Statistic
- : Test_U_Statistic_t
+ : Stream_Statistic
 {
   Test_U_AudioEffect_Statistic ()
-   : Test_U_Statistic_t ()
+   : Stream_Statistic ()
    , amplitudeAverage (0.0)
    , amplitudeVariance (0.0)
    , streakAverage (0.0)

@@ -1041,8 +1041,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
           &directshow_message_allocator;
       directShowConfiguration_in.streamConfiguration.configuration_.module =
         &directshow_message_handler;
-      directShowConfiguration_in.streamConfiguration.configuration_.renderer =
-        renderer_in;
+      //directShowConfiguration_in.streamConfiguration.configuration_.renderer =
+      //  renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1079,8 +1079,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
           &mediafoundation_message_allocator;
       mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
           &mediafoundation_message_handler;
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
-        renderer_in;
+      //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
+      //  renderer_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,

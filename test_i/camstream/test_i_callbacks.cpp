@@ -2305,36 +2305,34 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_2 =
+      Net_ConnectionConfigurationsIterator_t iterator_2 =
         directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator_2 != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       string_p =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->address.get_host_name ();
       port_number =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->address.get_port_number ();
       protocol = directshow_ui_cb_data_p->configuration->protocol;
       use_reactor =
         (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
-      use_loopback =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
+      use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
         (*directshow_stream_iterator).second.allocatorConfiguration_.defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_2 =
+      Net_ConnectionConfigurationsIterator_t iterator_2 =
       mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator_2 != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       string_p =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->address.get_host_name ();
       port_number =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->address.get_port_number ();
       protocol = mediafoundation_ui_cb_data_p->configuration->protocol;
       use_reactor =
         (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
-      use_loopback =
-        (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
+      use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
         (*mediafoundation_stream_iterator).second.allocatorConfiguration_.defaultBufferSize;
       break;
@@ -3316,26 +3314,25 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   unsigned short port_number = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
-  Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
+  Net_ConnectionConfigurationsIterator_t connection_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_connection_configuration_iterator =
+      connection_configuration_iterator =
         directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
+      ACE_ASSERT (connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       port_number =
-        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.get_port_number ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_connection_configuration_iterator =
-      mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
+      connection_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       port_number =
-        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->address.get_port_number ();
       break;
     }
     default:
@@ -3413,12 +3410,9 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      use_loopback =
-        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
-      break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       use_loopback =
-        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
+        (*connection_configuration_iterator).second->useLoopBackDevice;
       break;
     default:
     {
@@ -3943,36 +3937,6 @@ idle_end_target_UI_cb (gpointer userData_in)
   Common_UI_GTK_State_t& state_r =
     const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  Test_I_Target_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
-//  Test_I_Target_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
-//  if (ui_cb_data_base_p->useMediaFoundation)
-//  {
-//    mediafoundation_ui_cb_data_p =
-//      static_cast<Test_I_Target_MediaFoundation_UI_CBData*> (userData_in);
-//
-//    // sanity check(s)
-//    ACE_ASSERT (mediafoundation_ui_cb_data_p);
-//    ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
-//  } // end IF
-//  else
-//  {
-//    directshow_ui_cb_data_p =
-//      static_cast<Test_I_Target_DirectShow_UI_CBData*> (userData_in);
-//
-//    // sanity check(s)
-//    ACE_ASSERT (directshow_ui_cb_data_p);
-//    ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-//  } // end ELSE
-//#else
-//  Test_I_Target_UI_CBData* ui_cb_data_p =
-//    static_cast<Test_I_Target_UI_CBData*> (userData_in);
-//
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_p);
-//  ACE_ASSERT (ui_cb_data_p->configuration);
-//#endif
-
   unsigned int connection_count = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *TODO*: this doesn't always work as conceived. Depending on the runtime
@@ -3982,18 +3946,24 @@ idle_end_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Test_I_Target_DirectShow_InetConnectionManager_t* connection_manager_p =
-        TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (connection_manager_p);
-      connection_count = connection_manager_p->count ();
+      Test_I_Target_DirectShow_TCPConnectionManager_t* tcp_connection_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (tcp_connection_manager_p);
+      Test_I_Target_DirectShow_UDPConnectionManager_t* udp_connection_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (udp_connection_manager_p);
+      connection_count = tcp_connection_manager_p->count ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Test_I_Target_MediaFoundation_InetConnectionManager_t* connection_manager_p =
-        TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (connection_manager_p);
-      connection_count = connection_manager_p->count ();
+      Test_I_Target_MediaFoundation_TCPConnectionManager_t* tcp_connection_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (tcp_connection_manager_p);
+      Test_I_Target_MediaFoundation_UDPConnectionManager_t* udp_connection_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (udp_connection_manager_p);
+      connection_count = tcp_connection_manager_p->count ();
       break;
     }
     default:
@@ -4005,11 +3975,14 @@ idle_end_target_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  Test_I_Target_TCPConnectionManager_t* connection_manager_p =
+  Test_I_Target_TCPConnectionManager_t* tcp_connection_manager_p =
     TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
-  connection_count = connection_manager_p->count ();
-#endif
+  ACE_ASSERT (tcp_connection_manager_p);
+  Test_I_Target_UDPConnectionManager_t* udp_connection_manager_p =
+    TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (udp_connection_manager_p);
+  connection_count = tcp_connection_manager_p->count ();
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -4827,20 +4800,20 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_3 =
+      Net_ConnectionConfigurationsIterator_t iterator_3 =
         directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator_3 != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
-        (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
-                                                                                                       1);
+      NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.set_port_number (port_number,
+                                                                                         1);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_3 =
+      Net_ConnectionConfigurationsIterator_t iterator_3 =
         mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator_3 != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
-        (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
-                                                                                                       1);
+      NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.set_port_number (port_number,
+                                                                                         1);
       break;
     }
     default:
@@ -5317,8 +5290,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     NULL;
   Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
   Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
-  Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
+  Net_ConnectionConfigurationsIterator_t connection_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -5334,9 +5306,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      directshow_connection_configuration_iterator =
+      connection_configuration_iterator =
         directshow_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
+      ACE_ASSERT (connection_configuration_iterator != directshow_ui_cb_data_p->configuration->connectionConfigurations.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5352,9 +5324,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
-      mediafoundation_connection_configuration_iterator =
+      connection_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
+      ACE_ASSERT (connection_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->connectionConfigurations.end ());
       break;
     }
     default:
@@ -5426,24 +5398,34 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_InetConnectionManager_t* directshow_connection_manager_p =
+  Test_I_Target_DirectShow_TCPConnectionManager_t* directshow_tcp_connection_manager_p =
     NULL;
-  Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
+  Test_I_Target_DirectShow_UDPConnectionManager_t* directshow_udp_connection_manager_p =
+    NULL;
+  Test_I_Target_MediaFoundation_TCPConnectionManager_t* mediafoundation_tcp_connection_manager_p =
+    NULL;
+  Test_I_Target_MediaFoundation_UDPConnectionManager_t* mediafoundation_udp_connection_manager_p =
     NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_connection_manager_p =
-        TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (directshow_connection_manager_p);
+      directshow_tcp_connection_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (directshow_tcp_connection_manager_p);
+      directshow_udp_connection_manager_p =
+        TEST_I_TARGET_DIRECTSHOW_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (directshow_udp_connection_manager_p);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_connection_manager_p =
-      TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (mediafoundation_connection_manager_p);
+      mediafoundation_tcp_connection_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (mediafoundation_tcp_connection_manager_p);
+      mediafoundation_udp_connection_manager_p =
+        TEST_I_TARGET_MEDIAFOUNDATION_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (mediafoundation_udp_connection_manager_p);
       break;
     }
     default:
@@ -5454,6 +5436,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       return;
     }
   } // end SWITCH
+#else
+  Test_I_Target_UDPConnectionManager_t* udp_connection_manager_p =
+    TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (udp_connection_manager_p);
 #endif
   bool result = false;
   Common_ITask_t* itask_p = NULL;
@@ -5464,9 +5450,6 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       case NET_TRANSPORTLAYER_TCP:
       {
         // listening on UDP ? --> stop
-        Test_I_Target_UDPConnectionManager_t* connection_manager_p =
-          TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
-        ACE_ASSERT (connection_manager_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         switch (ui_cb_data_base_p->mediaFramework)
         {
@@ -5474,8 +5457,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           {
             if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
-              Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
+              Test_I_Target_DirectShow_UDPConnectionManager_t::ICONNECTION_T* connection_p =
+                directshow_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
@@ -5495,8 +5478,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           {
             if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
             {
-              Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
+              Test_I_Target_MediaFoundation_UDPConnectionManager_t::ICONNECTION_T* connection_p =
+                mediafoundation_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
               if (connection_p)
               {
                 connection_p->close ();
@@ -5524,7 +5507,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_UDPConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
+            udp_connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -5560,10 +5543,6 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       }
       case NET_TRANSPORTLAYER_UDP:
       {
-        Test_I_Target_UDPConnectionManager_t* connection_manager_p =
-          TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
-        ACE_ASSERT (connection_manager_p);
-
         // listening on TCP ? --> stop
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         switch (ui_cb_data_base_p->mediaFramework)
@@ -5606,93 +5585,32 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end catch
         } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        switch (ui_cb_data_base_p->mediaFramework)
-        {
-          case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-          {
-            if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
-            {
-              Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
-              if (connection_p)
-              {
-                connection_p->close ();
-                connection_p->decrease ();
-              } // end ELSE
-              directshow_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
-            } // end IF
-            break;
-          }
-          case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-          {
-            if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
-            {
-              Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-                mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
-              if (connection_p)
-              {
-                connection_p->close ();
-                connection_p->decrease ();
-              } // end ELSE
-              mediafoundation_ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
-            } // end IF
-            break;
-          }
-          default:
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                        ui_cb_data_base_p->mediaFramework));
-            return;
-          }
-        } // end SWITCH
-#else
-        if (ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
-        {
-          Test_I_Target_UDPConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (static_cast<Net_ConnectionId_t> (ui_cb_data_p->configuration->handle));
-          if (connection_p)
-          {
-            connection_p->close ();
-            connection_p->decrease ();
-          } // end ELSE
-          ui_cb_data_p->configuration->handle = ACE_INVALID_HANDLE;
-        } // end IF
-#endif
-
         Net_Inet_IConnector_t* iconnector_p = NULL;
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        ACE_TCHAR buffer_a[BUFSIZ];
+        ACE_OS::memset (buffer_a, 0, sizeof (ACE_TCHAR[BUFSIZ]));
         ACE_INET_Addr inet_address;
-//        int result_2 = -1;
         bool use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* directshow_connection_p =
+        Test_I_Target_DirectShow_UDPConnectionManager_t::ICONNECTION_T* directshow_udp_connection_p =
           NULL;
-        Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* mediafoundation_connection_p =
+        Test_I_Target_MediaFoundation_UDPConnectionManager_t::ICONNECTION_T* mediafoundation_udp_connection_p =
           NULL;
         switch (ui_cb_data_base_p->mediaFramework)
         {
           case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
             inet_address =
-              (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+              NET_SOCKET_CONFIGURATION_UDP_CAST ((*connection_configuration_iterator).second)->listenAddress;
             use_reactor =
               (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
-            Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
-              directshow_connection_manager_p;
-            ACE_ASSERT (iconnection_manager_p);
-            Test_I_Target_DirectShow_IInetConnector_t* iconnector_2 = NULL;
+            Test_I_Target_DirectShow_IUDPConnector_t* iconnector_2 = NULL;
             if (use_reactor)
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_DirectShow_UDPConnector_t (iconnection_manager_p,
-                                (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval));
+                                Test_I_Target_DirectShow_UDPConnector_t (true));
             else
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_DirectShow_UDPAsynchConnector_t (iconnection_manager_p,
-                                (*directshow_modulehandler_iterator).second.second.statisticReportingInterval));
+                                Test_I_Target_DirectShow_UDPAsynchConnector_t (true));
             if (!iconnector_2)
             {
               ACE_DEBUG ((LM_CRITICAL,
@@ -5701,27 +5619,22 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             } // end IF
             iconnector_p = iconnector_2;
             result =
-              iconnector_2->initialize ((*directshow_connection_configuration_iterator).second);
+              iconnector_2->initialize (*(*connection_configuration_iterator).second);
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
             inet_address =
-              (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+              (*connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
             use_reactor =
               (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
-            Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
-              mediafoundation_connection_manager_p;
-            ACE_ASSERT (iconnection_manager_p);
-            Test_I_Target_MediaFoundation_IInetConnector_t* iconnector_2 = NULL;
+            Test_I_Target_MediaFoundation_IUDPConnector_t* iconnector_2 = NULL;
             if (use_reactor)
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_MediaFoundation_UDPConnector_t (iconnection_manager_p,
-                                                                              (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval));
+                                Test_I_Target_MediaFoundation_UDPConnector_t (true));
             else
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_MediaFoundation_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                                    (*directshow_modulehandler_iterator).second.second.statisticReportingInterval));
+                                Test_I_Target_MediaFoundation_UDPAsynchConnector_t (true));
             if (!iconnector_2)
             {
               ACE_DEBUG ((LM_CRITICAL,
@@ -5730,7 +5643,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             } // end IF
             iconnector_p = iconnector_2;
             result =
-              iconnector_2->initialize ((*mediafoundation_connection_configuration_iterator).second);
+              iconnector_2->initialize (*(*connection_configuration_iterator).second);
             break;
           }
           default:
@@ -5755,9 +5668,6 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             NET_SOCKET_CONFIGURATION_UDP_CAST ((*iterator_3).second)->listenAddress;
         use_reactor =
           (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
-        Test_I_Target_UDPConnectionManager_t::INTERFACE_T* iconnection_manager_p =
-          connection_manager_p;
-        ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IUDPConnector_t* iconnector_2 = NULL;
         if (use_reactor)
           ACE_NEW_NORETURN (iconnector_2,
@@ -5805,12 +5715,12 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             switch (ui_cb_data_base_p->mediaFramework)
             {
               case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-                directshow_connection_p =
-                  directshow_connection_manager_p->get (inet_address);
+                directshow_udp_connection_p =
+                  directshow_udp_connection_manager_p->get (inet_address);
                 break;
               case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-                mediafoundation_connection_p =
-                  mediafoundation_connection_manager_p->get (inet_address);
+                mediafoundation_udp_connection_p =
+                  mediafoundation_udp_connection_manager_p->get (inet_address);
                 break;
               default:
               {
@@ -5829,11 +5739,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             {
               case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
               {
-                if (mediafoundation_connection_p)
+                if (directshow_udp_connection_p)
                 {
                   handle =
-                    reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
-                  mediafoundation_connection_p->decrease ();
+                    reinterpret_cast<ACE_HANDLE> (directshow_udp_connection_p->id ());
+                  directshow_udp_connection_p->decrease ();
                   done = true;
                   break;
                 } // end IF
@@ -5841,11 +5751,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
               }
               case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
               {
-                if (directshow_connection_p)
+                if (mediafoundation_udp_connection_p)
                 {
                   handle =
-                    reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
-                  directshow_connection_p->decrease ();
+                    reinterpret_cast<ACE_HANDLE> (mediafoundation_udp_connection_p->id ());
+                  mediafoundation_udp_connection_p->decrease ();
                   done = true;
                   break;
                 }
@@ -5995,8 +5905,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         if (directshow_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
+          Test_I_Target_DirectShow_UDPConnectionManager_t::ICONNECTION_T* connection_p =
+            directshow_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -6010,8 +5920,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         if (mediafoundation_ui_cb_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
+          Test_I_Target_MediaFoundation_UDPConnectionManager_t::ICONNECTION_T* connection_p =
+            mediafoundation_udp_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_ui_cb_data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();

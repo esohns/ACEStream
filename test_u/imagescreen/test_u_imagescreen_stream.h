@@ -104,12 +104,12 @@ class Stream_ImageScreen_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_Stream& operator= (const Stream_ImageScreen_Stream&))
 
   // modules
-  Stream_ImageScreen_ImageMagickSource_Module  source_;
+  Stream_ImageScreen_Source_Module  source_;
 //  Stream_ImageScreen_StatisticReport_Module statisticReport_;
-  Stream_ImageScreen_LibAVConverter_Module     convert_; // RGB24 --> RGB32
-  Stream_ImageScreen_ImageMagickResize_Module  resize_; // --> window size/fullscreen
-  Stream_ImageScreen_Delay_Module              delay_;
-  Stream_ImageScreen_X11Display_Module         display_;
+  Stream_ImageScreen_Convert_Module convert_; // RGB24 --> RGB32
+  Stream_ImageScreen_Resize_Module  resize_; // --> window size/fullscreen
+  Stream_ImageScreen_Delay_Module   delay_;
+  Stream_ImageScreen_Display_Module display_;
 };
 
 #endif

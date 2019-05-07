@@ -729,12 +729,20 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   result =
       av_image_fill_linesizes (line_sizes_a,
                                message_data_r.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                               static_cast<int> (message_data_r.resolution.cx));
+#else
                                static_cast<int> (message_data_r.resolution.width));
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
       av_image_fill_pointers (data_a,
                               message_data_r.format,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              static_cast<int> (message_data_r.resolution.cy),
+#else
                               static_cast<int> (message_data_r.resolution.height),
+#endif // ACE_WIN32 || ACE_WIN64
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
   ACE_ASSERT (result >= 0);
@@ -742,7 +750,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
                                                      message_data_r.resolution.cx, message_data_r.resolution.cy, message_data_r.format,
                                                      data_a,
-                                                     inherited::configuration_->outputFormat.cx, inherited::configuration_->outputFormat.cy,
+                                                     inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy,
                                                      inherited::frame_->data)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
@@ -961,10 +969,11 @@ error:
           sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                 media_type_2.resolution.cx, media_type_2.resolution.cy, inherited::inputFormat_,
+                                inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, inherited::inputFormat_,
 #else
                                 media_type_2.resolution.width, media_type_2.resolution.height, inherited::inputFormat_,
-#endif // ACE_WIN32 || ACE_WIN64
                                 inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, inherited::inputFormat_,
+#endif // ACE_WIN32 || ACE_WIN64
                                 flags_i,                      // flags
                                 NULL, NULL,
                                 0);                           // parameters

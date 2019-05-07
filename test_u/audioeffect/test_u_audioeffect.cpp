@@ -1246,8 +1246,6 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directShowConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFile_in.empty ();
       directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &directshow_message_allocator;
       signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
@@ -1255,8 +1253,6 @@ do_work (unsigned int bufferSize_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediaFoundationConfiguration_in.signalHandlerConfiguration.hasUI =
-        !UIDefinitionFile_in.empty ();
       mediaFoundationConfiguration_in.signalHandlerConfiguration.messageAllocator =
         &mediafoundation_message_allocator;
       signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);

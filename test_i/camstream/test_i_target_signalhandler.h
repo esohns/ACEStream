@@ -29,7 +29,8 @@
 #include "common_signal_handler.h"
 
 template <typename ConfigurationType,
-          typename ConnectionManagerType>
+          typename TCPConnectionManagerType,
+          typename UDPConnectionManagerType>
 class Test_I_Target_SignalHandler_T
  : public Common_SignalHandler_T<ConfigurationType>
 {

@@ -149,7 +149,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //                           &width_i, &height_i);
   gdk_draw_pixbuf (GDK_DRAWABLE (inherited::configuration_->window),
                    NULL,
-                   buffer_p,
+                   buffer_,
                    0, 0, 0, 0, -1, -1,
                    GDK_RGB_DITHER_NONE, 0, 0);
 #endif // GTK_CHECK_VERSION (3,0,0)
@@ -233,9 +233,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       ACE_ASSERT (gdk_pixbuf_get_n_channels (buffer_) == 4);
       ACE_ASSERT (gdk_pixbuf_get_has_alpha (buffer_));
 
+#if GTK_CHECK_VERSION (3,0,0)
       ACE_ASSERT (context_);
       gdk_cairo_set_source_pixbuf (context_, buffer_,
                                    0, 0);
+#endif // GTK_CHECK_VERSION (3,0,0)
 
       gdk_threads_leave ();
 

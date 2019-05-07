@@ -54,7 +54,7 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 // , GTKCairoDisplay_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
+             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
 #else
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
@@ -106,7 +106,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   Stream_ImageScreen_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
-  Stream_ImageScreen_ImageMagickSource* source_impl_p = NULL;
+  Stream_ImageScreen_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -161,15 +161,8 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_ImageScreen_ImageMagickSource*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_ImageScreen_ImageMagickSource> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
+  source_impl_p = dynamic_cast<Stream_ImageScreen_Source*> (source_.writer ());
+  ACE_ASSERT (source_impl_p);
   source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it

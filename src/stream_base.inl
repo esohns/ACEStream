@@ -1210,15 +1210,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (unlikely ((result == -1) ||
                 !module_p))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::top(), returning\n"),
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
                 ACE_TEXT (StreamName)));
-    return;
+    goto continue_;
   } // end IF
   ACE_ASSERT (module_p);
-
-  istreamcontrol_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  istreamcontrol_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (unlikely (!istreamcontrol_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1227,7 +1225,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 module_p->name ()));
     return;
   } // end IF
-
   try {
     istreamcontrol_p->notify (notification_in,
                               false);
@@ -1240,6 +1237,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   }
 
+continue_:
   // finished ?
   // *TODO*: this is strategy and needs to be traited ASAP
   switch (notification_in)

@@ -70,8 +70,8 @@ class Test_I_HTTPGet_Stream_T
   virtual ~Test_I_HTTPGet_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_StreamConfiguration_t&); // configuration
@@ -126,7 +126,7 @@ class Test_I_HTTPGet_Stream_T
 
   // modules
   Test_I_HTTPMarshal_Module     HTTPMarshal_;
-  Test_I_StatisticReport_Module statisticReport_;
+  //Test_I_StatisticReport_Module statisticReport_;
   Test_I_HTMLParser_Module      HTMLParser_;
   //Test_I_HTMLWriter_Module       HTMLWriter_;
   SOURCE_MODULE_T               netSource_;
@@ -140,8 +140,8 @@ class Test_I_HTTPGet_Stream_T
 
 typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_HTTPGet_Stream_t;
 #if defined (SSL_SUPPORT)
-typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_SSLTCPConnector_t> Test_I_HTTPGet_SSL_Stream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_SSLConnector_t> Test_I_HTTPGet_SSL_Stream_t;
 #endif // SSL_SUPPORT
-typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_AsynchTCPConnector_t> Test_I_HTTPGet_AsynchStream_t;
 
 #endif

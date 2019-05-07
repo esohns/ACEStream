@@ -131,7 +131,6 @@ class Test_I_Source_DirectShow_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     Test_I_Source_DirectShow_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -237,7 +236,6 @@ class Test_I_Source_MediaFoundation_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type

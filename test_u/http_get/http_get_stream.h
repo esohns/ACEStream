@@ -99,7 +99,6 @@ class HTTPGet_Stream_T
                                             HTTPGet_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage,
-                                            HTTPGet_ConnectionConfigurationIterator_t,
                                             HTTPGet_ConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type

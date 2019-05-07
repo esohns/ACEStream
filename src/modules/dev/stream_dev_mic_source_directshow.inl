@@ -1027,7 +1027,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                         waveformatex_p->nSamplesPerSec,
                                         waveformatex_p->nBlockAlign,
                                         waveformatex_p->nChannels,
-                                        message_p->rd_ptr (),
+                                        reinterpret_cast<uint8_t*> (message_p->rd_ptr ()),
                                         (message_p->length () / waveformatex_p->nBlockAlign),
                                         stream_dev_mic_source_directshow_sinus_phase);
   } // end IF

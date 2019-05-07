@@ -32,21 +32,18 @@
 
 #include "http_get_network.h"
 
-// forward declarations
-//struct HTTPGet_UserData;
-
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,
-                                 struct HTTPGet_ConnectionState,
-                                 struct Stream_Statistic,
-                                 struct Stream_UserData> HTTPGet_IConnectionManager_t;
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
+                                 struct Net_UserData> HTTPGet_IConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  HTTPGet_ConnectionConfiguration_t,
-                                 struct HTTPGet_ConnectionState,
-                                 struct Stream_Statistic,
-                                 struct Stream_UserData> HTTPGet_ConnectionManager_t;
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
+                                 struct Net_UserData> HTTPGet_ConnectionManager_t;
 
 typedef ACE_Singleton<HTTPGet_ConnectionManager_t,
                       ACE_SYNCH_MUTEX> HTTPGET_CONNECTIONMANAGER_SINGLETON;

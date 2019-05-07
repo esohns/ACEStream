@@ -22,98 +22,67 @@
 #define TEST_I_CONNECTION_MANAGER_COMMON_H
 
 #include "ace/INET_Addr.h"
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//#include "ace/Netlink_Addr.h"
-//#endif
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#include "stream_common.h"
-
+#include "net_common.h"
 #include "net_connection_manager.h"
 #include "net_iconnectionmanager.h"
 
 #include "test_i_filestream_network.h"
 
-// forward declarations
-typedef Stream_Statistic Test_I_Statistic_t;
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-//                                 ACE_Netlink_Addr,
-//                                 struct Test_I_ConnectionConfiguration,
-//                                 struct Test_I_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 struct Net_UserData> Test_I_Stream_INetlinkConnectionManager_t;
-//#endif
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Source_TCPConnectionConfiguration_t,
-                                 struct Test_I_Source_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Source_ITCPConnectionManager_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Source_UDPConnectionConfiguration_t,
-                                 struct Test_I_Source_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Source_IUDPConnectionManager_t;
 
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_TCPConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Target_ITCPConnectionManager_t;
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_UDPConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Target_IUDPConnectionManager_t;
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-//                                 ACE_Netlink_Addr,
-//                                 Test_I_ConnectionConfiguration_t,
-//                                 struct Test_I_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 struct Net_UserData> Test_I_Stream_NetlinkConnectionManager_t;
-//#endif
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Source_TCPConnectionConfiguration_t,
-                                 struct Test_I_Source_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Source_TCPConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Source_UDPConnectionConfiguration_t,
-                                 struct Test_I_Source_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Source_UDPConnectionManager_t;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_TCPConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Target_TCPConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_UDPConnectionConfiguration_t,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Target_UDPConnectionManager_t;
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//typedef ACE_Singleton<Test_I_Stream_NetlinkConnectionManager_t,
-//                      ACE_SYNCH_MUTEX> TEST_I_STREAM_NETLINKCONNECTIONMANAGER_SINGLETON;
-//#endif
 typedef ACE_Singleton<Test_I_Source_TCPConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_TCP_CONNECTIONMANAGER_SINGLETON;
 typedef ACE_Singleton<Test_I_Source_UDPConnectionManager_t,

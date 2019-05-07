@@ -22,61 +22,29 @@
 #define TEST_I_CONNECTION_MANAGER_COMMON_H
 
 #include "ace/INET_Addr.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "ace/Netlink_Addr.h"
-#endif
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
-#include "stream_common.h"
-
+#include "net_common.h"
 #include "net_connection_manager.h"
 #include "net_iconnectionmanager.h"
 
 #include "test_i_http_get_network.h"
 
-// forward declarations
-typedef Stream_Statistic Test_I_Statistic_t;
-struct Stream_UserData;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
-                                 ACE_Netlink_Addr,
-                                 Test_I_HTTPGet_ConnectionConfiguration_t,
-                                 struct Test_I_HTTPGet_ConnectionState,
-                                 Test_I_Statistic_t,
-                                 struct Net_UserData> Test_I_Stream_INetlinkConnectionManager_t;
-#endif
 typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
-                                 struct Test_I_HTTPGet_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Stream_IInetConnectionManager_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-                                 ACE_Netlink_Addr,
-                                 Test_I_HTTPGet_ConnectionConfiguration_t,
-                                 struct Test_I_HTTPGet_ConnectionState,
-                                 Test_I_Statistic_t,
-                                 struct Net_UserData> Test_I_Stream_NetlinkConnectionManager_t;
-#endif
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_HTTPGet_ConnectionConfiguration_t,
-                                 struct Test_I_HTTPGet_ConnectionState,
-                                 Test_I_Statistic_t,
+                                 struct Net_ConnectionState,
+                                 Net_Statistic_t,
                                  struct Net_UserData> Test_I_Stream_InetConnectionManager_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-typedef ACE_Singleton<Test_I_Stream_NetlinkConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_STREAM_NETLINKCONNECTIONMANAGER_SINGLETON;
-#endif
 typedef ACE_Singleton<Test_I_Stream_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON;
 

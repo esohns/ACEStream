@@ -34,10 +34,12 @@
 #include "test_i_connection_manager_common.h"
 
 template <typename ConfigurationType,
-          typename ConnectionManagerType>
+          typename TCPConnectionManagerType,
+          typename UDPConnectionManagerType>
 Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::Test_I_Target_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
-                                                                                     ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
+                              TCPConnectionManagerType,
+                              UDPConnectionManagerType>::Test_I_Target_SignalHandler_T (enum Common_SignalDispatchType dispatchMode_in,
+                                                                                        ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
  : inherited (dispatchMode_in,
               lock_in,
               this) // event handler handle
@@ -47,10 +49,12 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
 }
 
 template <typename ConfigurationType,
-          typename ConnectionManagerType>
+          typename TCPConnectionManagerType,
+          typename UDPConnectionManagerType>
 void
 Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::handle (const struct Common_Signal& signal_in)
+                              TCPConnectionManagerType,
+                              UDPConnectionManagerType>::handle (const struct Common_Signal& signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::handle"));
 

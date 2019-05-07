@@ -153,20 +153,20 @@ struct HTTPGet_ModuleHandlerConfiguration
     passive = false;
   };
 
-  struct HTTPGet_Configuration*       configuration;
-  HTTPGet_IConnection_t*              connection;               // TCP target/IO module
-  HTTPGet_ConnectionConfigurations_t* connectionConfigurations;
-  HTTPGet_ConnectionManager_t*        connectionManager;        // TCP IO module
-  HTTP_Form_t                         HTTPForm;                 // HTTP get module
-  HTTP_Headers_t                      HTTPHeaders;              // HTTP get module
-  bool                                inbound;                  // net io module
-  bool                                printProgressDot;         // file writer module
-  bool                                pushStatisticMessages;
-  HTTPGet_StreamConfiguration_t*      streamConfiguration;      // net source module
-  HTTPGet_Notification_t*             subscriber;
-  HTTPGet_Subscribers_t*              subscribers;
-  std::string                         targetFileName;           // file writer module
-  std::string                         URL;                      // HTTP get module
+  struct HTTPGet_Configuration*   configuration;
+  HTTPGet_IConnection_t*          connection;               // TCP target/IO module
+  Net_ConnectionConfigurations_t* connectionConfigurations;
+  HTTPGet_ConnectionManager_t*    connectionManager;        // TCP IO module
+  HTTP_Form_t                     HTTPForm;                 // HTTP get module
+  HTTP_Headers_t                  HTTPHeaders;              // HTTP get module
+  bool                            inbound;                  // net io module
+  bool                            printProgressDot;         // file writer module
+  bool                            pushStatisticMessages;
+  HTTPGet_StreamConfiguration_t*  streamConfiguration;      // net source module
+  HTTPGet_Notification_t*         subscriber;
+  HTTPGet_Subscribers_t*          subscribers;
+  std::string                     targetFileName;           // file writer module
+  std::string                     URL;                      // HTTP get module
 };
 
 struct HTTPGet_StreamState

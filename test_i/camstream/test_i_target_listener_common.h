@@ -40,11 +40,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_ListenerConfiguration;
 struct Test_I_Target_MediaFoundation_ListenerConfiguration;
-class Test_I_Target_DirectShow_Stream;
-class Test_I_Target_MediaFoundation_Stream;
 #else
 struct Test_I_Target_ListenerConfiguration;
-class Test_I_Target_Stream;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -52,77 +49,77 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_DirectShow_AsynchTCPConnection
                                     ACE_INET_Addr,
                                     struct Test_I_Target_DirectShow_ListenerConfiguration,
                                     struct Test_I_Target_DirectShow_ConnectionState,
-                                    Test_I_Target_DirectShow_ConnectionConfiguration_t,
-                                    Test_I_Target_DirectShow_Stream,
-                                    struct Test_I_Target_UserData> Test_I_Target_DirectShow_AsynchListener_t;
+                                    Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                                    Test_I_Target_DirectShow_TCPStream,
+                                    struct Net_UserData> Test_I_Target_DirectShow_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
                               struct Test_I_Target_DirectShow_ListenerConfiguration,
                               struct Test_I_Target_DirectShow_ConnectionState,
-                              Test_I_Target_DirectShow_ConnectionConfiguration_t,
-                              Test_I_Target_DirectShow_Stream,
-                              struct Test_I_Target_UserData> Test_I_Target_DirectShow_Listener_t;
+                              Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                              Test_I_Target_DirectShow_TCPStream,
+                              struct Net_UserData> Test_I_Target_DirectShow_Listener_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
                                   struct Test_I_Target_DirectShow_ListenerConfiguration,
                                   struct Test_I_Target_DirectShow_ConnectionState,
-                                  Test_I_Target_DirectShow_ConnectionConfiguration_t,
-                                  Test_I_Target_DirectShow_Stream,
-                                  struct Test_I_Target_UserData> Test_I_Target_DirectShow_SSLListener_t;
+                                  Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                                  Test_I_Target_DirectShow_TCPStream,
+                                  struct Net_UserData> Test_I_Target_DirectShow_SSLListener_t;
 #endif // SSL_SUPPORT
 
 typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
                                     struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                                     struct Test_I_Target_MediaFoundation_ConnectionState,
-                                    Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
-                                    Test_I_Target_MediaFoundation_Stream,
-                                    struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_AsynchListener_t;
+                                    Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                                    Test_I_Target_MediaFoundation_TCPStream,
+                                    struct Net_UserData> Test_I_Target_MediaFoundation_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
                               struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                               struct Test_I_Target_MediaFoundation_ConnectionState,
-                              Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
-                              Test_I_Target_MediaFoundation_Stream,
-                              struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_Listener_t;
+                              Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                              Test_I_Target_MediaFoundation_TCPStream,
+                              struct Net_UserData> Test_I_Target_MediaFoundation_Listener_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
                                   struct Test_I_Target_MediaFoundation_ListenerConfiguration,
                                   struct Test_I_Target_MediaFoundation_ConnectionState,
-                                  Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
-                                  Test_I_Target_MediaFoundation_Stream,
-                                  struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_SSLListener_t;
+                                  Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                                  Test_I_Target_MediaFoundation_TCPStream,
+                                  struct Net_UserData> Test_I_Target_MediaFoundation_SSLListener_t;
 #endif // SSL_SUPPORT
 #else
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
                                     struct Test_I_Target_ListenerConfiguration,
-                                    struct Test_I_Target_ConnectionState,
+                                    struct Net_ConnectionState,
                                     Test_I_Target_TCPConnectionConfiguration_t,
-                                    Test_I_Target_Stream,
+                                    Test_I_Target_TCPStream,
                                     struct Net_UserData> Test_I_Target_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
                               struct Test_I_Target_ListenerConfiguration,
-                              struct Test_I_Target_ConnectionState,
+                              struct Net_ConnectionState,
                               Test_I_Target_TCPConnectionConfiguration_t,
-                              Test_I_Target_Stream,
+                              Test_I_Target_TCPStream,
                               struct Net_UserData> Test_I_Target_Listener_t;
 #if defined (SSL_SUPPORT)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
                                   struct Test_I_Target_ListenerConfiguration,
-                                  struct Test_I_Target_ConnectionState,
+                                  struct Net_ConnectionState,
                                   Test_I_Target_TCPConnectionConfiguration_t,
-                                  Test_I_Target_Stream,
+                                  Test_I_Target_TCPStream,
                                   struct Net_UserData> Test_I_Target_SSLListener_t;
 #endif // SSL_SUPPORT
 #endif
@@ -132,65 +129,65 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Client_AsynchConnector_T<Test_I_Target_DirectShow_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Target_DirectShow_ConnectionConfiguration_t,
+                                     Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
                                      struct Test_I_Target_DirectShow_ConnectionState,
                                      Test_I_Statistic_t,
-                                     struct Net_UDPSocketConfiguration,
-                                     struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
-                                     Test_I_Target_DirectShow_Stream,
-                                     struct Test_I_Target_UserData> Test_I_Target_DirectShow_UDPAsynchConnector_t;
+                                     Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
+                                     Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
+                                     Test_I_Target_DirectShow_UDPStream,
+                                     struct Net_UserData> Test_I_Target_DirectShow_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Test_I_Target_DirectShow_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
-                               Test_I_Target_DirectShow_ConnectionConfiguration_t,
+                               Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
                                struct Test_I_Target_DirectShow_ConnectionState,
                                Test_I_Statistic_t,
-                               struct Net_UDPSocketConfiguration,
-                               struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
-                               Test_I_Target_DirectShow_Stream,
-                               struct Test_I_Target_UserData> Test_I_Target_DirectShow_UDPConnector_t;
+                               Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
+                               Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
+                               Test_I_Target_DirectShow_UDPStream,
+                               struct Net_UserData> Test_I_Target_DirectShow_UDPConnector_t;
 
 typedef Net_Client_AsynchConnector_T<Test_I_Target_MediaFoundation_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
+                                     Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
                                      struct Test_I_Target_MediaFoundation_ConnectionState,
                                      Test_I_Statistic_t,
-                                     struct Net_UDPSocketConfiguration,
-                                     struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
-                                     Test_I_Target_MediaFoundation_Stream,
-                                     struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_UDPAsynchConnector_t;
+                                     Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
+                                     Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
+                                     Test_I_Target_MediaFoundation_UDPStream,
+                                     struct Net_UserData> Test_I_Target_MediaFoundation_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Test_I_Target_MediaFoundation_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
-                               Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
+                               Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
                                struct Test_I_Target_MediaFoundation_ConnectionState,
                                Test_I_Statistic_t,
-                               struct Net_UDPSocketConfiguration,
-                               struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
-                               Test_I_Target_MediaFoundation_Stream,
-                               struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_UDPConnector_t;
+                               Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
+                               Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
+                               Test_I_Target_MediaFoundation_UDPStream,
+                               struct Net_UserData> Test_I_Target_MediaFoundation_UDPConnector_t;
 #else
 typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_UDPConnectionConfiguration_t,
-                                     struct Test_I_Target_ConnectionState,
+                                     struct Net_ConnectionState,
                                      Test_I_Statistic_t,
-                                     Net_UDPSocketConfiguration_t,
-                                     Net_UDPSocketConfiguration_t,
-                                     Test_I_Target_Stream,
+                                     Test_I_Target_UDPConnectionConfiguration_t,
+                                     Test_I_Target_UDPConnectionConfiguration_t,
+                                     Test_I_Target_UDPStream,
                                      struct Net_UserData> Test_I_Target_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Test_I_Target_UDPConnection_t,
                                Net_SOCK_Dgram,
                                ACE_INET_Addr,
                                Test_I_Target_UDPConnectionConfiguration_t,
-                               struct Test_I_Target_ConnectionState,
+                               struct Net_ConnectionState,
                                Test_I_Statistic_t,
-                               Net_UDPSocketConfiguration_t,
-                               Net_UDPSocketConfiguration_t,
-                               Test_I_Target_Stream,
+                               Test_I_Target_UDPConnectionConfiguration_t,
+                               Test_I_Target_UDPConnectionConfiguration_t,
+                               Test_I_Target_UDPStream,
                                struct Net_UserData> Test_I_Target_UDPConnector_t;
 #endif
 

@@ -27,8 +27,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  : inherited ()
  , HTTPMarshal_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"))
- , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
+ //, statisticReport_ (this,
+ //                    ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
  , HTMLParser_ (this,
                 ACE_TEXT_ALWAYS_CHAR ("HTMLParser"))
 //, HTMLWriter_ (ACE_TEXT_ALWAYS_CHAR ("HTMLWriter"))
@@ -52,21 +52,19 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
                                               bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::load"));
 
   // initialize return value(s)
-  modules_out.clear ();
   delete_out = false;
 
-  modules_out.push_back (&HTTPGet_);
-  modules_out.push_back (&netSource_);
-  //modules_out.push_back (&HTMLWriter_);
-  modules_out.push_back (&HTMLParser_);
-  modules_out.push_back (&statisticReport_);
-  modules_out.push_back (&HTTPMarshal_);
+  layout_in->append (&HTTPMarshal_, NULL, 0);
+  //layout_in->append (&statisticReport_, NULL, 0);
+  layout_in->append (&HTMLParser_, NULL, 0);
+  layout_in->append (&netSource_, NULL, 0);
+  layout_in->append (&HTTPGet_, NULL, 0);
 
   return true;
 }

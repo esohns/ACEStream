@@ -57,6 +57,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
  , configuration_ (NULL)
  , isInitialized_ (false)
  , notify_ (NULL)
+ , stream_ (NULL)
  /////////////////////////////////////////
  , delete_ (delete_in)
  , reader_ (readerTask_in)

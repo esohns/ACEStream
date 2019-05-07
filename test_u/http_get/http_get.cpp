@@ -611,29 +611,23 @@ do_work (unsigned int bufferSize_in,
 
   // *********************** socket configuration data ************************
   HTTPGet_ConnectionConfiguration_t connection_configuration;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
-    remoteHost_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
+  connection_configuration.address = remoteHost_in;
+  connection_configuration.useLoopBackDevice =
+    connection_configuration.address.is_loopback ();
 
-  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  connection_configuration.socketHandlerConfiguration.userData =
-    &CBData_in.configuration->userData;
 
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.userData = &CBData_in.configuration->userData;
   connection_configuration.initialize (CBData_in.configuration->allocatorConfiguration,
                                        CBData_in.configuration->streamConfiguration);
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                            connection_configuration));
-  HTTPGet_ConnectionConfigurationIterator_t iterator =
+                                                                            &connection_configuration));
+  Net_ConnectionConfigurationsIterator_t iterator =
     CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
-  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
-    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
@@ -680,9 +674,10 @@ do_work (unsigned int bufferSize_in,
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0c: initialize connection manager
+  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set ((*iterator).second,
-                             &CBData_in.configuration->userData);
+  connection_manager_p->set (*dynamic_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+                             &user_data_s);
 
   Common_Timer_Manager_t* timer_manager_p =
     COMMON_TIMERMANAGER_SINGLETON::instance ();
@@ -741,8 +736,6 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize signal handling
   CBData_in.configuration->signalHandlerConfiguration.dispatchState =
     &CBData_in.dispatchState;
-  CBData_in.configuration->signalHandlerConfiguration.hasUI =
-    !interfaceDefinitionFile_in.empty ();
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;

@@ -94,7 +94,8 @@ class Test_I_Target_Stream_Message;
 class Test_I_Target_SessionMessage;
 #endif // ACE_WIN32 || ACE_WIN64
 template <typename ConfigurationType,
-          typename ConnectionManagerType>
+          typename TCPConnectionManagerType,
+          typename UDPConnectionManagerType>
 class Test_I_Target_SignalHandler_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -123,18 +124,6 @@ struct Test_I_Target_MediaFoundation_MessageData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //struct Test_I_Target_DirectShow_ConnectionConfiguration;
 //struct Test_I_Target_DirectShow_StreamConfiguration;
-struct Test_I_Target_UserData
- : Stream_UserData
-{
-  Test_I_Target_UserData ()
-   : Stream_UserData ()
-   //, connectionConfiguration (NULL)
-   //, streamConfiguration (NULL)
-  {}
-
-  //struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
-  //struct Test_I_Target_DirectShow_StreamConfiguration*     streamConfiguration;
-};
 //struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
 //struct Test_I_Target_MediaFoundation_StreamConfiguration;
 //struct Test_I_Target_MediaFoundation_UserData
@@ -152,7 +141,6 @@ struct Test_I_Target_UserData
 #else
 #endif // ACE_WIN32 || ACE_WIN64
 
-struct Test_I_Target_ConnectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
@@ -332,9 +320,9 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   struct tagRECT                                       area;              // display module
 #endif // GUI_SUPPORT
   IGraphBuilder*                                       builder;           // display module
-  Test_I_Target_DirectShow_IConnection_t*              connection;        // Net source/IO module
+  Test_I_Target_DirectShow_ITCPConnection_t*           connection;        // Net source/IO module
   Net_ConnectionConfigurations_t*                      connectionConfigurations;
-  Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
+  Test_I_Target_DirectShow_TCPConnectionManager_t*     connectionManager; // Net IO module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   guint                                                contextId; // status bar-
@@ -411,33 +399,33 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
   }
 
 #if defined (GUI_SUPPORT)
-  struct tagRECT                                         area;                      // display module
+  struct tagRECT                                        area;                      // display module
 #endif // GUI_SUPPORT
-  Test_I_Target_MediaFoundation_IConnection_t*           connection;                // net source/IO module
-  Net_ConnectionConfigurations_t*                        connectionConfigurations;
-  Test_I_Target_MediaFoundation_InetConnectionManager_t* connectionManager;         // net IO module
+  Test_I_Target_MediaFoundation_ITCPConnection_t*       connection;                // net source/IO module
+  Net_ConnectionConfigurations_t*                       connectionConfigurations;
+  Test_I_Target_MediaFoundation_TCPConnectionManager_t* connectionManager;         // net IO module
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-  guint                                                  contextId; // status bar-
+  guint                                                 contextId; // status bar-
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  bool                                                   crunch;                    // splitter module
-  std::string                                            deviceIdentifier;
-  IDirect3DDevice9Ex*                                    direct3DDevice;            // display module
-  UINT                                                   direct3DManagerResetToken; // display module
-  IMFMediaType*                                          outputFormat;               // display module
-  IMFMediaSource*                                        mediaSource;
-  ACE_Message_Queue_Base*                                queue; // (inbound) buffer queue handle
-  TOPOID                                                 rendererNodeId;            // display module
+  bool                                                  crunch;                    // splitter module
+  std::string                                           deviceIdentifier;
+  IDirect3DDevice9Ex*                                   direct3DDevice;            // display module
+  UINT                                                  direct3DManagerResetToken; // display module
+  IMFMediaType*                                         outputFormat;               // display module
+  IMFMediaSource*                                       mediaSource;
+  ACE_Message_Queue_Base*                               queue; // (inbound) buffer queue handle
+  TOPOID                                                rendererNodeId;            // display module
   //IMFSourceReaderEx*                                             sourceReader;
-  IMFMediaSession*                                       session;
-  IMFMediaType*                                          sourceFormat;               // source module
-  Test_I_Target_MediaFoundation_StreamConfiguration_t*   streamConfiguration;
-  Test_I_Target_MediaFoundation_ISessionNotify_t*        subscriber;                // event handler module
-  Test_I_Target_MediaFoundation_Subscribers_t*           subscribers;               // event handler module
+  IMFMediaSession*                                      session;
+  IMFMediaType*                                         sourceFormat;               // source module
+  Test_I_Target_MediaFoundation_StreamConfiguration_t*  streamConfiguration;
+  Test_I_Target_MediaFoundation_ISessionNotify_t*       subscriber;                // event handler module
+  Test_I_Target_MediaFoundation_Subscribers_t*          subscribers;               // event handler module
 #if defined (GUI_SUPPORT)
-  HWND                                                   window;                    // display module
-  IMFVideoDisplayControl*                                windowController;          // display module
+  HWND                                                  window;                    // display module
+  IMFVideoDisplayControl*                               windowController;          // display module
 #endif // GUI_SUPPORT
 };
 #else
@@ -502,7 +490,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_ListenerConfiguration
- : public Net_ListenerConfiguration_T<Test_I_Target_DirectShow_ConnectionConfiguration_t,
+ : public Net_ListenerConfiguration_T<Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP>
 {
  public:
@@ -513,15 +501,15 @@ class Test_I_Target_DirectShow_ListenerConfiguration
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {}
 
-  Test_I_Target_DirectShow_ConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_DirectShow_InetConnectionManager_t*   connectionManager;
-  ACE_Time_Value                                      statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  Test_I_Target_DirectShow_TCPConnectionConfiguration_t* connectionConfiguration;
+  Test_I_Target_DirectShow_TCPConnectionManager_t*       connectionManager;
+  ACE_Time_Value                                         statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<Test_I_Target_DirectShow_ListenerConfiguration,
-                        Test_I_Target_DirectShow_ConnectionConfiguration_t> Test_I_Target_DirectShow_IListener_t;
+                        Test_I_Target_DirectShow_TCPConnectionConfiguration_t> Test_I_Target_DirectShow_IListener_t;
 
 class Test_I_Target_MediaFoundation_ListenerConfiguration
- : public Net_ListenerConfiguration_T<Test_I_Target_MediaFoundation_ConnectionConfiguration_t,
+ : public Net_ListenerConfiguration_T<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP>
 {
  public:
@@ -532,12 +520,12 @@ class Test_I_Target_MediaFoundation_ListenerConfiguration
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {}
 
-  Test_I_Target_MediaFoundation_ConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_MediaFoundation_InetConnectionManager_t*   connectionManager;
-  ACE_Time_Value                                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t* connectionConfiguration;
+  Test_I_Target_MediaFoundation_TCPConnectionManager_t*       connectionManager;
+  ACE_Time_Value                                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<Test_I_Target_MediaFoundation_ListenerConfiguration,
-                        Test_I_Target_MediaFoundation_ConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
+                        Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
 #else
 class Test_I_Target_ListenerConfiguration
  : public Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
@@ -577,7 +565,8 @@ struct Test_I_Target_DirectShow_SignalHandlerConfiguration
   Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_DirectShow_SignalHandlerConfiguration,
-                                      Test_I_Target_DirectShow_InetConnectionManager_t> Test_I_Target_DirectShow_SignalHandler_t;
+                                      Test_I_Target_DirectShow_TCPConnectionManager_t,
+                                      Test_I_Target_DirectShow_UDPConnectionManager_t> Test_I_Target_DirectShow_SignalHandler_t;
 struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
@@ -593,7 +582,8 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
   Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration,
-                                      Test_I_Target_MediaFoundation_InetConnectionManager_t> Test_I_Target_MediaFoundation_SignalHandler_t;
+                                      Test_I_Target_MediaFoundation_TCPConnectionManager_t,
+                                      Test_I_Target_MediaFoundation_UDPConnectionManager_t> Test_I_Target_MediaFoundation_SignalHandler_t;
 #else
 struct Test_I_Target_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
@@ -610,7 +600,8 @@ struct Test_I_Target_SignalHandlerConfiguration
   Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration,
-                                      Test_I_Target_TCPConnectionManager_t> Test_I_Target_SignalHandler_t;
+                                      Test_I_Target_TCPConnectionManager_t,
+                                      Test_I_Target_UDPConnectionManager_t> Test_I_Target_SignalHandler_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

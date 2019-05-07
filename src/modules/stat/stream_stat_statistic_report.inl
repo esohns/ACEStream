@@ -251,6 +251,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::handleDataMessage"));
 
+  ACE_ASSERT (message_inout);
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 

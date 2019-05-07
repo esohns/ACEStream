@@ -115,7 +115,7 @@ struct HTTPGet_Configuration
   // **************************** signal data **********************************
   struct HTTPGet_SignalHandlerConfiguration      signalHandlerConfiguration;
   // **************************** socket data **********************************
-  HTTPGet_ConnectionConfigurations_t             connectionConfigurations;
+  Net_ConnectionConfigurations_t                 connectionConfigurations;
   // **************************** stream data **********************************
   struct Common_ParserConfiguration              parserConfiguration;
   HTTPGet_StreamConfiguration_t                  streamConfiguration;

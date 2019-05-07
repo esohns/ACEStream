@@ -35,8 +35,6 @@
 #include "test_u_imagescreen_common.h"
 
 // forward declaratation(s)
-struct Stream_ImageScreen_UserData;
-
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,

@@ -82,8 +82,8 @@ class Test_U_AudioEffect_DirectShow_Stream
   virtual ~Test_U_AudioEffect_DirectShow_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
@@ -146,8 +146,8 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                      bool = true); // locked access ?
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration

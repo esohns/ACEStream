@@ -889,9 +889,10 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
 
   // step0c: (re-)configure connection manager
+  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
-                             &configuration.userData);
+                             &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();

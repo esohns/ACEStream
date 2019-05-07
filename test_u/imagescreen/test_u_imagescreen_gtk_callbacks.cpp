@@ -37,6 +37,7 @@
 
 #include "common_ui_defines.h"
 #include "common_ui_ifullscreen.h"
+#include "common_ui_tools.h"
 
 #include "common_ui_gtk_common.h"
 #include "common_ui_gtk_defines.h"
@@ -256,8 +257,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
                                    1.0 / static_cast<double> (width));
-  gtk_progress_bar_set_show_text (progress_bar_p,
-                                  TRUE);
+  //gtk_progress_bar_set_show_text (progress_bar_p,
+  //                                TRUE);
 
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
@@ -641,16 +642,20 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     (*stream_configuration_iterator).second.second.outputFormat.resolution.cx =
+		((*stream_configuration_iterator).second.second.display.clippingArea.right -
+		 (*stream_configuration_iterator).second.second.display.clippingArea.left);
 #else
     (*stream_configuration_iterator).second.second.outputFormat.resolution.width =
+		(*stream_configuration_iterator).second.second.display.clippingArea.width;
 #endif // ACE_WIN32 || ACE_WIN64
-        (*stream_configuration_iterator).second.second.display.clippingArea.width;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     (*stream_configuration_iterator).second.second.outputFormat.resolution.cy =
+		((*stream_configuration_iterator).second.second.display.clippingArea.bottom -
+		 (*stream_configuration_iterator).second.second.display.clippingArea.top);
 #else
     (*stream_configuration_iterator).second.second.outputFormat.resolution.height =
+		(*stream_configuration_iterator).second.second.display.clippingArea.height;
 #endif // ACE_WIN32 || ACE_WIN64
-        (*stream_configuration_iterator).second.second.display.clippingArea.height;
   } // end IF
   else
   {
@@ -873,51 +878,10 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
-  Stream_CamSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
-  struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-    NULL;
-  Stream_CamSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_cb_data_p =
-        static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
-      ACE_ASSERT (directshow_cb_data_p->configuration);
-      directshow_stream_iterator =
-        directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->streamConfiguration.end ());
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_cb_data_p =
-        static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
-      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-      mediafoundation_stream_iterator =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
   ACE_ASSERT (ui_cb_data_p->configuration);
-//  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-//    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T iterator_3 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
-#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
 
   GtkTreeIter iterator_4;
@@ -939,7 +903,11 @@ combobox_display_changed_cb (GtkWidget* widget_in,
                             &iterator_4,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (false); // *TODO*
+#else
   (*iterator_3).second.second.display.device = g_value_get_string (&value);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 
   // select corresponding adapter
@@ -947,8 +915,13 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
-  struct Common_UI_DisplayAdapter display_adapter_s =
+  struct Common_UI_DisplayAdapter display_adapter_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (false); // *TODO*
+#else
+  display_adapter_s =
       Common_UI_Tools::getAdapter ((*iterator_3).second.second.display);
+#endif // ACE_WIN32 || ACE_WIN64
   g_value_init (&value, G_TYPE_STRING);
   g_value_set_string (&value,
                       display_adapter_s.device.c_str ());

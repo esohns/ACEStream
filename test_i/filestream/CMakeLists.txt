@@ -184,11 +184,12 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 
 # add PCH
-set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
-                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
+#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 #set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
 #                       COTIRE_ENABLE_PRECOMPILED_HEADER TRUE)
-cotire (${EXECUTABLE_SOURCE})
+#cotire (${EXECUTABLE_SOURCE})
+add_precompiled_header (${EXECUTABLE_SOURCE} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -254,8 +255,8 @@ set_tests_properties (filestream_source
 ############## next target ################
 set (EXECUTABLE_TARGET filetarget)
 set (${EXECUTABLE_TARGET}_EXE_SRCS
-#     stdafx.cpp
-#     stdafx.h
+     stdafx.cpp
+     stdafx.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
      test_i_filestream_common.h
@@ -269,9 +270,6 @@ set (${EXECUTABLE_TARGET}_EXE_SRCS
      test_i_module_eventhandler.inl
      test_i_session_message.cpp
      test_i_session_message.h
-#     test_i_source_stream.cpp
-#     test_i_source_stream.h
-#     test_i_source_stream.inl
      test_i_target.cpp
      test_i_target_common.h
      test_i_target_eventhandler.cpp
@@ -341,9 +339,10 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
 #                       COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
 #cotire (${EXECUTABLE_TARGET})
-if (WIN32)
- add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
-endif (WIN32)
+#if (WIN32)
+# add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
+#endif (WIN32)
+add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 
 ##########################################
 

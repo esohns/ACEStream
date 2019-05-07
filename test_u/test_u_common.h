@@ -67,10 +67,6 @@ struct IMFSample;
 class ACE_Message_Queue_Base;
 struct Test_U_Configuration;
 
-typedef Stream_Statistic Test_U_Statistic_t;
-typedef Common_IStatistic_T<Test_U_Statistic_t> Test_U_StatisticReportingHandler_t;
-typedef Common_StatisticHandler_T<Test_U_Statistic_t> Test_U_StatisticHandler_t;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_DirectShow_MessageData
 {
@@ -366,11 +362,11 @@ struct Test_U_UI_ProgressData
    : state (NULL)
    , statistic ()
   {
-    ACE_OS::memset (&statistic, 0, sizeof (Test_U_Statistic_t));
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
   }
 
   struct Common_UI_State* state;
-  Test_U_Statistic_t      statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_U_UI_CBData

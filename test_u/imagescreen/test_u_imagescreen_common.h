@@ -118,6 +118,9 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
    , codecFormat (AV_PIX_FMT_NONE)
    , codecId (AV_CODEC_ID_NONE)
    , delay (5, 0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , direct3DConfiguration (NULL)
+#endif // ACE_WIN32 || ACE_WIN64
    , display ()
    , fileIdentifier ()
    , fullScreen (false)
@@ -142,6 +145,9 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   enum AVPixelFormat                            codecFormat; // preferred output-
   enum AVCodecID                                codecId;
   ACE_Time_Value                                delay;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice                display; // display module
   Common_File_Identifier                        fileIdentifier; // source module
   // *NOTE*: treat each image separately (different sizes)
@@ -185,7 +191,11 @@ struct Stream_ImageScreen_StreamConfiguration
   Stream_ImageScreen_StreamConfiguration ()
    : Stream_Configuration ()
 //   , format ()
-   , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
+#else
+    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_X11)
+#endif
   {
     printFinalReport = true;
   }

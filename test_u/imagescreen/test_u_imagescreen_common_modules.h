@@ -24,8 +24,8 @@
 #include "ace/config-lite.h"
 #include "ace/Synch_Traits.h"
 
-//#include "common_time_common.h"
-//#include "common_timer_manager_common.h"
+#include "common_time_common.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
@@ -53,15 +53,10 @@
 #include "stream_stat_statistic_report.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_vis_gtk_cairo.h"
+#include "stream_vis_target_direct3d.h"
 #else
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#include "stream_vis_gtk_pixbuf.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 
 #include "test_u_imagescreen_common.h"
 #include "test_u_imagescreen_message.h"
@@ -82,21 +77,29 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Stream_Statistic,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Stream_ImageScreen_Source;
-typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_MT_SYNCH,
-                                            Common_TimePolicy_t,
-                                            struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                            Stream_ControlMessage_t,
-                                            Stream_ImageScreen_Message_t,
-                                            Stream_ImageScreen_SessionMessage_t,
-                                            Stream_ImageScreen_SessionData_t,
-                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_LibAVDecoder;
+//typedef Stream_Decoder_LibAV_ImageDecoder_T<ACE_MT_SYNCH,
+//                                            Common_TimePolicy_t,
+//                                            struct Stream_ImageScreen_ModuleHandlerConfiguration,
+//                                            Stream_ControlMessage_t,
+//                                            Stream_ImageScreen_Message_t,
+//                                            Stream_ImageScreen_SessionMessage_t,
+//                                            Stream_ImageScreen_SessionData_t,
+//                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Decode;
+typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                         Stream_ControlMessage_t,
+                                         Stream_ImageScreen_Message_t,
+                                         Stream_ImageScreen_SessionMessage_t,
+                                         Stream_ImageScreen_SessionData_t,
+                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Convert;
 typedef Stream_Visualization_LibAVResize1_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Stream_ImageScreen_ModuleHandlerConfiguration,
                                             Stream_ControlMessage_t,
                                             Stream_ImageScreen_Message_t,
                                             Stream_ImageScreen_SessionMessage_t,
-                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_LibAVResize;
+                                            struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Resize;
 #endif // FFMPEG_SUPPORT
 
 #if defined (IMAGEMAGICK_SUPPORT)
@@ -118,14 +121,6 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
 //                                             Stream_ImageScreen_Message_t,
 //                                             Stream_ImageScreen_SessionMessage_t,
 //                                             struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_ImageMagickDecoder;
-typedef Stream_Decoder_LibAVConverter1_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-                                         struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Stream_ImageScreen_Message_t,
-                                         Stream_ImageScreen_SessionMessage_t,
-                                         Stream_ImageScreen_SessionData_t,
-                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_LibAVConverter;
 typedef Stream_Visualization_ImageMagickResize1_T<ACE_MT_SYNCH,
                                                   Common_TimePolicy_t,
                                                   struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -135,28 +130,28 @@ typedef Stream_Visualization_ImageMagickResize1_T<ACE_MT_SYNCH,
                                                   struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_ImageMagickResize;
 #endif // IMAGEMAGICK_SUPPORT
 
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_ImageScreen_Message_t,
-                                                      Stream_ImageScreen_SessionMessage_t,
-                                                      Stream_CommandType_t,
-                                                      struct Stream_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Stream_ImageScreen_SessionData,
-                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_ReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                                      Stream_ControlMessage_t,
-                                                      Stream_ImageScreen_Message_t,
-                                                      Stream_ImageScreen_SessionMessage_t,
-                                                      Stream_CommandType_t,
-                                                      struct Stream_Statistic,
-                                                      Common_Timer_Manager_t,
-                                                      Stream_ImageScreen_SessionData,
-                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_WriterTask_t;
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Stream_ImageScreen_Message_t,
+//                                                      Stream_ImageScreen_SessionMessage_t,
+//                                                      Stream_CommandType_t,
+//                                                      struct Stream_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Stream_ImageScreen_SessionData,
+//                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_ReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
+//                                                      Stream_ControlMessage_t,
+//                                                      Stream_ImageScreen_Message_t,
+//                                                      Stream_ImageScreen_SessionMessage_t,
+//                                                      Stream_CommandType_t,
+//                                                      struct Stream_Statistic,
+//                                                      Common_Timer_Manager_t,
+//                                                      Stream_ImageScreen_SessionData,
+//                                                      Stream_ImageScreen_SessionData_t> Stream_ImageScreen_Statistic_WriterTask_t;
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
@@ -166,28 +161,16 @@ typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Stream_ImageScreen_SessionMessage_t,
                               Stream_UserData> Stream_ImageScreen_Delay;
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_ImageScreen_Message_t,
-                                       Stream_ImageScreen_SessionMessage_t,
-                                       Stream_ImageScreen_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_GtkDisplay;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Stream_ImageScreen_ModuleHandlerConfiguration,
-                                      Stream_ControlMessage_t,
-                                      Stream_ImageScreen_Message_t,
-                                      Stream_ImageScreen_SessionMessage_t,
-                                      Stream_ImageScreen_SessionData,
-                                      Stream_ImageScreen_SessionData_t,
-                                      struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
+typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_ImageScreen_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_ImageScreen_Message_t,
+                                     Stream_ImageScreen_SessionMessage_t,
+                                     Stream_ImageScreen_SessionData,
+                                     Stream_ImageScreen_SessionData_t,
+                                     struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
 #else
 typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -196,7 +179,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Stream_ImageScreen_Message_t,
                                        Stream_ImageScreen_SessionMessage_t,
                                        Stream_ImageScreen_SessionData_t,
-                                       struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_X11Display;
+                                       struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Display;
 #endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
@@ -207,7 +190,7 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Stream_ImageScreen_SessionMessage_t,
                                        Stream_SessionId_t,
                                        Stream_ImageScreen_SessionData,
-                                       struct Stream_ImageScreen_UserData> Stream_ImageScreen_MessageHandler;
+                                       struct Stream_UserData> Stream_ImageScreen_MessageHandler;
 
 //////////////////////////////////////////
 #if defined (FFMPEG_SUPPORT)
@@ -217,19 +200,25 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               libacestream_default_file_source_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_Source);                       // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
+//                              enum Stream_SessionMessageType,                   // session event type
+//                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_libav_decoder_module_name_string,
+//                              Stream_INotify_t,                                 // stream notification interface type
+//                              Stream_ImageScreen_LibAVDecoder);                     // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_libav_decoder_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_LibAVDecoder);                     // writer type
+                              Stream_ImageScreen_Convert);                      // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_LibAVResize);                       // writer type
+                              Stream_ImageScreen_Resize);                       // writer type
 #endif // FFMPEG_SUPPORT
 
 #if defined (IMAGEMAGICK_SUPPORT)
@@ -248,25 +237,19 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_libav_decoder_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_LibAVConverter);                     // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_imagemagick_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_ImageMagickResize);                       // writer type
 #endif // IMAGEMAGICK_SUPPORT
 
-DATASTREAM_MODULE_DUPLEX (Stream_ImageScreen_SessionData,                // session data type
-                          enum Stream_SessionMessageType,                   // session event type
-                          struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
-                          libacestream_default_stat_report_module_name_string,
-                          Stream_INotify_t,                                 // stream notification interface type
-                          Stream_ImageScreen_Statistic_ReaderTask_t,            // reader type
-                          Stream_ImageScreen_Statistic_WriterTask_t,            // writer type
-                          Stream_ImageScreen_StatisticReport);                  // name
+//DATASTREAM_MODULE_DUPLEX (Stream_ImageScreen_SessionData,                // session data type
+//                          enum Stream_SessionMessageType,                   // session event type
+//                          struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
+//                          libacestream_default_stat_report_module_name_string,
+//                          Stream_INotify_t,                                 // stream notification interface type
+//                          Stream_ImageScreen_Statistic_ReaderTask_t,            // reader type
+//                          Stream_ImageScreen_Statistic_WriterTask_t,            // writer type
+//                          Stream_ImageScreen_StatisticReport);                  // name
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -275,21 +258,11 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_Delay);                        // writer type
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_pixbuf_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_GtkDisplay);                          // writer type
-#endif // GTK_USE
-#endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              libacestream_default_vis_direct3d_module_name_string,
                               Stream_INotify_t,                                     // stream notification interface type
                               Stream_ImageScreen_Display);                              // writer type
 #else

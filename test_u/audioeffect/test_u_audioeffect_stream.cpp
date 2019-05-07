@@ -67,7 +67,7 @@ Test_U_AudioEffect_DirectShow_Stream::~Test_U_AudioEffect_DirectShow_Stream ()
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::load (typename inherited::LAYOUT_T& layout_out,
+Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::load"));
@@ -78,48 +78,44 @@ Test_U_AudioEffect_DirectShow_Stream::load (typename inherited::LAYOUT_T& layout
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                  Test_U_Dev_Mic_Source_DirectShow_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
+  //                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                false);
+  //layout_in->append (module_p, NULL, 0);
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
+                                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
+                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
-  //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
-  //{
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    modules_out.push_back (module_p);
-  //} // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                  Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 
@@ -658,55 +654,51 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
+Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::load"));
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                  Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-  //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
-  //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
-  //{
-    module_p = NULL;
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
-                    false);
-    modules_out.push_back (module_p);
-  //} // end IF
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+  layout_in->append (module_p, NULL, 0);
+  //module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
+  //                                                                           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                false);
+  //layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
                                                                                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
-                                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+                  Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
+                                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
+#endif // GTK_USE
+#endif // GUI_SUPPORT
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                  Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 

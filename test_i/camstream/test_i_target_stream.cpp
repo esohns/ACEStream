@@ -58,44 +58,12 @@ Test_I_Target_DirectShow_Stream::~Test_I_Target_DirectShow_Stream ()
 }
 
 bool
-Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
+Test_I_Target_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                        bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::load"));
 
-  // sanity check(s)
-  inherited::CONFIGURATION_T::ITERATOR_T iterator =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->end ());
-  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
-  ACE_ASSERT (configuration_p);
-
-  Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_Display_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_StatisticReport_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_Splitter_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-  //Test_I_Target_DirectShow_Module_AVIDecoder_Module            decoder_;
-  //Test_I_Target_DirectShow_Module_Net_IO_Module                source_;
-
-  if (!inherited::load (modules_out,
+  if (!inherited::load (layout_in,
                         delete_out))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -103,6 +71,29 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     return false;
   } // end IF
   ACE_ASSERT (delete_out);
+
+  Stream_Module_t* module_p = NULL;
+  //Test_I_Target_DirectShow_Module_AVIDecoder_Module            decoder_;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_Splitter_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  //module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_Target_DirectShow_StatisticReport_Module (this,
+  //                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                false);
+  //ACE_ASSERT (module_p);
+  //layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_Display_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 
@@ -664,47 +655,13 @@ Test_I_Target_MediaFoundation_Stream::~Test_I_Target_MediaFoundation_Stream ()
 }
 
 bool
-Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
+Test_I_Target_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::load"));
 
-//  // initialize return value(s)
-//  modules_out.clear ();
-//  delete_out = false;
-
-  Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_Display_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-//  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_NULL_MODULE_NAME)),
-//                  false);
-//  ACE_ASSERT (module_p);
-//  modules_out.push_back (module_p);
-  module_p = NULL;
-  //Test_I_Target_MediaFoundation_MediaFoundationSource_Module mediaFoundationSource_;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_Splitter_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
-                  false);
-  ACE_ASSERT (module_p);
-  modules_out.push_back (module_p);
-  //Test_I_Target_MediaFoundation_Module_AVIDecoder_Module            decoder_;
-  //Test_I_Target_MediaFoundation_Module_Net_IO_Module                source_;
-
-  if (!inherited::load (modules_out,
-                        delete_out))
+    if (!inherited::load (layout_in,
+                          delete_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n"),
@@ -712,6 +669,30 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
     return false;
   } // end IF
   ACE_ASSERT (delete_out);
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_MediaFoundation_Splitter_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  //Test_I_Target_MediaFoundation_Module_AVIDecoder_Module            decoder_;
+  //Test_I_Target_MediaFoundation_MediaFoundationSource_Module mediaFoundationSource_;
+  //module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_Target_MediaFoundation_StatisticReport_Module (this,
+  //                                                                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                false);
+  //ACE_ASSERT (module_p);
+  //layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_MediaFoundation_Display_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
 
   delete_out = true;
 

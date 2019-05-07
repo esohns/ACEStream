@@ -94,8 +94,8 @@ class Stream_CameraScreen_DirectShow_Stream
   virtual ~Stream_CameraScreen_DirectShow_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
@@ -106,10 +106,10 @@ class Stream_CameraScreen_DirectShow_Stream
 
   // modules
   Stream_CameraScreen_DirectShow_Source_Module            source_;
-  Stream_CameraScreen_DirectShow_StatisticReport_Module   statisticReport_;
+  //Stream_CameraScreen_DirectShow_StatisticReport_Module   statisticReport_;
 #if defined (GUI_SUPPORT)
-  Stream_CameraScreen_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
-  Stream_CameraScreen_DirectShow_Display_Module           directShowDisplay_;
+  //Stream_CameraScreen_DirectShow_Direct3DDisplay_Module   display_;
+  Stream_CameraScreen_DirectShow_Display_Module           display_;
 //#if defined (GTK_USE)
 //  Stream_CameraScreen_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
 //#endif // GTK_USE
@@ -175,8 +175,8 @@ class Stream_CameraScreen_MediaFoundation_Stream
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
@@ -187,10 +187,10 @@ class Stream_CameraScreen_MediaFoundation_Stream
 
   // modules
   Stream_CameraScreen_MediaFoundation_Source_Module          source_;
-  Stream_CameraScreen_MediaFoundation_StatisticReport_Module statisticReport_;
-  Stream_CameraScreen_MediaFoundation_Direct3DDisplay_Module direct3DDisplay_;
-  Stream_CameraScreen_MediaFoundation_Display_Module         mediaFoundationDisplay_;
-  Stream_CameraScreen_MediaFoundation_DisplayNull_Module     mediaFoundationDisplayNull_;
+  //Stream_CameraScreen_MediaFoundation_StatisticReport_Module statisticReport_;
+  //Stream_CameraScreen_MediaFoundation_Direct3DDisplay_Module direct3DDisplay_;
+  Stream_CameraScreen_MediaFoundation_Display_Module         display_;
+  //Stream_CameraScreen_MediaFoundation_DisplayNull_Module     mediaFoundationDisplayNull_;
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //  Stream_CameraScreen_MediaFoundation_GTKCairoDisplay_Module            GTKCairoDisplay_;

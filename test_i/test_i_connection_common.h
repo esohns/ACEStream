@@ -21,70 +21,8 @@
 #ifndef TEST_I_CONNECTION_COMMON_H
 #define TEST_I_CONNECTION_COMMON_H
 
-//#include <map>
-//#include <string>
-
-//#include "ace/INET_Addr.h"
-
 #include "net_common.h"
-//#include "net_configuration.h"
-//#include "net_iconnector.h"
 
 #include "test_i_common.h"
-
-//struct Test_I_ConnectionConfiguration;
-//struct Test_I_SocketHandlerConfiguration
-// : Net_SocketHandlerConfiguration
-//{
-//  Test_I_SocketHandlerConfiguration ()
-//   : Net_SocketHandlerConfiguration ()
-//   ///////////////////////////////////////
-//   , connectionConfiguration (NULL)
-//   , userData (NULL)
-//  {};
-//
-//  struct Test_I_ConnectionConfiguration* connectionConfiguration;
-//
-//  struct Test_I_UserData*                userData;
-//};
-
-//struct Test_I_ConnectionConfiguration
-// : Net_ConnectionConfiguration
-//{
-//  Test_I_ConnectionConfiguration ()
-//   : Net_ConnectionConfiguration ()
-//   ///////////////////////////////////////
-//   , socketHandlerConfiguration ()
-//   , userData (NULL)
-//  {};
-//
-//  struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
-//
-//  struct Test_I_UserData*                  userData;
-//};
-//typedef std::map<std::string,
-//                 struct Test_I_ConnectionConfiguration> Test_I_ConnectionConfigurations_t;
-//typedef Test_I_ConnectionConfigurations_t::iterator Test_I_ConnectionConfigurationIterator_t;
-
-struct Test_I_ConnectionState
- : Net_ConnectionState
-{
-  Test_I_ConnectionState ()
-   : Net_ConnectionState ()
-   //, configuration (NULL)
-   , statistic ()
-  {}
-
-  //struct Test_I_ConnectionConfiguration* configuration;
-
-  Test_I_Statistic_t                     statistic;
-};
-
-/////////////////////////////////////////
-
-//typedef Net_IConnector_T<ACE_INET_Addr,
-//                         struct Test_I_SocketHandlerConfiguration> Test_I_IInetConnector_t;
-
-/////////////////////////////////////////
 
 #endif

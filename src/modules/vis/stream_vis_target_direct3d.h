@@ -36,6 +36,7 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_lib_directdraw_common.h"
 #include "stream_lib_mediatype_converter.h"
 
 extern const char libacestream_default_vis_direct3d_module_name_string[];
