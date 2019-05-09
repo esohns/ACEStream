@@ -55,7 +55,7 @@ class Test_I_HTTPGet_Stream_T
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_HTTPGet_StreamConfiguration,
-                        Test_I_Statistic_t,
+                        struct Stream_Statistic,
                         struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -65,6 +65,24 @@ class Test_I_HTTPGet_Stream_T
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_HTTPGet_StreamState,
+                        struct Test_I_HTTPGet_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Common_FlexParserAllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                        struct Test_I_Stream_SessionData,
+                        Test_I_Stream_SessionData_t,
+                        Test_I_ControlMessage_t,
+                        Test_I_Stream_Message,
+                        Test_I_Stream_SessionMessage> inherited;
+
  public:
   Test_I_HTTPGet_Stream_T ();
   virtual ~Test_I_HTTPGet_Stream_T ();
@@ -78,27 +96,10 @@ class Test_I_HTTPGet_Stream_T
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Test_I_HTTPGet_StreamState,
-                        struct Test_I_HTTPGet_StreamConfiguration,
-                        Test_I_Statistic_t,
-                        struct Common_FlexParserAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                        struct Test_I_Stream_SessionData,
-                        Test_I_Stream_SessionData_t,
-                        Test_I_ControlMessage_t,
-                        Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage> inherited;
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Test_I_HTTPGet_ModuleHandlerConfiguration,

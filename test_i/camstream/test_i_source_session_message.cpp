@@ -30,7 +30,7 @@
 Test_I_Source_DirectShow_SessionMessage::Test_I_Source_DirectShow_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                   enum Stream_SessionMessageType messageType_in,
                                                                                   Test_I_Source_DirectShow_SessionData_t*& sessionData_in,
-                                                                                  struct Test_I_Source_DirectShow_UserData* userData_in)
+                                                                                  struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,
@@ -111,7 +111,7 @@ Test_I_Source_DirectShow_SessionMessage::duplicate (void) const
 Test_I_Source_MediaFoundation_SessionMessage::Test_I_Source_MediaFoundation_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                             enum Stream_SessionMessageType messageType_in,
                                                                                             Test_I_Source_MediaFoundation_SessionData_t*& sessionData_in,
-                                                                                            struct Test_I_Source_MediaFoundation_UserData* userData_in)
+                                                                                            struct Stream_UserData* userData_in)
  : inherited (sessionId_in,
               messageType_in,
               sessionData_in,

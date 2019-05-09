@@ -135,9 +135,9 @@ struct Test_I_Target_SignalHandlerConfiguration
    , statisticReportingTimerId (-1)
   {}
 
-  Test_I_Target_IListener_t*  listener;
-  Test_I_IStatisticHandler_t* statisticReportingHandler;
-  long                        statisticReportingTimerId;
+  Test_I_Target_IListener_t* listener;
+  Net_IStatisticHandler_t*   statisticReportingHandler;
+  long                       statisticReportingTimerId;
 };
 
 //extern const char stream_name_string_[];
@@ -179,10 +179,10 @@ struct Test_I_Target_ModuleHandlerConfiguration
 };
 
 struct Test_I_Target_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Target_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
   {}
 };
 

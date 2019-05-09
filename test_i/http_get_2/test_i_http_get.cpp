@@ -751,6 +751,7 @@ do_work (const std::string& bootstrapFileName_in,
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   Net_ConnectionConfigurationsIterator_t iterator;
   struct Common_EventDispatchState event_dispatch_state_s;
+  struct Net_UserData user_data_s;
 
   // step0a: initialize configuration and stream
   if (useReactor_in)
@@ -889,7 +890,6 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
 
   // step0c: (re-)configure connection manager
-  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);

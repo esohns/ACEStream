@@ -146,16 +146,16 @@ class Test_I_Target_DirectShow_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
                                         struct _AMMediaType,
                                         struct Test_I_Target_DirectShow_StreamState,
-                                        Test_I_Statistic_t,
-                                        struct Test_I_Target_UserData>
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
 {
  public:
   Test_I_Target_DirectShow_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
                                    struct _AMMediaType,
                                    struct Test_I_Target_DirectShow_StreamState,
-                                   Test_I_Statistic_t,
-                                   struct Test_I_Target_UserData> ()
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
    , targetFileName ()
    , windowController (NULL)
   {}
@@ -166,8 +166,8 @@ class Test_I_Target_DirectShow_SessionData
     Stream_SessionDataMediaBase_T<struct Test_I_CamStream_DirectShow_SessionData,
                                   struct _AMMediaType,
                                   struct Test_I_Target_DirectShow_StreamState,
-                                  Test_I_Statistic_t,
-                                  struct Test_I_Target_UserData>::operator+= (rhs_in);
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     return *this;
   }
@@ -181,16 +181,16 @@ class Test_I_Target_MediaFoundation_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
                                         IMFMediaType*,
                                         struct Test_I_Target_MediaFoundation_StreamState,
-                                        Test_I_Statistic_t,
-                                        struct Test_I_Target_UserData>
+                                        struct Stream_Statistic,
+                                        struct Stream_UserData>
 {
  public:
   Test_I_Target_MediaFoundation_SessionData ()
    : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
                                    IMFMediaType*,
                                    struct Test_I_Target_MediaFoundation_StreamState,
-                                   Test_I_Statistic_t,
-                                   struct Test_I_Target_UserData> ()
+                                   struct Stream_Statistic,
+                                   struct Stream_UserData> ()
    , outputFormat (NULL)
    , sourceFormat (NULL)
   {}
@@ -201,8 +201,8 @@ class Test_I_Target_MediaFoundation_SessionData
     Stream_SessionDataMediaBase_T<struct Test_I_CamStream_MediaFoundation_SessionData,
                                   IMFMediaType*,
                                   struct Test_I_Target_MediaFoundation_StreamState,
-                                  Test_I_Statistic_t,
-                                  struct Test_I_Target_UserData>::operator+= (rhs_in);
+                                  struct Stream_Statistic,
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     return *this;
   }
@@ -216,7 +216,7 @@ class Test_I_Target_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                         struct Stream_MediaFramework_FFMPEG_MediaType,
                                         struct Test_I_Target_StreamState,
-                                        Test_I_Statistic_t,
+                                        struct Stream_Statistic,
                                         struct Stream_UserData>
 {
  public:
@@ -224,7 +224,7 @@ class Test_I_Target_SessionData
    : Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                    struct Stream_MediaFramework_FFMPEG_MediaType,
                                    struct Test_I_Target_StreamState,
-                                   Test_I_Statistic_t,
+                                   struct Stream_Statistic,
                                    struct Stream_UserData> ()
 //   , targetFileName ()
   {}
@@ -235,7 +235,7 @@ class Test_I_Target_SessionData
     Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                   struct Stream_MediaFramework_FFMPEG_MediaType,
                                   struct Test_I_Target_StreamState,
-                                  Test_I_Statistic_t,
+                                  struct Stream_Statistic,
                                   struct Stream_UserData>::operator+= (rhs_in);
 
     targetFileName =
@@ -560,9 +560,9 @@ struct Test_I_Target_DirectShow_SignalHandlerConfiguration
    , statisticReportingHandler (NULL)
   {}
 
-  Net_IConnectionManagerBase_t*              connectionManager;
-  Test_I_Target_DirectShow_IListener_t*      listener;
-  Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
+  Net_IConnectionManagerBase_t*         connectionManager;
+  Test_I_Target_DirectShow_IListener_t* listener;
+  Net_StatisticHandler_t*               statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_DirectShow_SignalHandlerConfiguration,
                                       Test_I_Target_DirectShow_TCPConnectionManager_t,
@@ -579,7 +579,7 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
 
   Net_IConnectionManagerBase_t*              connectionManager;
   Test_I_Target_MediaFoundation_IListener_t* listener;
-  Test_I_Target_StatisticReportingHandler_t* statisticReportingHandler;
+  Net_StatisticHandler_t*                    statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration,
                                       Test_I_Target_MediaFoundation_TCPConnectionManager_t,
@@ -606,28 +606,28 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfigur
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Target_DirectShow_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
    , graphBuilder (NULL)
   {}
 
-  IGraphBuilder*                 graphBuilder;
+  IGraphBuilder* graphBuilder;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Target_MediaFoundation_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
   {}
 };
 #else
 struct Test_I_Target_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Target_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
    , format ()
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

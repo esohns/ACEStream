@@ -1267,7 +1267,7 @@ do_work (const std::string& deviceIdentifier_in,
   long timer_id = -1;
 //  int group_id = -1;
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
-  Test_I_Source_StatisticReportingHandler_t* report_handler_p = NULL;
+  Net_IStatisticHandler_t* report_handler_p = NULL;
   //Test_I_Source_Stream_IStatistic_t stream_report_handler;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (GUI_SUPPORT)
@@ -1277,8 +1277,8 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_MediaFoundation_ConnectionConfiguration_t mediafoundation_connection_configuration;
-  Test_I_Source_DirectShow_ConnectionConfiguration_t directshow_connection_configuration;
+  Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t mediafoundation_tcp_connection_configuration;
+  Test_I_Source_DirectShow_TCPConnectionConfiguration_t directshow_tcp_connection_configuration;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1288,11 +1288,11 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (directshow_stream_iterator != directshow_configuration.streamConfigurations.end ());      
 
       result =
-        directshow_connection_configuration.initialize (directShowCBData_in.configuration->allocatorConfiguration,
-                                                        (*directshow_stream_iterator).second);
+        directshow_tcp_connection_configuration.initialize (directShowCBData_in.configuration->allocatorConfiguration,
+                                                            (*directshow_stream_iterator).second);
       ACE_ASSERT (result);
       directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                directshow_connection_configuration));
+                                                                                &directshow_tcp_connection_configuration));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1302,10 +1302,10 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_configuration.streamConfigurations.end ());
 
       result =
-        mediafoundation_connection_configuration.initialize (mediaFoundationCBData_in.configuration->allocatorConfiguration,
-                                                             (*mediafoundation_stream_iterator).second);
+        mediafoundation_tcp_connection_configuration.initialize (mediaFoundationCBData_in.configuration->allocatorConfiguration,
+                                                                 (*mediafoundation_stream_iterator).second);
       mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                     mediafoundation_connection_configuration));
+                                                                                     &mediafoundation_tcp_connection_configuration));
       break;
     }
     default:
@@ -1331,10 +1331,15 @@ do_work (const std::string& deviceIdentifier_in,
                                                                      &connection_configuration));
 #endif // ACE_WIN32 || ACE_WIN64
 
+  struct Net_UserData user_data_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
+  Test_I_Source_MediaFoundation_TCPConnectionManager_t* mediafoundation_tcp_connection_manager_p =
     NULL;
-  Test_I_Source_DirectShow_InetConnectionManager_t* directshow_connection_manager_p =
+  Test_I_Source_MediaFoundation_UDPConnectionManager_t* mediafoundation_udp_connection_manager_p =
+    NULL;
+  Test_I_Source_DirectShow_TCPConnectionManager_t* directshow_tcp_connection_manager_p =
+    NULL;
+  Test_I_Source_DirectShow_UDPConnectionManager_t* directshow_udp_connection_manager_p =
     NULL;
   Net_ConnectionConfigurationsIterator_t connection_iterator;
   switch (mediaFramework_in)
@@ -1345,16 +1350,16 @@ do_work (const std::string& deviceIdentifier_in,
         directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (connection_iterator != directshow_configuration.connectionConfigurations.end ());
 
-      directshow_connection_manager_p =
-        TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (directshow_connection_manager_p);
-      directshow_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-      directshow_connection_manager_p->set ((*connection_iterator).second,
-                                            &directshow_configuration.userData);
+      directshow_tcp_connection_manager_p =
+        TEST_I_SOURCE_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (directshow_tcp_connection_manager_p);
+      directshow_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+      directshow_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+                                                &user_data_s);
       (*directshow_modulehandler_iterator).second.second.connectionManager =
-        directshow_connection_manager_p;
-      iconnection_manager_p = directshow_connection_manager_p;
-      report_handler_p = directshow_connection_manager_p;
+        directshow_tcp_connection_manager_p;
+      iconnection_manager_p = directshow_tcp_connection_manager_p;
+      report_handler_p = directshow_tcp_connection_manager_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1363,16 +1368,16 @@ do_work (const std::string& deviceIdentifier_in,
         mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (connection_iterator != mediafoundation_configuration.connectionConfigurations.end ());
 
-      mediafoundation_connection_manager_p =
-        TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-      ACE_ASSERT (mediafoundation_connection_manager_p);
-      mediafoundation_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-      mediafoundation_connection_manager_p->set ((*connection_iterator).second,
-                                                 &mediafoundation_configuration.userData);
+      mediafoundation_tcp_connection_manager_p =
+        TEST_I_SOURCE_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
+      ACE_ASSERT (mediafoundation_tcp_connection_manager_p);
+      mediafoundation_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+      mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+                                                     &user_data_s);
       (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
-        mediafoundation_connection_manager_p;
-      iconnection_manager_p = mediafoundation_connection_manager_p;
-      report_handler_p = mediafoundation_connection_manager_p;
+        mediafoundation_tcp_connection_manager_p;
+      iconnection_manager_p = mediafoundation_tcp_connection_manager_p;
+      report_handler_p = mediafoundation_tcp_connection_manager_p;
       break;
     }
     default:
@@ -1401,10 +1406,9 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Test_I_Source_Stream_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                                             //&stream_report_handler,
-                                                             NULL,
-                                                             false);
+  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                            NULL,
+                                            false);
   ACE_Event_Handler* event_handler_p = NULL;
 //  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1447,10 +1451,10 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result_2 =
-        (*connection_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (port_in,
-                                                                                                    hostName_in.c_str (),
-                                                                                                    1,
-                                                                                                    ACE_ADDRESS_FAMILY_INET);
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
+                                                                                        hostName_in.c_str (),
+                                                                                        1,
+                                                                                        ACE_ADDRESS_FAMILY_INET);
       if (result_2 == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1459,21 +1463,19 @@ do_work (const std::string& deviceIdentifier_in,
                     port_in));
         goto clean;
       } // end IF
-      (*connection_iterator).second.bufferSize = bufferSize_in;
-      (*connection_iterator).second.useLoopBackDevice =
-        (*connection_iterator).second.address.is_loopback ();
-      (*connection_iterator).second.writeOnly = true;
+      (*connection_iterator).second->bufferSize = bufferSize_in;
+      (*connection_iterator).second->useLoopBackDevice =
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+      //(*connection_iterator).second->writeOnly = true;
 
-      (*connection_iterator).second.statisticReportingInterval =
+      (*connection_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
-      (*connection_iterator).second.messageAllocator =
+      dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &directshow_message_allocator;
-      (*connection_iterator).second.PDUSize = bufferSize_in;
-      (*connection_iterator).second.userData =
-        &directshow_configuration.userData;
-      (*connection_iterator).second.initialize (*allocator_configuration_p,
-                                                (*directshow_stream_iterator).second);
+      (*connection_iterator).second->PDUSize = bufferSize_in;
+      dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
+                                                                                                                             (*directshow_stream_iterator).second);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1484,10 +1486,10 @@ do_work (const std::string& deviceIdentifier_in,
                                                                             : mediaFoundationCBData_in.UDPStream);
 
       result_2 =
-        (*connection_iterator).second.address.set (port_in,
-                                                   hostName_in.c_str (),
-                                                   1,
-                                                   ACE_ADDRESS_FAMILY_INET);
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
+                                                                                        hostName_in.c_str (),
+                                                                                        1,
+                                                                                        ACE_ADDRESS_FAMILY_INET);
       if (result_2 == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1496,21 +1498,19 @@ do_work (const std::string& deviceIdentifier_in,
                     port_in));
         goto clean;
       } // end IF
-      (*connection_iterator).second.bufferSize = bufferSize_in;
-      (*connection_iterator).second.useLoopBackDevice =
-        (*connection_iterator).second.address.is_loopback ();
-      (*connection_iterator).second.writeOnly = true;
+      (*connection_iterator).second->bufferSize = bufferSize_in;
+      (*connection_iterator).second->useLoopBackDevice =
+        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
+      //(*connection_iterator).second->writeOnly = true;
 
-      (*connection_iterator).second.statisticReportingInterval =
+      (*connection_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
-      (*connection_iterator).second.messageAllocator =
+      dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
-      (*connection_iterator).second.PDUSize = bufferSize_in;
-      (*connection_iterator).second.userData =
-        &mediafoundation_configuration.userData;
-      (*connection_iterator).second.initialize (*allocator_configuration_p,
-                                                (*mediafoundation_stream_iterator).second);
+      (*connection_iterator).second->PDUSize = bufferSize_in;
+      dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
+                                                                                                                             (*mediafoundation_stream_iterator).second);
       break;
     }
     default:
@@ -1666,7 +1666,7 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_configuration.signalHandlerConfiguration.connectionManager =
-        TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
+        TEST_I_SOURCE_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       directshow_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
       directshow_configuration.signalHandlerConfiguration.stream =
@@ -1679,7 +1679,7 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_configuration.signalHandlerConfiguration.connectionManager =
-        TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
+        TEST_I_SOURCE_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       mediafoundation_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
       mediafoundation_configuration.signalHandlerConfiguration.stream =

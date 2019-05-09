@@ -342,7 +342,7 @@ target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #if (WIN32)
 # add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
 #endif (WIN32)
-add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
+#add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 
 ##########################################
 

@@ -83,8 +83,8 @@ extern "C"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
-#include "test_i_connection_common.h"
-#include "test_i_connection_manager_common.h"
+//#include "test_i_connection_common.h"
+//#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -92,31 +92,13 @@ extern "C"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#include "test_i_camstream_defines.h"
+
 // forward declarations
 class Stream_IAllocator;
 
 typedef int Test_I_HeaderType_t;
 typedef int Test_I_CommandType_t;
-
-typedef Stream_Statistic Test_I_Statistic_t;
-
-typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_StatisticReportingHandler_t;
-typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_Target_StatisticReportingHandler_t;
-
-struct Test_I_CamStream_ConnectionConfiguration;
-struct Test_I_StreamConfiguration;
-struct Test_I_CamStream_UserData
- : Stream_UserData
-{
-  Test_I_CamStream_UserData ()
-   : Stream_UserData ()
-   , configuration (NULL)
-   , streamConfiguration (NULL)
-  {}
-
-  struct Test_I_CamStream_ConnectionConfiguration* configuration;
-  struct Test_I_StreamConfiguration*               streamConfiguration;
-};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_CamStream_DirectShow_SessionData

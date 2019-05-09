@@ -64,10 +64,6 @@ class Test_I_Stream_SessionMessage;
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-typedef Stream_Statistic Test_I_Statistic_t;
-
-typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
-
 struct Test_I_MessageData
 {
   Test_I_MessageData ()
@@ -214,7 +210,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_HTTPGet_StreamState,
                       struct Test_I_HTTPGet_StreamConfiguration,
-                      Test_I_Statistic_t,
+                      struct Stream_Statistic,
                       struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,

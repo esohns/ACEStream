@@ -1,49 +1,11 @@
-﻿if (GTKGL_SUPPORT)
- option (GTKGL_USE "enable GTK OpenGL" ON)
- if(GTKGL_USE)
-  add_definitions (-DGTKGL_USE)
- endif (GTKGL_USE)
-endif (GTKGL_SUPPORT)
-
-# Threads
-if (UNIX)
-# include (CheckLibraryExists)
-# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- set (CMAKE_THREAD_PREFER_PTHREAD ON)
- find_package (Threads)
-endif (UNIX)
-
-# ACE
-set (ACE_LIB_FILE libACE.so)
-if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace build/linux/ace
-                DOC "searching for ${ACE_LIB_FILE}")
- else ()
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                DOC "searching for ${ACE_LIB_FILE} (system paths)")
- endif ()
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  set (LIB_FILE_SUFFIX d)
- endif ()
- unset (ACE_LIB_FILE)
- set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_LIBRARY
-               NAMES ${ACE_LIB_FILE}
-               PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-               DOC "searching for ${ACE_LIB_FILE}")
-endif ()
-#if (NOT EXISTS ACE_LIBRARY)
-if (NOT ACE_LIBRARY)
- message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
-else ()
- #message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
-endif ()
-add_definitions (-DACE_HAS_DLL)
+﻿if (GUI_SUPPORT)
+ if (GTK_USE AND GTKGL_SUPPORT)
+  option (GTKGL_USE "enable GTK OpenGL" ON)
+  if(GTKGL_USE)
+   add_definitions (-DGTKGL_USE)
+  endif (GTKGL_USE)
+ endif (GTK_USE AND GTKGL_SUPPORT)
+endif (GUI_SUPPORT)
 
 if (UNIX)
 # *NOTE*: Common requires libcap
@@ -51,7 +13,6 @@ if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_SOX REQUIRED sox)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec libavutil libavformat libswscale)
-elseif (WIN32)
 endif ()
 
 if (GUI_SUPPORT)
@@ -300,8 +261,8 @@ add_dependencies (${EXECUTABLE} ACEStream_Decoder)
 add_dependencies (${EXECUTABLE} ACEStream_Device)
 add_dependencies (${EXECUTABLE} ACEStream_Visualization)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
 # target_link_libraries (${EXECUTABLE} ${PKG_LIBALSA_LIBRARIES})
@@ -310,10 +271,9 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_SOX_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
- 
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
  endif (MSVC)
  set (DIRECTX_SDK_DIRECTORY
       $ENV{DXSDK_DIR})

@@ -168,7 +168,7 @@ class Test_I_Source_MediaFoundation_SessionData
                                         IMFMediaType*,
                                         struct Test_I_Source_MediaFoundation_StreamState,
                                         struct Stream_Statistic,
-                                        struct Test_I_Source_MediaFoundation_UserData>
+                                        struct Stream_UserData>
 {
  public:
   Test_I_Source_MediaFoundation_SessionData ()
@@ -176,7 +176,7 @@ class Test_I_Source_MediaFoundation_SessionData
                                    IMFMediaType*,
                                    struct Test_I_Source_MediaFoundation_StreamState,
                                    struct Stream_Statistic,
-                                   struct Test_I_Source_MediaFoundation_UserData> ()
+                                   struct Stream_UserData> ()
   {}
 
   Test_I_Source_MediaFoundation_SessionData& operator+= (const Test_I_Source_MediaFoundation_SessionData& rhs_in)
@@ -186,7 +186,7 @@ class Test_I_Source_MediaFoundation_SessionData
                                   IMFMediaType*,
                                   struct Test_I_Source_MediaFoundation_StreamState,
                                   struct Stream_Statistic,
-                                  struct Test_I_Source_MediaFoundation_UserData>::operator+= (rhs_in);
+                                  struct Stream_UserData>::operator+= (rhs_in);
 
     return *this;
   }
@@ -610,10 +610,10 @@ typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_V4L_SignalHandlerConf
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Source_DirectShow_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
    , format ()
    , graphLayout ()
   {
@@ -638,22 +638,19 @@ typedef Test_I_Source_DirectShow_StreamConfigurations_t::iterator Test_I_Source_
 
 struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Source_MediaFoundation_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
    , format (NULL)
    , mediaFoundationConfiguration (NULL)
-   , userData (NULL)
   {}
 
   // **************************** stream data **********************************
-  IMFMediaType*                                  format;
+  IMFMediaType*                               format;
 
   // **************************** media foundation *****************************
-  struct Test_I_MediaFoundationConfiguration*    mediaFoundationConfiguration;
-
-  struct Test_I_Source_MediaFoundation_UserData* userData;
+  struct Test_I_MediaFoundationConfiguration* mediaFoundationConfiguration;
 };
 
 //extern const char stream_name_string_[];
@@ -698,11 +695,9 @@ struct Test_I_Source_DirectShow_StreamState
   Test_I_Source_DirectShow_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
-  Test_I_Source_DirectShow_SessionData*     sessionData;
-  struct Test_I_Source_DirectShow_UserData* userData;
+  Test_I_Source_DirectShow_SessionData* sessionData;
 };
 
 struct Test_I_Source_MediaFoundation_StreamState
@@ -711,11 +706,9 @@ struct Test_I_Source_MediaFoundation_StreamState
   Test_I_Source_MediaFoundation_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
-   , userData (NULL)
   {}
 
-  Test_I_Source_MediaFoundation_SessionData*     sessionData;
-  struct Test_I_Source_MediaFoundation_UserData* userData;
+  Test_I_Source_MediaFoundation_SessionData* sessionData;
 };
 #else
 struct Test_I_Source_V4L_StreamState
@@ -731,7 +724,6 @@ struct Test_I_Source_V4L_StreamState
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_UserData;
 struct Test_I_Source_DirectShow_Configuration
  : Test_I_CamStream_Configuration
 {

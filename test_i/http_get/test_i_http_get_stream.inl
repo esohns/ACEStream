@@ -160,7 +160,7 @@ failed:
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::collect"));
 
@@ -168,18 +168,18 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
+  struct Test_I_Stream_SessionData& session_data_r =
+      const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
 
-  Test_I_Statistic_WriterTask_t* statistic_impl =
-    dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());
-  if (!statistic_impl)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  //Test_I_Statistic_WriterTask_t* statistic_impl =
+  //  dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());
+  //if (!statistic_impl)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Test_I_Statistic_WriterTask_t> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  return false;
+  //} // end IF
 
   // synch access
   if (session_data_r.lock)
@@ -199,7 +199,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
   // delegate to the statistics module...
   bool result_2 = false;
   try {
-    result_2 = statistic_impl->collect (data_out);
+    //result_2 = statistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),

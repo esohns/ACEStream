@@ -5619,13 +5619,13 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             } // end IF
             iconnector_p = iconnector_2;
             result =
-              iconnector_2->initialize (*(*connection_configuration_iterator).second);
+              iconnector_2->initialize (*dynamic_cast<Test_I_Target_DirectShow_UDPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
           {
             inet_address =
-              (*connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+              NET_SOCKET_CONFIGURATION_UDP_CAST ((*connection_configuration_iterator).second)->listenAddress;
             use_reactor =
               (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
             Test_I_Target_MediaFoundation_IUDPConnector_t* iconnector_2 = NULL;
@@ -5643,7 +5643,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             } // end IF
             iconnector_p = iconnector_2;
             result =
-              iconnector_2->initialize (*(*connection_configuration_iterator).second);
+              iconnector_2->initialize (*dynamic_cast<Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
             break;
           }
           default:

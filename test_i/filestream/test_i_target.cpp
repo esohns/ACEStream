@@ -638,9 +638,9 @@ do_work (unsigned int bufferSize_in,
   ACE_thread_t thread_id = 0;
   timer_manager_p->start (thread_id);
   ACE_UNUSED_ARG (thread_id);
-  Test_I_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                               connection_manager_p,
-                                               false);
+  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                            connection_manager_p,
+                                            false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {

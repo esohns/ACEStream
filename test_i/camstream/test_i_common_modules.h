@@ -101,9 +101,9 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            struct Test_I_Source_DirectShow_StreamState,
                                            Test_I_Source_DirectShow_SessionData,
                                            Test_I_Source_DirectShow_SessionData_t,
-                                           struct Test_I_Source_Stream_StatisticData,
+                                           struct Stream_Statistic,
                                            Common_Timer_Manager_t,
-                                           struct Test_I_Source_DirectShow_UserData> Test_I_Stream_DirectShow_CamSource;
+                                           struct Stream_UserData> Test_I_Stream_DirectShow_CamSource;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Test_I_ControlMessage_t,
                                                 Test_I_Source_MediaFoundation_Stream_Message,
@@ -114,9 +114,9 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Test_I_Source_MediaFoundation_StreamState,
                                                 Test_I_Source_MediaFoundation_SessionData,
                                                 Test_I_Source_MediaFoundation_SessionData_t,
-                                                struct Test_I_Source_Stream_StatisticData,
+                                                struct Stream_Statistic,
                                                 Common_Timer_Manager_t,
-                                                struct Test_I_Source_MediaFoundation_UserData> Test_I_Stream_MediaFoundation_CamSource;
+                                                struct Stream_UserData> Test_I_Stream_MediaFoundation_CamSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Test_I_ControlMessage_t,
@@ -128,7 +128,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_V4L_StreamState,
                                       Test_I_Source_V4L_SessionData,
                                       Test_I_Source_V4L_SessionData_t,
-                                      struct Test_I_Source_Stream_StatisticData,
+                                      struct Stream_Statistic,
                                       Common_Timer_Manager_t,
                                       struct Stream_UserData> Test_I_Source_V4L_CamSource;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -182,11 +182,11 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_DirectShow_StreamState,
                                      Test_I_Source_DirectShow_SessionData,
                                      Test_I_Source_DirectShow_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_DirectShow_InetConnectionManager_t,
-                                     struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_Module_Net_Writer_t;
+                                     Test_I_Source_DirectShow_TCPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_DirectShow_Module_TCPWriter_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
                                      Test_I_Source_DirectShow_Stream_Message,
@@ -197,11 +197,42 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Stream_State,
                                      Test_I_Source_DirectShow_SessionData,
                                      Test_I_Source_DirectShow_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_DirectShow_InetConnectionManager_t,
-                                     struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_Module_Net_Reader_t;
+                                     Test_I_Source_DirectShow_TCPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_DirectShow_Module_TCPReader_t;
+typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Source_DirectShow_Stream_Message,
+                                     Test_I_Source_DirectShow_SessionMessage,
+                                     struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_Source_DirectShow_StreamState,
+                                     Test_I_Source_DirectShow_SessionData,
+                                     Test_I_Source_DirectShow_SessionData_t,
+                                     struct Stream_Statistic,
+                                     Common_Timer_Manager_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Source_DirectShow_UDPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_DirectShow_Module_UDPWriter_t;
+typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Source_DirectShow_Stream_Message,
+                                     Test_I_Source_DirectShow_SessionMessage,
+                                     struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Stream_State,
+                                     Test_I_Source_DirectShow_SessionData,
+                                     Test_I_Source_DirectShow_SessionData_t,
+                                     struct Stream_Statistic,
+                                     Common_Timer_Manager_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Source_DirectShow_UDPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_DirectShow_Module_UDPReader_t;
+
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
                                      Test_I_Source_MediaFoundation_Stream_Message,
@@ -212,11 +243,11 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_MediaFoundation_StreamState,
                                      Test_I_Source_MediaFoundation_SessionData,
                                      Test_I_Source_MediaFoundation_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_MediaFoundation_InetConnectionManager_t,
-                                     struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_Module_Net_Writer_t;
+                                     Test_I_Source_MediaFoundation_TCPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_MediaFoundation_Module_TCPWriter_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
                                      Test_I_Source_MediaFoundation_Stream_Message,
@@ -227,11 +258,41 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_MediaFoundation_StreamState,
                                      Test_I_Source_MediaFoundation_SessionData,
                                      Test_I_Source_MediaFoundation_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_MediaFoundation_InetConnectionManager_t,
-                                     struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_Module_Net_Reader_t;
+                                     Test_I_Source_MediaFoundation_TCPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_MediaFoundation_Module_TCPReader_t;
+typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Source_MediaFoundation_Stream_Message,
+                                     Test_I_Source_MediaFoundation_SessionMessage,
+                                     struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_Source_MediaFoundation_StreamState,
+                                     Test_I_Source_MediaFoundation_SessionData,
+                                     Test_I_Source_MediaFoundation_SessionData_t,
+                                     struct Stream_Statistic,
+                                     Common_Timer_Manager_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Source_MediaFoundation_UDPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_MediaFoundation_Module_UDPWriter_t;
+typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Source_MediaFoundation_Stream_Message,
+                                     Test_I_Source_MediaFoundation_SessionMessage,
+                                     struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_Source_MediaFoundation_StreamState,
+                                     Test_I_Source_MediaFoundation_SessionData,
+                                     Test_I_Source_MediaFoundation_SessionData_t,
+                                     struct Stream_Statistic,
+                                     Common_Timer_Manager_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Source_MediaFoundation_UDPConnectionManager_t,
+                                     struct Stream_UserData> Test_I_Source_MediaFoundation_Module_UDPReader_t;
 #else
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
@@ -243,7 +304,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_V4L_StreamState,
                                      Test_I_Source_V4L_SessionData,
                                      Test_I_Source_V4L_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L_TCPConnectionManager_t,
@@ -258,7 +319,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_V4L_StreamState,
                                      Test_I_Source_V4L_SessionData,
                                      Test_I_Source_V4L_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L_TCPConnectionManager_t,
@@ -274,7 +335,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_V4L_StreamState,
                                      Test_I_Source_V4L_SessionData,
                                      Test_I_Source_V4L_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L_UDPConnectionManager_t,
@@ -289,7 +350,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_V4L_StreamState,
                                      Test_I_Source_V4L_SessionData,
                                      Test_I_Source_V4L_SessionData_t,
-                                     struct Test_I_Source_Stream_StatisticData,
+                                     struct Stream_Statistic,
                                      Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L_UDPConnectionManager_t,
@@ -304,7 +365,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_DirectShow_Stream_Message,
                                                       Test_I_Source_DirectShow_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_DirectShow_SessionData,
                                                       Test_I_Source_DirectShow_SessionData_t> Test_I_Source_DirectShow_Module_Statistic_ReaderTask_t;
@@ -315,7 +376,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_DirectShow_Stream_Message,
                                                       Test_I_Source_DirectShow_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_DirectShow_SessionData,
                                                       Test_I_Source_DirectShow_SessionData_t> Test_I_Source_DirectShow_Module_Statistic_WriterTask_t;
@@ -326,7 +387,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_MediaFoundation_Stream_Message,
                                                       Test_I_Source_MediaFoundation_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_MediaFoundation_SessionData,
                                                       Test_I_Source_MediaFoundation_SessionData_t> Test_I_Source_MediaFoundation_Module_Statistic_ReaderTask_t;
@@ -337,7 +398,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_MediaFoundation_Stream_Message,
                                                       Test_I_Source_MediaFoundation_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_MediaFoundation_SessionData,
                                                       Test_I_Source_MediaFoundation_SessionData_t> Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t;
@@ -349,7 +410,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_V4L_Stream_Message,
                                                       Test_I_Source_V4L_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_V4L_SessionData,
                                                       Test_I_Source_V4L_SessionData_t> Test_I_Source_Statistic_ReaderTask_t;
@@ -360,7 +421,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Source_V4L_Stream_Message,
                                                       Test_I_Source_V4L_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      struct Test_I_Source_Stream_StatisticData,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Source_V4L_SessionData,
                                                       Test_I_Source_V4L_SessionData_t> Test_I_Source_Statistic_WriterTask_t;
@@ -446,7 +507,7 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Source_DirectShow_SessionMessage,
                                             Test_I_Source_DirectShow_SessionData,
                                             Test_I_Source_DirectShow_SessionData_t,
-                                            struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_EventHandler;
+                                            struct Stream_UserData> Test_I_Source_DirectShow_EventHandler;
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                             Test_I_ControlMessage_t,
@@ -454,7 +515,7 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Source_MediaFoundation_SessionMessage,
                                             Test_I_Source_MediaFoundation_SessionData,
                                             Test_I_Source_MediaFoundation_SessionData_t,
-                                            struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_EventHandler;
+                                            struct Stream_UserData> Test_I_Source_MediaFoundation_EventHandler;
 #else
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -477,7 +538,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_DirectShow_Stream_Message,
                                                       Test_I_Target_DirectShow_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_DirectShow_SessionData,
                                                       Test_I_Target_DirectShow_SessionData_t> Test_I_Target_DirectShow_Module_Statistic_ReaderTask_t;
@@ -488,7 +549,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_DirectShow_Stream_Message,
                                                       Test_I_Target_DirectShow_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_DirectShow_SessionData,
                                                       Test_I_Target_DirectShow_SessionData_t> Test_I_Target_DirectShow_Module_Statistic_WriterTask_t;
@@ -499,7 +560,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_MediaFoundation_Stream_Message,
                                                       Test_I_Target_MediaFoundation_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_MediaFoundation_SessionData,
                                                       Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_ReaderTask_t;
@@ -510,7 +571,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_MediaFoundation_Stream_Message,
                                                       Test_I_Target_MediaFoundation_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_MediaFoundation_SessionData,
                                                       Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t;
@@ -522,7 +583,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_Stream_Message,
                                                       Test_I_Target_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_SessionData,
                                                       Test_I_Target_SessionData_t> Test_I_Target_Statistic_ReaderTask_t;
@@ -533,7 +594,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_Target_Stream_Message,
                                                       Test_I_Target_SessionMessage,
                                                       Test_I_CommandType_t,
-                                                      Test_I_Statistic_t,
+                                                      struct Stream_Statistic,
                                                       Common_Timer_Manager_t,
                                                       Test_I_Target_SessionData,
                                                       Test_I_Target_SessionData_t> Test_I_Target_Statistic_WriterTask_t;
@@ -685,17 +746,34 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Source_DirectShow_SessionData,                /
                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_net_io_module_name_string,
                           Stream_INotify_t,                                           // stream notification interface type
-                          Test_I_Source_DirectShow_Module_Net_Reader_t,               // reader type
-                          Test_I_Source_DirectShow_Module_Net_Writer_t,               // writer type
-                          Test_I_Source_DirectShow_Module_Net_IO);                    // name
+                          Test_I_Source_DirectShow_Module_TCPReader_t,               // reader type
+                          Test_I_Source_DirectShow_Module_TCPWriter_t,               // writer type
+                          Test_I_Source_DirectShow_Module_TCP_IO);                    // name
+DATASTREAM_MODULE_DUPLEX (Test_I_Source_DirectShow_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                             // session event type
+                          struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
+                          Stream_INotify_t,                                           // stream notification interface type
+                          Test_I_Source_DirectShow_Module_UDPReader_t,               // reader type
+                          Test_I_Source_DirectShow_Module_UDPWriter_t,               // writer type
+                          Test_I_Source_DirectShow_Module_UDP_IO);                    // name
+
 DATASTREAM_MODULE_DUPLEX (Test_I_Source_MediaFoundation_SessionData,                // session data type
                           enum Stream_SessionMessageType,                                  // session event type
                           struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_net_io_module_name_string,
                           Stream_INotify_t,                                                // stream notification interface type
-                          Test_I_Source_MediaFoundation_Module_Net_Reader_t,               // reader type
-                          Test_I_Source_MediaFoundation_Module_Net_Writer_t,               // writer type
-                          Test_I_Source_MediaFoundation_Module_Net_IO);                    // name
+                          Test_I_Source_MediaFoundation_Module_TCPReader_t,               // reader type
+                          Test_I_Source_MediaFoundation_Module_TCPWriter_t,               // writer type
+                          Test_I_Source_MediaFoundation_Module_TCP_IO);                    // name
+DATASTREAM_MODULE_DUPLEX (Test_I_Source_MediaFoundation_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                                  // session event type
+                          struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
+                          Stream_INotify_t,                                                // stream notification interface type
+                          Test_I_Source_MediaFoundation_Module_UDPReader_t,               // reader type
+                          Test_I_Source_MediaFoundation_Module_UDPWriter_t,               // writer type
+                          Test_I_Source_MediaFoundation_Module_UDP_IO);                    // name
 #else
 DATASTREAM_MODULE_DUPLEX (Test_I_Source_V4L_SessionData,                // session data type
                           enum Stream_SessionMessageType,                       // session event type

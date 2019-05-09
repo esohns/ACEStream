@@ -18,9 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <amvideo.h>
 #include <d3d9types.h>
 #include <mferror.h>
 #include <mfidl.h>
+#include <vfwmsgs.h>
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -38,6 +40,7 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 #include "stream_lib_directdraw_tools.h"
+#include "stream_lib_directshow_tools.h"
 #include "stream_lib_tools.h"
 
 #include "stream_vis_common.h"
@@ -1492,8 +1495,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   struct tagRECT source_rectangle_s = {
     0,
     0,
-    presentationParameters_inout.BackBufferWidth,
-    presentationParameters_inout.BackBufferHeight
+    static_cast<LONG> (presentationParameters_inout.BackBufferWidth),
+    static_cast<LONG> (presentationParameters_inout.BackBufferHeight)
   };
   updateDestinationRectangle (windowHandle_in,
                               source_rectangle_s,

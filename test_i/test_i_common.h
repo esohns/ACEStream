@@ -66,10 +66,6 @@ class Stream_IAllocator;
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-typedef Stream_Statistic Test_I_Statistic_t;
-typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_IStatisticHandler_t;
-typedef Common_StatisticHandler_T<Test_I_Statistic_t> Test_I_StatisticHandler_t;
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_MessageData
 {
@@ -112,22 +108,12 @@ struct Test_I_V4L_MessageData
 typedef Stream_DataBase_T<struct Test_I_V4L_MessageData> Test_I_V4L_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-//struct Test_I_UserData
-// : Stream_UserData
-//{
-//  Test_I_UserData ()
-//   : Stream_UserData ()
-//  {}
-//};
-
-struct Test_I_ConnectionState;
 struct Test_I_SessionData
  : Stream_SessionData
 {
   Test_I_SessionData ()
    : Stream_SessionData ()
    , connectionState (NULL)
-   , userData (NULL)
   {}
 
   struct Test_I_SessionData& operator+= (const struct Test_I_SessionData& rhs_in)
@@ -141,9 +127,7 @@ struct Test_I_SessionData
     return *this;
   }
 
-  struct Test_I_ConnectionState* connectionState;
-
-  struct Stream_UserData*        userData;
+  struct Net_ConnectionState* connectionState;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_DirectShow_SessionData
@@ -181,7 +165,7 @@ class Test_I_DirectShow_SessionData
     return *this;
   }
 
-  struct Test_I_ConnectionState* connectionState;
+  struct Net_ConnectionState* connectionState;
   std::string                    targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_DirectShow_SessionData> Test_I_DirectShow_SessionData_t;
@@ -221,7 +205,7 @@ class Test_I_MediaFoundation_SessionData
     return *this;
   }
 
-  struct Test_I_ConnectionState* connectionState;
+  struct Net_ConnectionState* connectionState;
   std::string                    targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_MediaFoundation_SessionData> Test_I_MediaFoundation_SessionData_t;
@@ -261,7 +245,7 @@ typedef Stream_SessionData_T<Test_I_MediaFoundation_SessionData> Test_I_MediaFou
 //    return *this;
 //  }
 
-//  struct Test_I_ConnectionState* connectionState;
+//  struct Net_ConnectionState* connectionState;
 //  std::string                    targetFileName;
 
 //  struct Stream_UserData*        userData;
@@ -303,7 +287,7 @@ class Test_I_V4L_SessionData
     return *this;
   }
 
-  struct Test_I_ConnectionState* connectionState;
+  struct Net_ConnectionState* connectionState;
   std::string                    targetFileName;
 };
 typedef Stream_SessionData_T<Test_I_V4L_SessionData> Test_I_V4L_SessionData_t;
@@ -375,11 +359,11 @@ struct Test_I_UI_ProgressData
    : state (NULL)
    , statistic ()
   {
-    ACE_OS::memset (&statistic, 0, sizeof (Test_I_Statistic_t));
+    ACE_OS::memset (&statistic, 0, sizeof (struct Stream_Statistic));
   }
 
   struct Common_UI_State* state;
-  Test_I_Statistic_t      statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_I_UI_CBData

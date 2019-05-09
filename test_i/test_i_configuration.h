@@ -84,13 +84,13 @@ struct Test_I_SignalHandlerConfiguration
   long                            statisticReportingTimerId;
 };
 
-struct Test_I_StreamConfiguration
- : Stream_Configuration
-{
-  Test_I_StreamConfiguration ()
-   : Stream_Configuration ()
-  {}
-};
+//struct Test_I_StreamConfiguration
+// : Stream_Configuration
+//{
+//  Test_I_StreamConfiguration ()
+//   : Stream_Configuration ()
+//  {}
+//};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMFMediaSession;
@@ -113,7 +113,7 @@ struct Test_I_Configuration
    , dispatchConfiguration ()
    , signalHandlerConfiguration ()
    , parserConfiguration ()
-   , streamConfiguration ()
+   //, streamConfiguration ()
    , userData ()
   {}
 
@@ -123,7 +123,7 @@ struct Test_I_Configuration
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
   struct Common_ParserConfiguration        parserConfiguration;
-  struct Test_I_StreamConfiguration        streamConfiguration;
+  //struct Stream_Configuration              streamConfiguration;
 
   ////////////////////////////////////////
 

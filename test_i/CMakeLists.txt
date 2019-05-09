@@ -1,3 +1,7 @@
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
+
+include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
+
 option (BUILD_TEST_I "build test_i" OFF)
 
 # user interface

@@ -41,7 +41,7 @@
 // forward declarations
 class Stream_IAllocator;
 
-class Test_I_Target_Stream
+class Test_I_Target_TCPStream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         stream_name_string_,
@@ -50,7 +50,7 @@ class Test_I_Target_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
-                                        Test_I_Statistic_t,
+                                        struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
@@ -72,7 +72,7 @@ class Test_I_Target_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
-                                        Test_I_Statistic_t,
+                                        struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
@@ -87,12 +87,12 @@ class Test_I_Target_Stream
                                         struct Stream_UserData> inherited;
 
  public:
-  Test_I_Target_Stream ();
-  virtual ~Test_I_Target_Stream ();
+  Test_I_Target_TCPStream ();
+  virtual ~Test_I_Target_TCPStream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -107,16 +107,95 @@ class Test_I_Target_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_TCPStream (const Test_I_Target_TCPStream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_TCPStream& operator= (const Test_I_Target_TCPStream&))
 
   // modules
   Test_I_Target_TCP_IO_Module          netIO_;
-  Test_I_Target_StatisticReport_Module statisticReport_;
+  //Test_I_Target_StatisticReport_Module statisticReport_;
+  Test_I_FileWriter_Module             fileWriter_;
+};
+
+class Test_I_Target_UDPStream
+ : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        stream_name_string_,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_StreamState,
+                                        struct Test_I_Target_StreamConfiguration,
+                                        struct Stream_Statistic,
+                                        Common_Timer_Manager_t,
+                                        struct Test_I_AllocatorConfiguration,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_SessionData, // session data
+                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_Target_ControlMessage_t,
+                                        Test_I_Target_Message_t,
+                                        Test_I_Target_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_UDPConnectionManager_t,
+                                        struct Stream_UserData>
+{
+  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        stream_name_string_,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_StreamState,
+                                        struct Test_I_Target_StreamConfiguration,
+                                        struct Stream_Statistic,
+                                        Common_Timer_Manager_t,
+                                        struct Test_I_AllocatorConfiguration,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_SessionData, // session data
+                                        Test_I_Target_SessionData_t,      // session data container (reference counted)
+                                        Test_I_Target_ControlMessage_t,
+                                        Test_I_Target_Message_t,
+                                        Test_I_Target_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_UDPConnectionManager_t,
+                                        struct Stream_UserData> inherited;
+
+ public:
+  Test_I_Target_UDPStream ();
+  virtual ~Test_I_Target_UDPStream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
+
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&,
+#else
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&,
+#endif
+                           ACE_HANDLE); // socket handle
+
+  // *TODO*: re-consider this API
+  inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
+  virtual void report () const;
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_UDPStream (const Test_I_Target_UDPStream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_UDPStream& operator= (const Test_I_Target_UDPStream&))
+
+  // modules
+  Test_I_Target_UDP_IO_Module          netIO_;
+  //Test_I_Target_StatisticReport_Module statisticReport_;
   Test_I_FileWriter_Module             fileWriter_;
 };
 

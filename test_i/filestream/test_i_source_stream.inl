@@ -51,7 +51,7 @@ template <typename ConnectionManagerType,
           typename ConnectorType>
 bool
 Test_I_Source_Stream_T<ConnectionManagerType,
-                       ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                       ConnectorType>::load (Stream_ILayout* layout_in,
                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
@@ -62,22 +62,26 @@ Test_I_Source_Stream_T<ConnectionManagerType,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Source_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
                   Test_I_FileReader_Module (this,
                                             ACE_TEXT_ALWAYS_CHAR ("FileReader")),
                   false);
-  modules_out.push_back (module_p);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_Source_StatisticReport_Module (this,
+  //                                                      ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+  //                false);
+  //ACE_ASSERT (module_p);
+  //layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TARGET_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 
   delete_out = true;
 
@@ -207,7 +211,7 @@ template <typename ConnectionManagerType,
           typename ConnectorType>
 bool
 Test_I_Source_Stream_T<ConnectionManagerType,
-                       ConnectorType>::collect (Test_I_Statistic_t& data_out)
+                       ConnectorType>::collect (struct Stream_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::collect"));
 
@@ -228,15 +232,15 @@ Test_I_Source_Stream_T<ConnectionManagerType,
                 ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
-  Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =
-    dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!statistic_report_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
+  //Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =
+  //  dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  //if (!statistic_report_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
+  //              ACE_TEXT (stream_name_string_)));
+  //  return false;
+  //} // end IF
 
   // synch access
   if (session_data_r.lock)
@@ -256,7 +260,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_report_impl_p->collect (data_out);
+    //result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),

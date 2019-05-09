@@ -40,58 +40,55 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
                                               bool& delete_out)
 
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::load"));
 
-  //// initialize return value(s)
-  //modules_out.clear ();
-  //delete_out = false;
-
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_SpreadsheetWriter_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
+                  Test_I_HTTPMarshal_Module (this,
+                                             ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal")),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_StatisticReport_Module (this,
+  //                                               ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+  //                false);
+  //modules_out.push_back (module_p);
+  //module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_HTMLParser_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR ("HTMLParser")),
+                  Test_I_ZIPDecompressor_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor")),
                   false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_HTTPGet_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
-                  false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR ("NetSource")),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_ZIPDecompressor_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor")),
+                  Test_I_Stream_HTTPGet_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_StatisticReport_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                  Test_I_Stream_HTMLParser_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR ("HTMLParser")),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_HTTPMarshal_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal")),
+                  Test_I_Stream_SpreadsheetWriter_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
                   false);
-  modules_out.push_back (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
 
   delete_out = true;
 
@@ -203,7 +200,7 @@ failed:
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::collect"));
 

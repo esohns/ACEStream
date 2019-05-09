@@ -136,10 +136,10 @@ struct Test_I_Source_ModuleHandlerConfiguration
 };
 
 struct Test_I_Source_StreamConfiguration
- : Test_I_StreamConfiguration
+ : Stream_Configuration
 {
   Test_I_Source_StreamConfiguration ()
-   : Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
   {}
 };
 
@@ -151,7 +151,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_Source_StreamState,
                       struct Test_I_Source_StreamConfiguration,
-                      Test_I_Statistic_t,
+                      struct Stream_Statistic,
                       struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_ModuleHandlerConfiguration,

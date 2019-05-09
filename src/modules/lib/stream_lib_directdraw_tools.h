@@ -37,6 +37,7 @@
 
 #include "common_image_common.h"
 
+#include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
 // forward declarations

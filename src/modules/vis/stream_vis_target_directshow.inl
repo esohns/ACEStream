@@ -442,8 +442,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       width = area_s.right - area_s.left;
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited2::getMediaType (session_data_r.formats.back (),
-                                media_type_s);
+      inherited::getMediaType (session_data_r.formats.back (),
+                               media_type_s);
       ACE_ASSERT (media_type_s.pbFormat);
       if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
       {

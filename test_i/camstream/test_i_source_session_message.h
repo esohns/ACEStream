@@ -42,7 +42,7 @@ class Test_I_Source_DirectShow_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_DirectShow_SessionData_t,
-                                      struct Test_I_Source_DirectShow_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -54,7 +54,7 @@ class Test_I_Source_DirectShow_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_DirectShow_SessionData_t,
-                                      struct Test_I_Source_DirectShow_UserData> inherited;
+                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -62,7 +62,7 @@ class Test_I_Source_DirectShow_SessionMessage
   Test_I_Source_DirectShow_SessionMessage (Stream_SessionId_t,
                                            enum Stream_SessionMessageType,
                                            Test_I_Source_DirectShow_SessionData_t*&,   // session data container handle
-                                           struct Test_I_Source_DirectShow_UserData*);
+                                           struct Stream_UserData*);
   inline virtual ~Test_I_Source_DirectShow_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
@@ -88,7 +88,7 @@ class Test_I_Source_MediaFoundation_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_MediaFoundation_SessionData_t,
-                                      struct Test_I_Source_MediaFoundation_UserData>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -100,7 +100,7 @@ class Test_I_Source_MediaFoundation_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_MediaFoundation_SessionData_t,
-                                      struct Test_I_Source_MediaFoundation_UserData> inherited;
+                                      struct Stream_UserData> inherited;
   
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -108,7 +108,7 @@ class Test_I_Source_MediaFoundation_SessionMessage
   Test_I_Source_MediaFoundation_SessionMessage (Stream_SessionId_t,
                                                 enum Stream_SessionMessageType,
                                                 Test_I_Source_MediaFoundation_SessionData_t*&,   // session data container handle
-                                                struct Test_I_Source_MediaFoundation_UserData*);
+                                                struct Stream_UserData*);
   inline virtual ~Test_I_Source_MediaFoundation_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
@@ -121,10 +121,10 @@ class Test_I_Source_MediaFoundation_SessionMessage
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
   Test_I_Source_MediaFoundation_SessionMessage (Stream_SessionId_t,
-                                                       ACE_Allocator*); // message allocator
+                                                ACE_Allocator*); // message allocator
   Test_I_Source_MediaFoundation_SessionMessage (Stream_SessionId_t,
-                                                       ACE_Data_Block*, // data block to use
-                                                       ACE_Allocator*); // message allocator
+                                                ACE_Data_Block*, // data block to use
+                                                ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_SessionMessage& operator= (const Test_I_Source_MediaFoundation_SessionMessage&))

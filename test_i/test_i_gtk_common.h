@@ -51,7 +51,7 @@ struct Test_I_GTK_ProgressData
    , statistic ()
   {}
 
-  Test_I_Statistic_t statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_I_GTK_CBData

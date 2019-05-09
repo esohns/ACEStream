@@ -52,7 +52,7 @@ class Test_I_Source_Stream_T
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Source_StreamState,
                                         struct Test_I_Source_StreamConfiguration,
-                                        Test_I_Statistic_t,
+                                        struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
@@ -74,7 +74,7 @@ class Test_I_Source_Stream_T
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Source_StreamState,
                                         struct Test_I_Source_StreamConfiguration,
-                                        Test_I_Statistic_t,
+                                        struct Stream_Statistic,
                                         Common_Timer_Manager_t,
                                         struct Test_I_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
@@ -93,8 +93,8 @@ class Test_I_Source_Stream_T
   virtual ~Test_I_Source_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*,
+                     bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -106,7 +106,7 @@ class Test_I_Source_Stream_T
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
   inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:

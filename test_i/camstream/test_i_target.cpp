@@ -1313,9 +1313,9 @@ do_work (unsigned int bufferSize_in,
   (*iterator).second.second.connectionManager = tcp_connection_manager_p;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (report_handler_p);
-  Test_I_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                               report_handler_p,
-                                               false);
+  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                            report_handler_p,
+                                            false);
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
