@@ -562,7 +562,7 @@ struct Test_I_Target_DirectShow_SignalHandlerConfiguration
 
   Net_IConnectionManagerBase_t*         connectionManager;
   Test_I_Target_DirectShow_IListener_t* listener;
-  Net_StatisticHandler_t*               statisticReportingHandler;
+  Net_IStatisticHandler_t*              statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_DirectShow_SignalHandlerConfiguration,
                                       Test_I_Target_DirectShow_TCPConnectionManager_t,
@@ -579,7 +579,7 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
 
   Net_IConnectionManagerBase_t*              connectionManager;
   Test_I_Target_MediaFoundation_IListener_t* listener;
-  Net_StatisticHandler_t*                    statisticReportingHandler;
+  Net_IStatisticHandler_t*                   statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration,
                                       Test_I_Target_MediaFoundation_TCPConnectionManager_t,

@@ -2,6 +2,10 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
 
+if (WIN32 AND MSVC)
+ set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+endif (WIN32 AND MSVC)
+
 option (BUILD_TEST_I "build test_i" OFF)
 
 # user interface

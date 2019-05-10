@@ -514,6 +514,12 @@ if (WIN32)
  endif ()
 endif ()
 
+if (WIN32)
+ if (MSVC)
+  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS "/SAFESEH:NO")
+ endif (MSVC)
+endif (WIN32)
+
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
 add_dependencies (${EXECUTABLE_TARGET} CommonImage)
@@ -542,7 +548,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE_TARGET} winmm.lib)
 
 # target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
- target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
+# target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/libavcodec.a)
 endif ()
 
 target_link_libraries (${EXECUTABLE_TARGET} Common)
