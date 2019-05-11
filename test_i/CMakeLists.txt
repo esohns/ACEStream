@@ -3,7 +3,11 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/Threads.cmake)
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../Common/scripts/ACE.cmake)
 
 if (WIN32 AND MSVC)
- set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+# set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+   # needed for some MSVC installations
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 endif (WIN32 AND MSVC)
 
 option (BUILD_TEST_I "build test_i" OFF)
@@ -187,7 +191,7 @@ if (UNIX)
      target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
     endif (GTKGLAREA_SUPPORT)
 
-    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
+#    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
    endif (GTKGL_SUPPORT)
 
    target_link_libraries (${PROJECT_NAME}_Test_I CommonUI_GTK)
@@ -212,7 +216,7 @@ elseif (WIN32)
      target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
     endif (GTKGLAREA_SUPPORT)
 
-    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
+#    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
    endif (GTKGL_SUPPORT)
 
    target_link_libraries (${PROJECT_NAME}_Test_I CommonUI_GTK)

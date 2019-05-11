@@ -38,16 +38,16 @@
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_Target_DirectShow_ListenerConfiguration;
-Test_I_Target_MediaFoundation_ListenerConfiguration;
+class Test_I_Target_DirectShow_ListenerConfiguration;
+class Test_I_Target_MediaFoundation_ListenerConfiguration;
 #else
-Test_I_Target_ListenerConfiguration;
-#endif
+class Test_I_Target_ListenerConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Server_AsynchListener_T<Test_I_Target_DirectShow_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    struct Test_I_Target_DirectShow_ListenerConfiguration,
+                                    Test_I_Target_DirectShow_ListenerConfiguration,
                                     struct Net_ConnectionState,
                                     Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                                     Test_I_Target_DirectShow_TCPStream,
@@ -55,7 +55,7 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_DirectShow_AsynchTCPConnection
 typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              struct Test_I_Target_DirectShow_ListenerConfiguration,
+                              Test_I_Target_DirectShow_ListenerConfiguration,
                               struct Net_ConnectionState,
                               Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                               Test_I_Target_DirectShow_TCPStream,
@@ -64,7 +64,7 @@ typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
 typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  struct Test_I_Target_DirectShow_ListenerConfiguration,
+                                  Test_I_Target_DirectShow_ListenerConfiguration,
                                   struct Net_ConnectionState,
                                   Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                                   Test_I_Target_DirectShow_TCPStream,
@@ -73,7 +73,7 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
 
 typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    struct Test_I_Target_MediaFoundation_ListenerConfiguration,
+                                    Test_I_Target_MediaFoundation_ListenerConfiguration,
                                     struct Net_ConnectionState,
                                     Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                                     Test_I_Target_MediaFoundation_TCPStream,
@@ -81,7 +81,7 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConne
 typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              struct Test_I_Target_MediaFoundation_ListenerConfiguration,
+                              Test_I_Target_MediaFoundation_ListenerConfiguration,
                               struct Net_ConnectionState,
                               Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                               Test_I_Target_MediaFoundation_TCPStream,
@@ -90,7 +90,7 @@ typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
 typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  struct Test_I_Target_MediaFoundation_ListenerConfiguration,
+                                  Test_I_Target_MediaFoundation_ListenerConfiguration,
                                   struct Net_ConnectionState,
                                   Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                                   Test_I_Target_MediaFoundation_TCPStream,
@@ -99,7 +99,7 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection
 #else
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    struct Test_I_Target_ListenerConfiguration,
+                                    Test_I_Target_ListenerConfiguration,
                                     struct Net_ConnectionState,
                                     Test_I_Target_TCPConnectionConfiguration_t,
                                     Test_I_Target_TCPStream,
@@ -107,7 +107,7 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              struct Test_I_Target_ListenerConfiguration,
+                              Test_I_Target_ListenerConfiguration,
                               struct Net_ConnectionState,
                               Test_I_Target_TCPConnectionConfiguration_t,
                               Test_I_Target_TCPStream,
@@ -116,13 +116,13 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
 typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  struct Test_I_Target_ListenerConfiguration,
+                                  Test_I_Target_ListenerConfiguration,
                                   struct Net_ConnectionState,
                                   Test_I_Target_TCPConnectionConfiguration_t,
                                   Test_I_Target_TCPStream,
                                   struct Net_UserData> Test_I_Target_SSLListener_t;
 #endif // SSL_SUPPORT
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -189,7 +189,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Net_UDPSocketConfiguration_t,
                                Test_I_Target_UDPStream,
                                struct Net_UserData> Test_I_Target_UDPConnector_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -219,6 +219,6 @@ typedef ACE_Singleton<Test_I_Target_Listener_t,
 typedef ACE_Singleton<Test_I_Target_SSLListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
 #endif // SSL_SUPPORT
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

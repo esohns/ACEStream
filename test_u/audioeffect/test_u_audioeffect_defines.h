@@ -56,8 +56,8 @@
 //----------------------------------------
 
 // GTK widget names
-#define TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME                 "action_cut"
-#define TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME              "action_report"
+#define TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME                 "button_cut"
+#define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "button_report"
 //#define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
 #define TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME                "vbox_display"
 #define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "buttonbox_actions"
@@ -121,7 +121,7 @@
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME   "spinbutton_dropped_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME        "togglebutton_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME            "togglebutton_3d"
 #define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME          "togglebutton_mute"
 //#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"

@@ -77,8 +77,8 @@
 #include "common_tools.h"
 
 #if defined (GTKGL_SUPPORT)
-#include "common_gl_defines.h"
-#include "common_gl_tools.h"
+//#include "common_gl_defines.h"
+//#include "common_gl_tools.h"
 #endif /* GTKGL_SUPPORT */
 
 #include "common_image_tools.h"
@@ -2709,9 +2709,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   if (FAILED (hresult))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
-    return G_SOURCE_REMOVE;
+    //return G_SOURCE_REMOVE;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2731,16 +2731,18 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME)));
   ACE_ASSERT (about_dialog_p);
 
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, FALSE);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, FALSE);
+  GtkButton* button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            FALSE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            FALSE);
 
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3124,7 +3126,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     g_free (filename_p);
     return G_SOURCE_REMOVE;
   } // end IF
-  g_free (filename_p);
+  g_free (filename_p); filename_p = NULL;
 
   GtkScale* scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -3355,15 +3357,13 @@ idle_initialize_UI_cb (gpointer userData_in)
 //#if GTK_CHECK_VERSION(3,10,0)
 //#else
 //  g_object_set (GTK_WIDGET (drawing_area_p),
-//                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"),
-//                &tooltip_timeout,
+//                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
 //                NULL);
 //#endif // GTK_CHECK_VERSION (3,10,0)
 #else
 #if GTK_CHECK_VERSION(2,12,0)
   g_object_set (GTK_WIDGET (drawing_area_p),
-                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"),
-                &tooltip_timeout,
+                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
                 NULL);
 #endif // GTK_CHECK_VERSION (2,12,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
@@ -3856,16 +3856,18 @@ continue_:
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                              TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
   else
   {
-    GtkToggleAction* toggle_action_p =
-        GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-    ACE_ASSERT (toggle_action_p);
-    gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), false);
+    GtkToggleButton* toggle_button_p =
+        GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+    ACE_ASSERT (toggle_button_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
+                              FALSE);
   } // end IF
 
   bool is_active = !filename.empty ();
@@ -4432,29 +4434,32 @@ idle_session_end_cb (gpointer userData_in)
   //                   mutually exclusive, so there could be a race:
   //                   - user pressed stop
   //                   - there was an asynchronous error on the stream
-  GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_RECORD);
-  if (gtk_toggle_action_get_active (toggle_action_p))
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_button_set_label (GTK_BUTTON (toggle_button_p),
+                        GTK_STOCK_MEDIA_RECORD);
+  if (gtk_toggle_button_get_active (toggle_button_p))
   {
     un_toggling_stream = true;
-    gtk_action_activate (GTK_ACTION (toggle_action_p));
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  TRUE);
   } // end IF
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
-                            true);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
+                            TRUE);
 
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
+  GtkButton* button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            FALSE);
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -5047,10 +5052,10 @@ extern "C"
 //} // textview_size_allocate_cb
 
 void
-toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                 gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_record_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_record_toggled_cb"));
 
   // handle untoggle --> PLAY
   if (un_toggling_stream)
@@ -5124,9 +5129,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5150,16 +5155,17 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (iterator != state_r.builders.end ());
 
   // toggle ?
-  if (!gtk_toggle_action_get_active (toggleAction_in))
+  if (!gtk_toggle_button_get_active (toggleButton_in))
   {
     // --> user pressed pause/stop
 
     // step0: modify widgets
-    gtk_action_set_sensitive (GTK_ACTION (toggleAction_in),
-                              false);
+    gtk_widget_set_sensitive (GTK_WIDGET (toggleButton_in),
+                              FALSE);
 
     // step1: stop stream
-    stream_p->stop (false, true);
+    stream_p->stop (false,
+                    true);
 
     return;
   } // end IF
@@ -5209,9 +5215,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     ui_cb_data_base_p->mediaFramework));
-        goto error;
+        return;
       }
     } // end SWITCH
 #else
@@ -5239,9 +5245,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     ui_cb_data_base_p->mediaFramework));
-        goto error;
+        return;
       }
     } // end SWITCH
 #else
@@ -5259,8 +5265,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   GtkTreeIter iterator_2;
   GtkListStore* list_store_p = NULL;
   GFile* file_p = NULL;
-  GtkAction* action_p = NULL;
   GtkFrame* frame_p = NULL;
+  GtkButton* button_p = NULL;
   GtkToggleButton* toggle_button_p = NULL;
   GtkFileChooserButton* file_chooser_button_p = NULL;
   bool save_to_file = false;
@@ -5268,9 +5274,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture device selected, aborting\n")));
-    goto error;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no capture device selected, returning\n")));
+    return;
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5302,9 +5308,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5318,8 +5324,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                                        ui_cb_data_p->configuration->ALSAConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", aborting\n")));
-    goto error;
+                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
+    return;
   } // end IF
   (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
       ui_cb_data_p->handle;
@@ -5332,9 +5338,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture format selected, aborting\n")));
-    goto error;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no capture format selected, returning\n")));
+    return;
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5372,9 +5378,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5390,9 +5396,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture frequency selected, aborting\n")));
-    goto error;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no capture frequency selected, returning\n")));
+    return;
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5426,9 +5432,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5444,9 +5450,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture resolution selected, aborting\n")));
-    goto error;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no capture resolution selected, returning\n")));
+    return;
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5481,9 +5487,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5505,9 +5511,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no capture channels selected, aborting\n")));
-    goto error;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no capture channels selected, returning\n")));
+    return;
   } // end IF
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -5541,9 +5547,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5569,11 +5575,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     if (!filename_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_file_get_path(): \"%m\", aborting\n")));
-      g_object_unref (file_p);
-      goto error;
+                  ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+      g_object_unref (file_p); file_p = NULL;
+      return;
     } // end IF
-    g_object_unref (file_p);
+    g_object_unref (file_p); file_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     switch (ui_cb_data_base_p->mediaFramework)
     {
@@ -5598,9 +5604,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                     ui_cb_data_base_p->mediaFramework));
-        goto error;
+        return;
       }
     } // end SWITCH
 #else
@@ -5635,9 +5641,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5697,9 +5703,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5724,36 +5730,41 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   //ACE_ASSERT (media_type == *data_p->configuration->moduleHandlerConfiguration.format);
 
   // step2: modify widgets
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+  gtk_button_set_label (GTK_BUTTON (toggleButton_in),
+                        GTK_STOCK_MEDIA_STOP);
 
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_CUT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
+  button_p =
+    GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME)));
+  ACE_ASSERT (button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            TRUE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            FALSE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            FALSE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            FALSE);
 
   // step1: set up progress reporting
   ui_cb_data_base_p->progressData.statistic = Test_U_AudioEffect_Statistic ();
@@ -5799,9 +5810,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                   ui_cb_data_base_p->mediaFramework));
-      goto error;
+      return;
     }
   } // end SWITCH
 #else
@@ -5813,8 +5824,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-    goto error;
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
   } // end IF
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
 //  char* thread_name_p = NULL;
@@ -5858,10 +5869,10 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", returning\n")));
 //    delete thread_name_p;
       delete thread_data_p; thread_data_p = NULL;
-      goto error;
+      return;
     } // end IF
 
     // step3: start progress reporting
@@ -5899,19 +5910,12 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     //                event_source_id));
     state_r.eventSourceIds.insert (ui_cb_data_base_p->progressData.eventSourceId);
   } // end lock scope
-
-  return;
-
-error:
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
-  gtk_action_set_sensitive (action_p, false);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
-} // toggleaction_record_toggled_cb
+} // togglebutton_record_toggled_cb
 void
-action_cut_activate_cb (GtkAction* action_in,
-                        gpointer userData_in)
+button_cut_clicked_cb (GtkButton* button_in,
+                       gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_cut_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_cut_clicked_cb"));
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -5987,12 +5991,12 @@ action_cut_activate_cb (GtkAction* action_in,
 } // action_cut_activate_cb
 
 void
-action_report_activate_cb (GtkAction* action_in,
-                           gpointer userData_in)
+button_report_clicked_cb (GtkButton* button_in,
+                          gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::action_report_activate_cb"));
 
-  ACE_UNUSED_ARG (action_in);
+  ACE_UNUSED_ARG (button_in);
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -6049,12 +6053,12 @@ action_report_activate_cb (GtkAction* action_in,
 } // action_report_activate_cb
 
 void
-toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
                               gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_save_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_save_toggled_cb"));
 
-  ACE_UNUSED_ARG (toggleAction_in);
+  ACE_UNUSED_ARG (toggleButton_in);
 
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
@@ -6070,7 +6074,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  bool is_active = gtk_toggle_action_get_active (toggleAction_in);
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 
   GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -6110,13 +6114,13 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
 } // togglebutton_save_toggled_cb
 
 void
-toggleaction_sinus_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_sinus_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_sinus_toggled_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleAction_in);
+  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -6125,7 +6129,7 @@ toggleaction_sinus_toggled_cb (GtkToggleAction* toggleAction_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR_2 ();
-  bool is_active = gtk_toggle_action_get_active (toggleAction_in);
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -6292,13 +6296,13 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
 } // scale_sinus_frequency_value_changed_cb
 
 void
-toggleaction_effect_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
                                 gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_effect_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_effect_toggled_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleAction_in);
+  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -6371,7 +6375,7 @@ toggleaction_effect_toggled_cb (GtkToggleAction* toggleAction_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  bool is_active = gtk_toggle_action_get_active (toggleAction_in);
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 
   GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -6482,18 +6486,18 @@ toggleaction_effect_toggled_cb (GtkToggleAction* toggleAction_in,
 } // togglebutton_effect_toggled_cb
 
 void
-toggleaction_mute_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
                               gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_mute_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_mute_toggled_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleAction_in);
+  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
-  bool is_active = gtk_toggle_action_get_active (toggleAction_in);
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -6564,13 +6568,13 @@ toggleaction_mute_toggled_cb (GtkToggleAction* toggleAction_in,
 } // togglebutton_mute_toggled_cb
 
 void
-toggleaction_visualization_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
                                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_visualization_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_visualization_toggled_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleAction_in);
+  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -6588,7 +6592,7 @@ toggleaction_visualization_toggled_cb (GtkToggleAction* toggleAction_in,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
   ACE_ASSERT (box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p),
-                            gtk_toggle_action_get_active (toggleAction_in));
+                            gtk_toggle_button_get_active (toggleButton_in));
 } // togglebutton_visualization_toggled_cb
 
 void
@@ -6713,13 +6717,13 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
 } // radiobutton_2d_toggled_cb
 
 void
-toggleaction_3d_toggled_cb (GtkToggleAction* toggleAction_in,
+togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::toggleaction_3d_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_3d_toggled_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (toggleAction_in);
+  ACE_ASSERT (toggleButton_in);
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
@@ -6793,7 +6797,7 @@ toggleaction_3d_toggled_cb (GtkToggleAction* toggleAction_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  bool is_active = gtk_toggle_action_get_active (toggleAction_in);
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -6901,12 +6905,12 @@ button_about_clicked_cb (GtkButton* button_in,
 } // button_about_clicked_cb
 
 void
-action_settings_clicked_cb (GtkAction* action_in,
+button_settings_clicked_cb (GtkButton* button_in,
                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_settings_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_settings_clicked_cb"));
 
-  ACE_UNUSED_ARG (action_in);
+  ACE_UNUSED_ARG (button_in);
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -6924,12 +6928,12 @@ action_settings_clicked_cb (GtkAction* action_in,
 } // button_about_clicked_cb
 
 void
-action_reset_clicked_cb (GtkAction* action_in,
+button_reset_clicked_cb (GtkButton* button_in,
                          gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::action_reset_clicked_cb"));
 
-  ACE_UNUSED_ARG (action_in);
+  ACE_UNUSED_ARG (button_in);
 
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
@@ -7428,7 +7432,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #endif
 
   gint n_rows = 0;
-  GtkToggleAction* toggle_action_p = NULL;
+  GtkToggleButton* toggle_button_p = NULL;
 
   list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -7762,11 +7766,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 
-  toggle_action_p =
-      GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+  toggle_button_p =
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_action_set_sensitive (GTK_ACTION (toggle_button_p), true);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -8928,7 +8932,11 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     { ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      ACE_ASSERT (false); // *TODO*
+      ACE_ASSERT (InlineIsEqualGUID (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_.format.formattype, FORMAT_WaveFormatEx));
+
+      struct tWAVEFORMATEX* audio_info_header_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_.format.pbFormat);
+      audio_info_header_p->nChannels = number_of_channels;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -10141,11 +10149,11 @@ filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
   //gtk_entry_set_text (entry_p, string_p);
 
   // record button
-  //GtkToggleAction* toggle_action_p =
+  //GtkToggleAction* toggle_button_p =
   //  GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  //ACE_ASSERT (toggle_action_p);
-  //gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
+  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_togglebutton_RECORD_NAME)));
+  //ACE_ASSERT (toggle_button_p);
+  //gtk_action_set_sensitive (GTK_ACTION (toggle_button_p),
   //                          !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
 } // filechooserbutton_cb
 

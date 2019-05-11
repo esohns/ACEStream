@@ -174,7 +174,9 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  ACE_ASSERT (iterator_.sampleSize_);
   ACE_ASSERT (message_inout->length () % iterator_.sampleSize_ == 0);
+  ACE_ASSERT (iterator_.subSampleSize_);
   ACE_ASSERT (message_inout->length () % iterator_.subSampleSize_ == 0);
 
   unsigned int number_of_samples =
@@ -282,8 +284,10 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-      ACE_ASSERT (waveformatex_p);
-      sample_size = waveformatex_p->nBlockAlign;
+      ACE_ASSERT (waveformatex_p->wFormatTag == WAVE_FORMAT_PCM);
+      //sample_size = waveformatex_p->nBlockAlign;
+      sample_size =
+        (waveformatex_p->nChannels * waveformatex_p->wBitsPerSample) / 8;
       sub_sample_size = (sample_size * 8) /
                          waveformatex_p->wBitsPerSample;
       // *NOTE*: apparently, all Win32 sound data is little endian only

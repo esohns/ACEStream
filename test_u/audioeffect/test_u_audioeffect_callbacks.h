@@ -86,17 +86,17 @@ gboolean idle_update_display_cb (gpointer);
 extern "C"
 {
 #endif /* __cplusplus */
-  G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void action_reset_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_sinus_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_effect_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_mute_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_visualization_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_3d_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void button_cut_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_report_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_record_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void combobox_effect_changed_cb (GtkWidget*, gpointer);

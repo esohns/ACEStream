@@ -1215,6 +1215,8 @@ do_work (unsigned int bufferSize_in,
                                   true); // initialize COM ?
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
       ACE_ASSERT (directShowCBData_in.streamConfiguration);
+      (*directshow_modulehandler_iterator).second.second.outputFormat =
+        directShowConfiguration_in.streamConfiguration.configuration_.format;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1716,26 +1718,25 @@ ACE_TMAIN (int argc_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_ui_cb_data.configuration = &directshow_configuration;
 #if defined (GTK_USE)
       directshow_ui_cb_data.progressData.state = &state_r;
-
-      directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
-      directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
+      directshow_configuration.GTKConfiguration.argc = argc_in;
+      directshow_configuration.GTKConfiguration.argv = argv_in;
+      directshow_configuration.GTKConfiguration.CBData = &directshow_ui_cb_data;
+      directshow_configuration.GTKConfiguration.eventHooks.finiHook =
           idle_finalize_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
+      directshow_configuration.GTKConfiguration.eventHooks.initHook =
           idle_initialize_UI_cb;
-      directshow_ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
+      directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
       if (!UI_CSS_file.empty ())
         directshow_ui_cb_data.configuration->GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION(3,0,0)
-      gtk_configuration_p = &directshow_ui_cb_data.configuration->GTKConfiguration;
+      gtk_configuration_p = &directshow_configuration.GTKConfiguration;
 #endif // GTK_USE
       cb_data_base_p = &directshow_ui_cb_data;
       cb_data_base_p->mediaFramework = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
-      directshow_ui_cb_data.configuration = &directshow_configuration;
 
       break;
     }

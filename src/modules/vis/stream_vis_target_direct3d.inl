@@ -1191,8 +1191,8 @@ continue_:
   struct tagRECT source_rectangle_s = {
     0,
     0,
-    presentationParameters_inout.BackBufferWidth,
-    presentationParameters_inout.BackBufferHeight
+    static_cast<LONG> (presentationParameters_inout.BackBufferWidth),
+    static_cast<LONG> (presentationParameters_inout.BackBufferHeight)
   };
   updateDestinationRectangle (presentationParameters_inout.hDeviceWindow,
                               source_rectangle_s,

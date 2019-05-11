@@ -23,15 +23,11 @@
 #include "test_u_audioeffect_gl_callbacks.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if defined (GTKGL_SUPPORT)
 #include <gl/GL.h>
 #include <gl/GLU.h>
-#endif /* GTKGL_SUPPORT */
 #else
-#if defined (GTKGL_SUPPORT)
 #include "GL/gl.h"
 #include "GL/glu.h"
-#endif /* GTKGL_SUPPORT */
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Log_Msg.h"
@@ -249,7 +245,9 @@ glarea_realize_cb (GtkWidget* widget_in,
   if (*texture_id_p > 0)
   {
     glDeleteTextures (1, texture_id_p);
+#if defined (_DEBUG)
     COMMON_GL_ASSERT;
+#endif
     *texture_id_p = 0;
   } // end IF
   static GLubyte* image_p = NULL;
@@ -261,17 +259,17 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
-    *texture_id_p = Common_GL_Tools::loadTexture (filename);
-    if (!*texture_id_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
-                  ACE_TEXT (filename.c_str ())));
-      goto error;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("OpenGL texture id: %u\n"),
-                *texture_id_p));
+    //*texture_id_p = Common_GL_Tools::loadTexture (filename);
+    //if (!*texture_id_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
+    //              ACE_TEXT (filename.c_str ())));
+    //  goto error;
+    //} // end IF
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("OpenGL texture id: %u\n"),
+    //            *texture_id_p));
   } // end IF
 
   // initialize perspective
@@ -279,18 +277,26 @@ glarea_realize_cb (GtkWidget* widget_in,
                              &allocation);
   glViewport (0, 0,
               static_cast<GLsizei> (allocation.width), static_cast<GLsizei> (allocation.height));
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
 
   glMatrixMode (GL_PROJECTION);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
 
   glLoadIdentity (); // Reset The Projection Matrix
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
 
   gluPerspective (30.0, // 45.0,
                   static_cast<GLdouble> (allocation.width) / static_cast<GLdouble> (allocation.height),
                   1.0, 100.0); // 0.1,100.0
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   //  GLdouble fW, fH;
 //  fH =
 //   ::tan (60.0 / 360.0 * M_PI) *
@@ -308,9 +314,13 @@ glarea_realize_cb (GtkWidget* widget_in,
   // position and looking-at direction)
 
   glMatrixMode (GL_MODELVIEW);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   glLoadIdentity (); // reset the projection matrix
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
 
   /* light */
 //  GLfloat light_positions[2][4]   = { 50.0, 50.0, 0.0, 0.0,
@@ -327,15 +337,25 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   // set up light colors (ambient, diffuse, specular)
   glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
   glEnable (GL_LIGHT0);
+#if defined (_DEBUG)
   COMMON_GL_ASSERT;
+#endif
 
 #if GTK_CHECK_VERSION(3,0,0)
 #else

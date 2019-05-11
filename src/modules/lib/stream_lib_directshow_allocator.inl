@@ -350,8 +350,8 @@ Stream_MediaFramework_DirectShow_AllocatorBase_T<ConfigurationType,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     COM_initialized = true;

@@ -189,7 +189,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
 #                       COTIRE_ENABLE_PRECOMPILED_HEADER TRUE)
 #cotire (${EXECUTABLE_SOURCE})
-add_precompiled_header (${EXECUTABLE_SOURCE} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
+#add_precompiled_header (${EXECUTABLE_SOURCE} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 
 set (RESOURCE_FILES
      etc/resources.rc

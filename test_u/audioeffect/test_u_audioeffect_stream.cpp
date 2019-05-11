@@ -134,6 +134,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -484,8 +485,13 @@ continue_:
     goto error;
   } // end IF
   session_data_r.formats.push_back (media_type_s);
-  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: input format: %s\n"),
+              ACE_TEXT (stream_name_string_),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, false).c_str ())));
+
+  //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+  //ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
   // ---------------------------------------------------------------------------
 

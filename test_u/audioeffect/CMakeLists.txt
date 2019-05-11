@@ -116,7 +116,7 @@ elseif (WIN32)
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
    if (GTKGL_SUPPORT)
-    include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../glm)
+    include_directories ($ENV{LIB_ROOT}/glm)
    endif (GTKGL_SUPPORT)
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
@@ -305,13 +305,13 @@ target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonMath)
 target_link_libraries (${EXECUTABLE} CommonSignal)
 target_link_libraries (${EXECUTABLE} CommonTimer)
-#if (GUI_SUPPORT)
-# if (GTK_USE)
-#  if (GTKGL_SUPPORT)
-#   target_link_libraries (${EXECUTABLE} CommonOpenGL)
-#  endif (GTKGL_SUPPORT)
-# endif (GTK_USE)
-#endif (GUI_SUPPORT)
+if (GUI_SUPPORT)
+ if (GTK_USE)
+  if (GTKGL_SUPPORT)
+   target_link_libraries (${EXECUTABLE} CommonOpenGL)
+  endif (GTKGL_SUPPORT)
+ endif (GTK_USE)
+endif (GUI_SUPPORT)
 
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
@@ -319,7 +319,7 @@ if (WIN32)
 endif (WIN32)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
-target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
+#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
@@ -367,12 +367,12 @@ if (UNIX)
 elseif (WIN32)
  if (GUI_SUPPORT)
   if (GTK_SUPPORT)
-   if (GTK3_SUPPORT)
+   if (GTK3_USE)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t")
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                               G:/software/Development/dll)
     file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_PATH)
-   elseif (GTK2_SUPPORT)
+   elseif (GTK2_USE)
     set (ARGS "-g.\\\\etc\\\\audioeffect.gtk2 -l -t")
     set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                               G:/software/Development/dll)
@@ -380,15 +380,18 @@ elseif (WIN32)
    endif ()
   endif (GTK_SUPPORT)
  endif (GUI_SUPPORT)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
- file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/assimp/cmake/code/${CMAKE_BUILD_TYPE} ASSIMP_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE} ZLIB_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${LIBPNG_PATH}
-                           ${GTK_PATH}
-                           ${FFMPEG_PATH}
                            ${ASSIMP_PATH}
+                           ${FFMPEG_PATH}
+                           ${GTK_PATH}
+                           ${LIBPNG_PATH}
+                           ${ZLIB_PATH}
                            ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+ message (STATUS "RUNTIME_LIBRARY_DIRS: ${RUNTIME_LIBRARY_DIRS}")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}

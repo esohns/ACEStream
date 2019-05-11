@@ -189,7 +189,7 @@ if (UNIX)
    endif (GTKGLAREA_SUPPORT)
 
    if (GTKGL_SUPPORT)
-    target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
+#    target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
    endif (GTKGL_SUPPORT)
 
    target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_GTK)
@@ -218,7 +218,7 @@ elseif (WIN32)
 #    elseif (GTK3_USE)
 #     target_link_libraries (${PROJECT_NAME}_Test_U "C:/Documents and Settings/Erik/My Documents/Visual Studio 2010/Projects/gtkglarea/gtk3/${CMAKE_BUILD_TYPE}/gtkglarea.lib")
 #    endif ()
-    target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
+#    target_link_libraries (${PROJECT_NAME}_Test_U CommonOpenGL)
    endif (GTKGL_SUPPORT)
 
    target_link_libraries (${PROJECT_NAME}_Test_U CommonUI_GTK)

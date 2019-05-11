@@ -76,7 +76,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     struct _AMMediaType,
                                                     FilterType>
  //, public Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType>
- , public Common_UI_WindowTypeConverter_T<HWND>
+ //, public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_UI_IFullscreen
 {
   typedef Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
@@ -91,7 +91,7 @@ class Stream_Vis_Target_DirectShow_T
                                                     struct _AMMediaType,
                                                     FilterType> inherited;
   //typedef Stream_MediaFramework_MediaTypeConverter_T<struct _AMMediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+  //typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
 
  public:
   Stream_Vis_Target_DirectShow_T (ISTREAM_T*); // stream handle
