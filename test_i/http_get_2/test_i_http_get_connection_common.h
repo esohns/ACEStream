@@ -184,7 +184,6 @@ typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
                                    Test_I_HTTPGet_ConnectionConfiguration_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
-                                   Net_TCPSocketConfiguration_t,
                                    Test_I_NetStream_t,
                                    struct Net_UserData> Test_I_HTTPGet_SSLTCPConnector_t;
 #endif // SSL_SUPPORT

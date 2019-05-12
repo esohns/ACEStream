@@ -719,7 +719,6 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLConnection_t,
                                    Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
-                                   Net_TCPSocketConfiguration_t,
                                    Test_I_Source_DirectShow_Net_TCPStream_t,
                                    struct Net_UserData> Test_I_Source_DirectShow_SSLConnector_t;
 #endif // SSL_SUPPORT
@@ -772,7 +771,6 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLConnection_t
                                    Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
-                                   Net_TCPSocketConfiguration_t,
                                    Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                    struct Net_UserData> Test_I_Source_MediaFoundation_SSLConnector_t;
 #endif // SSL_SUPPORT

@@ -183,7 +183,6 @@ typedef Net_Client_SSL_Connector_T<HTTPGet_SSLTCPConnection_t,
                                    HTTPGet_ConnectionConfiguration_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
-                                   Net_TCPSocketConfiguration_t,
                                    HTTPGet_NetStream_t,
                                    struct Net_UserData> HTTPGet_SSLTCPConnector_t;
 #endif // SSL_SUPPORT
