@@ -365,7 +365,7 @@ continue_:
     configuration_in.allocatorConfiguration_.defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
-    STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+    STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
   result_2 =
       buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
   if (FAILED (result_2))

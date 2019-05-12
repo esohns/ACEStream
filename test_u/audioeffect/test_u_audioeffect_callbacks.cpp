@@ -2204,7 +2204,9 @@ get_buffer_size (gpointer userData_in)
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  return (sample_rate * (bits_per_sample / 8) * channels);
+  // *IMPORTANT NOTE*: with DirectShow, lower buffer sizes result in lower
+  //                   latency
+  return (sample_rate * (bits_per_sample / 8) * channels) / 8; // <-- arbitrary factor
 #else
   ACE_UNUSED_ARG (bits_per_sample);
   return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
@@ -3293,59 +3295,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                 1.0 / static_cast<double> (width));
   //gtk_progress_bar_set_text (progress_bar_p,
   //                           ACE_TEXT_ALWAYS_CHAR (""));
-
-  // step4: initialize text view, setup auto-scrolling
-  //GtkTextView* view_p =
-  //  GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-  //                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME)));
-  //ACE_ASSERT (view_p);
-//  GtkTextBuffer* buffer_p =
-////    gtk_text_buffer_new (NULL); // text tag table --> create new
-//      gtk_text_view_get_buffer (view_p);
-//  ACE_ASSERT (buffer_p);
-////  gtk_text_view_set_buffer (view_p, buffer_p);
-
-  //PangoFontDescription* font_description_p =
-  //  pango_font_description_from_string (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION));
-  //if (!font_description_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to pango_font_description_from_string(\"%s\"): \"%m\", aborting\n"),
-  //              ACE_TEXT (TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION)));
-  //  return G_SOURCE_REMOVE;
-  //} // end IF
-  //// apply font
-  //GtkRcStyle* rc_style_p = gtk_rc_style_new ();
-  //if (!rc_style_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to gtk_rc_style_new(): \"%m\", aborting\n")));
-  //  return G_SOURCE_REMOVE;
-  //} // end IF
-  //rc_style_p->font_desc = font_description_p;
-  //GdkColor base_colour, text_colour;
-  //gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE),
-  //                 &base_colour);
-  //rc_style_p->base[GTK_STATE_NORMAL] = base_colour;
-  //gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT),
-  //                 &text_colour);
-  //rc_style_p->text[GTK_STATE_NORMAL] = text_colour;
-  //rc_style_p->color_flags[GTK_STATE_NORMAL] =
-  //  static_cast<GtkRcFlags> (GTK_RC_BASE |
-  //                           GTK_RC_TEXT);
-  //gtk_widget_modify_style (GTK_WIDGET (view_p),
-  //                         rc_style_p);
-  ////gtk_rc_style_unref (rc_style_p);
-  //g_object_unref (rc_style_p);
-
-  //  GtkTextIter iterator;
-  //  gtk_text_buffer_get_end_iter (buffer_p,
-  //                                &iterator);
-  //  gtk_text_buffer_create_mark (buffer_p,
-  //                               ACE_TEXT_ALWAYS_CHAR (NET_UI_SCROLLMARK_NAME),
-  //                               &iterator,
-  //                               TRUE);
-  //  g_object_unref (buffer_p);
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
@@ -7762,7 +7711,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
     ACE_ASSERT (combo_box_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 
@@ -7770,7 +7719,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME)));
   ACE_ASSERT (toggle_button_p);
-  gtk_action_set_sensitive (GTK_ACTION (toggle_button_p), true);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)

@@ -1122,6 +1122,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->window);
   ACE_ASSERT (inherited::sessionData_);
 #if GTK_CHECK_VERSION(3,10,0)
   ACE_ASSERT (surface_in);
@@ -1170,11 +1172,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     cairo_destroy (cairoContext_); cairoContext_ = NULL;
   } // end IF
 #if GTK_CHECK_VERSION (3,10,0)
-  if (unlikely (!initialize_Cairo (NULL,
+  if (unlikely (!initialize_Cairo (inherited::configuration_->window,
                                    cairoContext_,
                                    cairoSurface_)))
 #else
-  if (unlikely (!initialize_Cairo (NULL,
+  if (unlikely (!initialize_Cairo (inherited::configuration_->window,
                                    cairoContext_,
                                    pixelBuffer_)))
 #endif // GTK_CHECK_VERSION (3,10,0)

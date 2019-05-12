@@ -2348,6 +2348,7 @@ do_work (unsigned int bufferSize_in,
         timer_manager_p->stop ();
         goto clean;
       } // end IF
+      ACE_UNUSED_ARG (thread_id);
     } // end ELSE
   } // end IF
 

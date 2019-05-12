@@ -259,17 +259,19 @@ glarea_realize_cb (GtkWidget* widget_in,
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
-    //*texture_id_p = Common_GL_Tools::loadTexture (filename);
-    //if (!*texture_id_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
-    //              ACE_TEXT (filename.c_str ())));
-    //  goto error;
-    //} // end IF
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("OpenGL texture id: %u\n"),
-    //            *texture_id_p));
+    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    if (!*texture_id_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_GL_Tools::loadTexture(\"%s\"), returning\n"),
+                  ACE_TEXT (filename.c_str ())));
+      goto error;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("OpenGL texture id: %u\n"),
+                *texture_id_p));
+#endif // _DEBUG
   } // end IF
 
   // initialize perspective

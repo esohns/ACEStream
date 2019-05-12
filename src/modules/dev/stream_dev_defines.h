@@ -24,6 +24,7 @@
 // DirectShow
 // *TODO*: move these somewhere else
 #define STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS          60 // ==> max. #frames(/sec)
+#define STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS          10
 //#define STREAM_DEV_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
 
 #define STREAM_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO       L"Capture Video"
