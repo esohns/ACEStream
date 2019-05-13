@@ -1395,7 +1395,6 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L_TCPConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_V4L_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);

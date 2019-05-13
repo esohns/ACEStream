@@ -5731,8 +5731,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
               }
             } // end SWITCH
 #else
-            connection_p = connection_manager_p->get (inet_address);
-#endif
+            connection_p = udp_connection_manager_p->get (inet_address);
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
             switch (ui_cb_data_base_p->mediaFramework)

@@ -37,7 +37,7 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACE_TAO/ACE>)
 
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)

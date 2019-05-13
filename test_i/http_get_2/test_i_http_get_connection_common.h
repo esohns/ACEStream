@@ -31,9 +31,9 @@
 #endif // ACE_WIN32 || ACE_WIN64
 #include "ace/Synch_Traits.h"
 
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 #include "ace/SSL/SSL_SOCK_Stream.h"
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 #include "common_timer_manager_common.h"
 
@@ -54,9 +54,9 @@
 
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 #include "net_client_ssl_connector.h"
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
@@ -140,7 +140,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_HTTPGet_ConnectionConfiguration_t,
@@ -149,7 +149,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Test_I_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_SSLConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_HTTPGet_ConnectionConfiguration_t,
                                       struct Net_ConnectionState,
@@ -177,7 +177,7 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                Net_TCPSocketConfiguration_t,
                                Test_I_NetStream_t,
                                struct Net_UserData> Test_I_HTTPGet_TCPConnector_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -185,8 +185,8 @@ typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
                                    Test_I_NetStream_t,
-                                   struct Net_UserData> Test_I_HTTPGet_SSLTCPConnector_t;
-#endif // SSL_SUPPORT
+                                   struct Net_UserData> Test_I_HTTPGet_SSLConnector_t;
+#endif // SSL_USE
 typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_HTTPGet_ConnectionConfiguration_t,

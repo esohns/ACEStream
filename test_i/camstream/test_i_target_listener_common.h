@@ -29,9 +29,9 @@
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"
 #include "net_sock_acceptor.h"
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 #include "net_server_ssl_listener.h"
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 #include "test_i_camstream_network.h"
 #include "test_i_target_common.h"
@@ -60,7 +60,7 @@ typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
                               Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                               Test_I_Target_DirectShow_TCPStream,
                               struct Net_UserData> Test_I_Target_DirectShow_Listener_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
@@ -69,7 +69,7 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                                   Test_I_Target_DirectShow_TCPStream,
                                   struct Net_UserData> Test_I_Target_DirectShow_SSLListener_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
@@ -86,7 +86,7 @@ typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
                               Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                               Test_I_Target_MediaFoundation_TCPStream,
                               struct Net_UserData> Test_I_Target_MediaFoundation_Listener_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
@@ -95,7 +95,7 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection
                                   Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                                   Test_I_Target_MediaFoundation_TCPStream,
                                   struct Net_UserData> Test_I_Target_MediaFoundation_SSLListener_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 #else
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
@@ -112,7 +112,7 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Test_I_Target_TCPConnectionConfiguration_t,
                               Test_I_Target_TCPStream,
                               struct Net_UserData> Test_I_Target_Listener_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
@@ -121,7 +121,7 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
                                   Test_I_Target_TCPConnectionConfiguration_t,
                                   Test_I_Target_TCPStream,
                                   struct Net_UserData> Test_I_Target_SSLListener_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
@@ -198,27 +198,27 @@ typedef ACE_Singleton<Test_I_Target_DirectShow_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_DirectShow_Listener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_DirectShow_SSLListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_SSL_LISTENER_SINGLETON;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_Listener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_SSLListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_SSL_LISTENER_SINGLETON;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 #else
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_Listener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_SSLListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #endif

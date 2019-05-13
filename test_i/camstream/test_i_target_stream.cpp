@@ -1067,7 +1067,7 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
 
 bool
 Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
-                                  ACE_HANDLE handle_in)
+                                     ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::initialize"));
 
@@ -1079,7 +1079,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<Test_I_Target_TCPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -1090,7 +1090,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<Test_I_Target_TCPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1102,8 +1102,8 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;
-  Test_I_Target_TCPStreamConfiguration_t::ITERATOR_T iterator =
-      const_cast<Test_I_Target_TCPStreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
@@ -1132,7 +1132,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<Test_I_Target_TCPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;
@@ -1229,7 +1229,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<Test_I_Target_UDPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -1240,7 +1240,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<Test_I_Target_UDPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1252,8 +1252,8 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.sessionData = &session_data_r;
-  Test_I_Target_UDPStreamConfiguration_t::ITERATOR_T iterator =
-      const_cast<Test_I_Target_UDPStreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
       dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
@@ -1282,7 +1282,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<Test_I_Target_UDPStreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;

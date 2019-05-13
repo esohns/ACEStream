@@ -271,7 +271,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_X11Display);                          // writer type
+                              Stream_ImageScreen_Display);                      // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                           // session data type

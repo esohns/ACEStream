@@ -32,9 +32,9 @@
 #endif
 #include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 #include "ace/SSL/SSL_SOCK_Stream.h"
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 #include "common_statistic_handler.h"
 
@@ -61,9 +61,9 @@
 
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 #include "net_client_ssl_connector.h"
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 
 #include "test_i_connection_common.h"
 
@@ -149,7 +149,8 @@ struct Net_ConnectionState;
 struct Test_I_Target_ModuleHandlerConfiguration;
 class Test_I_Target_SessionData;
 struct Test_I_Target_SocketHandlerConfiguration;
-//class Test_I_Target_Stream;
+class Test_I_Target_TCPStream;
+class Test_I_Target_UDPStream;
 class Test_I_Target_Stream_Message;
 class Test_I_Target_SessionMessage;
 struct Test_I_Target_StreamConfiguration;
@@ -562,7 +563,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_DirectShow_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_DirectShow_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
@@ -571,7 +572,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_DirectShow_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_DirectShow_SSLConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
 	                                  Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
@@ -604,7 +605,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_MediaFoundation_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
@@ -613,7 +614,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_MediaFoundation_SSLConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
@@ -639,22 +640,25 @@ typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       struct Net_UserData> Test_I_Source_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
+                                Net_TCPSocketHandler_t,
                                 Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_V4L_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_SSLConnectionBase_T<ACE_NULL_SYNCH,
+                                Net_SSLSocketHandler_t,
                                 Test_I_Source_V4L_ConnectionConfiguration_t,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_V4L_NetStream_t,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_SSLTCPConnection_t;
-#endif // SSL_SUPPORT
-typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L_TCPConnectionConfiguration_t,
+#endif // SSL_USE
+typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
+                                      Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_V4L_Net_TCPStream_t,
@@ -695,7 +699,7 @@ typedef Net_IConnector_T<ACE_INET_Addr,
                          Test_I_Source_V4L_TCPConnectionConfiguration_t> Test_I_Source_V4L_ITCPConnector_t;
 typedef Net_IConnector_T<ACE_INET_Addr,
                          Test_I_Source_V4L_UDPConnectionConfiguration_t> Test_I_Source_V4L_IUDPConnector_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
@@ -712,7 +716,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Net_TCPSocketConfiguration_t,
                                Test_I_Source_DirectShow_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_DirectShow_TCPConnector_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -721,7 +725,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_DirectShow_SSLConnection_t,
                                    Net_Statistic_t,
                                    Test_I_Source_DirectShow_Net_TCPStream_t,
                                    struct Net_UserData> Test_I_Source_DirectShow_SSLConnector_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_Client_AsynchConnector_T<Test_I_Source_DirectShow_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_DirectShow_TCPConnectionConfiguration_t,
@@ -764,7 +768,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Net_TCPSocketConfiguration_t,
                                Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_MediaFoundation_TCPConnector_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -773,7 +777,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_MediaFoundation_SSLConnection_t
                                    Net_Statistic_t,
                                    Test_I_Source_MediaFoundation_Net_TCPStream_t,
                                    struct Net_UserData> Test_I_Source_MediaFoundation_SSLConnector_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_Client_AsynchConnector_T<Test_I_Source_MediaFoundation_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t,
@@ -816,7 +820,7 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Net_TCPSocketConfiguration_t,
                                Test_I_Source_V4L_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_V4L_TCPConnector_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
@@ -824,9 +828,9 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLTCPConnection_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
                                    Net_TCPSocketConfiguration_t,
-                                   Test_I_Source_V4L_NetStream_t,
-                                   struct Net_UserData> Test_I_Source_V4L_SSLTCPConnector_t;
-#endif // SSL_SUPPORT
+                                   Test_I_Source_V4L_Net_TCPStream_t,
+                                   struct Net_UserData> Test_I_Source_V4L_SSLConnector_t;
+#endif // SSL_USE
 typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_V4L_TCPConnectionConfiguration_t,
@@ -871,7 +875,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_DirectShow_TCPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_DirectShow_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
@@ -880,7 +884,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_DirectShow_TCPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_DirectShow_SSLTCPConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
@@ -913,7 +917,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_MediaFoundation_UDPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_MediaFoundation_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
@@ -922,7 +926,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_MediaFoundation_UDPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_MediaFoundation_SSLTCPConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
@@ -955,16 +959,16 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Test_I_Target_TCPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_TCPConnection_t;
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
 typedef Net_SSLConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
-                                Test_I_Target_ConnectionConfiguration_t,
+                                Test_I_Target_TCPConnectionConfiguration_t,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_TCPStream,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_SSLConnection_t;
-#endif // SSL_SUPPORT
+#endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_Target_TCPConnectionConfiguration_t,
                                       struct Net_ConnectionState,

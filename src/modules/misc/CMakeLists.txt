@@ -13,7 +13,8 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+#                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACE_TAO/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)

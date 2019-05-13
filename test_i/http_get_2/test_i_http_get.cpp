@@ -757,12 +757,12 @@ do_work (const std::string& bootstrapFileName_in,
   if (useReactor_in)
   {
     if (useSSL_in)
-#if defined (SSL_SUPPORT)
+#if defined (SSL_USE)
       ACE_NEW_NORETURN (stream_p,
                         Test_I_HTTPGet_SSL_Stream_t ());
 #else
       ;
-#endif
+#endif // SSL_USE
     else
       ACE_NEW_NORETURN (stream_p,
                         Test_I_HTTPGet_Stream_t ());

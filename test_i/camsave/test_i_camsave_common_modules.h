@@ -64,6 +64,7 @@
 #include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_vis_libav_resize.h"
+#include "stream_vis_gtk_pixbuf.h"
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT

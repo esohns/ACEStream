@@ -50,7 +50,7 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  , delay_ (this,
            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
 #if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 // , GTKCairoDisplay_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
  , display_ (this,
@@ -58,7 +58,7 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 #else
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Stream::Stream_ImageScreen_Stream"));
