@@ -648,14 +648,14 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_TCPConnection_t;
 #if defined (SSL_USE)
-typedef Net_SSLConnectionBase_T<ACE_NULL_SYNCH,
+typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
-                                Test_I_Source_V4L_ConnectionConfiguration_t,
+                                Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
-                                Test_I_Source_V4L_NetStream_t,
+                                Test_I_Source_V4L_Net_TCPStream_t,
                                 Common_Timer_Manager_t,
-                                struct Net_UserData> Test_I_Source_V4L_SSLTCPConnection_t;
+                                struct Net_UserData> Test_I_Source_V4L_SSLConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       Test_I_Source_V4L_TCPConnectionConfiguration_t,
@@ -821,13 +821,12 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
                                Test_I_Source_V4L_Net_TCPStream_t,
                                struct Net_UserData> Test_I_Source_V4L_TCPConnector_t;
 #if defined (SSL_USE)
-typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLTCPConnection_t,
+typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
-                                   Test_I_Source_V4L_ConnectionConfiguration_t,
+                                   Test_I_Source_V4L_TCPConnectionConfiguration_t,
                                    struct Net_ConnectionState,
                                    Net_Statistic_t,
-                                   Net_TCPSocketConfiguration_t,
                                    Test_I_Source_V4L_Net_TCPStream_t,
                                    struct Net_UserData> Test_I_Source_V4L_SSLConnector_t;
 #endif // SSL_USE
@@ -960,7 +959,7 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_TCPConnection_t;
 #if defined (SSL_USE)
-typedef Net_SSLConnectionBase_T<ACE_NULL_SYNCH,
+typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 Net_SSLSocketHandler_t,
                                 Test_I_Target_TCPConnectionConfiguration_t,
                                 struct Net_ConnectionState,

@@ -113,7 +113,7 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Test_I_Target_TCPStream,
                               struct Net_UserData> Test_I_Target_Listener_t;
 #if defined (SSL_USE)
-typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
+typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
                                   Test_I_Target_ListenerConfiguration,
