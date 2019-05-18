@@ -1,8 +1,7 @@
-﻿set (OPENOFFICE_DEFAULT ON)
+﻿set (OPENOFFICE_DEFAULT OFF)
 option (OPENOFFICE_SUPPORT "support OpenOffice/LibreOffice" ${OPENOFFICE_DEFAULT})
 if (OPENOFFICE_SUPPORT)
- message (STATUS "OpenOffice support set, set OO_SDK_HOME and UNO_PATH and run make_oo_headers.bat from 'scripts' to generate the necessary #include headers")
-
+# message (STATUS "OpenOffice support set, set OO_SDK_HOME and UNO_PATH and run make_oo_headers.bat from 'scripts' to generate the necessary #include headers")
  add_definitions (-DOPENOFFICE_SUPPORT)
 endif (OPENOFFICE_SUPPORT)
 
@@ -86,13 +85,16 @@ target_include_directories (${PROJECT_NAME}_Document PUBLIC
 
 ############## next target ################
 set (source_files
-     stream_document_defines.h
-#     stream_document_exports.h
-     stream_module_libreoffice_document_handler.cpp
-     stream_module_libreoffice_document_handler.h
-     stream_module_libreoffice_document_writer.cpp
-     stream_module_libreoffice_document_writer.h
-     stream_module_libreoffice_document_writer.inl)
+     stream_document_defines.h)
+if (OPENOFFICE_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_module_libreoffice_document_handler.cpp
+      stream_module_libreoffice_document_handler.h
+      stream_module_libreoffice_document_writer.cpp
+      stream_module_libreoffice_document_writer.h
+      stream_module_libreoffice_document_writer.inl)
+endif (OPENOFFICE_SUPPORT)
 
 # Include dir for installed targets
 set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -124,10 +126,12 @@ add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
 
- target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/isal.lib)
+ if (OPENOFFICE_SUPPORT)
+  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/isal.lib)
 
- target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppu.lib)
- target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
+  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppu.lib)
+  target_link_libraries (${PROJECT_NAME}_Document ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
+ endif (OPENOFFICE_SUPPORT)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Document Common)
 target_link_libraries (${PROJECT_NAME}_Document ${PROJECT_NAME})

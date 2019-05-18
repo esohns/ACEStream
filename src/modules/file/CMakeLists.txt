@@ -31,16 +31,16 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/timer>)
 elseif (WIN32)
- if (DEFINED ENV{DXSDK_DIR})
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
- else ()
-  set (DXSDK_DIR
-       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+# if (DEFINED ENV{DXSDK_DIR})
+#  target_include_directories (${PROJECT_NAME}_File PUBLIC
+#                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
+# else ()
+#  set (DXSDK_DIR
+#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
 # message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-  target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
- endif (DEFINED ENV{DXSDK_DIR})
+#  target_include_directories (${PROJECT_NAME}_File PUBLIC
+#                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+# endif (DEFINED ENV{DXSDK_DIR})
 
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -54,7 +54,7 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
   target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACE_TAO/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC

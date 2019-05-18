@@ -88,7 +88,7 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
  else ()
   set (DXSDK_DIR
-       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+       "$ENV{LIB_ROOT}/DXSDK/Include")
 # message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:${DXSDK_DIR}>)

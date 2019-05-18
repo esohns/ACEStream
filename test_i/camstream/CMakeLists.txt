@@ -215,7 +215,7 @@ if (UNIX)
 
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
  target_link_libraries (${EXECUTABLE_SOURCE} evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} mfplat.lib)

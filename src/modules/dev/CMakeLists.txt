@@ -56,13 +56,13 @@ elseif (WIN32)
   target_include_directories (${PROJECT_NAME}_Device PUBLIC
                               $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
  else ()
-  set (DXSDK_DIR
-       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
+#  set (DXSDK_DIR
+#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 ##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
   target_include_directories (${PROJECT_NAME}_Device PUBLIC
-                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/DXSDK/Include>)
  endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
  cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation

@@ -56,13 +56,13 @@ elseif (WIN32)
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
                               $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
  else ()
-  set (DXSDK_DIR
-       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)")
+#  set (DXSDK_DIR
+#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)")
 #      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 ##      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
   target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
-                              $<BUILD_INTERFACE:${DXSDK_DIR}/Include>)
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/DXSDK/Include>)
  endif (DEFINED ENV{DXSDK_DIR})
 # set(_PF86 "ProgramFiles(x86)")
 # cmake_policy (SET CMP0053 OLD) # Simplify variable reference and escape sequence evaluation
@@ -211,7 +211,7 @@ elseif (WIN32)
  if (DEFINED ENV{DXSDK_DIR})
   target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{DXSDK_DIR}/Lib/x86/D3dx9.lib)
  else ()
-  target_link_libraries (${PROJECT_NAME}_MediaFramework ${DXSDK_DIR}/Lib/x86/D3dx9.lib)
+  target_link_libraries (${PROJECT_NAME}_MediaFramework $ENV{LIB_ROOT}/DXSDK/Lib/x86/D3dx9.lib)
  endif (DEFINED ENV{DXSDK_DIR})
 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
