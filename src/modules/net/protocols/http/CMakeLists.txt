@@ -14,26 +14,26 @@ add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet STATIC "")
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/ACE>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACE_TAO/ACE>)
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/Common/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/Common/src/error>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src/error>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../modules/Common/src/timer>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Common/src/timer>)
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src>)
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACENetwork/src/protocol/http>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACENetwork/src/protocol/http>)
 elseif (WIN32)
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
   target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ATCD/ACE>)
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../ACE_TAO/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC
