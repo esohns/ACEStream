@@ -347,12 +347,15 @@ error:
     }
     default:
     {
-      // *NOTE*: the modules' session data handle may not have been set yet
-      //         --> use the messages' reference instead
+      // *NOTE*: the modules' session data handle may not (have been)/be set
+      //         (yet)/
+      //         --> (try to) use the messages' reference instead ?
       const typename SessionMessageType::DATA_T* session_data_container_p =
-        (inherited::sessionData_ ? inherited::sessionData_ 
-                                 : &message_inout->getR ());
-      session_data_p = &session_data_container_p->getR ();
+        inherited::sessionData_;
+        //(inherited::sessionData_ ? inherited::sessionData_
+        //                         : &message_inout->getR ());
+      if (session_data_container_p)
+        session_data_p = &session_data_container_p->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -366,7 +369,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (session_data_p->sessionId,
+            (*(iterator++))->notify ((session_data_p ? session_data_p->sessionId : -1),
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,

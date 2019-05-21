@@ -489,64 +489,61 @@ struct Test_I_Target_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-class Test_I_Target_DirectShow_ListenerConfiguration
- : public Net_ListenerConfiguration_T<Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
-                                      NET_TRANSPORTLAYER_TCP>
-{
- public:
-  Test_I_Target_DirectShow_ListenerConfiguration ()
-   : Net_ListenerConfiguration_T ()
-   , connectionConfiguration (NULL)
-   , connectionManager (NULL)
-   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {}
+//class Test_I_Target_DirectShow_ListenerConfiguration
+// : public Net_ListenerConfiguration_T<Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+//                                      NET_TRANSPORTLAYER_TCP>
+//{
+// public:
+//  Test_I_Target_DirectShow_ListenerConfiguration ()
+//   : Net_ListenerConfiguration_T ()
+//   , connectionConfiguration (NULL)
+//   , connectionManager (NULL)
+//   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+//  {}
+//
+//  Test_I_Target_DirectShow_TCPConnectionConfiguration_t* connectionConfiguration;
+//  Test_I_Target_DirectShow_TCPConnectionManager_t*       connectionManager;
+//  ACE_Time_Value                                         statisticReportingInterval; // [ACE_Time_Value::zero: off]
+//};
+typedef Net_IListener_T<Test_I_Target_DirectShow_TCPConnectionConfiguration_t> Test_I_Target_DirectShow_IListener_t;
 
-  Test_I_Target_DirectShow_TCPConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_DirectShow_TCPConnectionManager_t*       connectionManager;
-  ACE_Time_Value                                         statisticReportingInterval; // [ACE_Time_Value::zero: off]
-};
-typedef Net_IListener_T<Test_I_Target_DirectShow_ListenerConfiguration,
-                        Test_I_Target_DirectShow_TCPConnectionConfiguration_t> Test_I_Target_DirectShow_IListener_t;
-
-class Test_I_Target_MediaFoundation_ListenerConfiguration
- : public Net_ListenerConfiguration_T<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
-                                      NET_TRANSPORTLAYER_TCP>
-{
- public:
-  Test_I_Target_MediaFoundation_ListenerConfiguration ()
-   : Net_ListenerConfiguration_T ()
-   , connectionConfiguration (NULL)
-   , connectionManager (NULL)
-   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {}
-
-  Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_MediaFoundation_TCPConnectionManager_t*       connectionManager;
-  ACE_Time_Value                                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
-};
-typedef Net_IListener_T<Test_I_Target_MediaFoundation_ListenerConfiguration,
-                        Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
+//class Test_I_Target_MediaFoundation_ListenerConfiguration
+// : public Net_ListenerConfiguration_T<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+//                                      NET_TRANSPORTLAYER_TCP>
+//{
+// public:
+//  Test_I_Target_MediaFoundation_ListenerConfiguration ()
+//   : Net_ListenerConfiguration_T ()
+//   , connectionConfiguration (NULL)
+//   , connectionManager (NULL)
+//   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+//  {}
+//
+//  Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t* connectionConfiguration;
+//  Test_I_Target_MediaFoundation_TCPConnectionManager_t*       connectionManager;
+//  ACE_Time_Value                                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
+//};
+typedef Net_IListener_T<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t> Test_I_Target_MediaFoundation_IListener_t;
 #else
-class Test_I_Target_ListenerConfiguration
- : public Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
-                                      NET_TRANSPORTLAYER_TCP>
-{
- public:
-  Test_I_Target_ListenerConfiguration ()
-   : Net_ListenerConfiguration_T ()
-   , connectionConfiguration (NULL)
-   , connectionManager (NULL)
-   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {
-    //address.set_port_number (TEST_I_DEFAULT_PORT, 1);
-  }
-
-  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_TCPConnectionManager_t*       connectionManager;
-  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
-};
-typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
+//class Test_I_Target_ListenerConfiguration
+// : public Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
+//                                      NET_TRANSPORTLAYER_TCP>
+//{
+// public:
+//  Test_I_Target_ListenerConfiguration ()
+//   : Net_ListenerConfiguration_T ()
+//   , connectionConfiguration (NULL)
+//   , connectionManager (NULL)
+//   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+//  {
+//    //address.set_port_number (TEST_I_DEFAULT_PORT, 1);
+//  }
+//
+//  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
+//  Test_I_Target_TCPConnectionManager_t*       connectionManager;
+//  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
+//};
+typedef Net_IListener_T<Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -689,7 +686,7 @@ struct Test_I_Target_DirectShow_Configuration
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
-   , listenerConfiguration ()
+   //, listenerConfiguration ()
    , signalHandlerConfiguration ()
    , pinConfiguration ()
    , filterConfiguration ()
@@ -701,7 +698,7 @@ struct Test_I_Target_DirectShow_Configuration
   // **************************** listener data ********************************
   ACE_HANDLE                                                     handle;
   //Test_I_Target_IListener_t*               listener;
-  Test_I_Target_DirectShow_ListenerConfiguration                 listenerConfiguration;
+  //Test_I_Target_DirectShow_ListenerConfiguration                 listenerConfiguration;
   // **************************** signal data **********************************
   struct Test_I_Target_DirectShow_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
@@ -719,7 +716,7 @@ struct Test_I_Target_MediaFoundation_Configuration
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
-   , listenerConfiguration ()
+   //, listenerConfiguration ()
    , streamConfiguration ()
   {}
 
@@ -732,7 +729,7 @@ struct Test_I_Target_MediaFoundation_Configuration
   // **************************** listener data ********************************
   ACE_HANDLE                                                      handle;
   //Test_I_Target_IListener_t*                             listener;
-  Test_I_Target_MediaFoundation_ListenerConfiguration             listenerConfiguration;
+  //Test_I_Target_MediaFoundation_ListenerConfiguration             listenerConfiguration;
   // **************************** stream data **********************************
   Test_I_Target_MediaFoundation_StreamConfiguration_t             streamConfiguration;
 };
