@@ -307,24 +307,20 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
     module_p = (*iterator)->next ();
     if (unlikely (!module_p))
-    { // --> module is a distributor
+    { // --> module may be a distributor
       Stream_IDistributorModule* inext_p =
           dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
-      ACE_ASSERT (inext_p);
-      Stream_ModuleList_t modules_a = inext_p->next ();
-      ACE_ASSERT (!modules_a.empty ());
-      for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
-           iterator_2 != modules_a.end ();
-           ++iterator_2)
-        return_value.push_back (*iterator_2);
-      continue;
+      if (!inext_p)
+        break; // *TODO*: something is wrong with the stream
+      return_value = inext_p->next ();
+      break;
     } // end IF
-    if (unlikely (!ACE_OS::strcmp (module_p->name (),
-                                   ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
-                  !ACE_OS::strcmp (module_p->name (),
-                                   ACE_TEXT ("ACE_Stream_Tail"))))
-      continue; // --> module is the tail
-    return_value.push_back (module_p);
+    if (unlikely (ACE_OS::strcmp (module_p->name (),
+                                  ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+                  ACE_OS::strcmp (module_p->name (),
+                                  ACE_TEXT ("ACE_Stream_Tail"))))
+      return_value.push_back (module_p); // --> module is not the tail
+    break;
   } // end FOR
 
   return return_value;

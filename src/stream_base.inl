@@ -544,11 +544,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT (StreamName), (*iterator)->name ()));
         return;
       } // end IF
-#if defined (_DEBUG)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s: initialized\n"),
-                  ACE_TEXT (StreamName), (*iterator)->name ()));
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s/%s: initialized\n"),
+//                  ACE_TEXT (StreamName), (*iterator)->name ()));
+//#endif // _DEBUG
 
       task_p = (*iterator)->writer ();
       ACE_ASSERT (task_p);
