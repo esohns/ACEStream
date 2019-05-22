@@ -31,7 +31,6 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-//extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
 extern const char libacestream_default_net_io_module_name_string[];
 
 // forward declarations

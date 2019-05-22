@@ -561,7 +561,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_DirectShow_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_DirectShow_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -570,7 +569,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_DirectShow_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_DirectShow_SSLConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -578,7 +576,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_DirectShow_Net_TCPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_DirectShow_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -587,14 +584,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_DirectShow_Net_UDPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_DirectShow_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Source_DirectShow_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_DirectShow_Net_UDPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_DirectShow_AsynchUDPConnection_t;
 
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -603,7 +598,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_MediaFoundation_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_MediaFoundation_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -612,7 +606,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_MediaFoundation_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_MediaFoundation_SSLConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -620,7 +613,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_MediaFoundation_Net_TCPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_MediaFoundation_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -629,14 +621,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_MediaFoundation_Net_UDPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_MediaFoundation_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Source_MediaFoundation_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_MediaFoundation_Net_UDPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -645,7 +635,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_V4L_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -654,7 +643,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_V4L_Net_TCPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_SSLConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -662,7 +650,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_V4L_Net_TCPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_V4L_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -671,14 +658,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Source_V4L_Net_UDPStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Source_V4L_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Source_V4L_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Source_V4L_Net_UDPStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Source_V4L_AsynchUDPConnection_t;
 #endif
 
@@ -872,7 +857,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_DirectShow_TCPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_DirectShow_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -881,7 +865,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_DirectShow_TCPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_DirectShow_SSLTCPConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -889,7 +872,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_DirectShow_TCPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_DirectShow_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -898,14 +880,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_DirectShow_UDPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_DirectShow_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_DirectShow_UDPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_DirectShow_AsynchUDPConnection_t;
 
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -914,7 +894,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_MediaFoundation_UDPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_MediaFoundation_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -923,7 +902,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_MediaFoundation_UDPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_MediaFoundation_SSLTCPConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -931,7 +909,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_MediaFoundation_UDPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_MediaFoundation_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -940,14 +917,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_MediaFoundation_UDPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_MediaFoundation_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_MediaFoundation_UDPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -956,7 +931,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_TCPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_TCPConnection_t;
 #if defined (SSL_USE)
 typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
@@ -965,7 +939,6 @@ typedef Net_TCPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_TCPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_SSLConnection_t;
 #endif // SSL_USE
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -973,7 +946,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_TCPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_AsynchTCPConnection_t;
 
 typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
@@ -982,14 +954,12 @@ typedef Net_UDPConnectionBase_T<ACE_NULL_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 Test_I_Target_UDPStream,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> Test_I_Target_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Net_AsynchUDPSocketHandler_t,
                                       Test_I_Target_UDPConnectionConfiguration_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       Test_I_Target_UDPStream,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> Test_I_Target_AsynchUDPConnection_t;
 #endif
 

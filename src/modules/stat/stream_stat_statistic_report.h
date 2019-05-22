@@ -34,9 +34,10 @@
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
+#include "common_timer_resetcounterhandler.h"
+
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
-#include "stream_resetcounterhandler.h"
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
@@ -196,6 +197,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
   // implement Common_IStatistic
   virtual bool collect (StatisticContainerType&); // return value: info
+  inline virtual void update () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 
@@ -266,26 +268,26 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   // implement Common_ICounter
   virtual void reset ();
 
-  bool                       inbound_;
+  bool                             inbound_;
 
   // timer
-  Stream_ResetCounterHandler resetTimeoutHandler_;
-  long                       resetTimeoutHandlerId_;
-  STATISTIC_HANDLER_T        localReportingHandler_;
-  long                       localReportingHandlerId_;
-  ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]
-  bool                       printFinalReport_;
-  bool                       pushStatisticMessages_; // 1-second interval
+  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
+  long                             resetTimeoutHandlerId_;
+  STATISTIC_HANDLER_T              localReportingHandler_;
+  long                             localReportingHandlerId_;
+  ACE_Time_Value                   reportingInterval_; // [ACE_Time_Value::zero: off]
+  bool                             printFinalReport_;
+  bool                             pushStatisticMessages_; // 1-second interval
 
   // used to compute data/message throughput
-  size_t                     byteCounter_;
-  unsigned int               fragmentCounter_;
-  unsigned int               controlMessageCounter_;
-  unsigned int               messageCounter_;
-  unsigned int               sessionMessageCounter_;
+  size_t                           byteCounter_;
+  unsigned int                     fragmentCounter_;
+  unsigned int                     controlMessageCounter_;
+  unsigned int                     messageCounter_;
+  unsigned int                     sessionMessageCounter_;
 
   // *protocol statistic*
-  STATISTIC_T                messageTypeStatistic_;
+  STATISTIC_T                      messageTypeStatistic_;
 };
 
 // include template definition

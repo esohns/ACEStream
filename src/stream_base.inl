@@ -3293,6 +3293,76 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
+              SessionMessageType>::update ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::update"));
+
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING),
+                                        true,
+                                        false));
+  if (unlikely (!module_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, returning\n"),
+                ACE_TEXT (StreamName),
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
+    return;
+  } // end IF
+  STATISTIC_REPORT_MODULE_WRITER_T* statistic_impl_p =
+    dynamic_cast<STATISTIC_REPORT_MODULE_WRITER_T*> (module_p->writer ());
+  if (unlikely (!statistic_impl_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, returning\n"),
+                ACE_TEXT (StreamName)));
+    return;
+  } // end IF
+
+  // delegate to the statistic module
+  try {
+    statistic_impl_p->update ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::update(), continuing\n"),
+                ACE_TEXT (StreamName)));
+  }
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              AllocatorConfigurationType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
               SessionMessageType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::report"));

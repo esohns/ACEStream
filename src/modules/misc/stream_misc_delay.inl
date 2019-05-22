@@ -206,7 +206,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
-    if (error != EWOULDBLOCK)
+    if (unlikely (error != EWOULDBLOCK))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue::dequeue_head(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
@@ -216,7 +216,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
   result = inherited::put_next (message_block_p,
                                 NULL);
-  if (result == -1)
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),

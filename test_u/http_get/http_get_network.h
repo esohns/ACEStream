@@ -138,7 +138,6 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 HTTPGet_NetStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> HTTPGet_TCPConnection_t;
 #if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
@@ -147,7 +146,6 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Net_ConnectionState,
                                 Net_Statistic_t,
                                 HTTPGet_NetStream_t,
-                                Common_Timer_Manager_t,
                                 struct Net_UserData> HTTPGet_SSLTCPConnection_t;
 #endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
@@ -155,7 +153,6 @@ typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       struct Net_ConnectionState,
                                       Net_Statistic_t,
                                       HTTPGet_NetStream_t,
-                                      Common_Timer_Manager_t,
                                       struct Net_UserData> HTTPGet_AsynchTCPConnection_t;
 
 /////////////////////////////////////////

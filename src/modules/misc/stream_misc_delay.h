@@ -26,16 +26,14 @@
 
 #include "common_icounter.h"
 #include "common_ilock.h"
-#include "common_time_common.h"
+
+#include "common_timer_resetcounterhandler.h"
 
 #include "stream_common.h"
 #include "stream_imodule.h"
-#include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
 
 #include "stream_file_sink.h"
-
-//#include "stream_misc_exports.h"
 
 extern const char libacestream_default_misc_delay_module_name_string[];
 
@@ -98,8 +96,8 @@ class Stream_Module_Delay_T
   // implement Common_ICounter
   virtual void reset ();
 
-  Stream_ResetCounterHandler resetTimeoutHandler_;
-  long                       resetTimeoutHandlerId_;
+  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
+  long                             resetTimeoutHandlerId_;
 };
 
 // include template definition

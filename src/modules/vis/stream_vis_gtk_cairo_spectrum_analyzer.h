@@ -65,7 +65,8 @@
 
 #include "common_math_fft.h"
 
-#include "stream_resetcounterhandler.h"
+#include "common_timer_resetcounterhandler.h"
+
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
@@ -232,7 +233,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   enum Stream_Visualization_SpectrumAnalyzer_3DMode* mode3D_;
 #endif // GTKGL_SUPPORT
 
-  Stream_ResetCounterHandler                         renderHandler_;
+  Common_Timer_ResetCounterHandler                   renderHandler_;
   long                                               renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                     sampleIterator_;
