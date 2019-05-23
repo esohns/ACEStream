@@ -207,26 +207,16 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
-  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    if (unlikely (state_.module))
-    {
-      MODULE_T* module_p =
-          layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
-      if (likely (module_p))
-      {
-        if (unlikely (!remove (module_p,
-                               false,    // lock ?
-                               false)))  // reset ? (see above)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-                      ACE_TEXT (StreamName),
-                      state_.module->name ()));
-      } // end IF
-
-      if (state_.deleteModule)
-        delete state_.module;
-    } // end IF
-  } // end lock scope
+  //{ ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
+  //  if (unlikely (state_.module && !state_.moduleIsClone))
+  //    if (unlikely (!remove (state_.module,
+  //                           false,   // lock ?
+  //                           false))) // reset ? (see above)
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+  //                  ACE_TEXT (StreamName),
+  //                  state_.module->name ()));
+  //} // end lock scope
 
   if (unlikely (sessionData_))
     sessionData_->decrease ();
@@ -492,25 +482,27 @@ Stream_Base_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
-    if (configuration_->configuration_.module)
+    // *NOTE*: iff this is set, the module has already been clone()d as
+    //         appropriate (see: initialize():3066)
+    if (state_.module)
     {
-      if (!layout_.append (configuration_->configuration_.module,
+      if (!layout_.append (state_.module,
                            configuration_->configuration_.moduleBranch))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Layout_T::append(\"%s\",\"%s\"), returning\n"),
                     ACE_TEXT (StreamName),
-                    configuration_->configuration_.module->name (),
+                    state_.module->name (),
                     ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ())));
         return;
       } // end IF
-#if defined (_DEBUG)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: appended \"%s\" to \"%s\" branch\n"),
-                  ACE_TEXT (StreamName),
-                  configuration_->configuration_.module->name (),
-                  (configuration_->configuration_.moduleBranch.empty () ? ACE_TEXT ("main") : ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ()))));
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: appended \"%s\" to \"%s\" branch\n"),
+//                  ACE_TEXT (StreamName),
+//                  configuration_->configuration_.module->name (),
+//                  (configuration_->configuration_.moduleBranch.empty () ? ACE_TEXT ("main") : ACE_TEXT (configuration_->configuration_.moduleBranch.c_str ()))));
+//#endif // _DEBUG
     } // end IF
     for (LAYOUT_ITERATOR_T iterator = layout_.begin ();
          iterator != layout_.end ();
@@ -3016,28 +3008,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: this module may be shared by multiple stream instances, so it
     //         must not be close()d or reset here
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-      if (state_.module)
-      {
-        MODULE_T* module_p =
-            layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
-        if (likely (module_p))
-        {
-          if (unlikely (!remove (module_p,
-                                 false,    // lock ?
-                                 false)))  // reset ? (see above)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-                        ACE_TEXT (StreamName),
-                        state_.module->name ()));
-        } // end IF
-
-        if (state_.deleteModule)
-        {
-          delete state_.module;
-          state_.deleteModule = false;
-        } // end IF
-        state_.module = NULL;
-      } // end IF
+      if (state_.module && !state_.moduleIsClone)
+        if (unlikely (!remove (state_.module,
+                               false,   // lock ?
+                               false))) // reset ? (see above)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (StreamName),
+                      state_.module->name ()));
+      state_.module = NULL;
     } // end lock scope
 
     if (unlikely (!finalize ()))
@@ -3064,10 +3043,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (configuration_->configuration_.module)
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-      // sanity check(s)
       ACE_ASSERT (!state_.module);
-
-      // step1: clone final module (if any) ?
       if (configuration_->configuration_.cloneModule)
       {
         IMODULE_T* imodule_p =
@@ -3094,34 +3070,18 @@ Stream_Base_T<ACE_SYNCH_USE,
                       ACE_TEXT (StreamName), configuration_->configuration_.module->name ()));
           return false;
         } // end IF
-        state_.deleteModule = true;
+        state_.moduleIsClone = true;
         //ACE_DEBUG ((LM_DEBUG,
         //            ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@), clone handle is: 0x%@)\n"),
         //            ACE_TEXT (StreamName),
         //            configuration_->configuration_.module->name (),
         //            configuration_->configuration_.module,
         //            state_.module));
-
-        //      imodule_p = dynamic_cast<IMODULE_T*> (state_.module);
-        //      if (!imodule_p)
-        //      {
-        //        ACE_DEBUG ((LM_ERROR,
-        //                    ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-        //                    ACE_TEXT (StreamName),
-        //                    configuration_->configuration_.module->name ()));
-
-        //        // clean up
-        //        delete state_.module;
-        //        state_.module = NULL;
-        //        state_.deleteModule = false;
-
-        //        return false;
-        //      } // end IF
       } // end IF
       else
       {
         state_.module = configuration_->configuration_.module;
-        state_.deleteModule = configuration_->configuration_.deleteModule;
+        state_.moduleIsClone = false;
       } // end ELSE
       ACE_ASSERT (state_.module);
     } // end lock scope
@@ -3881,12 +3841,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (imodule_p)
       imodule_p->reset ();
   } // end IF
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: removed module \"%s\"\n"),
-              ACE_TEXT (StreamName),
-              module_in->name ()));
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("%s: removed module \"%s\"\n"),
+//              ACE_TEXT (StreamName),
+//              module_in->name ()));
+//#endif // _DEBUG
 
   return true;
 }
@@ -4071,28 +4031,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: this module may be shared by multiple stream instances, so it
     //         must not be close()d or reset here
     { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-      if (state_.module)
-      {
-        MODULE_T* module_p =
-            layout_.find (ACE_TEXT_ALWAYS_CHAR (state_.module->name ()));
-        if (likely (module_p))
-        {
-          if (unlikely (!remove (module_p,
-                                 false,   // lock ?
-                                 false))) // reset ? (see above)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-                        ACE_TEXT (StreamName),
-                        state_.module->name ()));
-        } // end IF
-
-        if (state_.deleteModule)
-        {
-          delete state_.module;
-          state_.deleteModule = false;
-        } // end IF
-        state_.module = NULL;
-      } // end IF
+      if (state_.module && !state_.moduleIsClone)
+        if (unlikely (!remove (state_.module,
+                               false,   // lock ?
+                               false))) // reset ? (see above)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (StreamName),
+                      state_.module->name ()));
+      state_.module = NULL;
     } // end lock scope
   } // end ELSE
 

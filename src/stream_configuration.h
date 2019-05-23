@@ -84,6 +84,7 @@ struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
+   , computeThroughput (false)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
 #if defined (_DEBUG)
@@ -93,7 +94,7 @@ struct Stream_ModuleHandlerConfiguration
    , finishOnDisconnect (false)
    , hasHeader (false)
    , hasReentrantSynchronousSubDownstream (true)
-   , inbound (false)
+   , inbound (true)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -103,7 +104,6 @@ struct Stream_ModuleHandlerConfiguration
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
-   , pushStatisticMessages (true)
    , reportingInterval (0)
    , slurpFiles (false)
    , socketHandle (ACE_INVALID_HANDLE)
@@ -113,6 +113,7 @@ struct Stream_ModuleHandlerConfiguration
   {}
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
+  bool                                  computeThroughput;                    // statistic/... module(s)
   enum Stream_HeadModuleConcurrency     concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
@@ -131,6 +132,10 @@ struct Stream_ModuleHandlerConfiguration
   //            this overhead is not negligible
   //            --> disable only if absolutely necessary
   bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
+  //// *NOTE*: if this is an 'outbound' (i.e. data travels in two directions;
+  ////         e.g. network connection-) stream, any 'inbound' (i.e. writer-
+  ////         side) data [!] may (!) 'turn around' and travel back upstream for
+  ////         dispatch --> account for it only once
   bool                                  inbound;                              // statistic[/IO] module(s)
   ACE_SYNCH_RECURSIVE_MUTEX*            lock;                                 // display/message handler module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -141,7 +146,6 @@ struct Stream_ModuleHandlerConfiguration
   struct Common_ParserConfiguration*    parserConfiguration;                  // parser module(s)
   bool                                  passive;                              // network/device/... module(s)
   bool                                  printFinalReport;                     // statistic module(s)
-  bool                                  pushStatisticMessages;                // source/statistic/... module(s)
   unsigned int                          reportingInterval;                    // (statistic) reporting interval (second(s)) [0: off]
   bool                                  slurpFiles;                           // file source module(s)
   ACE_HANDLE                            socketHandle;                         // network module(s)
@@ -205,8 +209,7 @@ struct Stream_Configuration
 {
   Stream_Configuration ()
    : branches ()
-   , cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
-   , deleteModule (false)
+   , cloneModule (false) // *NOTE*: cloneModule ==> delete module
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -225,7 +228,6 @@ struct Stream_Configuration
 
   Stream_Branches_t               branches; // distributor(s) *TODO*
   bool                            cloneModule; // final-
-  bool                            deleteModule; // final-
   bool                            finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type mediaFramework;

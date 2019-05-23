@@ -316,7 +316,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
       break;
     } // end IF
     if (unlikely (ACE_OS::strcmp (module_p->name (),
-                                  ACE_TEXT (STREAM_MODULE_TAIL_NAME)) ||
+                                  ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
                   ACE_OS::strcmp (module_p->name (),
                                   ACE_TEXT ("ACE_Stream_Tail"))))
       return_value.push_back (module_p); // --> module is not the tail

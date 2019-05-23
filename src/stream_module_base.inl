@@ -450,7 +450,7 @@ continue_:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::name ()));
-      delete task_p;
+      delete task_p; task_p = NULL;
       return NULL;
     } // end IF
 
@@ -468,11 +468,12 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
                 inherited::name ()));
-    delete task_p;
+    delete task_p; task_p = NULL;
     return NULL;
   } // end IF
 
 continue_2:
+  // *NOTE*: fire-and-forget task_p and task_2
   ACE_NEW_NORETURN (module_p,
                     OWN_TYPE_T (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
                                 task_p,
@@ -483,8 +484,8 @@ continue_2:
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                 inherited::name ()));
-    delete task_p;
-    delete task_2;
+    delete task_p; task_p = NULL;
+    delete task_2; task_2 = NULL;
     return NULL;
   } // end IF
 
@@ -509,7 +510,7 @@ continue_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),
                   inherited::name ()));
-      delete module_p;
+      delete module_p; module_p = NULL;
       return NULL;
     } // end IF
   } // end IF
@@ -534,7 +535,7 @@ continue_3:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),
                   inherited::name ()));
-      delete module_p;
+      delete module_p; module_p = NULL;
       return NULL;
     } // end IF
   } // end IF

@@ -35,6 +35,7 @@
 #include "common_statistic_handler.h"
 
 #include "common_timer_resetcounterhandler.h"
+#include "common_timer_second_publisher.h"
 
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
@@ -182,7 +183,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 #else
   Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Statistic_StatisticReport_WriterTask_T () { finiTimers (true); }
+  inline virtual ~Stream_Statistic_StatisticReport_WriterTask_T () { finiTimer (); }
 
   // initialization
   virtual bool initialize (const ConfigurationType&,   // configuration
@@ -195,9 +196,14 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Common_IStatistic
+  // implement (part of) Common_IStatistic
   virtual bool collect (StatisticContainerType&); // return value: info
-  inline virtual void update () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  // updates session data and dispatches a 'statistic' session message
+  // *NOTE*: called in-session (!) by the second-publisher singleton (via
+  //         reset())
+  // *NOTE*: may also be called anytime by the stream (via
+  //         Stream_Base_T::update())
+  virtual void update ();
   // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 
@@ -222,8 +228,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
  private:
   // convenient types
-  typedef ACE_Singleton<TimerManagerType,
-                        ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
+  typedef Common_Timer_SecondPublisher_T<TimerManagerType> TIMER_SECONDPUBLISHER_T;
   typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         ConfigurationType,
@@ -261,23 +266,22 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
   // helper method(s)
   void finalReport () const;
-  void finiTimers (bool = true); // cancel both timers ? [false: cancel localReportingHandlerID_ only]
-  // *IMPORTANT NOTE*: callers must hold lock_ !
+  void finiTimer ();
   bool putStatisticMessage ();
 
   // implement Common_ICounter
   virtual void reset ();
 
-  bool                             inbound_;
+  // *NOTE*: if this is an 'outbound' stream, any 'inbound' data (!) will
+  //         eventually turn around and travel back upstream for dispatch
+  //         --> account for it only once
+  //bool                             inbound_;
 
   // timer
-  Common_Timer_ResetCounterHandler resetTimeoutHandler_;
-  long                             resetTimeoutHandlerId_;
   STATISTIC_HANDLER_T              localReportingHandler_;
   long                             localReportingHandlerId_;
   ACE_Time_Value                   reportingInterval_; // [ACE_Time_Value::zero: off]
   bool                             printFinalReport_;
-  bool                             pushStatisticMessages_; // 1-second interval
 
   // used to compute data/message throughput
   size_t                           byteCounter_;

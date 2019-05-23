@@ -283,8 +283,8 @@ typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_ISt
 struct Stream_State
 {
   Stream_State ()
-   : deleteModule (false)
-   , module (NULL)
+   : module (NULL)
+   , moduleIsClone (false)
    , sessionData (NULL)
    , stateMachineLock (NULL)
    , userData (NULL)
@@ -305,8 +305,8 @@ struct Stream_State
     return *this;
   }
 
-  bool                       deleteModule;
   Stream_Module_t*           module; // final-
+  bool                       moduleIsClone; // final-
   struct Stream_SessionData* sessionData;
   ACE_SYNCH_MUTEX*           stateMachineLock;
 

@@ -660,7 +660,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                 ACE_TEXT (configuration_in.fileIdentifier.identifier.c_str ())));
     return false;
   } // end IF
-  passDownstream_ = configuration_in.pushStatisticMessages;
+  //passDownstream_ = true;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
