@@ -85,7 +85,7 @@ if (UNIX)
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
     target_include_directories (${PROJECT_NAME}_Test_I PUBLIC
-                                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea>)
+                                $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
    endif (GTKGLAREA_SUPPORT)
 
    if (LIBGLADE_SUPPORT)
@@ -213,7 +213,7 @@ elseif (WIN32)
 
     if (GTKGLAREA_SUPPORT)
      target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/libepoxy/lib/epoxy.lib)
-     target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
+     target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/cmake/${CMAKE_BUILD_TYPE}/gtkglarea.lib)
     endif (GTKGLAREA_SUPPORT)
 
 #    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)

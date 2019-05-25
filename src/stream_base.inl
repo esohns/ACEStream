@@ -3253,7 +3253,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::update ()
+              SessionMessageType>::update (const ACE_Time_Value& interval_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::update"));
 
@@ -3281,7 +3281,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // delegate to the statistic module
   try {
-    statistic_impl_p->update ();
+    statistic_impl_p->update (interval_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::update(), continuing\n"),

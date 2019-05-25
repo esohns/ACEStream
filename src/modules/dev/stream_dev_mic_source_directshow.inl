@@ -966,15 +966,15 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   ULONG reference_count = IMediaSample_in->AddRef ();
 
   DataMessageType* message_p = NULL;
-  try {
-    message_p = dynamic_cast<DataMessageType*> (IMediaSample_in);
-  } catch (...) {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
-    //            inherited::mod_->name (),
-    //            IMediaSample_in));
-    message_p = NULL;
-  }
+  //try {
+  //  message_p = dynamic_cast<DataMessageType*> (IMediaSample_in);
+  //} catch (...) {
+  //  //ACE_DEBUG ((LM_ERROR,
+  //  //            ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
+  //  //            inherited::mod_->name (),
+  //  //            IMediaSample_in));
+  //  message_p = NULL;
+  //}
   if (unlikely (!message_p))
   {
     // *TODO*: remove type inference

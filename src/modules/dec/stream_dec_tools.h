@@ -86,6 +86,7 @@ class Stream_Module_Decoder_Tools
   // *NOTE*: supports RGB and Chroma-Luminance types only
   static enum AVPixelFormat mediaSubTypeToAVPixelFormat (REFGUID,                                                              // media subtype
                                                          enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  static struct _GUID AVPixelFormatToMediaSubType (enum AVPixelFormat);
 
   // -------------------------------------
   // filter graphs / topologies

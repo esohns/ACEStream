@@ -203,7 +203,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   //         reset())
   // *NOTE*: may also be called anytime by the stream (via
   //         Stream_Base_T::update())
-  virtual void update ();
+  virtual void update (const ACE_Time_Value&);
   // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 

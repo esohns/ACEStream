@@ -120,12 +120,20 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
   result =
       av_image_fill_linesizes (line_sizes_a,
                                inherited::inputFormat_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                               static_cast<int> (sourceResolution_.cx));
+#else
                                static_cast<int> (sourceResolution_.width));
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
       av_image_fill_pointers (data_a,
                               inherited::inputFormat_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              static_cast<int> (sourceResolution_.cy),
+#else
                               static_cast<int> (sourceResolution_.height),
+#endif // ACE_WIN32 || ACE_WIN64
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
   ACE_ASSERT (result >= 0);

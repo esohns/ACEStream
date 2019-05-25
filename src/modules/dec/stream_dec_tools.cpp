@@ -580,6 +580,66 @@ Stream_Module_Decoder_Tools::mediaSubTypeToAVPixelFormat (REFGUID mediaSubType_i
 
   return result;
 }
+
+struct _GUID
+Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType (enum AVPixelFormat pixelFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType"));
+
+  struct _GUID result = GUID_NULL;
+
+  switch (pixelFormat_in)
+  {
+    case AV_PIX_FMT_MONOBLACK:
+      return MEDIASUBTYPE_RGB1;
+    case AV_PIX_FMT_RGB4:
+      return MEDIASUBTYPE_RGB4;
+    case AV_PIX_FMT_RGB8:
+      return MEDIASUBTYPE_RGB8;
+    case AV_PIX_FMT_RGB555:
+      return MEDIASUBTYPE_RGB555;
+    case AV_PIX_FMT_RGB565:
+      return MEDIASUBTYPE_RGB565;
+    case AV_PIX_FMT_RGB24:
+      return MEDIASUBTYPE_RGB24;
+    case AV_PIX_FMT_RGB32:
+      return MEDIASUBTYPE_RGB32;
+    //else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB1555))
+    case AV_PIX_FMT_ARGB:
+      return MEDIASUBTYPE_ARGB32;
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_ARGB4444))
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2R10G10B10))
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_A2B10G10R10))
+    case AV_PIX_FMT_YUVA444P:
+      return MEDIASUBTYPE_AYUV;
+    case AV_PIX_FMT_YUYV422:
+      return MEDIASUBTYPE_YUY2;
+    case AV_PIX_FMT_UYVY422:
+      return MEDIASUBTYPE_UYVY;
+    case AV_PIX_FMT_P016:
+      return MEDIASUBTYPE_IMC1;
+    case AV_PIX_FMT_NV12:
+      return MEDIASUBTYPE_NV12;
+    //else if (InlineIsEqualGUID (mediaSubType_in, MEDIASUBTYPE_IMC3))
+    case AV_PIX_FMT_NV21:
+      return MEDIASUBTYPE_IMC4;
+    case AV_PIX_FMT_YUV420P:
+      return MEDIASUBTYPE_YV12;
+    case AV_PIX_FMT_UYYVYY411:
+      return MEDIASUBTYPE_Y411;
+    case AV_PIX_FMT_YVYU422:
+      return MEDIASUBTYPE_YVYU;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %d \"%s\"), aborting\n"),
+                  pixelFormat_in, ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixelFormat_in).c_str ())));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
 #endif
 
 enum AVCodecID

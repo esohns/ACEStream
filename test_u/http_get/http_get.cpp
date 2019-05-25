@@ -144,10 +144,6 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use thread pool [")
-            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
             << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -188,7 +184,6 @@ do_processArguments (int argc_in,
                      std::string& interfaceDefinitionFile_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
-                     bool& useThreadPool_out,
                      unsigned short& port_out,
                      bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
@@ -224,7 +219,6 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_DEFINITION_FILE_NAME);
   hostName_out.clear ();
   logToFile_out = false;
-  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port_out = 0;
   useReactor_out =
       (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
@@ -250,9 +244,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               ACE_TEXT ("b:cdf:g::lors:tu:vx:z"),
+                               ACE_TEXT ("b:cdf:g::lrs:tu:vx:z"),
 #else
-                               ACE_TEXT ("b:df:g::lors:tu:vx:z"),
+                               ACE_TEXT ("b:df:g::lrs:tu:vx:z"),
 #endif
                                1,                         // skip command name
                                1,                         // report parsing errors
@@ -302,11 +296,6 @@ do_processArguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
-        break;
-      }
-      case 'o':
-      {
-        useThreadPool_out = true;
         break;
       }
       case 'r':
@@ -552,7 +541,6 @@ void
 do_work (unsigned int bufferSize_in,
          bool debugParser_in,
          const std::string& fileName_in,
-         bool useThreadPool_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          const std::string& URL_in,
@@ -607,7 +595,6 @@ do_work (unsigned int bufferSize_in,
   HTTPGet_ConnectionManager_t* connection_manager_p =
     HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
 
   // *********************** socket configuration data ************************
   HTTPGet_ConnectionConfiguration_t connection_configuration;
@@ -675,7 +662,8 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   struct Net_UserData user_data_s;
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                    ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   connection_manager_p->set (*dynamic_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
@@ -1035,7 +1023,6 @@ ACE_TMAIN (int argc_in,
   UI_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
   UI_file_path += ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_DEFINITION_FILE_NAME);
   log_to_file = false;
-  use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   use_reactor =
       (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statistic_reporting_interval =
@@ -1058,7 +1045,6 @@ ACE_TMAIN (int argc_in,
                             UI_file_path,
                             host_name,
                             log_to_file,
-                            use_thread_pool,
                             port,
                             use_reactor,
                             statistic_reporting_interval,
@@ -1205,7 +1191,6 @@ continue_:
   do_work (buffer_size,
            debug_parser,
            output_file_path,
-           use_thread_pool,
            use_reactor,
            statistic_reporting_interval,
            URL,

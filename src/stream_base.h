@@ -274,7 +274,7 @@ class Stream_Base_T
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to the statistic report module (if any)
   virtual bool collect (StatisticContainerType&); // return value: statistic data
-  virtual void update ();
+  virtual void update (const ACE_Time_Value&);
   virtual void report () const;
 
   // override ACE_Stream method(s)

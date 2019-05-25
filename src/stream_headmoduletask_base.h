@@ -163,7 +163,7 @@ class Stream_HeadModuleTaskBase_T
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   inline virtual bool collect (StatisticContainerType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
-  inline virtual void update () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual void update (const ACE_Time_Value&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  protected:

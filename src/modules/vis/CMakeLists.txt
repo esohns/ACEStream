@@ -53,7 +53,7 @@ if (GTK_SUPPORT)
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify automatically
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
+                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
   endif (GTKGLAREA_SUPPORT)
  endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
@@ -100,16 +100,6 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses>)
-
- if (GTKGL_SUPPORT)
-  if (GTKGLAREA_SUPPORT)
-# *NOTE*: check out the 'master' branch for gtk3-based applications
-# *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
-# *TODO*: verify automatically
-   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtkglarea>)
-  endif (GTKGLAREA_SUPPORT)
- endif (GTKGL_SUPPORT)
 
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC

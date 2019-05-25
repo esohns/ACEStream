@@ -443,13 +443,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
       clone_module =
         inherited::configuration_->streamConfiguration->configuration_.cloneModule;
-      delete_module =
-        inherited::configuration_->streamConfiguration->configuration_.deleteModule;
       module_p =
         inherited::configuration_->streamConfiguration->configuration_.module;
       inherited::configuration_->streamConfiguration->configuration_.cloneModule =
-          false;
-      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
           false;
       inherited::configuration_->streamConfiguration->configuration_.module =
           NULL;
@@ -542,8 +538,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 reset:
       inherited::configuration_->streamConfiguration->configuration_.cloneModule =
           clone_module;
-      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
-          delete_module;
       inherited::configuration_->streamConfiguration->configuration_.module =
           module_p;
 

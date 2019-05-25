@@ -547,86 +547,86 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     connection_p->decrease ();
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          const char* StreamName,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
-bool
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              StreamName,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
-                              HandlerConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType,
-                              UserDataType>::collect (StatisticContainerType& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::collect"));
-
-  // sanity check(s)
-  ACE_UNUSED_ARG (data_out); // *TODO*
-  ACE_ASSERT (inherited::sessionData_);
-
-  int result = -1;
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
-
-  // synch access
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->acquire ();
-    if (unlikely (result == -1))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
-      return false;
-    } // end IF
-  } // end IF
-
-  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
-
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->release ();
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (name_.c_str ())));
-  } // end IF
-
-  return true;
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          const char* StreamName,
+//          typename ControlType,
+//          typename NotificationType,
+//          typename StatusType,
+//          typename StateType,
+//          typename ConfigurationType,
+//          typename StatisticContainerType,
+//          typename StatisticHandlerType,
+//          typename AllocatorConfigurationType,
+//          typename ModuleConfigurationType,
+//          typename HandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename AddressType,
+//          typename ConnectionManagerType,
+//          typename UserDataType>
+//bool
+//Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+//                              TimePolicyType,
+//                              StreamName,
+//                              ControlType,
+//                              NotificationType,
+//                              StatusType,
+//                              StateType,
+//                              ConfigurationType,
+//                              StatisticContainerType,
+//                              StatisticHandlerType,
+//                              AllocatorConfigurationType,
+//                              ModuleConfigurationType,
+//                              HandlerConfigurationType,
+//                              SessionDataType,
+//                              SessionDataContainerType,
+//                              ControlMessageType,
+//                              DataMessageType,
+//                              SessionMessageType,
+//                              AddressType,
+//                              ConnectionManagerType,
+//                              UserDataType>::collect (StatisticContainerType& data_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::collect"));
+//
+//  // sanity check(s)
+//  ACE_UNUSED_ARG (data_out); // *TODO*
+//  ACE_ASSERT (inherited::sessionData_);
+//
+//  int result = -1;
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+//
+//  // synch access
+//  if (session_data_r.lock)
+//  {
+//    result = session_data_r.lock->acquire ();
+//    if (unlikely (result == -1))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+//                  ACE_TEXT (name_.c_str ())));
+//      return false;
+//    } // end IF
+//  } // end IF
+//
+//  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
+//
+//  if (session_data_r.lock)
+//  {
+//    result = session_data_r.lock->release ();
+//    if (unlikely (result == -1))
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+//                  ACE_TEXT (name_.c_str ())));
+//  } // end IF
+//
+//  return true;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

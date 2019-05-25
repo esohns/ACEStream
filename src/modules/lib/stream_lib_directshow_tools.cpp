@@ -4195,106 +4195,56 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
 
-  ACE_ASSERT (false); // *TODO*
-
   // initialize return value(s)
   struct _AMMediaType* result_p = CreateMediaType (NULL);
   ACE_ASSERT (result_p);
 
   BOOL result_2 = FALSE;
+  result_p->majortype = MEDIATYPE_Video;
+  result_p->subtype =
+    Stream_Module_Decoder_Tools::AVPixelFormatToMediaSubType (mediaType_in.format);
   result_p->bFixedSizeSamples = TRUE;
   result_p->bTemporalCompression = FALSE;
-  if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo))
-  {
-    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
-    // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
-    // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (SUCCEEDED (result_2));
-    //ACE_ASSERT (video_info_header_p->dwBitRate);
-    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
-    //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biWidth);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biHeight);
-    //if (video_info_header_p->bmiHeader.biHeight > 0)
-    //  video_info_header_p->bmiHeader.biHeight =
-    //    -video_info_header_p->bmiHeader.biHeight;
-    //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_p->lSampleSize =
-      video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else if (InlineIsEqualGUID (result_p->formattype, FORMAT_VideoInfo2))
-  {
-    ACE_ASSERT (result_p->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-    struct tagVIDEOINFOHEADER2* video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (result_p->pbFormat);
-    // *NOTE*: empty --> use entire video
-    result_2 = SetRectEmpty (&video_info_header_p->rcSource);
-    ACE_ASSERT (SUCCEEDED (result_2));
-    result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
-    // *NOTE*: empty --> fill entire buffer
-    ACE_ASSERT (SUCCEEDED (result_2));
-    //ACE_ASSERT (video_info_header_p->dwBitRate);
-    ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
-    //ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    ACE_ASSERT (video_info_header_p->dwInterlaceFlags == 0);
-    ACE_ASSERT (video_info_header_p->dwCopyProtectFlags == 0);
-    ACE_ASSERT (video_info_header_p->dwPictAspectRatioX);
-    ACE_ASSERT (video_info_header_p->dwPictAspectRatioY);
-    ACE_ASSERT (video_info_header_p->dwReserved1 == 0);
-    ACE_ASSERT (video_info_header_p->dwReserved2 == 0);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-    ACE_ASSERT (video_info_header_p->bmiHeader.biWidth);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biHeight);
-    //if (video_info_header_p->bmiHeader.biHeight > 0)
-    //  video_info_header_p->bmiHeader.biHeight =
-    //    -video_info_header_p->bmiHeader.biHeight;
-    //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount =
-      Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
-    ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
-    video_info_header_p->bmiHeader.biCompression = BI_RGB;
-    video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
-    ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-    ////video_info_header_p->bmiHeader.biClrUsed;
-    ////video_info_header_p->bmiHeader.biClrImportant;
-    ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-    video_info_header_p->dwBitRate =
-      (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
-      (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-    result_p->lSampleSize =
-      video_info_header_p->bmiHeader.biSizeImage;
-  } // end IF
-  else
-  {
-    ACE_DEBUG ((LM_ERROR,
-      ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-      ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (result_p->formattype).c_str ())));
-    Stream_MediaFramework_DirectShow_Tools::delete_ (result_p);
-  } // end ELSE
+  result_p->formattype = FORMAT_VideoInfo;
+  result_p->cbFormat = sizeof (struct tagVIDEOINFOHEADER);
+  result_p->pbFormat = CoTaskMemAlloc (result_p->cbFormat);
+  ACE_ASSERT (result_p->pbFormat);
+  ACE_OS::memset (result_p->pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
+  struct tagVIDEOINFOHEADER* video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (result_p->pbFormat);
+  // *NOTE*: empty --> use entire video
+  result_2 = SetRectEmpty (&video_info_header_p->rcSource);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
+  // *NOTE*: empty --> fill entire buffer
+  ACE_ASSERT (SUCCEEDED (result_2));
+  //video_info_header_p->dwBitRate = ;
+  video_info_header_p->dwBitErrorRate = 0;
+  //video_info_header_p->AvgTimePerFrame = ;
+  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  video_info_header_p->bmiHeader.biWidth = mediaType_in.resolution.cx;
+  video_info_header_p->bmiHeader.biHeight = mediaType_in.resolution.cy;
+  //if (video_info_header_p->bmiHeader.biHeight > 0)
+  //  video_info_header_p->bmiHeader.biHeight =
+  //    -video_info_header_p->bmiHeader.biHeight;
+  //ACE_ASSERT (video_info_header_p->bmiHeader.biHeight < 0);
+  video_info_header_p->bmiHeader.biPlanes = 1;
+  video_info_header_p->bmiHeader.biBitCount =
+    Stream_MediaFramework_Tools::toBitCount (result_p->subtype);
+  ACE_ASSERT (video_info_header_p->bmiHeader.biBitCount);
+  video_info_header_p->bmiHeader.biCompression = BI_RGB;
+  video_info_header_p->bmiHeader.biSizeImage =
+    DIBSIZE (video_info_header_p->bmiHeader);
+  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
+  ////video_info_header_p->bmiHeader.biClrUsed;
+  ////video_info_header_p->bmiHeader.biClrImportant;
+  video_info_header_p->AvgTimePerFrame =
+    ((mediaType_in.frameRate.num * 1000000000) / mediaType_in.frameRate.den) / NANOSECONDS;
+  video_info_header_p->dwBitRate =
+    (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
+    (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+  result_p->lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
 
   return result_p;
 }

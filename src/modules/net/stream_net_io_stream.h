@@ -142,8 +142,9 @@ class Stream_Module_Net_IO_Stream_T
   using inherited::getR;
 
   // override Common_IStatistic_T
-  virtual bool collect (StatisticContainerType&); // return value: statistic data
-  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  //virtual bool collect (StatisticContainerType&); // return value: statistic data
+  //inline virtual void update (const ACE_Time_Value&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  //inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // implement Stream_IMessageQueue
   // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only

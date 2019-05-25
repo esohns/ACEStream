@@ -271,7 +271,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_SOX_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
-  target_link_libraries(${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+#  target_link_libraries (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 #  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
@@ -279,8 +279,8 @@ elseif (WIN32)
  set (DIRECTX_SDK_DIRECTORY
       $ENV{DXSDK_DIR})
 # message (STATUS "DirectX SDK directory: \"${DIRECTX_SDK_DIRECTORY}\"")
- link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
- target_link_libraries (${EXECUTABLE} "${DIRECTX_SDK_DIRECTORY}/Lib/x86/dxguid.lib")
+ #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
+ target_link_libraries (${EXECUTABLE} "$ENV{LIB_ROOT}/DXSDK/Lib/x86/dxguid.lib")
  target_link_libraries (${EXECUTABLE} mfplat.lib)
  target_link_libraries (${EXECUTABLE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE} Dmoguids.lib)
@@ -384,13 +384,15 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE} ZLIB_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ASSIMP_PATH}
                            ${FFMPEG_PATH}
                            ${GTK_PATH}
                            ${LIBPNG_PATH}
                            ${ZLIB_PATH}
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+                           ${IMAGEMAGICK_PATH}
+                           ${PROJECT_SOURCE_DIR}/../ACE_TAO/ACE/lib)
  message (STATUS "RUNTIME_LIBRARY_DIRS: ${RUNTIME_LIBRARY_DIRS}")
 endif ()
 create_target_launcher (${EXECUTABLE}

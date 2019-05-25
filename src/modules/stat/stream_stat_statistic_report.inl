@@ -449,7 +449,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end lock scope
 
   // step2: update session data and dispatch statistic message
-  update ();
+  update (ACE_Time_Value (1, 0));
 }
 
 template <ACE_SYNCH_DECL,
@@ -518,9 +518,11 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                               StatisticContainerType,
                                               TimerManagerType,
                                               SessionDataType,
-                                              SessionDataContainerType>::update ()
+                                              SessionDataContainerType>::update (const ACE_Time_Value& interval_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::update"));
+
+  ACE_UNUSED_ARG (interval_in);
 
   int result = -1;
   SessionDataType* session_data_p = NULL;
@@ -1037,6 +1039,6 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
       break;
   } // end SWITCH
 
-continue_:
+//continue_:
   return inherited::put_next (messageBlock_in, timeValue_in);
 }
