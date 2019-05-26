@@ -128,10 +128,6 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread pool [")
-            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -183,7 +179,6 @@ do_processArguments (int argc_in,
                      std::string& gtkRcFile_out,
                      std::string& outputFile_out,
                      std::string& gtkGladeFile_out,
-                     bool& useThreadPool_out,
                      bool& logToFile_out,
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
@@ -214,7 +209,6 @@ do_processArguments (int argc_in,
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   logToFile_out = false;
   netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
@@ -228,7 +222,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:e:f:g::hln:op:rs:tuvx:"),
+                              ACE_TEXT ("b:c:e:f:g::ln:op:rs:tuvx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -273,11 +267,6 @@ do_processArguments (int argc_in,
           gtkGladeFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
           gtkGladeFile_out.clear ();
-        break;
-      }
-      case 'h':
-      {
-        useThreadPool_out = true;
         break;
       }
       case 'l':
@@ -450,7 +439,6 @@ do_work (unsigned int bufferSize_in,
          unsigned int maximumNumberOfConnections_in,
          const std::string& fileName_in,
          const std::string& UIDefinitionFile_in,
-         bool useThreadPool_in,
          const std::string& networkInterface_in,
          bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
@@ -527,33 +515,39 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
 
   // ********************** connection configuration data **********************
-  Test_I_Target_TCPConnectionConfiguration_t connection_configuration;
-  connection_configuration.address.set_port_number (listeningPortNumber_in,
-                                                    1);
-  connection_configuration.useLoopBackDevice = useLoopBack_in;
+  Test_I_Target_TCPConnectionConfiguration_t tcp_connection_configuration;
+  Test_I_Target_UDPConnectionConfiguration_t udp_connection_configuration;
+  tcp_connection_configuration.address.set_port_number (listeningPortNumber_in,
+                                                        1);
+  tcp_connection_configuration.useLoopBackDevice = useLoopBack_in;
   if (useLoopBack_in)
   {
     result =
-      connection_configuration.address.set (listeningPortNumber_in,
-                                            INADDR_LOOPBACK,
-                                            1,
-                                            0);
+      tcp_connection_configuration.address.set (listeningPortNumber_in,
+                                                INADDR_LOOPBACK,
+                                                1,
+                                                0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
-  connection_configuration.statisticReportingInterval =
+  tcp_connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
 //  connection_configuration.connectionManager = connection_manager_p;
-  connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.PDUSize = bufferSize_in;
-  connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
-                                       configuration.streamConfiguration);
+  tcp_connection_configuration.messageAllocator = &message_allocator;
+  tcp_connection_configuration.PDUSize = bufferSize_in;
+  tcp_connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
+                                           configuration.streamConfiguration);
 
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 &connection_configuration));
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("TCP"),
+                                                                 &tcp_connection_configuration));
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("UDP"),
+                                                                 &udp_connection_configuration));
   Net_ConnectionConfigurationsIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("TCP"));
+  ACE_ASSERT (iterator !=configuration.connectionConfigurations.end ());
+  Net_ConnectionConfigurationsIterator_t iterator_2 =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("UDP"));
   ACE_ASSERT (iterator !=configuration.connectionConfigurations.end ());
   // ********************** stream configuration data **************************
   if (bufferSize_in)
@@ -587,9 +581,9 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                             std::make_pair (module_configuration,
                                                                             modulehandler_configuration)));
-  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_3 =
     configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != configuration.streamConfiguration.end ());
+  ACE_ASSERT (iterator_3 != configuration.streamConfiguration.end ());
 
   configuration.streamConfiguration.configuration_.cloneModule = true;
   configuration.streamConfiguration.configuration_.messageAllocator =
@@ -599,15 +593,13 @@ do_work (unsigned int bufferSize_in,
                                      : NULL);
   configuration.streamConfiguration.configuration_.printFinalReport = true;
   // ********************* listener configuration data ************************
-  //configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-  //  (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+//  configuration.listenerConfiguration.connectionConfiguration =
+//    dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second);
+//  configuration.listenerConfiguration.connectionManager = connection_manager_p;
+//  configuration.listenerConfiguration.statisticReportingInterval =
+//      statisticReportingInterval_in;
   //configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
   //  useLoopBack_in;
-  configuration.listenerConfiguration.connectionConfiguration =
-    dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second);
-  configuration.listenerConfiguration.connectionManager = connection_manager_p;
-  configuration.listenerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
 
   // step0b: initialize event dispatch
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
@@ -624,8 +616,9 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   struct Net_UserData user_data_s;
-  connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                  : std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->initialize ((maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                   : std::numeric_limits<unsigned int>::max ()),
+                                    ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   connection_manager_p->set (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
@@ -638,9 +631,9 @@ do_work (unsigned int bufferSize_in,
   ACE_thread_t thread_id = 0;
   timer_manager_p->start (thread_id);
   ACE_UNUSED_ARG (thread_id);
-  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                            connection_manager_p,
-                                            false);
+  Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                                  connection_manager_p,
+                                                  false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
@@ -914,7 +907,7 @@ do_work (unsigned int bufferSize_in,
     } // end IF
     else
     {
-      if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (CBData_in.configuration->listenerConfiguration))
+      if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (tcp_connection_configuration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
@@ -1065,7 +1058,6 @@ ACE_TMAIN (int argc_in,
   std::string gtk_glade_file = path;
   gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   bool log_to_file = false;
   std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
@@ -1088,7 +1080,6 @@ ACE_TMAIN (int argc_in,
                             gtk_rc_file,
                             output_file,
                             gtk_glade_file,
-                            use_thread_pool,
                             log_to_file,
                             network_interface,
                             use_loopback,
@@ -1119,23 +1110,24 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (use_reactor                      &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
-  { // *NOTE*: see also: man (2) select
-    // *TODO*: verify this for MS Windows based systems
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-    use_thread_pool = true;
-  } // end IF
+//  if (use_reactor                      &&
+//      (number_of_dispatch_threads > 1) &&
+//      !use_thread_pool)
+//  { // *NOTE*: see also: man (2) select
+//    // *TODO*: verify this for MS Windows based systems
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
+//    use_thread_pool = true;
+//  } // end IF
   if ((gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (output_file))                       ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                    ||
       (!gtk_rc_file.empty () &&
-       !Common_File_Tools::isReadable (gtk_rc_file))                       ||
-      (use_thread_pool && !use_reactor)                                    ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
+       !Common_File_Tools::isReadable (gtk_rc_file))
+//      (use_thread_pool && !use_reactor)                                    ||
+//      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool)
+      )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1349,7 +1341,6 @@ ACE_TMAIN (int argc_in,
            maximum_number_of_connections,
            output_file,
            gtk_glade_file,
-           use_thread_pool,
            network_interface,
            use_loopback,
            listening_port_number,

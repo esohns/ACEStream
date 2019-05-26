@@ -46,40 +46,40 @@ class Stream_IAllocator;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_DirectShow_TCPConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_DirectShow_UDPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_DirectShow_UDPConnectionManager_t;
 
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_MediaFoundation_TCPConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_MediaFoundation_UDPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_MediaFoundation_UDPConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_TCPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_TCPConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
                                  ACE_INET_Addr,
                                  Test_I_Target_UDPConnectionConfiguration_t,
-                                 struct Net_ConnectionState,
-                                 Net_Statistic_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
                                  struct Net_UserData> Test_I_Target_UDPConnectionManager_t;
 #endif // ACE_WIN32 || ACE_WIN64
 

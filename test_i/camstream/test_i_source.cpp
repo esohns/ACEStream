@@ -178,10 +178,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use thread pool [")
-            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -229,7 +225,6 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif
-                     bool& useThreadPool_out,
                      unsigned short& port_out,
                      enum Common_EventDispatchType& eventDispatchType_in,
                      unsigned int& statisticReportingInterval_out,
@@ -268,7 +263,6 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif
-  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port_out = TEST_I_DEFAULT_PORT;
   eventDispatchType_in = COMMON_EVENT_DEFAULT_DISPATCH;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
@@ -281,9 +275,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:ce:fg::h:lmop:rs:tuvx:"),
+                              ACE_TEXT ("b:ce:fg::h:lmp:rs:tuvx:"),
 #else
-                              ACE_TEXT ("b:d:e:fg::h:lop:rs:tuvx:"),
+                              ACE_TEXT ("b:d:e:fg::h:lp:rs:tuvx:"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -353,11 +347,6 @@ do_processArguments (int argc_in,
         break;
       }
 #endif
-      case 'o':
-      {
-        useThreadPool_out = true;
-        break;
-      }
       case 'p':
       {
         converter.clear ();
@@ -818,7 +807,6 @@ do_work (const std::string& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
-         bool useThreadPool_in,
          unsigned short port_in,
          enum Common_EventDispatchType eventDispatchType_in,
          unsigned int statisticReportingInterval_in,
@@ -1267,7 +1255,7 @@ do_work (const std::string& deviceIdentifier_in,
   long timer_id = -1;
 //  int group_id = -1;
   Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
-  Net_IStatisticHandler_t* report_handler_p = NULL;
+  Net_IStreamStatisticHandler_t* report_handler_p = NULL;
   //Test_I_Source_Stream_IStatistic_t stream_report_handler;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (GUI_SUPPORT)
@@ -1395,7 +1383,8 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L_TCPConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_V4L_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                    ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);
   (*modulehandler_iterator).second.second.connectionManager =
@@ -2070,7 +2059,6 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   unsigned short port = TEST_I_DEFAULT_PORT;
   enum Common_EventDispatchType event_dispatch_type_e =
       COMMON_EVENT_DEFAULT_DISPATCH;
@@ -2099,7 +2087,6 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
-                            use_thread_pool,
                             port,
                             event_dispatch_type_e,
                             statistic_reporting_interval,
@@ -2128,21 +2115,20 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if ((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
-  { // *NOTE*: see also: man (2) select
-    // *TODO*: verify this for MS Windows based systems
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-    use_thread_pool = true;
-  } // end IF
+//  if ((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) &&
+//      (number_of_dispatch_threads > 1) && !use_thread_pool)
+//  { // *NOTE*: see also: man (2) select
+//    // *TODO*: verify this for MS Windows based systems
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
+//    use_thread_pool = true;
+//  } // end IF
   if ((!gtk_glade_filename.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_filename))                         ||
       (!gtk_rc_filename.empty () &&
-       !Common_File_Tools::isReadable (gtk_rc_filename))                            ||
-      (use_thread_pool && (event_dispatch_type_e != COMMON_EVENT_DISPATCH_REACTOR)) ||
-      ((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) && (number_of_dispatch_threads > 1) && !use_thread_pool))
+       !Common_File_Tools::isReadable (gtk_rc_filename))
+//      ((event_dispatch_type_e == COMMON_EVENT_DISPATCH_REACTOR) && (number_of_dispatch_threads > 1) && !use_thread_pool)
+      )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2448,7 +2434,6 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
-           use_thread_pool,
            port,
            event_dispatch_type_e,
            statistic_reporting_interval,

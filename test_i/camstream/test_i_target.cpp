@@ -147,10 +147,6 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread pool [")
-            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -213,7 +209,6 @@ do_processArguments (int argc_in,
                      std::string& gtkRcFile_out,
                      std::string& outputFile_out,
                      std::string& gtkGladeFile_out,
-                     bool& useThreadPool_out,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
@@ -248,7 +243,6 @@ do_processArguments (int argc_in,
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -270,9 +264,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:c:e:f::g::hlmn:op:rs:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::lmn:op:rs:tuvx:z:"),
 #else
-                              ACE_TEXT ("b:c:e:f::g::hln:op:rs:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::ln:op:rs:tuvx:z:"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -322,11 +316,6 @@ do_processArguments (int argc_in,
           gtkGladeFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
           gtkGladeFile_out.clear ();
-        break;
-      }
-      case 'h':
-      {
-        useThreadPool_out = true;
         break;
       }
       case 'l':
@@ -846,7 +835,6 @@ do_work (unsigned int bufferSize_in,
          unsigned int maximumNumberOfConnections_in,
          const std::string& fileName_in,
          const std::string& UIDefinitionFilename_in,
-         bool useThreadPool_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          enum Stream_MediaFramework_Type mediaFramework_in,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1232,7 +1220,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
-  Net_IStatisticHandler_t* report_handler_p = NULL;
+  Net_IStreamStatisticHandler_t* report_handler_p = NULL;
   bool result_2 = false;
   ACE_thread_t thread_id = 0;
 #if defined (GUI_SUPPORT)
@@ -1313,17 +1301,19 @@ do_work (unsigned int bufferSize_in,
     TEST_I_TARGET_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
   Test_I_Target_UDPConnectionManager_t* udp_connection_manager_p =
     TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
-  tcp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                      : std::numeric_limits<unsigned int>::max ());
-  udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                      : std::numeric_limits<unsigned int>::max ());
+  tcp_connection_manager_p->initialize ((maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                       : std::numeric_limits<unsigned int>::max ()),
+                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
+  udp_connection_manager_p->initialize ((maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                       : std::numeric_limits<unsigned int>::max ()),
+                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   report_handler_p = tcp_connection_manager_p;
   (*iterator).second.second.connectionManager = tcp_connection_manager_p;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (report_handler_p);
-  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                            report_handler_p,
-                                            false);
+  Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                                  report_handler_p,
+                                                  false);
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -1607,12 +1597,12 @@ do_work (unsigned int bufferSize_in,
     } // end ELSE
   } // end SWITCH
 #else
-  configuration.listenerConfiguration.connectionConfiguration =
-      dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second);
-  configuration.listenerConfiguration.connectionManager =
-      tcp_connection_manager_p;
-  configuration.listenerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
+//  configuration.listenerConfiguration.connectionConfiguration =
+//      dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second);
+//  configuration.listenerConfiguration.connectionManager =
+//      tcp_connection_manager_p;
+//  configuration.listenerConfiguration.statisticReportingInterval =
+//      statisticReportingInterval_in;
   (*iterator_2).second->useLoopBackDevice = useLoopBack_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -2258,7 +2248,7 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
 #else
       result_2 =
-        CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration);
+        CBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second));
 #endif // ACE_WIN32 || ACE_WIN64
       if (!result_2)
       {
@@ -2552,7 +2542,6 @@ ACE_TMAIN (int argc_in,
   gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
-  bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -2581,7 +2570,6 @@ ACE_TMAIN (int argc_in,
                             gtk_rc_file,
                             output_file,
                             gtk_glade_file,
-                            use_thread_pool,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             media_framework_e,
@@ -2616,24 +2604,25 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (use_reactor                      &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
-  { // *NOTE*: see also: man (2) select
-    // *TODO*: verify this for MS Windows based systems
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-    use_thread_pool = true;
-  } // end IF
+//  if (use_reactor                      &&
+//      (number_of_dispatch_threads > 1) &&
+//      !use_thread_pool)
+//  { // *NOTE*: see also: man (2) select
+//    // *TODO*: verify this for MS Windows based systems
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
+//    use_thread_pool = true;
+//  } // end IF
   if ((frame_size > buffer_size)                                           ||
       (gtk_glade_file.empty () &&
        !Common_File_Tools::isValidFilename (output_file))                  ||
       (!gtk_glade_file.empty () &&
-       !Common_File_Tools::isReadable (gtk_glade_file))                    ||
+       !Common_File_Tools::isReadable (gtk_glade_file))
       //(!gtk_rc_file_name.empty () &&
       // !Common_File_Tools::isReadable (gtk_rc_file_name))                   ||
-      (use_thread_pool && !use_reactor)                                    ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
+//      (use_thread_pool && !use_reactor)                                    ||
+//      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool)
+      )
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -2903,7 +2892,6 @@ continue_:
            maximum_number_of_connections,
            output_file,
            gtk_glade_file,
-           use_thread_pool,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64

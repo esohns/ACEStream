@@ -2599,7 +2599,7 @@ action_listen_activate_cb (GtkAction* action_in,
         //ui_cb_data_p->configuration->listenerConfiguration.address =
         //  (*iterator_2).second.address;
         ACE_ASSERT (ui_cb_data_p->configuration->signalHandlerConfiguration.listener);
-        if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (ui_cb_data_p->configuration->listenerConfiguration))
+        if (!ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*>((*iterator_2).second)))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
         ACE_thread_t thread_id = 0;

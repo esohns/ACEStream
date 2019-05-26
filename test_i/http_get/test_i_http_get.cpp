@@ -137,10 +137,6 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use thread pool [")
-            << COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
             << HTTP_DEFAULT_SERVER_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -183,7 +179,6 @@ do_processArguments (int argc_in,
                      std::string& outputFileName_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
-                     bool& useThreadPool_out,
                      unsigned short& port_out,
                      bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
@@ -219,7 +214,6 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   hostName_out.clear ();
   logToFile_out = false;
-  useThreadPool_out = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port_out = HTTP_DEFAULT_SERVER_PORT;
   useReactor_out =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
@@ -233,7 +227,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:de:f:lop:rs:tu:vx:z"),
+                              ACE_TEXT ("b:c:de:f:lp:rs:tu:vx:z"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -278,11 +272,6 @@ do_processArguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
-        break;
-      }
-      case 'o':
-      {
-        useThreadPool_out = true;
         break;
       }
       case 'p':
@@ -529,7 +518,6 @@ do_work (unsigned int bufferSize_in,
          const std::string& dataBaseTable_in,
          const std::string& fileName_in,
          const std::string& hostName_in,
-         bool useThreadPool_in,
          unsigned short port_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
@@ -702,7 +690,8 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   struct Net_UserData user_data_s;
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                    ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
   connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
@@ -715,9 +704,9 @@ do_work (unsigned int bufferSize_in,
   ACE_thread_t thread_id = 0;
   timer_manager_p->start (thread_id);
   ACE_UNUSED_ARG (thread_id);
-  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                            connection_manager_p,
-                                            false);
+  Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                                  connection_manager_p,
+                                                  false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
@@ -906,7 +895,6 @@ ACE_TMAIN (int argc_in,
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string host_name;
   bool log_to_file = false;
-  bool use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   unsigned short port = HTTP_DEFAULT_SERVER_PORT;
   bool use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
@@ -929,7 +917,6 @@ ACE_TMAIN (int argc_in,
                             output_file,
                             host_name,
                             log_to_file,
-                            use_thread_pool,
                             port,
                             use_reactor,
                             statistic_reporting_interval,
@@ -959,20 +946,20 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (use_reactor                      &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
-  { // *NOTE*: see also: man (2) select
-    // *TODO*: verify this for MS Windows based systems
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-    use_thread_pool = true;
-  } // end IF
+//  if (use_reactor                      &&
+//      (number_of_dispatch_threads > 1) &&
+//      !use_thread_pool)
+//  { // *NOTE*: see also: man (2) select
+//    // *TODO*: verify this for MS Windows based systems
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
+//    use_thread_pool = true;
+//  } // end IF
   if ((output_to_database && output_database_table.empty ())                ||
       (!database_options_file.empty () &&
        !Common_File_Tools::isReadable (database_options_file))              ||
       host_name.empty ()                                                    ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
+//      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
       URL.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1120,7 +1107,6 @@ ACE_TMAIN (int argc_in,
            output_database_table,
            output_file,
            host_name,
-           use_thread_pool,
            port,
            use_reactor,
            statistic_reporting_interval,

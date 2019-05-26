@@ -5395,7 +5395,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   } // end SWITCH
 #else
   protocol = ui_cb_data_p->configuration->protocol;
-#endif
+#endif  
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_TCPConnectionManager_t* directshow_tcp_connection_manager_p =
@@ -5440,6 +5440,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   Test_I_Target_UDPConnectionManager_t* udp_connection_manager_p =
     TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (udp_connection_manager_p);
+
+  Net_ConnectionConfigurationsIterator_t iterator_2 =
+    ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->connectionConfigurations.end ());
 #endif
   bool result = false;
   Common_ITask_t* itask_p = NULL;
@@ -5520,7 +5524,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         itask_p =
           ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
         result =
-          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (ui_cb_data_p->configuration->listenerConfiguration);
+          ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second));
 #endif
         if (!result)
         {

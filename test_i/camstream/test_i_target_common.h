@@ -594,7 +594,7 @@ struct Test_I_Target_SignalHandlerConfiguration
 
   Test_I_Target_TCPConnectionManager_t* connectionManager;
   Test_I_Target_IListener_t*            listener;
-  Net_IStatisticHandler_t*              statisticReportingHandler;
+  Net_IStreamStatisticHandler_t*        statisticReportingHandler;
 };
 typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfiguration,
                                       Test_I_Target_TCPConnectionManager_t,

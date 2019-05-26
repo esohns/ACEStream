@@ -106,24 +106,23 @@ struct Test_I_Target_StreamState
   struct Test_I_Target_SessionData* sessionData;
 };
 
-struct Test_I_Target_ListenerConfiguration
- : Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
-                               NET_TRANSPORTLAYER_TCP>
-{
-  Test_I_Target_ListenerConfiguration ()
-   : Net_ListenerConfiguration_T ()
-   , connectionConfiguration (NULL)
-   , connectionManager (NULL)
-   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {}
+//struct Test_I_Target_ListenerConfiguration
+// : Net_ListenerConfiguration_T<Test_I_Target_TCPConnectionConfiguration_t,
+//                               NET_TRANSPORTLAYER_TCP>
+//{
+//  Test_I_Target_ListenerConfiguration ()
+//   : Net_ListenerConfiguration_T ()
+//   , connectionConfiguration (NULL)
+//   , connectionManager (NULL)
+//   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+//  {}
 
-  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
-  Test_I_Target_ITCPConnectionManager_t*      connectionManager;
-  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
-};
+//  Test_I_Target_TCPConnectionConfiguration_t* connectionConfiguration;
+//  Test_I_Target_ITCPConnectionManager_t*      connectionManager;
+//  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
+//};
 
-typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
+typedef Net_IListener_T<Test_I_Target_TCPConnectionConfiguration_t> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -135,9 +134,9 @@ struct Test_I_Target_SignalHandlerConfiguration
    , statisticReportingTimerId (-1)
   {}
 
-  Test_I_Target_IListener_t* listener;
-  Net_IStatisticHandler_t*   statisticReportingHandler;
-  long                       statisticReportingTimerId;
+  Test_I_Target_IListener_t*     listener;
+  Net_IStreamStatisticHandler_t* statisticReportingHandler;
+  long                           statisticReportingTimerId;
 };
 
 //extern const char stream_name_string_[];
@@ -210,7 +209,7 @@ struct Test_I_Target_Configuration
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
-   , listenerConfiguration ()
+//   , listenerConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , signalHandlerConfiguration ()
    , streamConfiguration ()
@@ -219,7 +218,7 @@ struct Test_I_Target_Configuration
   Net_ConnectionConfigurations_t                  connectionConfigurations;
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
-  struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
+//  struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
   enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   Test_I_Target_StreamConfiguration_t             streamConfiguration;

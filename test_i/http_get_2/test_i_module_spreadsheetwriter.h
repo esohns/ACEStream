@@ -26,7 +26,7 @@
 
 #include "sal/types.h"
 
-#include "com/sun/star/task/XInteractionHandler.hpp"
+//#include "com/sun/star/task/XInteractionHandler.hpp"
 #include "com/sun/star/task/XInteractionRequestStringResolver.hpp"
 #include "com/sun/star/sheet/XSpreadsheetDocument.hpp"
 #include "com/sun/star/uno/Reference.h"
