@@ -742,7 +742,7 @@ struct Test_I_Target_Configuration
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
-   , listenerConfiguration ()
+//   , listenerConfiguration ()
    , signalHandlerConfiguration ()
    , streamConfiguration ()
   {}
@@ -752,7 +752,7 @@ struct Test_I_Target_Configuration
   // **************************** listener data ********************************
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
-  struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
+//  struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
   // **************************** signal data **********************************
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************

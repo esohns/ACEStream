@@ -424,9 +424,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     // sanity check(s)
     if (unlikely (sessionData_))
-    {
-      sessionData_->decrease (); sessionData_ = NULL;
-    } // end IF
+      sessionData_->decrease ();
+    sessionData_ = NULL;
 
     SessionDataType* session_data_p = NULL;
     ACE_NEW_NORETURN (session_data_p,

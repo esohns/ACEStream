@@ -283,7 +283,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       if (inherited::configuration_->computeThroughput)
       {
         typename TIMER_SECONDPUBLISHER_T::INTERFACE_T* itimer_second_publisher_p =
-          typename TIMER_SECONDPUBLISHER_T::SINGLETON_T::instance ();
+          TIMER_SECONDPUBLISHER_T::SINGLETON_T::instance ();
         ACE_ASSERT (itimer_second_publisher_p);
         itimer_second_publisher_p->subscribe (this);
       } // end IF
@@ -387,7 +387,7 @@ error:
       if (inherited::configuration_->computeThroughput)
       {
         typename TIMER_SECONDPUBLISHER_T::INTERFACE_T* itimer_second_publisher_p =
-          typename TIMER_SECONDPUBLISHER_T::SINGLETON_T::instance ();
+          TIMER_SECONDPUBLISHER_T::SINGLETON_T::instance ();
         ACE_ASSERT (itimer_second_publisher_p);
         itimer_second_publisher_p->unsubscribe (this);
       } // end IF

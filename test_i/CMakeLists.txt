@@ -188,7 +188,7 @@ if (UNIX)
 
    if (GTKGL_SUPPORT)
     if (GTKGLAREA_SUPPORT)
-     target_link_libraries (${PROJECT_NAME}_Test_I ${CMAKE_CURRENT_SOURCE_DIR}/../../gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
+     target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
     endif (GTKGLAREA_SUPPORT)
 
 #    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)
