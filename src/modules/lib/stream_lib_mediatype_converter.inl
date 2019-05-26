@@ -183,9 +183,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  Stream_MediaFramework_DirectShow_Tools::free (mediaType_out);
+
+  struct _AMMediaType* media_type_p =
+    Stream_MediaFramework_DirectShow_Tools::to (mediaType_in);
+  ACE_ASSERT (media_type_p);
+  mediaType_out = *media_type_p;
 }
 #else
 //template <typename MediaType,

@@ -4196,7 +4196,9 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::to"));
 
   // initialize return value(s)
-  struct _AMMediaType* result_p = CreateMediaType (NULL);
+  struct _AMMediaType dummy_s;
+  ACE_OS::memset (&dummy_s, 0, sizeof (struct _AMMediaType));
+  struct _AMMediaType* result_p = CreateMediaType (&dummy_s);
   ACE_ASSERT (result_p);
 
   BOOL result_2 = FALSE;
@@ -4207,7 +4209,8 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   result_p->bTemporalCompression = FALSE;
   result_p->formattype = FORMAT_VideoInfo;
   result_p->cbFormat = sizeof (struct tagVIDEOINFOHEADER);
-  result_p->pbFormat = CoTaskMemAlloc (result_p->cbFormat);
+  result_p->pbFormat =
+    reinterpret_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
   ACE_ASSERT (result_p->pbFormat);
   ACE_OS::memset (result_p->pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
   struct tagVIDEOINFOHEADER* video_info_header_p =
@@ -4239,8 +4242,10 @@ Stream_MediaFramework_DirectShow_Tools::to (const struct Stream_MediaFramework_F
   ////video_info_header_p->bmiHeader.biYPelsPerMeter;
   ////video_info_header_p->bmiHeader.biClrUsed;
   ////video_info_header_p->bmiHeader.biClrImportant;
+  ACE_ASSERT (mediaType_in.frameRate.num);
   video_info_header_p->AvgTimePerFrame =
-    ((mediaType_in.frameRate.num * 1000000000) / mediaType_in.frameRate.den) / NANOSECONDS;
+    ((mediaType_in.frameRate.num * 100000000000) / mediaType_in.frameRate.den) / NANOSECONDS;
+  ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
   video_info_header_p->dwBitRate =
     (video_info_header_p->bmiHeader.biSizeImage * 8) *                         // bits / frame
     (NANOSECONDS / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps

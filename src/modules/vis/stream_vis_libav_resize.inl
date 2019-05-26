@@ -249,12 +249,6 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inference
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.front ();
 
   switch (message_inout->type ())
   {
@@ -262,6 +256,12 @@ Stream_Visualization_LibAVResize_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (!inherited::context_);
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      // *TODO*: remove type inference
+      const MediaType& media_type_r = session_data_r.formats.front ();
+
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -418,6 +418,12 @@ error:
       // sanity check(s)
       if (!inherited::context_)
         break; // nothing to do
+
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+      // *TODO*: remove type inference
+      const MediaType& media_type_r = session_data_r.formats.front ();
 
       int result = -1;
       int flags_i = 0;

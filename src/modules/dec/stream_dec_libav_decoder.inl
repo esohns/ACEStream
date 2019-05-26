@@ -408,13 +408,18 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                     &packet_s);
 //#endif
     if (unlikely (result < 0))
-    {
-      //ACE_DEBUG ((LM_ERROR,
-      //            ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", returning\n"),
-      ////            ACE_TEXT ("%s: failed to avcodec_decode_video2(): \"%s\", returning\n"),
-      //            inherited::mod_->name (),
-      //            ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-      goto error;
+    { // *NOTE*: do not abort on transient errors such as
+      //       - "No start code is found."
+      if (result != -1094995529) // *TODO*: use error descriptor
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    //ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to avcodec_decode_video2(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+      break; // <-- transient error --> retry with the next chunk
     } // end IF
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#else
@@ -773,7 +778,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->codec_tag = ;
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
-      //codec_parameters_p->format = AV_PIX_FMT_YUV420P;
+      codec_parameters_p->format = AV_PIX_FMT_YUV420P;
       //codec_parameters_p->bit_rate = bit_rate;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
