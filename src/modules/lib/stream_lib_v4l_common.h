@@ -28,7 +28,7 @@
 
 #include "linux/videodev2.h"
 
-#include "ace/OS.h"
+//#include "ace/OS.h"
 
 typedef std::list<std::pair<__u32, std::string> > Stream_MediaFramework_V4L_CaptureFormats_t;
 typedef Stream_MediaFramework_V4L_CaptureFormats_t::iterator Stream_MediaFramework_V4L_CaptureFormatsIterator_t;
