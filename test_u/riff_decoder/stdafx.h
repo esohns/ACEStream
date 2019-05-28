@@ -44,13 +44,6 @@
 #include "stream_macros.h"
 
 #include "test_u_common.h"
-//#if defined (GUI_SUPPORT)
-//#if defined (GTK_USE)
-//#include "test_u_gtk_common.h"
-//#elif defined (WXWIDGETS_USE)
-//#include "test_u_wxwidgets_common.h"
-//#endif
-//#endif // GUI_SUPPORT
 
 #include "test_u_riffdecoder_common.h"
 

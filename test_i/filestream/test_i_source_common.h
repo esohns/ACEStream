@@ -34,6 +34,7 @@
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 
+#include "common_file_common.h"
 #include "common_isubscribe.h"
 
 #if defined (GUI_SUPPORT)

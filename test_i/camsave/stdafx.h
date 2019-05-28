@@ -65,13 +65,13 @@
 #include "stream_macros.h"
 
 #include "test_i_common.h"
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#include "test_i_gtk_common.h"
-#elif defined (WXWIDGETS_USE)
-#include "test_i_wxwidgets_common.h"
-#endif
-#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
+//#include "test_i_gtk_common.h"
+//#elif defined (WXWIDGETS_USE)
+//#include "test_i_wxwidgets_common.h"
+//#endif
+//#endif // GUI_SUPPORT
 
 #include "test_i_camsave_common.h"
 

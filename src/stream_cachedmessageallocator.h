@@ -21,6 +21,7 @@
 #ifndef STREAM_CACHEDMESSAGEALLOCATOR_H
 #define STREAM_CACHEDMESSAGEALLOCATOR_H
 
+#include "ace/config-lite.h"
 #include "ace/Malloc_T.h"
 #include "ace/Synch_Traits.h"
 

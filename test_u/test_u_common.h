@@ -34,6 +34,7 @@
 #endif // GUI_SUPPORT
 
 #include "common_configuration.h"
+#include "common_file_common.h"
 #include "common_istatistic.h"
 #include "common_statistic_handler.h"
 
