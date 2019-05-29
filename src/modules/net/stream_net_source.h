@@ -254,8 +254,7 @@ class Stream_Module_Net_SourceH_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
-  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                         bool&) {};         // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, bool&) {}
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
