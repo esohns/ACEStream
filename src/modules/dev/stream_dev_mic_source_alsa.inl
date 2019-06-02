@@ -48,6 +48,9 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
   // sanity check(s)
   ACE_ASSERT (handler_in);
 
+  // never ever wait for the queue
+  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
+
   struct Stream_Device_ALSA_Capture_AsynchCBData* data_p =
       reinterpret_cast<struct Stream_Device_ALSA_Capture_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
   snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
@@ -137,11 +140,11 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                                           data_p->phase);
 
     result = data_p->queue->enqueue_tail (message_block_p,
-                                          NULL);
+                                          &no_wait);
     if (unlikely (result < 0))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
       goto error;
     } // end IF
     message_block_p = NULL;
@@ -149,8 +152,10 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
     continue;
 
 recover:
-    ACE_DEBUG ((LM_DEBUG,
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("buffer overrun, recovering\n")));
+#endif // _DEBUG
 
     //        result = snd_pcm_prepare (handle_p);
     result = snd_pcm_recover (handle_p,
@@ -407,11 +412,11 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
     {
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!deviceHandle_);
-
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (!session_data_r.formats.empty ());
       const struct Stream_MediaFramework_ALSA_MediaType& media_type_r =
-          getMediaType (session_data_r.formats.back ());
+          session_data_r.formats.back ();
 
       bool stop_device = false;
       int signal = 0;

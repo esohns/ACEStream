@@ -1383,6 +1383,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
         directshow_configuration_p->fileIdentifier.identifier;
 #else
   session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
+  session_data_p->formats.push_back (configuration_in.configuration_.format);
 #endif
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);

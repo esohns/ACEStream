@@ -409,11 +409,9 @@ error_2:
        *i;
        ++i)
   {
-    string_p = snd_device_name_get_hint (*i, "IOID");
-    if (!string_p)
+    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
+    if (!string_p) // NULL --> both
     {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
       goto continue_;
     } // end IF
     if (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("Input")))
@@ -423,7 +421,7 @@ error_2:
     } // end IF
 
 continue_:
-    string_p = snd_device_name_get_hint (*i, "NAME");
+    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
     if (!string_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -438,7 +436,7 @@ continue_:
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                      ||
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("plughw:CARD=MID,DEV=0")) == 0)     ||
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)                     ||
-        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("sysdefault:CARD=MID")) == 0)       ||
+//        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("sysdefault:CARD=MID")) == 0)       ||
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround21:CARD=MID,DEV=0")) == 0) ||
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround40:CARD=MID,DEV=0")) == 0) ||
         (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround41:CARD=MID,DEV=0")) == 0) ||
@@ -1525,16 +1523,22 @@ load_sample_rates (struct _snd_pcm* handle_in,
   ACE_ASSERT (result == 0);
   if (rate_min < rate_max)
   {
-    for (unsigned int i = rate_min;
-         i <= rate_max;
-         ++i)
+    std::vector<unsigned int> rates_norm_a = { 8000, 11025, 22050, 44100, 48000, 96000 };
+//    for (unsigned int i = rate_min;
+//         i <= rate_max;
+//         ++i)
+    for (std::vector<unsigned int>::const_iterator iterator = rates_norm_a.begin ();
+         iterator != rates_norm_a.end ();
+         ++iterator)
     {
       result = snd_pcm_hw_params_test_rate (handle_in,
                                             format_p,
-                                            i,
+//                                            i,
+                                            *iterator,
                                             0);
       if (result == 0)
-        sample_rates_supported.insert (i);
+//        sample_rates_supported.insert (i);
+        sample_rates_supported.insert (*iterator);
     } // end FOR
   } // end IF
   else
@@ -1758,15 +1762,21 @@ load_channels (struct _snd_pcm* handle_in,
   ACE_ASSERT (result == 0);
   if (channels_min < channels_max)
   {
-    for (unsigned int i = channels_min;
-         i <= channels_max;
-         ++i)
+    std::vector<unsigned int> channels_norm_a = { 1, 2 };
+//    for (unsigned int i = channels_min;
+//         i <= channels_max;
+//         ++i)
+    for (std::vector<unsigned int>::const_iterator iterator = channels_norm_a.begin ();
+         iterator != channels_norm_a.end ();
+         ++iterator)
     {
       result = snd_pcm_hw_params_test_channels (handle_in,
                                                 format_p,
-                                                i);
+//                                                i);
+                                                *iterator);
       if (result == 0)
-        channels_supported.insert (i);
+//        channels_supported.insert (i);
+        channels_supported.insert (*iterator);
     } // end FOR
   } // end IF
   else
@@ -2129,15 +2139,17 @@ get_buffer_size (gpointer userData_in)
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
@@ -2309,10 +2321,9 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
+  // sanity check(s)
   struct Test_U_AudioEffect_ThreadData* data_p =
     static_cast<struct Test_U_AudioEffect_ThreadData*> (arg_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p->CBData);
   ACE_ASSERT (data_p->CBData->configuration);
   ACE_ASSERT (data_p->CBData->stream);
@@ -4453,7 +4464,7 @@ idle_session_end_cb (gpointer userData_in)
   //gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
   //gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
-  data_base_p->resizeNotification = NULL;
+//  data_base_p->resizeNotification = NULL;
 
   return G_SOURCE_REMOVE;
 }
@@ -5768,7 +5779,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_NEW_NORETURN (thread_data_p,
                     struct Test_U_AudioEffect_ThreadData ());
   if (thread_data_p)
-    thread_data_p->CBData = ui_cb_data_p;
+    static_cast<struct Test_U_AudioEffect_ThreadData*> (thread_data_p)->CBData =
+      ui_cb_data_p;
 #endif
   if (!thread_data_p)
   {
@@ -7879,15 +7891,18 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
-#endif // GTK_CHECK_VERSION (2,30,0)
+#endif // GTK_CHECK_VERSION (2,30,0)  
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+//  g_value_init (&value, G_TYPE_INT);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
@@ -8156,15 +8171,17 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
@@ -8456,15 +8473,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
@@ -8783,15 +8802,17 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-  g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  g_value_init (&value, G_TYPE_STRING);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
 #else
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
