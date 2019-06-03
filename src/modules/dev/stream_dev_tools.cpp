@@ -776,13 +776,10 @@ Stream_Device_Tools::getDeviceName (enum _snd_pcm_stream direction_in)
     string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
     if (!string_p)
     { // *NOTE*: NULL: device is i/o
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("failed to snd_device_name_get_hint(\"IOID\"): \"%m\", continuing\n")));
       goto continue_;
     } // end IF
     hint_string = string_p;
-    free (string_p);
-    string_p = NULL;
+    free (string_p); string_p = NULL;
     if (ACE_OS::strcmp (hint_string.c_str (),
                         (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR ("Output")
                                                                   : ACE_TEXT_ALWAYS_CHAR ("Input")))

@@ -40,10 +40,12 @@
 // ALSA
 #define STREAM_DEV_ALSA_TARGET_DEFAULT_NAME_STRING                "ALSATarget"
 
-#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
-//#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX               "dsnoop"
-#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "plughw"
-//#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX              "dmix"
+//#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "dsnoop"
+//#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "hw"
+#define STREAM_DEV_ALSA_DEVICE_CAPTURE_PREFIX                     "sysdefault"
+//#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "dmix"
+//#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "plughw"
+#define STREAM_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                    "default"
 #define STREAM_DEV_ALSA_PCM_INTERFACE_NAME                        "pcm"
 
 #define STREAM_DEV_ALSA_DEFAULT_LOG_FILE                          "alsa.log"
