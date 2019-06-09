@@ -151,7 +151,7 @@ struct Stream_ModuleHandlerConfiguration
   ACE_HANDLE                            socketHandle;                         // network module(s)
   ACE_Time_Value                        statisticCollectionInterval;          // source/statistic/... module(s)
   ACE_Time_Value                        statisticReportingInterval;           // [ACE_Time_Value::zero: off]
-  Common_ITimer_t*                      timerManager;
+  Common_ITimerCB_t*                    timerManager;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_DirectShow_ModuleHandlerConfiguration

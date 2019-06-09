@@ -189,6 +189,10 @@ class Stream_Module_Decoder_Tools
                      unsigned int, // #'data' samples to write
                      double&);     // in/out: current phase
 
+#if defined (OPENCV_SUPPORT)
+  static int pixelFormatToOpenCVFormat (enum AVPixelFormat);
+#endif // OPENCV_SUPPORT
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))

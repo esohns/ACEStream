@@ -18,11 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+//#include "opencv2/opencv.hpp"
+#include "opencv2/core/mat.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+//#include "opencv2/viz/vizcore.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
-#include "stream_dec_defines.h"
+//#include "stream_dec_defines.h"
+#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -30,19 +37,22 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
+                               SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               SessionDataContainerType>::Stream_Decoder_OpenCVDecoder_T (ISTREAM_T* stream_in)
+                               MediaType>::Stream_Decoder_OpenCVDecoder_T (ISTREAM_T* stream_in)
 #else
-                               SessionDataContainerType>::Stream_Decoder_OpenCVDecoder_T (typename inherited::ISTREAM_T* stream_in)
+                               MediaType>::Stream_Decoder_OpenCVDecoder_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
+ , mediaType_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::Stream_Decoder_OpenCVDecoder_T"));
 
@@ -54,26 +64,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
-Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType>::~Stream_Decoder_OpenCVDecoder_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::~Stream_Decoder_OpenCVDecoder_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 bool
 Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -81,13 +73,15 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                      Stream_IAllocator* allocator_in)
+                               SessionDataContainerType,
+                               MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::initialize"));
 
   if (inherited::isInitialized_)
   {
+    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -100,7 +94,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -108,19 +103,23 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+                               SessionDataContainerType,
+                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleDataMessage"));
 
-  // sanity check(s)
-//  if (unlikely (codecId_ == AV_CODEC_ID_NONE))
-//    return; // nothing to do
-//  ACE_ASSERT (context_);
-
-  // initialize return value(s)
-  passMessageDownstream_out = false;
-
+  cv::Mat image_mat (mediaType_.resolution.height,
+                     mediaType_.resolution.width,
+                     Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (mediaType_.format),
+                     message_inout->rd_ptr (),
+                     cv::Mat::AUTO_STEP);
+//  cv::Mat image_BGR;
+//  cv::cvtColor (image_mat, image_BGR, cv::COLOR_BGRA2BGR);
+  cv::imshow (ACE_TEXT_ALWAYS_CHAR ("image"),
+//              image_BGR);
+              image_mat);
+  cv::waitKey (1);
 }
 
 template <ACE_SYNCH_DECL,
@@ -129,7 +128,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename MediaType>
 void
 Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -137,34 +137,37 @@ Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                bool& passMessageDownstream_out)
+                               SessionDataContainerType,
+                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-
-  const SessionDataContainerType& session_data_container_r =
-    message_inout->getR ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      goto continue_;
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const typename SessionDataContainerType::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+
+      inherited2::getMediaType (session_data_r.formats.front (),
+                                mediaType_);
+
+      cv::namedWindow (ACE_TEXT_ALWAYS_CHAR ("image"), cv::WINDOW_AUTOSIZE);
+      cv::startWindowThread ();
 
       break;
 
-error:
-      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//error:
+//      this->notify (STREAM_SESSION_MESSAGE_ABORT)
 
-      break;
+//      break;
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {

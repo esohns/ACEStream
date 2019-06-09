@@ -115,7 +115,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
   ACE_ASSERT (inherited::configuration_);
 
-  Common_ITimerBase* itimer_p =
+  Common_ITimerCBBase* itimer_p =
       (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                : COMMON_TIMERMANAGER_SINGLETON::instance ());
   ACE_ASSERT (itimer_p);
@@ -126,8 +126,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     {
       inherited::msg_queue_->activate ();
 
-      // schedule the second-granularity timer
-      ACE_Time_Value one_second (1, 0); // one-second interval
+      // schedule the delay interval timer
       resetTimeoutHandlerId_ =
         itimer_p->schedule_timer (&resetTimeoutHandler_,                              // event handler handle
                                   NULL,                                               // asynchronous completion token
@@ -136,7 +135,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       if (unlikely (resetTimeoutHandlerId_ == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Common_ITimerBase::schedule_timer(%#T): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to Common_ITimerCBBase::schedule_timer(%#T): \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     &inherited::configuration_->delay));
         goto error;
@@ -158,19 +157,27 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (resetTimeoutHandlerId_ != -1)
+      if (likely (resetTimeoutHandlerId_ != -1))
       {
         const void* act_p = NULL;
         int result = itimer_p->cancel_timer (resetTimeoutHandlerId_,
                                              &act_p);
         if (unlikely (result <= 0))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_ITimerBase::cancel_timer(%d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimerCBBase::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       resetTimeoutHandlerId_));
+#if defined (_DEBUG)
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: cancelled interval timer (id was: %d)\n"),
+                      inherited::mod_->name (),
+                      resetTimeoutHandlerId_));
+#endif // _DEBUG
         resetTimeoutHandlerId_ = -1;
       } // end IF
 
+      // *TODO*: empty queue first
       inherited::msg_queue_->deactivate ();
 
       break;

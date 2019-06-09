@@ -79,6 +79,10 @@ extern "C"
 }
 #endif // __cplusplus
 
+#if defined (OPENCV_SUPPORT)
+#include "opencv2/core/hal/interface.h"
+#endif // OPENCV_SUPPORT
+
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
@@ -711,47 +715,6 @@ Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_Comp
   return result;
 }
 
-void
-Stream_Module_Decoder_Tools::sinus (double frequency_in,
-                                    unsigned int sampleRate_in,
-                                    unsigned int sampleSize_in, // 'data'-
-                                    unsigned int channels_in,
-                                    uint8_t* buffer_in,
-                                    unsigned int samplesToWrite_in, // #'data' samples
-                                    double& phase_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
-
-  static double maximum_phase_d = 2.0 * M_PI;
-  double step_d =
-    (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
-  unsigned int bytes_per_sample_i = sampleSize_in / channels_in;
-  unsigned int maximum_value_i = (1 << ((bytes_per_sample_i * 8) - 1)) - 1;
-  double phase_d = phase_inout;
-  int value_i = 0;
-  uint8_t* pointer_p = buffer_in;
-  for (unsigned int i = 0; i < samplesToWrite_in; ++i)
-  {
-    value_i = static_cast<int> (std::sin (phase_d) * maximum_value_i);
-    for (unsigned int j = 0; j < channels_in; ++j)
-    {
-      for (unsigned int k = 0; k < bytes_per_sample_i; ++k)
-      {
-        if (likely (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN))
-          *(pointer_p + k) = (value_i >> (k * 8)) & 0xFF;
-        else
-          *(pointer_p + bytes_per_sample_i - 1 - k) =
-            (value_i >> (k * 8)) & 0xFF;
-      } // end FOR
-      pointer_p += bytes_per_sample_i;
-    } // end FOR
-    phase_d += step_d;
-    if (unlikely (phase_d >= maximum_phase_d))
-      phase_d -= maximum_phase_d;
-  } // end FOR
-  phase_inout = phase_d;
-}
-
 bool
 Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                                       unsigned int sourceWidth_in,
@@ -911,6 +874,96 @@ clean:
 
   return result;
 }
+
+void
+Stream_Module_Decoder_Tools::sinus (double frequency_in,
+                                    unsigned int sampleRate_in,
+                                    unsigned int sampleSize_in, // 'data'-
+                                    unsigned int channels_in,
+                                    uint8_t* buffer_in,
+                                    unsigned int samplesToWrite_in, // #'data' samples
+                                    double& phase_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
+
+  static double maximum_phase_d = 2.0 * M_PI;
+  double step_d =
+    (maximum_phase_d * frequency_in) / static_cast<double> (sampleRate_in);
+  unsigned int bytes_per_sample_i = sampleSize_in / channels_in;
+  unsigned int maximum_value_i = (1 << ((bytes_per_sample_i * 8) - 1)) - 1;
+  double phase_d = phase_inout;
+  int value_i = 0;
+  uint8_t* pointer_p = buffer_in;
+  for (unsigned int i = 0; i < samplesToWrite_in; ++i)
+  {
+    value_i = static_cast<int> (std::sin (phase_d) * maximum_value_i);
+    for (unsigned int j = 0; j < channels_in; ++j)
+    {
+      for (unsigned int k = 0; k < bytes_per_sample_i; ++k)
+      {
+        if (likely (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN))
+          *(pointer_p + k) = (value_i >> (k * 8)) & 0xFF;
+        else
+          *(pointer_p + bytes_per_sample_i - 1 - k) =
+            (value_i >> (k * 8)) & 0xFF;
+      } // end FOR
+      pointer_p += bytes_per_sample_i;
+    } // end FOR
+    phase_d += step_d;
+    if (unlikely (phase_d >= maximum_phase_d))
+      phase_d -= maximum_phase_d;
+  } // end FOR
+  phase_inout = phase_d;
+}
+
+#if defined (OPENCV_SUPPORT)
+int
+Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::pixelFormatToOpenCVFormat"));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_GRAY8:
+    case AV_PIX_FMT_BGR8:
+    case AV_PIX_FMT_RGB8:
+      return CV_8UC1;
+    case AV_PIX_FMT_RGB565BE:
+    case AV_PIX_FMT_RGB565LE:
+    case AV_PIX_FMT_RGB555BE:
+    case AV_PIX_FMT_RGB555LE:
+    case AV_PIX_FMT_BGR565BE:
+    case AV_PIX_FMT_BGR565LE:
+    case AV_PIX_FMT_BGR555BE:
+    case AV_PIX_FMT_BGR555LE:
+    case AV_PIX_FMT_RGB444LE:
+    case AV_PIX_FMT_RGB444BE:
+    case AV_PIX_FMT_BGR444LE:
+    case AV_PIX_FMT_BGR444BE:
+      return CV_8UC2;
+    case AV_PIX_FMT_RGB24:
+    case AV_PIX_FMT_BGR24:
+      return CV_8UC3;
+    case AV_PIX_FMT_ARGB:
+    case AV_PIX_FMT_RGBA:
+    case AV_PIX_FMT_ABGR:
+    case AV_PIX_FMT_BGRA:
+      return CV_8UC4;
+    case AV_PIX_FMT_GRAY16BE:
+    case AV_PIX_FMT_GRAY16LE:
+      return CV_16UC1;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return -1;
+}
+#endif // OPENCV_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
