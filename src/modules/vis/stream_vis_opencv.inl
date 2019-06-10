@@ -38,22 +38,22 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
+Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               MediaType>::Stream_Decoder_OpenCVDecoder_T (ISTREAM_T* stream_in)
+                              MediaType>::Stream_Visualization_OpenCV_T (ISTREAM_T* stream_in)
 #else
-                               MediaType>::Stream_Decoder_OpenCVDecoder_T (typename inherited::ISTREAM_T* stream_in)
+                              MediaType>::Stream_Visualization_OpenCV_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , mediaType_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::Stream_Decoder_OpenCVDecoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::Stream_Visualization_OpenCV_T"));
 
 }
 
@@ -66,17 +66,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 bool
-Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                      Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -96,17 +96,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::handleDataMessage"));
 
   cv::Mat frame_mat (mediaType_.resolution.height,
                      mediaType_.resolution.width,
@@ -130,17 +130,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_OpenCVDecoder_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+Stream_Visualization_OpenCV_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataContainerType,
+                              MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_OpenCVDecoder_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenCV_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

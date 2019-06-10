@@ -39,6 +39,9 @@
 #define STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING              "GTK_SpectrumAnalyzer"
 #define STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING                         "GTK_Window"
 
+#define STREAM_VIS_OPENCV_DEFAULT_NAME_STRING                             "OpenCV"
+#define STREAM_VIS_OPENCV_CLASSIFIER_DEFAULT_NAME_STRING                  "OpenCV_Classifier"
+
 #define STREAM_VIS_NULL_DEFAULT_NAME_STRING                               "Null"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

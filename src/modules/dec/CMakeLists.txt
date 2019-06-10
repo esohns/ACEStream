@@ -242,18 +242,18 @@ set (source_files
      stream_dec_zip_decoder.h
      stream_dec_zip_decoder.inl)
 if (IMAGEMAGICK_SUPPORT)
-set (source_files
-     ${source_files}
-     stream_dec_imagemagick_decoder.cpp
-     stream_dec_imagemagick_decoder.h
-     stream_dec_imagemagick_decoder.inl)
+ set (source_files
+      ${source_files}
+      stream_dec_imagemagick_decoder.cpp
+      stream_dec_imagemagick_decoder.h
+      stream_dec_imagemagick_decoder.inl)
 endif (IMAGEMAGICK_SUPPORT)
 if (OPENCV_SUPPORT)
-set (source_files
-     ${source_files}
-     stream_dec_opencv_decoder.cpp
-     stream_dec_opencv_decoder.h
-     stream_dec_opencv_decoder.inl)
+ set (source_files
+      ${source_files}
+      stream_dec_opencv_decoder.cpp
+      stream_dec_opencv_decoder.h
+      stream_dec_opencv_decoder.inl)
 endif (OPENCV_SUPPORT)
 
 if (UNIX)

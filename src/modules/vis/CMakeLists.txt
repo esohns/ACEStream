@@ -1,10 +1,19 @@
 option (FFMPEG_SUPPORT "support ffmpeg" ON)
+if (FFMPEG_SUPPORT)
+ add_definitions (-DFFMPEG_SUPPORT)
+endif (FFMPEG_SUPPORT)
 
 set (IMAGEMAGICK_DEFAULT ON)
 option (IMAGEMAGICK_SUPPORT "support ImageMagick" ${IMAGEMAGICK_DEFAULT})
 if (IMAGEMAGICK_SUPPORT)
  add_definitions (-DIMAGEMAGICK_SUPPORT)
 endif (IMAGEMAGICK_SUPPORT)
+
+set (OPENCV_DEFAULT OFF)
+option (OPENCV_SUPPORT "support OpenCV" ${OPENCV_DEFAULT})
+if (OPENCV_SUPPORT)
+ add_definitions (-DOPENCV_SUPPORT)
+endif (OPENCV_SUPPORT)
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/PreUIFramework.cmake)
 include (${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts/SetUIFramework.cmake)
@@ -187,10 +196,20 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  set (source_files
       ${source_files}
-     stream_vis_imagemagick_resize.cpp
-     stream_vis_imagemagick_resize.h
-     stream_vis_imagemagick_resize.inl)
+      stream_vis_imagemagick_resize.cpp
+      stream_vis_imagemagick_resize.h
+      stream_vis_imagemagick_resize.inl)
 endif (IMAGEMAGICK_SUPPORT)
+if (OPENCV_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_opencv.cpp
+      stream_vis_opencv.h
+      stream_vis_opencv.inl
+      stream_vis_opencv_classifier.cpp
+      stream_vis_opencv_classifier.h
+      stream_vis_opencv_classifier.inl)
+endif (OPENCV_SUPPORT)
 
 if (UNIX)
  set (source_files
