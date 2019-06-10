@@ -144,24 +144,33 @@ Stream_Visualization_OpenCVClassifier_T<ACE_SYNCH_USE,
                      cv::Mat::AUTO_STEP);
 
   // step1: convert to grayscale (why ?)
-  cv::Mat frame_gray;
-  cv::cvtColor (frame_mat, frame_gray, cv::COLOR_BGRA2GRAY);
-  cv::equalizeHist (frame_gray, frame_gray);
+//  cv::Mat frame_gray;
+//  cv::cvtColor (frame_mat, frame_gray, cv::COLOR_BGRA2GRAY);
+//  cv::equalizeHist (frame_gray, frame_gray);
 
   // step2: detect feature(s)
   std::vector<cv::Rect> features_a;
-  cascadeClassifier_.detectMultiScale (frame_gray,   // image
+  cascadeClassifier_.detectMultiScale (//frame_gray,   // image
+                                       frame_mat,
                                        features_a,   // features
                                        1.1,          // scale factor
                                        3,            // min. neighbours
                                        0,            // flags
                                        cv::Size (),  // min. size
                                        cv::Size ()); // max. Size
+
+  // step3: draw feature(s) into the frame
   for (unsigned int i = 0;
        i < features_a.size ();
        ++i)
-    cv::rectangle (frame_mat, features_a[i], (255, 0, 0), 1, cv::LINE_8, 0);
+    cv::rectangle (frame_mat,              // image
+                   features_a[i],          // rectangle
+                   cv::Scalar (255, 0, 0), // color (blue)
+                   1,                      // thickness
+                   cv::LINE_8,             // line type
+                   0);                     // shift
 
+  // step4: show result
   cv::imshow (cv::String (ACE_TEXT_ALWAYS_CHAR ("frame")),
 //              image_BGR);
               frame_mat);
