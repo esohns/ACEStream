@@ -60,12 +60,15 @@
 
 #include "test_u_common.h"
 
+#include "http_get_message.h"
+#include "http_get_session_message.h"
+
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
                                 struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
-class HTTPGet_Message;
-class HTTPGet_SessionMessage;
+//class HTTPGet_Message;
+//class HTTPGet_SessionMessage;
 struct HTTPGet_SessionData;
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 struct HTTPGet_StreamState;
@@ -146,7 +149,7 @@ typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 struct Net_StreamConnectionState,
                                 Net_StreamStatistic_t,
                                 HTTPGet_NetStream_t,
-                                struct Net_UserData> HTTPGet_SSLTCPConnection_t;
+                                struct Net_UserData> HTTPGet_SSLConnection_t;
 #endif // SSL_SUPPORT
 typedef Net_AsynchTCPConnectionBase_T<Net_AsynchTCPSocketHandler_t,
                                       HTTPGet_ConnectionConfiguration_t,
@@ -174,14 +177,14 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                HTTPGet_NetStream_t,
                                struct Net_UserData> HTTPGet_TCPConnector_t;
 #if defined (SSL_SUPPORT)
-typedef Net_Client_SSL_Connector_T<HTTPGet_SSLTCPConnection_t,
+typedef Net_Client_SSL_Connector_T<HTTPGet_SSLConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
                                    HTTPGet_ConnectionConfiguration_t,
                                    struct Net_StreamConnectionState,
                                    Net_StreamStatistic_t,
                                    HTTPGet_NetStream_t,
-                                   struct Net_UserData> HTTPGet_SSLTCPConnector_t;
+                                   struct Net_UserData> HTTPGet_SSLConnector_t;
 #endif // SSL_SUPPORT
 typedef Net_Client_AsynchConnector_T<HTTPGet_AsynchTCPConnection_t,
                                      ACE_INET_Addr,

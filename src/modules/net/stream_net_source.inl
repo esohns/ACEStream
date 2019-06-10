@@ -259,17 +259,17 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
   ACE_ASSERT (!configuration_in.connectionConfigurations->empty ());
 
   Net_ConnectionConfigurationsIterator_t iterator =
-    inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
-  if (iterator == inherited::configuration_->connectionConfigurations->end ())
+    configuration_in.connectionConfigurations->find (inherited::mod_->name ());
+  if (iterator == configuration_in.connectionConfigurations->end ())
     iterator =
-      inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+      configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
 #if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: applying connection configuration\n"),
+                ACE_TEXT ("%s: applying dedicated connection configuration\n"),
                 inherited::mod_->name ()));
 #endif // _DEBUG
-  ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
+  ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
   switch (connector_.transportLayer ())
   {
     case NET_TRANSPORTLAYER_TCP:

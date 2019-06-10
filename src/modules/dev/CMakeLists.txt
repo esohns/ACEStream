@@ -111,7 +111,7 @@ target_include_directories (${PROJECT_NAME}_Device PUBLIC
 
 ############## next target ################
 set (source_files
-     stream_dev_exports.h
+#     stream_dev_exports.h
      stream_dev_common.h
      stream_dev_defines.h
      stream_dev_tools.cpp
@@ -219,7 +219,7 @@ export (TARGETS ${PROJECT_NAME}_Device
 ############### install files ################
 if (UNIX)
  install (FILES
-          stream_dev_exports.h
+#          stream_dev_exports.h
           stream_dev_common.h
           stream_dev_defines.h
           stream_dev_tools.h

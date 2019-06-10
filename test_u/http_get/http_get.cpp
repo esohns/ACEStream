@@ -645,18 +645,17 @@ do_work (unsigned int bufferSize_in,
     CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       bufferSize_in;
 
-  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
-    &message_allocator;
-  CBData_in.configuration->streamConfiguration.configuration_.module =
+  struct Stream_Configuration steam_configuration;
+  steam_configuration.messageAllocator = &message_allocator;
+  steam_configuration.module =
     (!interfaceDefinitionFile_in.empty () ? &event_handler_module
                                           : NULL);
-  CBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                       std::make_pair (module_configuration,
-                                                                                       modulehandler_configuration)));
-  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
-      true;
-  CBData_in.configuration->streamConfiguration.configuration_.userData =
-    &CBData_in.configuration->userData;
+  steam_configuration.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           modulehandler_configuration,
+                                                           CBData_in.configuration->allocatorConfiguration,
+                                                           steam_configuration);
+  CBData_in.stream = &stream;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
@@ -1171,6 +1170,8 @@ ACE_TMAIN (int argc_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  ui_cb_data.progressData.state = &state_r;
+
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;

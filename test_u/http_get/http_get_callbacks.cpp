@@ -85,13 +85,14 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (thread_data_p->CBData);
   ACE_ASSERT (thread_data_p->CBData->configuration);
+  ACE_ASSERT (thread_data_p->CBData->stream);
 
   iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc) fails to 'dynamic cast'
+  // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc ?) fails to 'dynamic cast'
   //                   Stream_IStream_T to Stream_IStreamControlBase
   //                   --> upcast to ACE_Stream first
   Stream_Base_t* stream_base_p =
@@ -393,12 +394,12 @@ idle_initialize_ui_cb (gpointer userData_in)
   } // end IF
 
   GtkCheckButton* check_button_p =
-    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_ASYNCH)));
-  ACE_ASSERT (check_button_p);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                (ui_cb_data_p->configuration->signalHandlerConfiguration.dispatchState->proactorGroupId != -1));
-  check_button_p =
+//    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                              ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_ASYNCH)));
+//  ACE_ASSERT (check_button_p);
+//  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+//                                (ui_cb_data_p->configuration->signalHandlerConfiguration.dispatchState->proactorGroupId != -1));
+//  check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_SAVE)));
   ACE_ASSERT (check_button_p);
@@ -780,8 +781,11 @@ idle_update_info_display_cb (gpointer userData_in)
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
     for (Common_UI_Events_t::ITERATOR iterator_2 (state_r.eventStack);
-         !iterator_2.done ();
-         iterator_2.next (event_p))
+         iterator_2.next (event_p);
+         iterator_2.advance ())
+//    for (Common_UI_Events_t::ITERATOR iterator_2 (state_r.eventStack);
+//         !iterator_2.done ();
+//         iterator_2.next (event_p))
     { ACE_ASSERT (event_p);
       switch (*event_p)
       {
@@ -1082,6 +1086,9 @@ button_execute_clicked_cb (GtkButton* button_in,
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("URL: \"%s\"\n"),
+              ACE_TEXT (gtk_entry_get_text (entry_p))));
   (*iterator_2).second.second.URL = gtk_entry_get_text (entry_p);
   // step1: parse URL
   std::string hostname_string, URI_string;
@@ -1109,7 +1116,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   } // end IF
   result =
 	  NET_SOCKET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->address.set (hostname_string_2.c_str (),
-		                                                                     AF_INET);
+                                                                           AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,

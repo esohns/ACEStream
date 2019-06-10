@@ -263,7 +263,36 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_MESSAGE_BEGIN:
+//    case STREAM_SESSION_MESSAGE_BEGIN:
+//    {
+//      // sanity check(s)
+//      ACE_ASSERT (inherited::configuration_);
+
+//      // send HTTP request
+//      if (!send (inherited::configuration_->URL,
+//                 inherited::configuration_->HTTPHeaders,
+//                 inherited::configuration_->HTTPForm))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", aborting\n"),
+//                    inherited::mod_->name (),
+//                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
+//        goto error;
+//      } // end IF
+//#if defined (_DEBUG)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
+//                  inherited::mod_->name (),
+//                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
+//#endif // _DEBUG
+//      break;
+
+//error:
+//      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+//      break;
+//    }
+    case STREAM_SESSION_MESSAGE_CONNECT:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
@@ -279,7 +308,12 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
         goto error;
       } // end IF
-
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
+#endif // _DEBUG
       break;
 
 error:
@@ -322,7 +356,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: applying connection configuration\n"),
+                ACE_TEXT ("%s: applying dedicated connection configuration\n"),
                 inherited::mod_->name ()));
 #endif // _DEBUG
   ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
@@ -345,10 +379,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
                 inherited::mod_->name ()));
-
-    // clean up
-    delete message_data_p;
-
+    delete message_data_p; message_data_p = NULL;
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_p)

@@ -76,7 +76,7 @@ target_include_directories (${PROJECT_NAME}_Database PUBLIC
 
 ############## next target ################
 set (source_files
-     stream_db_exports.h
+#     stream_db_exports.h
      stream_module_db_common.h
      stream_module_db_defines.h
      stream_module_db_tools.cpp
@@ -143,7 +143,7 @@ export (TARGETS ${PROJECT_NAME}_Database
 
 ############### install files ################
 install (FILES
-         stream_db_exports.h
+#         stream_db_exports.h
          stream_module_db_common.h
          stream_module_db_defines.h
          stream_module_db_tools.h

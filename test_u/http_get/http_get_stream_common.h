@@ -109,19 +109,6 @@ typedef std::list<HTTPGet_Notification_t*> HTTPGet_Subscribers_t;
 typedef HTTPGet_Subscribers_t::iterator HTTPGet_SubscribersIterator_t;
 
 // forward declarations
-struct HTTPGet_Configuration;
-//struct HTTPGet_ConnectionConfiguration;
-//struct HTTPGet_ConnectionState;
-//typedef Net_IConnection_T<ACE_INET_Addr,
-//                          HTTPGet_ConnectionConfiguration_t,
-//                          struct HTTPGet_ConnectionState,
-//                          Test_U_Statistic_t> HTTPGet_IConnection_t;
-//typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
-//                                 ACE_INET_Addr,
-//                                 HTTPGet_ConnectionConfiguration_t,
-//                                 struct HTTPGet_ConnectionState,
-//                                 Test_U_Statistic_t,
-//                                 struct Stream_UserData> HTTPGet_ConnectionManager_t;
 //extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
@@ -129,6 +116,19 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
+                                      HTTPGet_StreamConfiguration_t,
+                                      NET_TRANSPORTLAYER_TCP> HTTPGet_ConnectionConfiguration_t;
+typedef Net_IConnection_T<ACE_INET_Addr,
+                          HTTPGet_ConnectionConfiguration_t,
+                          struct Net_StreamConnectionState,
+                          Net_StreamStatistic_t> HTTPGet_IConnection_t;
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
+                                 HTTPGet_ConnectionConfiguration_t,
+                                 struct Net_StreamConnectionState,
+                                 Net_StreamStatistic_t,
+                                 struct Net_UserData> HTTPGet_ConnectionManager_t;
 struct HTTPGet_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {

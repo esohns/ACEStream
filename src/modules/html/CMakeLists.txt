@@ -57,7 +57,7 @@ set (source_files
      stream_module_xpathquery.cpp
      stream_module_xpathquery.h
      stream_module_xpathquery.inl
-     stream_html_exports.h
+#     stream_html_exports.h
      stream_html_tools.cpp
      stream_html_tools.h)
 
@@ -113,7 +113,7 @@ install (FILES
          stream_module_htmlwriter.inl
          stream_module_xpathquery.h
          stream_module_xpathquery.inl
-         stream_html_exports.h
+#         stream_html_exports.h
          stream_html_tools.h
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)

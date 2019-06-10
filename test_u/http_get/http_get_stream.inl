@@ -22,16 +22,29 @@
 
 #include "stream_macros.h"
 
-template <typename ConnectorType>
-HTTPGet_Stream_T<ConnectorType>::HTTPGet_Stream_T ()
+#include "stream_file_defines.h"
+
+#include "stream_net_defines.h"
+#include "stream_net_http_defines.h"
+
+#include "stream_stat_defines.h"
+
+#include "http_tools.h"
+
+template <typename TCPConnectorType,
+          typename SSLConnectorType>
+HTTPGet_Stream_T<TCPConnectorType,
+                 SSLConnectorType>::HTTPGet_Stream_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::HTTPGet_Stream_T"));
 
 }
 
-template <typename ConnectorType>
-HTTPGet_Stream_T<ConnectorType>::~HTTPGet_Stream_T ()
+template <typename TCPConnectorType,
+          typename SSLConnectorType>
+HTTPGet_Stream_T<TCPConnectorType,
+                 SSLConnectorType>::~HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::~HTTPGet_Stream_T"));
 
@@ -39,52 +52,62 @@ HTTPGet_Stream_T<ConnectorType>::~HTTPGet_Stream_T ()
   inherited::shutdown ();
 }
 
-template <typename ConnectorType>
+template <typename TCPConnectorType,
+          typename SSLConnectorType>
 bool
-HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
-                                       bool& delete_out)
+HTTPGet_Stream_T<TCPConnectorType,
+                 SSLConnectorType>::load (Stream_ILayout* layout_inout,
+                                          bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::load"));
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  HTTPGet_FileWriter_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  HTTPGet_HTTPGet_Module (this,
-                                          ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  SOURCE_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetSource")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  HTTPGet_StatisticReport_Module (this,
-                                                  ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
                   HTTPGet_HTTPMarshal_Module (this,
                                               ACE_TEXT_ALWAYS_CHAR ("Marshal")),
                   false);
-  modules_out.push_back (module_p);
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
+//  ACE_NEW_RETURN (module_p,
+//                  HTTPGet_StatisticReport_Module (this,
+//                                                  ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+//                  false);
+//  ACE_ASSERT (module_p);
+//  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TCP_SOURCE_MODULE_T (this,
+                                       ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  HTTPGet_HTTPGet_Module (this,
+                                          ACE_TEXT_ALWAYS_CHAR (MODULE_NET_HTTP_GET_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  HTTPGet_FileWriter_Module (this,
+                                             ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
 
   delete_out = true;
 
   return true;
 }
 
-template <typename ConnectorType>
+template <typename TCPConnectorType,
+          typename SSLConnectorType>
 bool
-HTTPGet_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+HTTPGet_Stream_T<TCPConnectorType,
+                 SSLConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::initialize"));
 
@@ -170,6 +193,54 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURA
 
   // -------------------------------------------------------------
 
+  if (HTTP_Tools::URLRequiresSSL (configuration_p->URL))
+  {
+    ACE_NEW_RETURN (module_p,
+                    SSL_SOURCE_MODULE_T (this,
+                                         ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)),
+                    false);
+    ACE_ASSERT (module_p);
+    SSL_SOURCE_MODULE_T* module_2 =
+        dynamic_cast<SSL_SOURCE_MODULE_T*> (module_p);
+    ACE_ASSERT (module_2);
+    module_2->initialize ((*iterator).second.first);
+    module_2->reset ();
+    SSL_SOURCE_WRITER_T* task_p =
+        dynamic_cast<SSL_SOURCE_WRITER_T*> (module_2->writer ());
+    ACE_ASSERT (task_p);
+//    Common_IInitialize_T<struct HTTPGet_ModuleHandlerConfiguration>* iinitialize_p =
+//        dynamic_cast<Common_IInitialize_T<struct HTTPGet_ModuleHandlerConfiguration>*> (module_p->writer ());
+//    ACE_ASSERT (iinitialize_p);
+//    if (!iinitialize_p->initialize (*configuration_p))
+    if (!task_p->initialize (*configuration_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Stream::replace(\"%s\"): \"%m\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)));
+      delete module_p; module_p = NULL;
+      goto failed;
+    } // end IF
+    int result = inherited::replace (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING),
+                                     module_p,
+                                     M_DELETE);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Stream::replace(\"%s\"): \"%m\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
+                  ACE_TEXT (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)));
+      delete module_p; module_p = NULL;
+      goto failed;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: HTTPS URL; replaced module \"%s\", continuing\n"),
+                ACE_TEXT (stream_name_string_),
+                ACE_TEXT (MODULE_NET_SOURCE_DEFAULT_NAME_STRING)));
+#endif // _DEBUG
+  } // end IF
+
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 
@@ -185,116 +256,4 @@ failed:
                 ACE_TEXT (stream_name_string_)));
 
   return false;
-}
-
-template <typename ConnectorType>
-bool
-HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::collect"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  int result = -1;
-  struct HTTPGet_SessionData& session_data_r =
-      const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->getR ());
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("StatisticReport")));
-    return false;
-  } // end IF
-  HTTPGet_StatisticReport_WriterTask_t* statistic_report_impl_p =
-    dynamic_cast<HTTPGet_StatisticReport_WriterTask_t*> (module_p->writer ());
-  if (!statistic_report_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_Module_StatisticReport_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    return false;
-  } // end IF
-
-  // synch access
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->acquire ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (stream_name_string_)));
-      return false;
-    } // end IF
-  } // end IF
-
-  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
-
-  // delegate to the statistic module
-  bool result_2 = false;
-  try {
-    result_2 = statistic_report_impl_p->collect (data_out);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (stream_name_string_)));
-  }
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-  else
-    session_data_r.statistic = data_out;
-
-  if (session_data_r.lock)
-  {
-    result = session_data_r.lock->release ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (stream_name_string_)));
-  } // end IF
-
-  return result_2;
-}
-
-template <typename ConnectorType>
-void
-HTTPGet_Stream_T<ConnectorType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::report"));
-
-//   Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-template <typename ConnectorType>
-void
-HTTPGet_Stream_T<ConnectorType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }

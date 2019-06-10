@@ -61,7 +61,7 @@ target_include_directories (${PROJECT_NAME}_Network PUBLIC
 set (source_files
      stream_net_common.h
      stream_net_defines.h
-     stream_net_exports.h
+#     stream_net_exports.h
      stream_net_io.cpp
      stream_net_io.h
      stream_net_io.inl
@@ -123,7 +123,7 @@ export (TARGETS ${PROJECT_NAME}_Network
 install (FILES
          stream_net_common.h
          stream_net_defines.h
-         stream_net_exports.h
+#         stream_net_exports.h
          stream_net_io.h
          stream_net_io.inl
          stream_net_io_stream.h
