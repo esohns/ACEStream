@@ -60,16 +60,16 @@ if (UNIX)
 
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (/usr/local/src/ACE_wrappers)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/cmake)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/ACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/cmake)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../ACENetwork/src/client_server)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})

@@ -694,7 +694,6 @@ do_work (const std::string& bootstrapFileName_in,
          const std::string& templateFileName_in,
          const std::string& hostName_in,
          const std::string& configurationFileName_in,
-         bool useThreadPool_in,
          const std::string& fileName_in,
          unsigned short port_in,
          bool useReactor_in,
@@ -722,9 +721,9 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
     TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  Net_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
-                                            connection_manager_p,
-                                            false);
+  Net_StreamStatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
+                                                  connection_manager_p,
+                                                  false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
@@ -890,7 +889,8 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
 
   // step0c: (re-)configure connection manager
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                    ACE_Time_Value (NET_STATISTIC_DEFAULT_COLLECTION_INTERVAL_MS, 0));
   connection_manager_p->set (*dynamic_cast<Test_I_HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
                              &user_data_s);
 
@@ -1159,7 +1159,6 @@ ACE_TMAIN (int argc_in,
   output_file = path;
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  use_thread_pool = COMMON_EVENT_REACTOR_DEFAULT_USE_THREADPOOL;
   port = TEST_I_DEFAULT_PORT;
   use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
@@ -1304,7 +1303,6 @@ ACE_TMAIN (int argc_in,
            template_file,
            host_name,
            configuration_file,
-           use_thread_pool,
            output_file,
            port,
            use_reactor,
