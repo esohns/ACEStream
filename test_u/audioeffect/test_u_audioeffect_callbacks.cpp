@@ -3328,21 +3328,16 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // GTK_CHECK_VERSION (2,12,0)
 #endif // GTK_CHECK_VERSION (3,0,0)
 
-  GtkBox* box_p = NULL;
+//  GtkBox* box_p = NULL;
 #if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-//  GError* error_p = NULL;
-  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
-  if (!gl_area_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-//  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (gl_area_p));
-//  ACE_ASSERT (window_p);
+  GtkGLArea* gl_area_p =
+    GTK_GL_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_NAME)));
+  ACE_ASSERT (gl_area_p);
+  gtk_widget_realize (GTK_WIDGET (gl_area_p));
   GdkGLContext* context_p = gtk_gl_area_get_context (gl_area_p);
   ACE_ASSERT (context_p);
   ACE_ASSERT (ui_cb_data_base_p->UIState);
@@ -3542,19 +3537,19 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 
-  box_p =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_box_pack_start (box_p,
-                      GTK_WIDGET ((*opengl_contexts_iterator).first),
-                      TRUE, // expand
-                      TRUE, // fill
-                      0);   // padding
+//  box_p =
+//    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+//                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
+//  ACE_ASSERT (box_p);
+//  gtk_box_pack_start (box_p,
+//                      GTK_WIDGET ((*opengl_contexts_iterator).first),
+//                      TRUE, // expand
+//                      TRUE, // fill
+//                      0);   // padding
 #if GTK_CHECK_VERSION(3,8,0)
-  gtk_builder_expose_object ((*iterator).second.second,
-                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
-                             G_OBJECT ((*opengl_contexts_iterator).first));
+//  gtk_builder_expose_object ((*iterator).second.second,
+//                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
+//                             G_OBJECT ((*opengl_contexts_iterator).first));
 #endif /* GTK_CHECK_VERSION (3,8,0) */
 #endif /* GTKGL_SUPPORT && GTKGL_USE */
 
@@ -3581,30 +3576,30 @@ idle_initialize_UI_cb (gpointer userData_in)
   //--------------------------------------
 
 #if defined (GTKGL_SUPPORT) && defined (GTKGL_USE)
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("realize"),
-                      G_CALLBACK (glarea_realize_cb),
-                      userData_in);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("realize"),
+//                      G_CALLBACK (glarea_realize_cb),
+//                      userData_in);
 #if GTK_CHECK_VERSION(3,0,0)
 #if GTK_CHECK_VERSION(3,16,0)
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("create-context"),
-                      G_CALLBACK (glarea_create_context_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("render"),
-                      G_CALLBACK (glarea_render_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
-                      ACE_TEXT_ALWAYS_CHAR ("resize"),
-                      G_CALLBACK (glarea_resize_cb),
-                      userData_in);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("create-context"),
+//                      G_CALLBACK (glarea_create_context_cb),
+//                      userData_in);
+//  ACE_ASSERT (result_2);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("render"),
+//                      G_CALLBACK (glarea_render_cb),
+//                      userData_in);
+//  ACE_ASSERT (result_2);
+//  result_2 =
+//    g_signal_connect (G_OBJECT ((*opengl_contexts_iterator).first),
+//                      ACE_TEXT_ALWAYS_CHAR ("resize"),
+//                      G_CALLBACK (glarea_resize_cb),
+//                      userData_in);
 #else
 #if defined (GTKGLAREA_SUPPORT)
   result_2 =
@@ -3839,7 +3834,7 @@ continue_:
     ACE_ASSERT (toggle_button_p);
     gtk_toggle_button_set_active (toggle_button_p,
                                   true);
-    box_p =
+    GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SAVE_NAME)));
     ACE_ASSERT (box_p);
@@ -3881,7 +3876,7 @@ continue_:
     ACE_ASSERT (toggle_button_p);
     gtk_toggle_button_set_active (toggle_button_p,
                                   true);
-    box_p =
+    GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_SINUS_NAME)));
     ACE_ASSERT (box_p);
@@ -3989,7 +3984,7 @@ continue_:
     gtk_toggle_button_set_active (toggle_button_p,
                                   true);
 
-    box_p =
+    GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_EFFECT_NAME)));
     ACE_ASSERT (box_p);
@@ -4059,7 +4054,7 @@ continue_:
                                     true);
     } // end IF
 
-    box_p =
+    GtkBox* box_p =
       GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_VISUALIZATION_NAME)));
     ACE_ASSERT (box_p);
@@ -4098,7 +4093,7 @@ continue_:
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.window);
+//  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.window);
   (*modulehandler_configuration_iterator).second.second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.window);
@@ -4883,7 +4878,7 @@ continue_:
 #if GTK_CHECK_VERSION(3,16,0)
   GtkGLArea* gl_area_p =
     GTK_GL_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME)));
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_NAME)));
   ACE_ASSERT (gl_area_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)

@@ -175,8 +175,8 @@ glarea_realize_cb (GtkWidget* widget_in,
                                               context_p);
   if (!result)
 #endif // GTKGLAREA_SUPPORT
-#endif // GTK_CHECK_VERSION(3,0,0)
     return;
+#endif // GTK_CHECK_VERSION(3,0,0)
 
 #if GTK_CHECK_VERSION(3,0,0)
 #else
@@ -379,8 +379,6 @@ GdkGLContext*
 glarea_create_context_cb (GtkGLArea* GLArea_in,
                           gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::glarea_create_context_cb"));
-
   // sanity check(s)
   ACE_ASSERT (GLArea_in);
   ACE_ASSERT (userData_in);
@@ -543,10 +541,12 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
+  if (!(*modulehandler_configuration_iterator).second.second.OpenGLTextureId)
+    glarea_realize_cb (GTK_WIDGET (GLArea_in), userData_in);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLTextureId);
 
   texture_id_p =
     &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
@@ -609,37 +609,6 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glTexCoord2f (1.0f, 0.0f); glVertex3f (-1.0f, -1.0f,  1.0f); // Bottom Right Of The Texture and Quad
   glTexCoord2f (1.0f, 1.0f); glVertex3f (-1.0f,  1.0f,  1.0f); // Top Right Of The Texture and Quad
   glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f,  1.0f, -1.0f); // Top Left Of The Texture and Quad
-
-  //// top of cube
-  //glVertex3f (1.0f, 1.0f, -1.0f);		// Top Right Of The Quad (Top)
-  //glVertex3f (-1.0f, 1.0f, -1.0f);		// Top Left Of The Quad (Top)
-  //glVertex3f (-1.0f, 1.0f, 1.0f);		// Bottom Left Of The Quad (Top)
-  //glVertex3f (1.0f, 1.0f, 1.0f);		// Bottom Right Of The Quad (Top)
-  //// bottom of cube
-  //glVertex3f (1.0f, -1.0f, 1.0f);		// Top Right Of The Quad (Bottom)
-  //glVertex3f (-1.0f, -1.0f, 1.0f);		// Top Left Of The Quad (Bottom)
-  //glVertex3f (-1.0f, -1.0f, -1.0f);		// Bottom Left Of The Quad (Bottom)
-  //glVertex3f (1.0f, -1.0f, -1.0f);		// Bottom Right Of The Quad (Bottom)
-  //// front of cube
-  //glVertex3f (1.0f, 1.0f, 1.0f);		// Top Right Of The Quad (Front)
-  //glVertex3f (-1.0f, 1.0f, 1.0f);		// Top Left Of The Quad (Front)
-  //glVertex3f (-1.0f, -1.0f, 1.0f);		// Bottom Left Of The Quad (Front)
-  //glVertex3f (1.0f, -1.0f, 1.0f);		// Bottom Right Of The Quad (Front)
-  //// back of cube.
-  //glVertex3f (1.0f, -1.0f, -1.0f);		// Top Right Of The Quad (Back)
-  //glVertex3f (-1.0f, -1.0f, -1.0f);		// Top Left Of The Quad (Back)
-  //glVertex3f (-1.0f, 1.0f, -1.0f);		// Bottom Left Of The Quad (Back)
-  //glVertex3f (1.0f, 1.0f, -1.0f);		// Bottom Right Of The Quad (Back)
-  //// left of cube
-  //glVertex3f (-1.0f, 1.0f, 1.0f);		// Top Right Of The Quad (Left)
-  //glVertex3f (-1.0f, 1.0f, -1.0f);		// Top Left Of The Quad (Left)
-  //glVertex3f (-1.0f, -1.0f, -1.0f);		// Bottom Left Of The Quad (Left)
-  //glVertex3f (-1.0f, -1.0f, 1.0f);		// Bottom Right Of The Quad (Left)
-  //// Right of cube
-  //glVertex3f (1.0f, 1.0f, -1.0f);	        // Top Right Of The Quad (Right)
-  //glVertex3f (1.0f, 1.0f, 1.0f);		// Top Left Of The Quad (Right)
-  //glVertex3f (1.0f, -1.0f, 1.0f);		// Bottom Left Of The Quad (Right)
-  //glVertex3f (1.0f, -1.0f, -1.0f);		// Bottom Right Of The Quad (Right)
 
   glEnd ();
   COMMON_GL_ASSERT;
@@ -794,9 +763,9 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
   glLoadIdentity ();
   COMMON_GL_ASSERT;
 
-  gluPerspective (30.0,
+  gluPerspective (45.0,
                   static_cast<GLdouble> (width_in) / static_cast<GLdouble> (height_in),
-                  1.0, 100.0);
+                  0.1, 100.0);
   COMMON_GL_ASSERT;
 
   glMatrixMode (GL_MODELVIEW);

@@ -1371,6 +1371,7 @@ do_work (unsigned int bufferSize_in,
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+    CBData_in.UIState = &state_r;
 #endif // GTK_USE
     CBData_in.stream = &stream;
     //CBData_in.userData = &CBData_in;
