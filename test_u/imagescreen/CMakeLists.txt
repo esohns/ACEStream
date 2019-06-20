@@ -202,7 +202,7 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 
 if (WIN32)
  if (MSVC)
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS "/SAFESEH:NO")
+  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
 #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
  endif (MSVC)

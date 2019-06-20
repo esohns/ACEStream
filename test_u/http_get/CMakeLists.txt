@@ -197,6 +197,11 @@ elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+
+ if (SSL_SUPPORT)
+  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/openssl/libcrypto.lib)
+  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/openssl/libssl.lib)
+ endif (SSL_SUPPORT)
 endif ()
 if (UNIX)
 # target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})

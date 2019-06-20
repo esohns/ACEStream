@@ -5475,7 +5475,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             itask_p =
               directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             result =
-              directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_ui_cb_data_p->configuration->listenerConfiguration);
+              directshow_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
             break;
           }
           case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5496,7 +5496,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             itask_p =
               mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener;
             result =
-              mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_ui_cb_data_p->configuration->listenerConfiguration);
+              mediafoundation_ui_cb_data_p->configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
             break;
           }
           default:

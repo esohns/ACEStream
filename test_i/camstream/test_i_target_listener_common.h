@@ -47,52 +47,46 @@ class Test_I_Target_ListenerConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Server_AsynchListener_T<Test_I_Target_DirectShow_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    Test_I_Target_DirectShow_ListenerConfiguration,
-                                    struct Net_StreamConnectionState,
                                     Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                                    struct Net_StreamConnectionState,
                                     Test_I_Target_DirectShow_TCPStream,
                                     struct Net_UserData> Test_I_Target_DirectShow_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              Test_I_Target_DirectShow_ListenerConfiguration,
-                              struct Net_StreamConnectionState,
                               Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                              struct Net_StreamConnectionState,
                               Test_I_Target_DirectShow_TCPStream,
                               struct Net_UserData> Test_I_Target_DirectShow_Listener_t;
 #if defined (SSL_USE)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  Test_I_Target_DirectShow_ListenerConfiguration,
-                                  struct Net_StreamConnectionState,
                                   Test_I_Target_DirectShow_TCPConnectionConfiguration_t,
+                                  struct Net_StreamConnectionState,
                                   Test_I_Target_DirectShow_TCPStream,
                                   struct Net_UserData> Test_I_Target_DirectShow_SSLListener_t;
 #endif // SSL_USE
 
 typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    Test_I_Target_MediaFoundation_ListenerConfiguration,
-                                    struct Net_StreamConnectionState,
                                     Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                                    struct Net_StreamConnectionState,
                                     Test_I_Target_MediaFoundation_TCPStream,
                                     struct Net_UserData> Test_I_Target_MediaFoundation_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              Test_I_Target_MediaFoundation_ListenerConfiguration,
-                              struct Net_StreamConnectionState,
                               Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                              struct Net_StreamConnectionState,
                               Test_I_Target_MediaFoundation_TCPStream,
                               struct Net_UserData> Test_I_Target_MediaFoundation_Listener_t;
 #if defined (SSL_USE)
 typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  Test_I_Target_MediaFoundation_ListenerConfiguration,
-                                  struct Net_StreamConnectionState,
                                   Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t,
+                                  struct Net_StreamConnectionState,
                                   Test_I_Target_MediaFoundation_TCPStream,
                                   struct Net_UserData> Test_I_Target_MediaFoundation_SSLListener_t;
 #endif // SSL_USE

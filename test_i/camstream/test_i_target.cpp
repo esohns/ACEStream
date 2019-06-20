@@ -1256,11 +1256,13 @@ do_work (unsigned int bufferSize_in,
       directshow_tcp_connection_manager_p =
         TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       directshow_tcp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                                     : std::numeric_limits<unsigned int>::max ());
+                                                                                     : std::numeric_limits<unsigned int>::max (),
+                                                       ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       directshow_udp_connection_manager_p =
         TEST_I_TARGET_DIRECTSHOW_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
       directshow_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                                     : std::numeric_limits<unsigned int>::max ());
+                                                                                     : std::numeric_limits<unsigned int>::max (),
+                                                       ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       (*directshow_modulehandler_iterator).second.second.connectionManager =
         directshow_tcp_connection_manager_p;
       report_handler_p = directshow_tcp_connection_manager_p;
@@ -1277,11 +1279,13 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_tcp_connection_manager_p =
         TEST_I_TARGET_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       mediafoundation_tcp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                                          : std::numeric_limits<unsigned int>::max ());
+                                                                                          : std::numeric_limits<unsigned int>::max (),
+                                                            ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       mediafoundation_udp_connection_manager_p =
         TEST_I_TARGET_MEDIAFOUNDATION_UDP_CONNECTIONMANAGER_SINGLETON::instance ();
       mediafoundation_udp_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
-                                                                                          : std::numeric_limits<unsigned int>::max ());
+                                                                                          : std::numeric_limits<unsigned int>::max (),
+                                                            ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
         mediafoundation_tcp_connection_manager_p;
       report_handler_p = mediafoundation_tcp_connection_manager_p;
@@ -1566,24 +1570,24 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_configuration.listenerConfiguration.connectionConfiguration =
-        dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second);
-      directshow_configuration.listenerConfiguration.connectionManager =
-        directshow_tcp_connection_manager_p;
-      directshow_configuration.listenerConfiguration.statisticReportingInterval =
-        statisticReportingInterval_in;
+      //directshow_configuration.listenerConfiguration.connectionConfiguration =
+      //  dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second);
+      //directshow_configuration.listenerConfiguration.connectionManager =
+      //  directshow_tcp_connection_manager_p;
+      //directshow_configuration.listenerConfiguration.statisticReportingInterval =
+      //  statisticReportingInterval_in;
       //(*connection_configuration_iterator).second->useLoopBackDevice =
       //  useLoopBack_in;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_configuration.listenerConfiguration.connectionConfiguration =
-        dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second);
-      mediafoundation_configuration.listenerConfiguration.connectionManager =
-        mediafoundation_tcp_connection_manager_p;
-      mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
-        statisticReportingInterval_in;
+      //mediafoundation_configuration.listenerConfiguration.connectionConfiguration =
+      //  dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second);
+      //mediafoundation_configuration.listenerConfiguration.connectionManager =
+      //  mediafoundation_tcp_connection_manager_p;
+      //mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
+      //  statisticReportingInterval_in;
       //(*connection_configuration_iterator).second->useLoopBackDevice =
       //  useLoopBack_in;
       break;
@@ -2229,13 +2233,13 @@ do_work (unsigned int bufferSize_in,
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
           result_2 =
-            directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (directshow_configuration.listenerConfiguration);
+            directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
           result_2 =
-            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_configuration.listenerConfiguration);
+            mediaFoundationCBData_in.configuration->signalHandlerConfiguration.listener->initialize (*dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second));
           break;
         }
         default:

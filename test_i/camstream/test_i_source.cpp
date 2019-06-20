@@ -1341,7 +1341,8 @@ do_work (const std::string& deviceIdentifier_in,
       directshow_tcp_connection_manager_p =
         TEST_I_SOURCE_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       ACE_ASSERT (directshow_tcp_connection_manager_p);
-      directshow_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+      directshow_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                                       ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       directshow_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                 &user_data_s);
       (*directshow_modulehandler_iterator).second.second.connectionManager =
@@ -1359,7 +1360,8 @@ do_work (const std::string& deviceIdentifier_in,
       mediafoundation_tcp_connection_manager_p =
         TEST_I_SOURCE_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       ACE_ASSERT (mediafoundation_tcp_connection_manager_p);
-      mediafoundation_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+      mediafoundation_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
+                                                            ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                      &user_data_s);
       (*mediafoundation_modulehandler_iterator).second.second.connectionManager =

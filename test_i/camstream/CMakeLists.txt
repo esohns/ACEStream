@@ -516,7 +516,7 @@ endif ()
 
 if (WIN32)
  if (MSVC)
-  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS "/SAFESEH:NO")
+  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /SAFESEH:NO)
  endif (MSVC)
 endif (WIN32)
 
