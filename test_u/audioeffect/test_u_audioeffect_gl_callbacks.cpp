@@ -245,9 +245,7 @@ glarea_realize_cb (GtkWidget* widget_in,
   if (*texture_id_p > 0)
   {
     glDeleteTextures (1, texture_id_p);
-#if defined (_DEBUG)
     COMMON_GL_ASSERT;
-#endif
     *texture_id_p = 0;
   } // end IF
   static GLubyte* image_p = NULL;
@@ -279,26 +277,17 @@ glarea_realize_cb (GtkWidget* widget_in,
                              &allocation);
   glViewport (0, 0,
               static_cast<GLsizei> (allocation.width), static_cast<GLsizei> (allocation.height));
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
 
   glMatrixMode (GL_PROJECTION);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
-
   glLoadIdentity (); // Reset The Projection Matrix
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
 
-  gluPerspective (30.0, // 45.0,
+  gluPerspective (45.0,
                   static_cast<GLdouble> (allocation.width) / static_cast<GLdouble> (allocation.height),
-                  1.0, 100.0); // 0.1,100.0
-#if defined (_DEBUG)
+                  0.1, 100.0);
   COMMON_GL_ASSERT;
-#endif
   //  GLdouble fW, fH;
 //  fH =
 //   ::tan (60.0 / 360.0 * M_PI) *
@@ -316,13 +305,9 @@ glarea_realize_cb (GtkWidget* widget_in,
   // position and looking-at direction)
 
   glMatrixMode (GL_MODELVIEW);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
   glLoadIdentity (); // reset the projection matrix
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
 
   /* light */
 //  GLfloat light_positions[2][4]   = { 50.0, 50.0, 0.0, 0.0,
@@ -339,25 +324,15 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   // set up light colors (ambient, diffuse, specular)
   glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
   glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
   glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
   glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
   glEnable (GL_LIGHT0);
-#if defined (_DEBUG)
   COMMON_GL_ASSERT;
-#endif
 
 #if GTK_CHECK_VERSION(3,0,0)
 #else
@@ -455,10 +430,10 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   COMMON_GL_ASSERT;
   glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
   COMMON_GL_ASSERT;
-  //glEnable (GL_BLEND);                                // Enable Semi-Transparency
-  //COMMON_GL_ASSERT;
-  //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //COMMON_GL_ASSERT;
+  glEnable (GL_BLEND);                                // Enable Semi-Transparency
+  COMMON_GL_ASSERT;
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  COMMON_GL_ASSERT;
   glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
   COMMON_GL_ASSERT;
 
@@ -544,14 +519,80 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-  if (!(*modulehandler_configuration_iterator).second.second.OpenGLTextureId)
-    glarea_realize_cb (GTK_WIDGET (GLArea_in), userData_in);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLTextureId);
+//  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLTextureId);
 
   texture_id_p =
     &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
+
+  static bool is_first = true;
+  if (is_first)
+  {
+    is_first = false;
+
+    // initialize options
+    glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
+    COMMON_GL_ASSERT;
+    //glClearDepth (1.0);                                 // Depth Buffer Setup
+    //COMMON_GL_ASSERT;
+    /* speedups */
+    //  glDisable (GL_CULL_FACE);
+    //  glEnable (GL_DITHER);
+    //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
+//    COMMON_GL_ASSERT;
+    glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+    COMMON_GL_ASSERT;
+    glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+    COMMON_GL_ASSERT;
+    glDepthMask (GL_TRUE);
+    COMMON_GL_ASSERT;
+    glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
+    COMMON_GL_ASSERT;
+    glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+    COMMON_GL_ASSERT;
+    glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    COMMON_GL_ASSERT;
+    glEnable (GL_BLEND);                                // Enable Semi-Transparency
+    COMMON_GL_ASSERT;
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glBlendFunc (GL_ONE, GL_ZERO);
+//    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    COMMON_GL_ASSERT;
+    glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+    COMMON_GL_ASSERT;
+
+    glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    COMMON_GL_ASSERT;
+    glEnable (GL_COLOR_MATERIAL);
+    COMMON_GL_ASSERT;
+    glEnable (GL_NORMALIZE);
+    COMMON_GL_ASSERT;
+//    glEnable (GL_LIGHTING);
+//    COMMON_GL_ASSERT;
+
+    // initialize texture
+    std::string filename = Common_File_Tools::getWorkingDirectory ();
+    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+    filename += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
+    filename +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
+    *texture_id_p = Common_GL_Tools::loadTexture (filename);
+    if (!*texture_id_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_GL_Texture::load(\"%s\"), returning\n"),
+                  ACE_TEXT (filename.c_str ())));
+      return FALSE;
+    } // end IF
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("OpenGL texture id: %u\n"),
+                *texture_id_p));
+#endif // _DEBUG
+  } // end IF
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // *TODO*: find out why this reports GL_INVALID_OPERATION
@@ -563,7 +604,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   glLoadIdentity ();				// Reset the transformation matrix.
   COMMON_GL_ASSERT;
 
-  glTranslatef (0.0f, 0.0f, -7.0f);		// Move back into the screen 7
+  glTranslatef (0.0f, 0.0f, -5.0f);		// Move back into the screen 7
   COMMON_GL_ASSERT;
 
   static GLfloat cube_rotation = 0.0f;
