@@ -42,12 +42,6 @@
 #include "stream_statemachine_common.h"
 #include "stream_statistic.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_lib_directshow_common.h"
-#else
-#include "stream_lib_v4l_common.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Message_Queue;

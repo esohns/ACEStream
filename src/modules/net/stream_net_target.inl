@@ -430,7 +430,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       else
       {
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-        ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
         ACE_Time_Value deadline;
 
         // step0: wait for the connection attempt to complete

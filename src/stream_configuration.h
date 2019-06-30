@@ -26,7 +26,10 @@
 #include <utility>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <mfobjects.h>
+// *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
+#include <ks.h>
+//#include <mfobjects.h>
+#include <strmif.h>
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
@@ -52,6 +55,10 @@
 // forward declarations
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//struct _AMMediaType;
+class IMFMediaType;
+#endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration

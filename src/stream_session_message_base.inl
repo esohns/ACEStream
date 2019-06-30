@@ -24,6 +24,8 @@
 #include "ace/Malloc_Base.h"
 #include "ace/Time_Value.h"
 
+#include "common_macros.h"
+
 #include "stream_iallocator.h"
 #include "stream_macros.h"
 

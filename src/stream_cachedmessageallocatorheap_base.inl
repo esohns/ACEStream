@@ -18,7 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
+
 #include "ace/Log_Msg.h"
+
+#include "common_macros.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
@@ -41,21 +45,10 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::Stream_CachedMessageAllocatorHeapBase_T"));
 
   // sanity check(s)
-  if (!maximumNumberOfMessages_in)
+  if (unlikely (!maximumNumberOfMessages_in))
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers\n"),
+                ACE_TEXT ("cannot allocate unlimited memory, caching %u buffer(s)\n"),
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
-}
-
-template <typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType>::~Stream_CachedMessageAllocatorHeapBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::~Stream_CachedMessageAllocatorHeapBase_T"));
-
 }
 
 template <typename ControlMessageType,
@@ -76,7 +69,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
@@ -94,14 +87,11 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block), continuing\n")));
   }
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate control message, aborting\n")));
-
-    // clean up
-    delete data_block_p;
-
+    delete data_block_p; data_block_p = NULL;
     return NULL;
   } // end IF
 
@@ -128,7 +118,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
@@ -157,15 +147,12 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), continuing\n"),
                 bytes_in));
   }
-  if (!message_block_p)
+  if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate (session) message, aborting\n"),
                 bytes_in));
-
-    // clean up
-    delete data_block_p;
-
+    delete data_block_p; data_block_p = NULL;
     return NULL;
   } // end IF
 
@@ -206,7 +193,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case UINT32_MAX:
+    case std::numeric_limits<ACE_UINT32>::max ():
       inherited::free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:

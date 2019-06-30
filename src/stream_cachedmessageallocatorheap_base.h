@@ -23,6 +23,7 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_T.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "stream_iallocator.h"
@@ -36,12 +37,15 @@ class Stream_CachedMessageAllocatorHeapBase_T
                                ACE_SYNCH_MUTEX>
  , public Stream_IAllocator
 {
+  typedef ACE_Cached_Allocator<DataMessageType,
+                               ACE_SYNCH_MUTEX> inherited;
+
  public:
-  Stream_CachedMessageAllocatorHeapBase_T (unsigned int); // total number of concurrent messages
-  virtual ~Stream_CachedMessageAllocatorHeapBase_T ();
+  Stream_CachedMessageAllocatorHeapBase_T (unsigned int = STREAM_QUEUE_DEFAULT_CACHED_MESSAGES); // total number of concurrent messages {0: STREAM_QUEUE_DEFAULT_CACHED_MESSAGES}
+  inline virtual ~Stream_CachedMessageAllocatorHeapBase_T () {}
 
   // implement Stream_IAllocator
-  inline virtual bool block () {return false;}; // return value: block when full ?
+  inline virtual bool block () { return false; } // return value: block when full ?
   virtual void* calloc ();
   // *NOTE*: returns a pointer to <MessageType>
   // *NOTE: passing a value of 0 will return a <SessionMessageType>
@@ -58,14 +62,11 @@ class Stream_CachedMessageAllocatorHeapBase_T
   //                      char = '\0'); // initial value
 
  private:
-  typedef ACE_Cached_Allocator<DataMessageType,
-                               ACE_SYNCH_MUTEX> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T&))
   // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter
 //   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                          SessionMessageType>& operator= (const Stream_CachedMessageAllocatorHeapBase_T<MessageType,
-//                                                                                          SessionMessageType>&));
+//                                                                                          SessionMessageType>&))
 
 //  virtual void* calloc (size_t,
 //                        size_t,

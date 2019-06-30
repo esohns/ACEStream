@@ -385,6 +385,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/${CMAKE_BUILD_TYPE} ZLIB_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${ASSIMP_PATH}
                            ${FFMPEG_PATH}
@@ -392,7 +393,7 @@ elseif (WIN32)
                            ${LIBPNG_PATH}
                            ${ZLIB_PATH}
                            ${IMAGEMAGICK_PATH}
-                           ${PROJECT_SOURCE_DIR}/../ACE_TAO/ACE/lib)
+                           ${ACE_LIBRARY_PATH})
  message (STATUS "RUNTIME_LIBRARY_DIRS: ${RUNTIME_LIBRARY_DIRS}")
 endif ()
 create_target_launcher (${EXECUTABLE}
