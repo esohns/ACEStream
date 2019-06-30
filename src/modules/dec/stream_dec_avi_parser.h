@@ -46,6 +46,7 @@
 // *TODO*: remove this ASAP
 //#ifndef STREAM_DEC_AVI_PARSER_H
 //#define STREAM_DEC_AVI_PARSER_H
+#include <mmsyscom.h>
 
 #include "stream_dec_common.h"
 //#include "stream_dec_exports.h"

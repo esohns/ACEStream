@@ -55,10 +55,10 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Stream_Iterator;
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
-template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
-class Stream_ControlMessage_T;
+//template <typename ControlType,
+//          typename MessageType,
+//          typename AllocatorConfigurationType>
+//class Stream_ControlMessage_T;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T;
@@ -323,11 +323,6 @@ typedef int Stream_CommandType_t;
 // *NOTE*: 'unsigned long' allows efficient atomic increments on many platforms
 //         (see: available ACE_Atomic_Op template specializations)
 typedef unsigned long Stream_MessageId_t;
-
-struct Stream_AllocatorConfiguration;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Stream_ControlMessage_t;
 
 typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 typedef Stream_IStream_T<ACE_MT_SYNCH,

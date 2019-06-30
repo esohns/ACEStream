@@ -772,7 +772,7 @@ error_2:
     case STREAM_MESSAGE_CONTROL:
     {
       ControlMessageType* control_message_p =
-        dynamic_cast<ControlMessageType*> (messageBlock_in);
+        static_cast<ControlMessageType*> (messageBlock_in);
       if (unlikely (!control_message_p))
       {
         ACE_DEBUG ((LM_ERROR,

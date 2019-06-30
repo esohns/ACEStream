@@ -23,6 +23,10 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 template <typename BaseType,
           typename MediaFormatType,
           typename StreamStateType,

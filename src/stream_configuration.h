@@ -27,6 +27,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
+#define __CGUID_H__
 #include <ks.h>
 //#include <mfobjects.h>
 #include <strmif.h>
@@ -43,6 +44,7 @@
 #include "common_timer_common.h"
 
 #include "stream_common.h"
+#include "stream_control_message.h"
 #include "stream_defines.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -57,7 +59,7 @@ class ACE_Notification_Strategy;
 class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //struct _AMMediaType;
-class IMFMediaType;
+struct IMFMediaType;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_SignalHandlerConfiguration
@@ -306,5 +308,9 @@ typedef Stream_Configuration_T<//empty_string_,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct Stream_ModuleHandlerConfiguration> Stream_Configuration_t;
+
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Stream_ControlMessage_t;
 
 #endif

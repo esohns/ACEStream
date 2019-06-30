@@ -26,6 +26,9 @@
 
 #include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
+#define __CGUID_H__
+#include <ks.h>
 #include <guiddef.h>
 #include <mfidl.h>
 #include <mfobjects.h>
