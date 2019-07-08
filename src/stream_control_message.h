@@ -42,10 +42,11 @@ class Stream_ControlMessage_T
  : public ACE_Message_Block
  , public Common_IInitialize_T<ControlType>
 {
-  //// grant access to specific ctors
+  // grant access to specific ctors
   //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
   //                                               AllocatorConfigurationType,
-  //                                               Stream_ControlMessage_T<ControlMessageType,
+  //                                               Stream_ControlMessage_T<ControlType,
+  //                                                                       MessageType,
   //                                                                       AllocatorConfigurationType>,
   //                                               DataMessageType,
   //                                               SessionMessageType>;

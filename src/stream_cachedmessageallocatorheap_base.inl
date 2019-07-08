@@ -135,12 +135,14 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     if (bytes_in)
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
-                               DataMessageType (data_block_p, // use the data block just allocated
+                               DataMessageType (-1,           // session id
+                                                data_block_p, // use the data block just allocated
                                                 this));       // notify allocator upon destruction
     else
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
-                               SessionMessageType (data_block_p, // use the data block just allocated
+                               SessionMessageType (-1,           // session id
+                                                   data_block_p, // use the data block just allocated
                                                    this));       // notify allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
