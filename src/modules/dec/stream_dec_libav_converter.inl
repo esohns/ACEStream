@@ -638,7 +638,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
 //  av_log_set_level (std::numeric_limits<int>::max ());
 #endif // _DEBUG
 
-continue_:
+//continue_:
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -915,7 +915,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
     {
       break;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;

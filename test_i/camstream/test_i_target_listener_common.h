@@ -186,29 +186,29 @@ typedef Net_Client_Connector_T<ACE_NULL_SYNCH,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef ACE_Singleton<Test_I_Target_DirectShow_AsynchListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_DirectShow_Listener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON;
 #if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_DirectShow_SSLListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_SSL_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_DIRECTSHOW_SSL_LISTENER_SINGLETON;
 #endif // SSL_USE
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_AsynchListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_Listener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON;
 #if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_SSLListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_SSL_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_SSL_LISTENER_SINGLETON;
 #endif // SSL_USE
 #else
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_Listener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
 #if defined (SSL_USE)
 typedef ACE_Singleton<Test_I_Target_SSLListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
 #endif // SSL_USE
 #endif // ACE_WIN32 || ACE_WIN64
 

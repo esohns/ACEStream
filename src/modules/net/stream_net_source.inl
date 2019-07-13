@@ -370,7 +370,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
 //      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
-      bool clone_module, delete_module;
+      bool clone_module;// , delete_module;
       bool notify_connect = false;
       Net_ConnectionConfigurationsIterator_t iterator;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;

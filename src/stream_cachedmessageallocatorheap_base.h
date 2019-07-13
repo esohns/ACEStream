@@ -62,6 +62,10 @@ class Stream_CachedMessageAllocatorHeapBase_T
   //                      char = '\0'); // initial value
 
  private:
+  typedef Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                                  DataMessageType,
+                                                  SessionMessageType> OWN_TYPE_T;
+   
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T&))
   // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter
 //   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,

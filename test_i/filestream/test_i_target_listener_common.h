@@ -117,8 +117,8 @@ typedef Net_Client_Connector_T<ACE_MT_SYNCH,
                                struct Net_UserData> Test_I_InboundUDPConnector_t;
 
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_Listener_t,
-                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
 
 #endif

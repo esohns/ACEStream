@@ -212,23 +212,34 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
   } // end SWITCH
 }
 
-//template <typename MessageType>
-//size_t
-//Stream_CachedMessageAllocatorHeapBase_T<MessageType>::cache_depth () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_depth"));
+template <typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+size_t
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType>::cache_depth () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_depth"));
 
-//  return dataBlockAllocator_.cache_depth ();
-//}
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
-//template <typename MessageType>
-//size_t
-//Stream_CachedMessageAllocatorHeapBase_T<MessageType>::cache_size () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_size"));
+  return  this_p->dataBlockAllocator_.pool_depth ();
+}
 
-//  return dataBlockAllocator_.cache_size ();
-//}
+template <typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+size_t
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType>::cache_size () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_size"));
+
+  //return dataBlockAllocator_.cache_size ();
+  return std::numeric_limits<size_t>::max ();
+}
 
 //////////////////////////////////////////
 
