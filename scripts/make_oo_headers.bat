@@ -12,6 +12,16 @@
 set RC=0
 setlocal enabledelayedexpansion
 pushd . >NUL 2>&1
+
+@rem elevate to admin
+net session>nul 2>&1
+if %errorlevel%==0 goto main
+echo CreateObject("Shell.Application").ShellExecute "%~f0", "", "", "runas">"%temp%/elevate.vbs"
+"%temp%/elevate.vbs"
+del "%temp%/elevate.vbs"
+exit
+
+:main
 goto Begin
 
 :Print_Usage
@@ -83,7 +93,7 @@ if NOT exist "%OOVBAAPI_RDB%" (
 
 echo generating headers...
 @rem %CPPUMAKEREXE% -BUCR -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOAPI_RDB%"
-%CPPUMAKEREXE% -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOAPI_RDB%" "%OOVBAAPI_RDB%"
+"%CPPUMAKEREXE%" -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOAPI_RDB%" "%OOVBAAPI_RDB%"
 if %ERRORLEVEL% NEQ 0 (
  echo failed to generate headers^, exiting
  set RC=%ERRORLEVEL%

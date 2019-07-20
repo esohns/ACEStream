@@ -28,7 +28,7 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
   target_include_directories (${PROJECT_NAME}_HTML PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE>)
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_HTML PUBLIC

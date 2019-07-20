@@ -82,11 +82,11 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  include_directories ($ENV{ACE_ROOT})
+# else ()
+#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+# endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/cmake)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
@@ -170,8 +170,9 @@ if (WIN32 AND NOT BUILD_TEST_U)
 endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-add_dependencies (${PROJECT_NAME} Common)
-add_dependencies (${PROJECT_NAME} ACEStream_Test_U)
+add_dependencies (${EXECUTABLE} Common)
+
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})

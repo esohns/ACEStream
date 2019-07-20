@@ -1,4 +1,4 @@
-﻿set (OPENOFFICE_DEFAULT ON)
+set (OPENOFFICE_DEFAULT OFF)
 option (OPENOFFICE_SUPPORT "support OpenOffice/LibreOffice" ${OPENOFFICE_DEFAULT})
 if (OPENOFFICE_SUPPORT)
 # message (STATUS "OpenOffice support set, set OO_SDK_HOME and UNO_PATH and run make_oo_headers.bat from 'scripts' to generate the necessary #include headers")

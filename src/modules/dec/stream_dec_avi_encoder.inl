@@ -1048,9 +1048,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       goto continue_;
 
-error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+error:
       if (codec_context_p)
       {
         avcodec_free_context (&codec_context_p); codec_context_p = NULL;

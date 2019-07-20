@@ -105,11 +105,11 @@ elseif (WIN32)
 # libav
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/include)
 
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  include_directories ($ENV{ACE_ROOT})
+# else ()
+#  include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
+# endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -232,13 +232,15 @@ if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
 
-#add_dependencies (${EXECUTABLE} ACE)
 add_dependencies (${EXECUTABLE} Common)
+
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
+
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)

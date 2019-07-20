@@ -137,11 +137,11 @@ elseif (WIN32)
 # libav
  include_directories ($ENV{LIB_ROOT}/ffmpeg/include)
 
- if (DEFINED ENV{ACE_ROOT})
-  include_directories ($ENV{ACE_ROOT})
- else ()
-  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- endif (DEFINED ENV{ACE_ROOT})
+# if (DEFINED ENV{ACE_ROOT})
+#  include_directories ($ENV{ACE_ROOT})
+# else ()
+#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+# endif (DEFINED ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
 
@@ -256,10 +256,12 @@ if (GUI_SUPPORT)
  endif (GTK_USE)
 endif (GUI_SUPPORT)
 
-add_dependencies (${EXECUTABLE} ACEStream)
-add_dependencies (${EXECUTABLE} ACEStream_Decoder)
-add_dependencies (${EXECUTABLE} ACEStream_Device)
-add_dependencies (${EXECUTABLE} ACEStream_Visualization)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME})
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Device)
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
+
+add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
