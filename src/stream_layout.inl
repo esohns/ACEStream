@@ -26,6 +26,8 @@
 #include "ace/Module.h"
 #include "ace/OS.h"
 
+#include "common_macros.h"
+
 #include "stream_ilink.h"
 #include "stream_macros.h"
 #include "stream_tools.h"

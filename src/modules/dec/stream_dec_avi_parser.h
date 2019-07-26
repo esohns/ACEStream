@@ -46,7 +46,9 @@
 // *TODO*: remove this ASAP
 //#ifndef STREAM_DEC_AVI_PARSER_H
 //#define STREAM_DEC_AVI_PARSER_H
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mmsyscom.h>
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dec_common.h"
 //#include "stream_dec_exports.h"

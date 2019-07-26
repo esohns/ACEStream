@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_HTMLWRITER_H
 #define STREAM_MODULE_HTMLWRITER_H
 
+#include "libxml/HTMLtree.h"
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-
-#include "libxml/HTMLtree.h"
 
 #include "common_ilock.h"
 #include "common_time_common.h"
