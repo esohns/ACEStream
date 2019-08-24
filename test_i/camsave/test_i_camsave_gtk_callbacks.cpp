@@ -2923,7 +2923,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                                value,
                                                0);
-  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+//  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
   gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
 
   combo_box_p =

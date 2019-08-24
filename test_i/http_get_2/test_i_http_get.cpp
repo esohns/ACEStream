@@ -1211,8 +1211,8 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if (use_reactor                      &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
+      (number_of_dispatch_threads > 1)/* &&
+      !use_thread_pool*/)
   { // *NOTE*: see also: man (2) select
     // *TODO*: verify this for MS Windows based systems
     ACE_DEBUG ((LM_WARNING,
