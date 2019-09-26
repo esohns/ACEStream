@@ -1185,7 +1185,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   } // end IF
   ACE_ASSERT (ipin_p);
   ibase_filter_2 = Stream_MediaFramework_DirectShow_Tools::toFilter (ipin_p);
-  ACE_ASSERT (SUCCEEDED (ibase_filter_2));
+  ACE_ASSERT (ibase_filter_2);
 
   if (allocator_in)
   {
@@ -1472,7 +1472,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   IBaseFilter* ibase_filter_p =
     Stream_MediaFramework_DirectShow_Tools::toFilter (this);
-  ACE_ASSERT (SUCCEEDED (ibase_filter_p));
+  ACE_ASSERT (ibase_filter_p);
 
   ACE_DEBUG ((LM_DEBUG,
             ACE_TEXT ("%s/%s: set default output format: %s\n"),

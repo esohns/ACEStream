@@ -861,8 +861,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
         case ACE_Message_Block::MB_STOP:
         {
           // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
+          message_block_p->release (); message_block_p = NULL;
 
           result_2 = 0;
 

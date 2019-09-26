@@ -2,8 +2,8 @@
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-#      "$ENV{LIB_ROOT}/DShowBaseClasses")
-      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      "$ENV{LIB_ROOT}/DShowBaseClasses")
+#      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow")
 endif (WIN32)
 
 if (UNIX)
@@ -337,7 +337,7 @@ set_tests_properties (${EXECUTABLE_SOURCE}_test
 ############## next target ################
 
 if (WIN32)
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/baseclasses)
 
  set (LIBRARY_DS camtarget_source)
  set (${LIBRARY_DS}_LIB_SRCS
@@ -366,8 +366,8 @@ if (WIN32)
  target_link_libraries (${LIBRARY_DS} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-#  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
-  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/BaseClassesd.lib)
+#  target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
  else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${LIBRARY_DS} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/BaseClasses.lib)

@@ -122,7 +122,6 @@ struct Test_I_SessionData
     Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-    userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }

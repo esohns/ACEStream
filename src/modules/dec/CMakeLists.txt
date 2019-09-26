@@ -15,6 +15,12 @@ if (OPENCV_SUPPORT)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
+set (MPG123_DEFAULT OFF)
+option (MPG123_SUPPORT "support mpg123" ${MPG123_DEFAULT})
+if (MPG123_SUPPORT)
+ add_definitions (-DMPG123_SUPPORT)
+endif (MPG123_SUPPORT)
+
 set (SOX_DEFAULT ON)
 option (SOX_SUPPORT "support SoX" ${SOX_DEFAULT})
 if (SOX_SUPPORT)
@@ -34,6 +40,9 @@ if (UNIX)
  if (OPENCV_SUPPORT)
   pkg_check_modules (PKG_OPENCV REQUIRED opencv)
  endif (OPENCV_SUPPORT)
+ if (MPG123_SUPPORT)
+  pkg_check_modules (PKG_MPEG REQUIRED mpg123)
+ endif (MPG123_SUPPORT)
  if (SOX_SUPPORT)
   pkg_check_modules (PKG_SOX REQUIRED sox)
  endif (SOX_SUPPORT)
@@ -72,6 +81,8 @@ if (UNIX)
                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             $<BUILD_INTERFACE:${PKG_MPG123_INCLUDE_DIRS}>)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
@@ -120,42 +131,10 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
-# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/build>)
+ if (MPG123_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/calib3d/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/core/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/features2d/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/flann/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/highgui/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgcodecs/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/imgproc/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/ml/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/objdetect/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/photo/include>)
-# target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-#                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/python/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/stitching/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/ts/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/video/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/videoio/include>)
- target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/opencv/modules/world/include>)
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/mpg123>)
+ endif (MPG123_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/zlib>)
@@ -231,6 +210,9 @@ set (source_files
      stream_dec_libav_img_decoder.cpp
      stream_dec_libav_img_decoder.h
      stream_dec_libav_img_decoder.inl
+     stream_dec_mp3_decoder.cpp
+     stream_dec_mp3_decoder.h
+     stream_dec_mp3_decoder.inl
      stream_dec_mpeg_ts_decoder.cpp
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
@@ -379,6 +361,8 @@ set (${PROJECT_NAME}_Decoder_LIB_HDRS
      stream_dec_libav_decoder.inl
      stream_dec_libav_img_decoder.h
      stream_dec_libav_img_decoder.inl
+     stream_dec_mp3_decoder.h
+     stream_dec_mp3_decoder.inl
      stream_dec_mpeg_ts_decoder.h
      stream_dec_mpeg_ts_decoder.inl
      stream_dec_opencv_decoder.h
@@ -404,3 +388,4 @@ install (TARGETS ${PROJECT_NAME}_Decoder
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
+

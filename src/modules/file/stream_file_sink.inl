@@ -202,6 +202,22 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                         O_TRUNC |
                         O_WRONLY);
 
+      int result =
+        path_.set (ACE_TEXT (session_data_r.targetFileName.c_str ()));
+      if (unlikely (result == -1))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
+        return;
+      } // end IF
+    if (Common_File_Tools::isReadable (session_data_r.targetFileName))
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (session_data_r.targetFileName.c_str ())));
+
       const ACE_TCHAR* path_name_p = path_.get_path_name ();
       ACE_ASSERT (path_name_p);
       bool is_empty = !ACE_OS::strlen (path_name_p);
@@ -223,10 +239,17 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       {
         // *TODO*: ACE::dirname() returns '.' on an empty argument, this isn't
         //         entirely accurate
+        // *NOTE*: ACE::dirname() returns drivename: for root directories on
+        //         Win32, which cannot be stat()ed successfully
+        //         --> append slash(es)
         directory =
           ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
         if (Common_File_Tools::isValidPath (directory))
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          if ((directory.size () == 2) && (directory[1] == ':'))
+            directory += ACE_DIRECTORY_SEPARATOR_STR;
+#endif // ACE_WIN32 || ACE_WIN64
           if (!Common_File_Tools::isDirectory (directory))
             if (unlikely (!Common_File_Tools::createDirectory (directory)))
             {
@@ -472,25 +495,6 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
 
   ACE_UNUSED_ARG (allocator_in);
-
-  int result =
-    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
-    return false;
-  } // end IF
-
-#if defined (_DEBUG)
-  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
-#endif // _DEBUG
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

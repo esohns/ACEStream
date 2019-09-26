@@ -269,8 +269,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   // step2: consecutively copy data from any continuations into the preceding
   //        buffers
-  unsigned int free_space = 0;
-  unsigned int bytes_to_copy = 0;
+  size_t free_space = 0;
+  size_t bytes_to_copy = 0;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block* message_block_2 = inherited::cont_;
   ACE_Message_Block* message_block_3 = this;
@@ -280,9 +280,8 @@ fill:
        message_block_p;
        message_block_p = message_block_p->cont ())
   {
-    bytes_to_copy =
-        std::min (static_cast<unsigned int> (message_block_p->length ()),
-                  free_space);
+    bytes_to_copy = std::min (message_block_p->length (),
+                              free_space);
     result = message_block_3->copy (message_block_p->rd_ptr (),
                                     bytes_to_copy);
     if (unlikely (result == -1))

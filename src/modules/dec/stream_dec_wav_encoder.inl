@@ -249,30 +249,30 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   int result = -1;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_Message_Block* message_block_p = NULL;
-  struct _riffchunk RIFF_chunk;
+  //struct _riffchunk RIFF_chunk;
 #else
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-
-  message_block_p =
-    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  if (unlikely (!message_block_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::mod_->name (),
-                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-    goto error;
-  } // end IF
-
   if (inherited::isFirst_)
   {
     inherited::isFirst_ = false;
+
+    // sanity check(s)
+    ACE_ASSERT (inherited::configuration_);
+    // *TODO*: remove type inferences
+    ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+
+    message_block_p =
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    if (unlikely (!message_block_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+      goto error;
+    } // end IF
 
     if (unlikely (!generateHeader (message_block_p)))
     {
@@ -281,26 +281,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                   inherited::mod_->name ()));
       goto error;
     } // end IF
+
+    message_block_p->cont (message_inout);
   } // end IF
+  else
+    message_block_p = message_inout;
   ACE_ASSERT (message_block_p);
 
-  // db (--> Uncompressed video frame)
-  ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
-  RIFF_chunk.fcc = FCC ('00db');
-  RIFF_chunk.cb = message_inout->length ();
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-  result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                                  sizeof (struct _riffchunk));
-  if (unlikely (result == -1))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    goto error;
-  } // end IF
-
-  message_block_p->cont (message_inout);
   result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))
   {
@@ -499,6 +486,8 @@ continue_:
       struct _rifflist* RIFF_wave_p = NULL;
       struct _riffchunk* RIFF_chunk_fmt_p = NULL;
       struct _riffchunk* RIFF_chunk_data_p = NULL;
+      unsigned int file_size =
+        Common_File_Tools::size (session_data_r.targetFileName);
 
       if (unlikely (session_data_r.targetFileName.empty ()))
         goto continue_2;
@@ -524,7 +513,7 @@ continue_:
       wave_header_size =
         (sizeof (struct _rifflist)  +
          sizeof (struct _riffchunk) +
-         media_type_s.cbFormat      +
+         16                         +
          sizeof (struct _riffchunk));
       ACE_NEW_NORETURN (wave_header_p,
                         unsigned char[wave_header_size]);
@@ -546,18 +535,17 @@ continue_:
       } // end IF
 
       RIFF_wave_p = reinterpret_cast<struct _rifflist*> (wave_header_p);
-      RIFF_chunk_fmt_p = reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
+      RIFF_chunk_fmt_p =
+        reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
       RIFF_chunk_data_p =
         reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                              media_type_s.cbFormat);
+                                              16);
 
       // update RIFF header sizes
-      RIFF_chunk_data_p->cb =
-        static_cast<DWORD> (session_data_r.statistic.bytes);
-      RIFF_wave_p->cb =
-        (static_cast<DWORD> (session_data_r.statistic.bytes) +
-         wave_header_size         -
-         sizeof (struct _riffchunk));
+      RIFF_wave_p->cb = file_size - 8;
+      RIFF_chunk_data_p->cb = file_size - 44;
+
+      file_IO.seek (0, SEEK_SET);
 
       result_2 = file_IO.send_n (wave_header_p, wave_header_size);
       if (unlikely (result_2 != wave_header_size))
@@ -662,11 +650,12 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   inherited::getMediaType (session_data_r.formats.front (),
                            media_type_s);
   ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-
-  //ACE_ASSERT (media_type_p->pbFormat);
-  //struct tWAVEFORMATEX* waveformatex_p =
-  //  reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
-  //ACE_ASSERT (waveformatex_p);
+#if defined (_DEBUG)
+  ACE_ASSERT (media_type_s.pbFormat);
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+#endif // _DEBUG
 
   struct _rifflist* RIFF_wave_p =
     reinterpret_cast<struct _rifflist*> (messageBlock_inout->wr_ptr ());
@@ -674,27 +663,26 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
   struct _riffchunk* RIFF_chunk_data_p =
     reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                          media_type_s.cbFormat);
-
-  RIFF_chunk_data_p->fcc = FCC ('data');
-  RIFF_chunk_data_p->cb = 0; // update here
-
-  RIFF_chunk_fmt_p->fcc = FCC ('fmt ');
-  RIFF_chunk_fmt_p->cb = media_type_s.cbFormat;
-  ACE_OS::memcpy (RIFF_chunk_fmt_p + 1,
-                  media_type_s.pbFormat,
-                  RIFF_chunk_fmt_p->cb);
+                                          16);
 
   RIFF_wave_p->fcc = FCC ('RIFF');
-  RIFF_wave_p->cb = 0 + // ... and here
+  RIFF_wave_p->cb = 0 + // update here
                     (sizeof (struct _rifflist)  +
                      sizeof (struct _riffchunk) +
-                     media_type_s.cbFormat      +
-                     sizeof (struct _riffchunk)) -
-                     sizeof (struct _riffchunk);
+                     16                         +
+                     sizeof (struct _riffchunk));
   RIFF_wave_p->fccListType = FCC ('WAVE');
 
-  messageBlock_inout->wr_ptr (RIFF_wave_p->cb + sizeof (struct _riffchunk));
+  RIFF_chunk_fmt_p->fcc = FCC ('fmt ');
+  RIFF_chunk_fmt_p->cb = 16;
+  ACE_OS::memcpy (RIFF_chunk_fmt_p + 1,
+                  media_type_s.pbFormat,
+                  16);
+
+  RIFF_chunk_data_p->fcc = FCC ('data');
+  RIFF_chunk_data_p->cb = 0; // ... and here
+
+  messageBlock_inout->wr_ptr (RIFF_wave_p->cb);
 
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 

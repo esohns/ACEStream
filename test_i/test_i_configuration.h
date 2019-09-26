@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "common_configuration.h"
+#include "common_file_common.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
@@ -58,11 +59,22 @@ struct Test_I_ModuleHandlerConfiguration
   Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , printProgressDot (false)
-   , targetFileName ()
+   , fileIdentifier ()
   {}
 
-  bool        printProgressDot;
-  std::string targetFileName; // file writer module
+  bool                   printProgressDot;
+  Common_File_Identifier fileIdentifier; // source-
+};
+
+struct Test_I_StreamConfiguration
+ : Stream_Configuration
+{
+  Test_I_StreamConfiguration ()
+   : Stream_Configuration ()
+   , fileIdentifier ()
+  {}
+
+  Common_File_Identifier fileIdentifier; // target-
 };
 
 struct Test_I_SignalHandlerConfiguration
