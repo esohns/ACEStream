@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "mtype.h"
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -30,10 +32,12 @@ Test_I_Stream::Test_I_Stream ()
                 ACE_TEXT_ALWAYS_CHAR ("MP3Decoder"))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
- , WAVEncoder_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
- , FileSink_ (this,
-              ACE_TEXT_ALWAYS_CHAR ("FileSink"))
+ //, WAVEncoder_ (this,
+ //               ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"))
+ //, FileSink_ (this,
+ //             ACE_TEXT_ALWAYS_CHAR ("FileSink"))
+ , WavOut_ (this,
+            ACE_TEXT_ALWAYS_CHAR ("WavOut"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -58,8 +62,9 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&MP3Decoder_, NULL, 0);
   layout_in->append (&statisticReport_, NULL, 0);
-  layout_in->append (&WAVEncoder_, NULL, 0);
-  layout_in->append (&FileSink_, NULL, 0);
+  //layout_in->append (&WAVEncoder_, NULL, 0);
+  //layout_in->append (&FileSink_, NULL, 0);
+  layout_in->append (&WavOut_, NULL, 0);
 
   return true;
 }

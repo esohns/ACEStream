@@ -135,7 +135,10 @@ if (WIN32)
       stream_dev_mic_source_directshow.inl
       stream_dev_mic_source_mediafoundation.cpp
       stream_dev_mic_source_mediafoundation.h
-      stream_dev_mic_source_mediafoundation.inl)
+      stream_dev_mic_source_mediafoundation.inl
+      stream_dev_target_wavout.cpp
+      stream_dev_target_wavout.h
+      stream_dev_target_wavout.inl)
 elseif (UNIX)
  set (source_files
       ${source_files}
@@ -234,7 +237,7 @@ if (UNIX)
           COMPONENT mod_include)
 elseif (WIN32)
  install (FILES
-          stream_dev_exports.h
+#          stream_dev_exports.h
           stream_dev_common.h
           stream_dev_defines.h
           stream_dev_directshow_tools.h
@@ -249,6 +252,8 @@ elseif (WIN32)
           stream_dev_mic_source_directshow.inl
           stream_dev_mic_source_mediafoundation.h
           stream_dev_mic_source_mediafoundation.inl
+          stream_dev_target_wavout.h
+          stream_dev_target_wavout.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif ()

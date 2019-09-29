@@ -18,13 +18,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <mmreg.h>
+// *NOTE*: uuids.h doesn't have double include protection
+#if defined (UUIDS_H)
+#else
+#define UUIDS_H
+#include <uuids.h>
+#endif // UUIDS_H
+#endif // ACE_WIN32 || ACE_WIN64
+
+#include "fmt123.h"
+
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
 
 #include "stream_macros.h"
-
-//#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -38,8 +48,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename UserDataType>
-Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+          typename UserDataType,
+          typename MediaType>
+  Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -51,14 +62,15 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
+                            UserDataType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            UserDataType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in,
+                            MediaType>::Stream_Decoder_MP3Decoder_T (ISTREAM_T* stream_in,
 #else
-                            UserDataType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in,
+                            MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in,
 #endif
-                                                                        bool autoStart_in,
-                                                                        enum Stream_HeadModuleConcurrency concurrency_in,
-                                                                        bool generateSessionMessages_in)
+                                                                     bool autoStart_in,
+                                                                     enum Stream_HeadModuleConcurrency concurrency_in,
+                                                                     bool generateSessionMessages_in)
  : inherited (stream_in,
               autoStart_in,
               concurrency_in,
@@ -88,7 +100,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename UserDataType>
+          typename UserDataType,
+          typename MediaType>
 Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -101,7 +114,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::~Stream_Decoder_MP3Decoder_T ()
+                            UserDataType,
+                            MediaType>::~Stream_Decoder_MP3Decoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::~Stream_Decoder_MP3Decoder_T"));
 
@@ -130,7 +144,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename UserDataType>
+          typename UserDataType,
+          typename MediaType>
 bool
 Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -144,8 +159,9 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+                            UserDataType,
+                            MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                    Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::initialize"));
 
@@ -193,7 +209,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename TimerManagerType,
-          typename UserDataType>
+          typename UserDataType,
+          typename MediaType>
 int
 Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -207,7 +224,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::svc (void)
+                            UserDataType,
+                            MediaType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::svc"));
 
@@ -228,6 +246,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   long rate_l = 0;
   int error_i = MPG123_ERR;
   size_t done_u = 0;
+  MediaType media_type_s;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -270,6 +289,29 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (mpg123_plain_strerror (error_i))));
     goto continue_;
   } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (!session_data_r.formats.empty ());
+  inherited2::getMediaType (session_data_r.formats.front (),
+                            media_type_s);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+  ACE_ASSERT (media_type_s.pbFormat);
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
+  waveformatex_p->nChannels = channels_i;
+  waveformatex_p->nSamplesPerSec = rate_l;
+  ACE_ASSERT (encoding_i == MPG123_ENC_SIGNED_16);
+  waveformatex_p->wBitsPerSample = 16;
+  waveformatex_p->nBlockAlign =
+    (waveformatex_p->nChannels * waveformatex_p->wBitsPerSample) / 8;
+  waveformatex_p->nAvgBytesPerSec =
+    (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
+#else
+  ACE_ASSERT (false); // *TODO*
+#endif // ACE_WIN32 || ACE_WIN64
 
   do
   {
@@ -390,7 +432,8 @@ done:
     switch (error_i)
     {
       case MPG123_OK:
-      {
+      case MPG123_DONE:
+      { ACE_ASSERT (done_u);
         message_p->wr_ptr (done_u);
         result = inherited::put_next (message_p, NULL);
         if (result == -1)
@@ -407,18 +450,15 @@ done:
           inherited::STATE_MACHINE_T::finished ();
         } // end IF
 
-        break;
-      }
-      case MPG123_DONE:
-      {
-        result_2 = 0;
+        if (error_i == MPG123_DONE)
+        {
+          result_2 = 0;
 
-        message_p->release (); message_p = NULL;
-
-        finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::STATE_MACHINE_T::finished ();
+          finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::STATE_MACHINE_T::finished ();
+        }
 
         break;
       }

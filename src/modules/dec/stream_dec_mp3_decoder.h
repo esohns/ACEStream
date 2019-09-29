@@ -31,6 +31,8 @@
 
 #include "stream_headmoduletask_base.h"
 
+#include "stream_lib_mediatype_converter.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
@@ -55,7 +57,9 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
-          typename UserDataType>
+          typename UserDataType,
+          ////////////////////////////////
+          typename MediaType>
 class Stream_Decoder_MP3Decoder_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -71,6 +75,12 @@ class Stream_Decoder_MP3Decoder_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   >
+#else
+ , typename SessionMessageType::DATA_T::DATA_T >
+#endif // ACE_WIN32 || ACE_WIN64
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -86,6 +96,12 @@ class Stream_Decoder_MP3Decoder_T
                                       StatisticContainerType,
                                       TimerManagerType,
                                       UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                    > inherited2;
+#else
+                                                     ,typename SessionMessageType::DATA_T::DATA_T> inherited2;
+#endif // ACE_WIN32 || ACE_WIN64
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile

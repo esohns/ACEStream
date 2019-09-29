@@ -33,6 +33,7 @@
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directshow_tools.h"
 #else
 #include "stream_lib_alsa_common.h"
 #include "stream_lib_v4l_common.h"

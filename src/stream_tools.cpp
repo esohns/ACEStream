@@ -354,7 +354,8 @@ Stream_Tools::sanitizeUniqueName (const std::string& string_in)
   std::string result = string_in;
 
   std::string::size_type position = string_in.find_last_of ('_');
-  if (position == (string_in.size () - (6 + 1)))
+  if ((string_in.size () > (6 + 1)) && 
+      (position == (string_in.size () - (6 + 1))))
     result.erase (position, std::string::npos);
 
   return result;

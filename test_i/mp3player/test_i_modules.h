@@ -34,9 +34,10 @@
 
 #include "stream_stat_statistic_report.h"
 
-#include "stream_dec_wav_encoder.h"
+//#include "stream_dec_wav_encoder.h"
+#include "stream_dev_target_wavout.h"
 
-#include "stream_file_sink.h"
+//#include "stream_file_sink.h"
 
 #include "test_i_common.h"
 
@@ -56,7 +57,12 @@ typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
                                     Test_I_MP3Player_SessionData_t,
                                     struct Stream_Statistic,
                                     Common_Timer_Manager_t,
-                                    struct Stream_UserData> Test_I_MP3Decoder;
+                                    struct Stream_UserData,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                    struct _AMMediaType> Test_I_MP3Decoder;
+#else
+                                    struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_MP3Decoder;
+#endif // ACE_WIN32 || ACE_WIN64
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
@@ -95,34 +101,48 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_MP3Player_SessionData,      // session d
                           Test_I_Statistic_WriterTask_t,            // writer type
                           Test_I_StatisticReport);                  // name
 
-typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t,
-                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
-                                    Test_I_ControlMessage_t,
-                                    Test_I_Stream_Message,
-                                    Test_I_Stream_SessionMessage,
-                                    Test_I_MP3Player_SessionData_t,
-                                    struct Test_I_MP3Player_SessionData,
-                                    struct _AMMediaType,
-                                    struct Stream_UserData> Test_I_WAVEncoder;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
-                              enum Stream_SessionMessageType,           // session event type
-                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_wav_encoder_module_name_string,
-                              Stream_INotify_t,                         // stream notification interface type
-                              Test_I_WAVEncoder);                          // writer type
-
-typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_Message,
-                                   Test_I_Stream_SessionMessage> Test_I_FileWriter;
+                                   Test_I_Stream_SessionMessage,
+                                   Stream_SessionId_t,
+                                   struct Test_I_MP3Player_SessionData> Test_I_WavOutPlayer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_file_sink_module_name_string,
+                              libacestream_default_dev_target_wavout_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
-                              Test_I_FileWriter);                       // writer type
+                              Test_I_WavOutPlayer);                          // writer type
+
+//typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
+//                                    Common_TimePolicy_t,
+//                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
+//                                    Test_I_ControlMessage_t,
+//                                    Test_I_Stream_Message,
+//                                    Test_I_Stream_SessionMessage,
+//                                    Test_I_MP3Player_SessionData_t,
+//                                    struct Test_I_MP3Player_SessionData,
+//                                    struct _AMMediaType,
+//                                    struct Stream_UserData> Test_I_WAVEncoder;
+//DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
+//                              enum Stream_SessionMessageType,           // session event type
+//                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_dec_wav_encoder_module_name_string,
+//                              Stream_INotify_t,                         // stream notification interface type
+//                              Test_I_WAVEncoder);                          // writer type
+//typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+//                                   Common_TimePolicy_t,
+//                                   struct Test_I_MP3Player_ModuleHandlerConfiguration,
+//                                   Test_I_ControlMessage_t,
+//                                   Test_I_Stream_Message,
+//                                   Test_I_Stream_SessionMessage> Test_I_FileWriter;
+//DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,         // session data type
+//                              enum Stream_SessionMessageType,           // session event type
+//                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_file_sink_module_name_string,
+//                              Stream_INotify_t,                         // stream notification interface type
+//                              Test_I_FileWriter);                       // writer type
 
 #endif
