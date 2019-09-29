@@ -25,11 +25,11 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
-#include "ace/Message_Queue_T.h"
+//#include "ace/Message_Queue_T.h"
 #include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
-#include "stream_task_base_asynch.h"
+#include "stream_task_base_synch.h"
 
 extern const char libacestream_default_dev_target_wavout_module_name_string[];
 
@@ -37,7 +37,7 @@ struct Stream_Device_WavOut_Playback_AsynchCBData
 {
   bool                    done;
   size_t                  inFlightBuffers;
-  ACE_Message_Queue_Base* queue;
+  //ACE_Message_Queue_Base* queue;
 };
 static void
 CALLBACK stream_dev_target_wavout_async_callback (HWAVEOUT,
@@ -58,27 +58,29 @@ template <ACE_SYNCH_DECL,
           typename SessionIdType,
           typename SessionDataType>
 class Stream_Dev_Target_WavOut_T
- : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  SessionIdType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData>
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  SessionIdType,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
  public:
   Stream_Dev_Target_WavOut_T (ISTREAM_T*); // stream handle

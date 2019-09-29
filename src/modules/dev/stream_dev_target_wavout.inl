@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "ace/Log_Msg.h"
-#include "ace/Message_Queue.h"
+//#include "ace/Message_Queue.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -27,8 +27,6 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
-
-//#include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
@@ -65,9 +63,10 @@ stream_dev_target_wavout_async_callback (HWAVEOUT  hwo,
       delete wave_hdr_p;
       --cb_data_p->inFlightBuffers;
 
-      ACE_ASSERT (cb_data_p->queue);
+      //ACE_ASSERT (cb_data_p->queue);
       cb_data_p->done =
-        (cb_data_p->queue->is_empty () && !cb_data_p->inFlightBuffers);
+        (//cb_data_p->queue->is_empty () &&
+         !cb_data_p->inFlightBuffers);
       break;
     }
     default:
@@ -104,8 +103,8 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
 
   CBData_.done = false;
   CBData_.inFlightBuffers = 0;
-  CBData_.queue = inherited::msg_queue ();
-  ACE_ASSERT (CBData_.queue);
+  //CBData_.queue = inherited::msg_queue ();
+  //ACE_ASSERT (CBData_.queue);
 }
 
 template <ACE_SYNCH_DECL,
@@ -317,9 +316,6 @@ error:
     {
       while (!CBData_.done)
         ACE_OS::sleep (ACE_Time_Value (1, 0));
-
-      if (inherited::thr_count_)
-        inherited::stop (false); // wait ?
 
       MMRESULT result = waveOutClose (handle_);
       if (result != MMSYSERR_NOERROR)
