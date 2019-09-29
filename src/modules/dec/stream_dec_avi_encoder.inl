@@ -534,7 +534,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inference
-  isActive_ = !configuration_in.fileIdentifier.identifier.empty ();
+  isActive_ = true;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

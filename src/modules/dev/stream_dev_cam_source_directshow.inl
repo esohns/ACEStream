@@ -397,9 +397,9 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
           goto error_2;
         ACE_ASSERT (filter_p);
         result_2 = filter_p->QueryInterface (IID_PPV_ARGS (&IAMDroppedFrames_));
-        if (FAILED (result_2))
-          goto error_2;
-        ACE_ASSERT (IAMDroppedFrames_);
+        //if (FAILED (result_2))
+        //  goto error_2;
+        //ACE_ASSERT (IAMDroppedFrames_);
         result_2 = filter_p->QueryInterface (IID_PPV_ARGS (&IAMVideoControl_));
         if (FAILED (result_2))
           goto error_2;

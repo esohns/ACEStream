@@ -413,11 +413,13 @@ elseif (WIN32)
  endif (GUI_SUPPORT)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libpng/cmake/${CMAKE_BUILD_TYPE} LIBPNG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
                            ${FFMPEG_PATH}
-#                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+                           ${IMAGEMAGICK_PATH}
+                           ${ACE_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
