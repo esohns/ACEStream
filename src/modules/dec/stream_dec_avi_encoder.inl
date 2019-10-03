@@ -1192,40 +1192,40 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end ELSE
 
-  // *NOTE*: the input format is converted to BGR24
-  //         --> adjust header accordingly
-  if (InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24))
-    goto continue_;
-
-  ACE_ASSERT (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video));
-  media_type_s.subtype = MEDIASUBTYPE_RGB24;
-  ACE_ASSERT (media_type_s.bFixedSizeSamples == TRUE);
-  ACE_ASSERT (media_type_s.bTemporalCompression == FALSE);
-  media_type_s.lSampleSize = frameSize_;
-  if (video_info_header_p)
-  {
-    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 24;
-    ACE_ASSERT (video_info_header_p->bmiHeader.biCompression == BI_RGB);
-    video_info_header_p->bmiHeader.biSizeImage = frameSize_;
-      //DIBSIZE (video_info_header_p->bmiHeader);
-    video_info_header_p->dwBitRate =
-      (frameSize_ * 8) *                                                      // bits / frame
-      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  } // end IF
-  else
-  {
-    ACE_ASSERT (video_info_header2_p->bmiHeader.biPlanes == 1);
-    video_info_header2_p->bmiHeader.biBitCount = 24;
-    ACE_ASSERT (video_info_header2_p->bmiHeader.biCompression == BI_RGB);
-    video_info_header2_p->bmiHeader.biSizeImage = frameSize_;
-      //DIBSIZE (video_info_header_p->bmiHeader);
-    video_info_header2_p->dwBitRate =
-      (frameSize_ * 8) *                                                       // bits / frame
-      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
-  } // end ELSE
-
-continue_:
+//  // *NOTE*: the input format is converted to BGR24
+//  //         --> adjust header accordingly
+//  if (InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24))
+//    goto continue_;
+//
+//  ACE_ASSERT (InlineIsEqualGUID (media_type_s.majortype, MEDIATYPE_Video));
+//  media_type_s.subtype = MEDIASUBTYPE_RGB24;
+//  ACE_ASSERT (media_type_s.bFixedSizeSamples == TRUE);
+//  ACE_ASSERT (media_type_s.bTemporalCompression == FALSE);
+//  media_type_s.lSampleSize = frameSize_;
+//  if (video_info_header_p)
+//  {
+//    ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
+//    video_info_header_p->bmiHeader.biBitCount = 24;
+//    ACE_ASSERT (video_info_header_p->bmiHeader.biCompression == BI_RGB);
+//    video_info_header_p->bmiHeader.biSizeImage = frameSize_;
+//      //DIBSIZE (video_info_header_p->bmiHeader);
+//    video_info_header_p->dwBitRate =
+//      (frameSize_ * 8) *                                                      // bits / frame
+//      (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+//  } // end IF
+//  else
+//  {
+//    ACE_ASSERT (video_info_header2_p->bmiHeader.biPlanes == 1);
+//    video_info_header2_p->bmiHeader.biBitCount = 24;
+//    ACE_ASSERT (video_info_header2_p->bmiHeader.biCompression == BI_RGB);
+//    video_info_header2_p->bmiHeader.biSizeImage = frameSize_;
+//      //DIBSIZE (video_info_header_p->bmiHeader);
+//    video_info_header2_p->dwBitRate =
+//      (frameSize_ * 8) *                                                       // bits / frame
+//      (10000000 / static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame)); // fps
+//  } // end ELSE
+//
+//continue_:
   // RIFF
   ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
   RIFF_list.fcc = FCC ('RIFF');
@@ -1402,7 +1402,7 @@ continue_:
   //AVI_header_strh.dwInitialFrames = 0;
   // *NOTE*: dwRate / dwScale == fps
   value_i = 10000; // 100th nanoseconds --> milliseconds
-  AVI_header_strh.dwScale = 
+  AVI_header_strh.dwScale =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
