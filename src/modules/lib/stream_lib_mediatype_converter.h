@@ -61,9 +61,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
 
   // helper methods
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.format = format_in; }
-  inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout) { mediaType_inout.resolution = resolution_in; }
-  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: struct _AMMediaType return values need to be Stream_Module_Device_DirectShow_Tools::free'd !
@@ -78,6 +76,9 @@ class Stream_MediaFramework_MediaTypeConverter_T
   void getMediaType (const struct Stream_MediaFramework_FFMPEG_MediaType&, struct _AMMediaType&);
 //  void getMediaType_impl (const struct Stream_MediaFramework_FFMPEG_MediaType&, IMFMediaType*&);
 #else
+  inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_Device_Tools::ffmpegFormatToV4L2Format (format_in); }
+  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
+
   inline void getMediaType (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_out) { mediaType_out = mediaType_in; }
   void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, struct Stream_MediaFramework_FFMPEG_MediaType&);
 

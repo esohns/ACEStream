@@ -10,7 +10,10 @@
 
 // Windows Header Files
 #include <windows.h>
-#endif
+
+// support imagemagick
+#define ssize_t ssize_t
+#endif // _MSC_VER
 
 // C RunTime Header Files
 //#include <sstream>

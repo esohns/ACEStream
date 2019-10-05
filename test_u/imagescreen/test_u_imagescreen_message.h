@@ -32,8 +32,6 @@
 
 #include "stream_lib_ffmpeg_common.h"
 
-//#include "test_u_common.h"
-
 // forward declaration(s)
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
@@ -45,14 +43,26 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Stream_ImageScreen_SessionMessage_T;
 
+struct Stream_ImageScreen_MessageData
+{
+  Stream_ImageScreen_MessageData ()
+   : format ()
+   , relinquishMemory (NULL)
+  {}
+
+  struct Stream_MediaFramework_FFMPEG_MediaType format;
+  // free memory with MagickRelinquishMemory() ?
+  void*                                         relinquishMemory;
+};
+
 template <typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_ImageScreen_Message_T
- : public Stream_DataMessageBase_T<struct Stream_MediaFramework_FFMPEG_MediaType,
+ : public Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
                                    struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<struct Stream_MediaFramework_FFMPEG_MediaType,
+  typedef Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
                                    struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int> inherited;
@@ -67,7 +77,7 @@ class Stream_ImageScreen_Message_T
 
  public:
   Stream_ImageScreen_Message_T (unsigned int); // size
-  inline virtual ~Stream_ImageScreen_Message_T () {}
+  virtual ~Stream_ImageScreen_Message_T ();
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy that references the same packet

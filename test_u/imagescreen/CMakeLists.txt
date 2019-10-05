@@ -171,21 +171,21 @@ set (ui_definition_file "")
 if (GUI_SUPPORT)
  if (GTK_USE)
   if (GTK3_USE)
-   set (ui_definition_file etc/${EXECUTABLE}.gtk3)
+   set (ui_definition_file ${EXECUTABLE}.gtk3)
   elseif (GTK2_USE)
-   set (ui_definition_file etc/${EXECUTABLE}.gtk2)
+   set (ui_definition_file ${EXECUTABLE}.gtk2)
   endif ()
  elseif (WXWIDGETS_USE)
   if (WIN32)
    add_definitions(-DUNICODE -D_UNICODE)
   endif (WIN32)
-  set (ui_definition_file etc/${EXECUTABLE}.xrc)
+  set (ui_definition_file ${EXECUTABLE}.xrc)
  endif ()
 endif (GUI_SUPPORT)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
-                ${ui_definition_file})
+                etc/${ui_definition_file})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_U)
@@ -219,6 +219,13 @@ if (UNIX)
 
 # target_link_libraries (${EXECUTABLE} ${ACEXML_LIBRARY})
 elseif (WIN32)
+ if (MSVC)
+#  target_link_libraries (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO) 
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
+#  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
+ endif (MSVC)
+
 # target_link_libraries (${EXECUTABLE} dxguid.lib)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
 
@@ -375,20 +382,27 @@ elseif (WIN32)
  else ()
   set (ARGS "-g ${ARGS}")
  endif (GUI_SUPPORT)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${ACE_LIBRARY_PATH})
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE})
+ set (ENVIRONMENT "MAGICK_CODER_MODULE_PATH=${IMAGEMAGICK_PATH}\\\\modules\\\\coders")
 endif ()
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/imagescreen
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

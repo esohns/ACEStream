@@ -100,9 +100,7 @@ typedef Stream_Visualization_LibAVResize1_T<ACE_MT_SYNCH,
                                             Stream_ImageScreen_Message_t,
                                             Stream_ImageScreen_SessionMessage_t,
                                             struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Resize;
-#endif // FFMPEG_SUPPORT
-
-#if defined (IMAGEMAGICK_SUPPORT)
+#elif defined (IMAGEMAGICK_SUPPORT)
 typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -113,7 +111,7 @@ typedef Stream_File_ImageMagick_Source_T<ACE_MT_SYNCH,
                                          struct Stream_Statistic,
                                          Common_Timer_Manager_t,
                                          struct Stream_UserData,
-                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_ImageMagickSource;
+                                         struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Source;
 //typedef Stream_Decoder_ImageMagick_Decoder_T<ACE_MT_SYNCH,
 //                                             Common_TimePolicy_t,
 //                                             struct Stream_ImageScreen_ModuleHandlerConfiguration,
@@ -127,8 +125,8 @@ typedef Stream_Visualization_ImageMagickResize1_T<ACE_MT_SYNCH,
                                                   Stream_ControlMessage_t,
                                                   Stream_ImageScreen_Message_t,
                                                   Stream_ImageScreen_SessionMessage_t,
-                                                  struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_ImageMagickResize;
-#endif // IMAGEMAGICK_SUPPORT
+                                                  struct Stream_MediaFramework_FFMPEG_MediaType> Stream_ImageScreen_Resize;
+#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
 
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
@@ -219,15 +217,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               libacestream_default_vis_libav_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_ImageScreen_Resize);                       // writer type
-#endif // FFMPEG_SUPPORT
-
-#if defined (IMAGEMAGICK_SUPPORT)
+#elif defined (IMAGEMAGICK_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_file_imagemagick_source_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_ImageMagickSource);                       // writer type
+                              Stream_ImageScreen_Source);                       // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
 //                              struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
@@ -239,8 +235,8 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_ImageScreen_SessionData,                   
                               struct Stream_ImageScreen_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_imagemagick_resize_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Stream_ImageScreen_ImageMagickResize);                       // writer type
-#endif // IMAGEMAGICK_SUPPORT
+                              Stream_ImageScreen_Resize);                       // writer type
+#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
 
 //DATASTREAM_MODULE_DUPLEX (Stream_ImageScreen_SessionData,                // session data type
 //                          enum Stream_SessionMessageType,                   // session event type

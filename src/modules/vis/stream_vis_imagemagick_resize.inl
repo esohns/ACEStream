@@ -522,10 +522,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #endif // _DEBUG
   int result_2 = -1;
   Stream_SessionId_t session_id = message_inout->sessionId ();
-
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
-//  typename DataMessageType::DATA_T* message_data_p = NULL;
+  typename DataMessageType::DATA_T message_data_2;
   DataMessageType* message_p = NULL;
 
   try {
@@ -559,26 +558,26 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.resolution.cx, message_data_r.resolution.cy,
+              message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
               inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy));
 #else
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.resolution.width, message_data_r.resolution.height,
+              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
               inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
 
-  ACE_ASSERT (message_data_r.codec == AV_CODEC_ID_NONE);
-  ACE_ASSERT (message_data_r.format == AV_PIX_FMT_RGB32);
+  ACE_ASSERT (message_data_r.format.codec == AV_CODEC_ID_NONE);
+  ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB32 (message_data_r.format.format));
 
   result =
     MagickNewImage (inherited::context_,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                    message_data_r.resolution.cx, message_data_r.resolution.cy,
+                    message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
 #else
-                    message_data_r.resolution.width, message_data_r.resolution.height,
+                    message_data_r.format.resolution.width, message_data_r.format.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
                     pixelContext_);
   ACE_ASSERT (result == MagickTrue);
@@ -587,9 +586,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
     MagickImportImagePixels (inherited::context_,
                              0, 0,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                             message_data_r.resolution.cx, message_data_r.resolution.cy,
+                             message_data_r.format.resolution.cx, message_data_r.format.resolution.cy,
 #else
-                             message_data_r.resolution.width, message_data_r.resolution.height,
+                             message_data_r.format.resolution.width, message_data_r.format.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
                              ACE_TEXT_ALWAYS_CHAR ("RGBA"),
                              CharPixel,
@@ -598,6 +597,13 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 //                                 message_inout->rd_ptr (),
 //                                  message_inout->length ());
   ACE_ASSERT (result == MagickTrue);
+  //if (message_data_r.relinquishMemory)
+  //{
+  //  MagickRelinquishMemory (message_inout->rd_ptr ());
+  //  message_inout->base (NULL,
+  //                       0,
+  //                       0);
+  //} // end IF
   message_inout->release (); message_inout = NULL;
 
   result = MagickSetImageFormat (inherited::context_,
@@ -633,11 +639,15 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Image_Tools::errorToString (inherited::context_).c_str ())));
     goto error;
   } // end IF
+  // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_i,
-                   0);
+                   ACE_Message_Block::DONT_DELETE); // own image datas
   message_p->wr_ptr (size_i);
-  message_p->initialize (inherited::configuration_->outputFormat,
+
+  message_data_2.format = inherited::configuration_->outputFormat;
+  message_data_2.relinquishMemory = data_p;
+  message_p->initialize (message_data_2,
                          session_id,
                          NULL);
 
@@ -697,14 +707,18 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-  // *TODO*: remove type inference
-//  ACE_ASSERT (!session_data_r.formats.empty ());
-//  const MediaType& media_type_r = session_data_r.formats.front ();
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      const MediaType& media_type_r = session_data_r.formats.front ();
+      MediaType media_type_s = media_type_r;
+      inherited::setResolution (inherited::configuration_->outputFormat.resolution,
+                                media_type_s);
+      session_data_r.formats.push_front (media_type_s);
+
       break;
 
 error:

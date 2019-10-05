@@ -410,6 +410,24 @@ Stream_Module_Decoder_Tools::isRGB (enum AVPixelFormat format_in)
 
   return false;
 }
+bool
+Stream_Module_Decoder_Tools::isRGB32 (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::isRGB32"));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_ARGB:      ///< packed ARGB 8:8:8:8, 32bpp, ARGBARGB...
+    case AV_PIX_FMT_RGBA:      ///< packed RGBA 8:8:8:8, 32bpp, RGBARGBA...
+    case AV_PIX_FMT_ABGR:      ///< packed ABGR 8:8:8:8, 32bpp, ABGRABGR...
+    case AV_PIX_FMT_BGRA:      ///< packed BGRA 8:8:8:8, 32bpp, BGRABGRA...
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
 
 std::string
 Stream_Module_Decoder_Tools::errorToString (int error_in)

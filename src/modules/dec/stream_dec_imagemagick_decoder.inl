@@ -173,11 +173,12 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   unsigned char* data_p = NULL;
   size_t size_i = 0, size_2 = 0;
+  typename DataMessageType::DATA_T message_data_2;
 
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  inherited2::getMediaType (message_data_r,
+  inherited2::getMediaType (message_data_r.format,
                             media_type_s);
   size_i =
       static_cast<unsigned int> (av_image_get_buffer_size (outputFormat_.format,
@@ -203,16 +204,19 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   } // end IF
   message_p = dynamic_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
-  message_p->initialize (outputFormat_,
-                         message_p->sessionId (),
-                         NULL);
+  message_data_2.format = outputFormat_;
 
   ACE_ASSERT (media_type_s.codec == AV_CODEC_ID_NONE);
   MagickBooleanType result = MagickSetFormat (context_, "RGB");
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetSize (context_,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                          media_type_s.resolution.cx,
+                          media_type_s.resolution.cy);
+#else
                           media_type_s.resolution.width,
                           media_type_s.resolution.height);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
 
   result = MagickReadImageBlob (context_,
@@ -228,12 +232,14 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   } // end IF
   message_inout->release (); message_inout = NULL;
 
-//  result = MagickSetImageDepth (context_, 8);
-//  ACE_ASSERT (result == MagickTrue);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  result = MagickSetImageDepth (context_, 8);
+#else
   result = MagickSetImageChannelDepth (context_,
                                        AllChannels,
 //                                       static_cast<ChannelType> (RedChannel | GreenChannel | BlueChannel | AlphaChannel),
                                        8);
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result == MagickTrue);
   result = MagickSetImageFormat (context_, "RGBA");
   ACE_ASSERT (result == MagickTrue);
@@ -248,11 +254,16 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                                &size_2);
   ACE_ASSERT (data_p);
   ACE_ASSERT (size_i == size_2);
-
+  // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
   message_p->base (reinterpret_cast<char*> (data_p),
                    size_2,
-                   0); // 'own' data
+                   ACE_Message_Block::DONT_DELETE); // own image datas
   message_p->wr_ptr (size_2);
+  message_data_2.relinquishMemory = data_p;
+  message_p->initialize (message_data_2,
+                         message_p->sessionId (),
+                         NULL);
+
 
 #if defined (_DEBUG)
   std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");

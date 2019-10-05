@@ -157,6 +157,9 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      while (!inherited::msg_queue_->is_empty ())
+        ACE_OS::sleep (inherited::configuration_->delay);
+
       if (likely (resetTimeoutHandlerId_ != -1))
       {
         const void* act_p = NULL;

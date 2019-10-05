@@ -38,13 +38,23 @@
 Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
  : inherited ()
  , source_ (this,
+#if defined (FFMPEG_SUPPORT)
+            ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING))
+#elif defined (IMAGEMAGICK_SUPPORT)
             ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_IMAGEMAGICK_SOURCE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
 // , decode_ (this,
 //            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
+#if defined (FFMPEG_SUPPORT)
  , convert_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , resize_ (this,
+#if defined (FFMPEG_SUPPORT)
+            ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+#elif defined (IMAGEMAGICK_SUPPORT)
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , delay_ (this,
@@ -85,7 +95,9 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
 //  layout_in->append (&statisticReport_, NULL, 0);
 //  layout_in->append (&decode_, NULL, 0); // output is uncompressed RGBA
+#if defined (FFMPEG_SUPPORT)
   layout_in->append (&convert_, NULL, 0); // output is uncompressed RGBA
+#endif // FFMPEG_SUPPORT
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&delay_, NULL, 0);
   layout_in->append (&display_, NULL, 0);
@@ -155,8 +167,10 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-//  session_data_p->format = configuration_p->inputFormat;
-//  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  media_type_s.format = AV_PIX_FMT_RGB32;
+  session_data_p->formats.push_front (media_type_s);
+  //  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 

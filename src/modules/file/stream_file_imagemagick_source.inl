@@ -232,6 +232,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
+  typename DataMessageType::DATA_T message_data_s;
   bool finished = false;
   bool stop_processing = false;
   int file_index_i = 0;
@@ -259,7 +260,8 @@ next:
     file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
     file_path_string += directory_[file_index_i++]->d_name;
   } // end IF
-
+  else if (!Common_File_Tools::isValidFilename (inherited::configuration_->fileIdentifier.identifier)) // empty directory ?
+    goto continue_;
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: processing file \"%s\" (%u byte(s))\n"),
@@ -305,7 +307,7 @@ next:
 done:
           result_2 = 0;
 
-          goto continue_; // STREAM_SESSION_END has been processed
+          goto continue_2; // STREAM_SESSION_END has been processed
         }
         default:
           break;
@@ -360,11 +362,26 @@ done:
 
       continue;
     } // end IF
+    else if (finished) // stop / session begin / end
+      continue;
 
     // *TODO*: remove type inference
     result_3 = MagickReadImage (context_,
                                 file_path_string.c_str ());
-    ACE_ASSERT (result_3 == MagickTrue);
+    if (unlikely (result_3 != MagickTrue))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to MagickReadImage(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Image_Tools::errorToString (context_).c_str ())));
+
+      finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::STATE_MACHINE_T::finished ();
+
+      continue;
+    } // end IF
 
 //    media_type_s.codec =
 //        Common_Image_Tools::stringToCodecId (MagickGetImageFormat (context_));
@@ -405,14 +422,17 @@ done:
 
       continue;
     } // end IF
+    // *TODO*: crashes in release()...(needs MagickRelinquishMemory())
     message_p->base (reinterpret_cast<char*> (data_p),
                      file_size_i,
-                     0); // own image datas
+                     ACE_Message_Block::DONT_DELETE); // own image datas
     message_p->wr_ptr (file_size_i);
     inherited2::getMediaType (media_type_s,
                               media_type_2);
     media_type_2.codec = AV_CODEC_ID_NONE;
-    message_p->initialize (media_type_2,
+    message_data_s.format = media_type_2;
+    message_data_s.relinquishMemory = data_p;
+    message_p->initialize (message_data_s,
                            message_p->sessionId (),
                            NULL);
 
@@ -432,6 +452,7 @@ done:
     } // end IF
     message_p = NULL;
 
+continue_:
     if (directory_.length () &&
         file_index_i < directory_.length ())
       goto next;
@@ -440,6 +461,6 @@ done:
                                   true);
   } while (true);
 
-continue_:
+continue_2:
   return result_2;
 }

@@ -896,9 +896,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.direct3DConfiguration);
-
   if (inherited::isInitialized_)
   {
     clientWindow_ = NULL;

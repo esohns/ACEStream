@@ -78,7 +78,7 @@
 #include "test_u_imagescreen_signalhandler.h"
 #include "test_u_imagescreen_stream.h"
 
-const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("ImageScreenStream");
 #if defined (GUI_SUPPORT)
 #if defined (WXWIDGETS_USE)
 const char toplevel_widget_classname_string_[] =
@@ -96,15 +96,19 @@ dirent_selector_cb (const dirent* dirEntry_in)
   std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
   std::string::size_type position =
       filename.find_last_of ('.', std::string::npos);
-  if (position == std::string::npos)
+  if ((position == 0) || ((position == 1) && filename[0] == '.')) // filter '.' and '..'
     return 0;
   filename.erase (0, position + 1);
-  if (ACE_OS::strncmp (filename.c_str (),
-                       ACE_TEXT_ALWAYS_CHAR ("png"),
-                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("png"))) != 0)
-    return 0;
+  if (!ACE_OS::strncmp (filename.c_str (),
+                        ACE_TEXT_ALWAYS_CHAR ("jpg"),
+                        ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("jpg"))))
+    return 1;
+  else if (!ACE_OS::strncmp (filename.c_str (),
+                             ACE_TEXT_ALWAYS_CHAR ("png"),
+                             ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("png"))))
+    return 1;
 
-  return 1;
+  return 0;
 }
 
 //////////////////////////////////////////
@@ -139,18 +143,24 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
+#if defined (GUI_SUPPORT)
   std::string ui_definition_file_path = path_root;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path +=
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [PATH]   : ui definition file [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-g {[PATH]} : ui definition file [")
             << ui_definition_file_path
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // GUI_SUPPORT
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
@@ -160,8 +170,12 @@ do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       std::string& ImageFilePath_out,
                       bool& fullscreen_out,
-                      bool& traceInformation_out,
-                      std::string& UIDefinitionFilePath_out)
+                      bool& logToFile_out,
+                      bool& traceInformation_out
+#if defined (GUI_SUPPORT)
+                      , std::string& UIDefinitionFilePath_out
+#endif // GUI_SUPPORT
+                      )
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -174,17 +188,24 @@ do_process_arguments (int argc_in,
   ImageFilePath_out +=
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
   fullscreen_out = false;
+  logToFile_out = false;
   traceInformation_out = false;
+#if defined (GUI_SUPPORT)
   UIDefinitionFilePath_out = path_root;
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIDefinitionFilePath_out +=
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   UIDefinitionFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIDefinitionFilePath_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
+#endif // GUI_SUPPORT
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("d:ftu:"),
+#if defined (GUI_SUPPORT)
+                               ACE_TEXT ("d:fg::lt"),
+#else
+                               ACE_TEXT ("d:flt"),
+#endif // GUI_SUPPORT
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -207,15 +228,25 @@ do_process_arguments (int argc_in,
         fullscreen_out = true;
         break;
       }
+#if defined (GUI_SUPPORT)
+      case 'g':
+      {
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
+        if (opt_arg)
+          UIDefinitionFilePath_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+        else
+          UIDefinitionFilePath_out.clear ();
+        break;
+      }
+#endif // GUI_SUPPORT
+      case 'l':
+      {
+        logToFile_out = true;
+        break;
+      }
       case 't':
       {
         traceInformation_out = true;
-        break;
-      }
-      case 'u':
-      {
-        UIDefinitionFilePath_out =
-          ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
       // error handling
@@ -320,9 +351,11 @@ do_initialize_signals (ACE_Sig_Set& signals_out,
 void
 do_work (int argc_in,
          ACE_TCHAR* argv_in[],
-         const std::string& UIDefinitionFilePath_in,
          const std::string& imageFilePath_in,
          bool fullscreen_in,
+#if defined (GUI_SUPPORT)
+         const std::string& UIDefinitionFilePath_in,
+#endif // GUI_SUPPORT
          /////////////////////////////////
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -343,6 +376,9 @@ do_work (int argc_in,
     &configuration.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.codecId = AV_CODEC_ID_PNG;
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.direct3DConfiguration = &configuration.direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = imageFilePath_in;
   modulehandler_configuration.fileIdentifier.identifierDiscriminator =
       Common_File_Identifier::DIRECTORY;
@@ -526,13 +562,17 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   std::string path_root = Common_File_Tools::getWorkingDirectory ();
   bool fullscreen_b = false;
+  bool log_to_file = false;
+  std::string log_file_name;
   bool trace_information = false;
+#if defined (GUI_SUPPORT)
   std::string ui_definition_file_path = path_root;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path +=
       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
+#endif // GUI_SUPPORT
   std::string image_file_path = path_root;
   image_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   image_file_path +=
@@ -543,16 +583,22 @@ ACE_TMAIN (int argc_in,
                              argv_in,
                              image_file_path,
                              fullscreen_b,
-                             trace_information,
-                             ui_definition_file_path))
+                             log_to_file,
+                             trace_information
+#if defined (GUI_SUPPORT)
+                             , ui_definition_file_path
+#endif // GUI_SUPPORT
+                             ))
   {
     do_print_usage (ACE::basename (argv_in[0]));
     goto clean;
   } // end IF
 
-  if (!Common_File_Tools::isReadable (ui_definition_file_path) ||
-      !Common_File_Tools::isDirectory (image_file_path) ||
-      !Common_File_Tools::isReadable (image_file_path))
+  if (
+#if defined (GUI_SUPPORT)
+      (!ui_definition_file_path.empty () && !Common_File_Tools::isReadable (ui_definition_file_path)) ||
+#endif // GUI_SUPPORT
+      !Common_File_Tools::isDirectory (image_file_path) && !Common_File_Tools::isReadable (image_file_path))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid argument(s), aborting\n")));
@@ -561,12 +607,16 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1c: initialize logging and/or tracing
-  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
-                                            ACE_TEXT_ALWAYS_CHAR (""),            // log file name
-                                            false,                                // log to syslog ?
-                                            false,                                // trace messages ?
-                                            trace_information,                    // debug messages ?
-                                            NULL))                                // logger ?
+  if (log_to_file)
+    log_file_name =
+    Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                      ACE::basename (argv_in[0]));
+  if (!Common_Log_Tools::initializeLogging (ACE::basename (argv_in[0]), // program name
+                                            log_file_name,              // log file name
+                                            false,                      // log to syslog ?
+                                            false,                      // trace messages ?
+                                            trace_information,          // debug messages ?
+                                            NULL))                      // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initializeLogging(), aborting\n")));
@@ -597,9 +647,11 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (argc_in,
            argv_in,
-           ui_definition_file_path,
            image_file_path,
            fullscreen_b,
+#if defined (GUI_SUPPORT)
+           ui_definition_file_path,
+#endif // GUI_SUPPORT
            ///////////////////////////////
            signal_set,
            ignored_signal_set,

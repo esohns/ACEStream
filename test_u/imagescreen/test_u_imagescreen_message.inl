@@ -64,6 +64,18 @@ Stream_ImageScreen_Message_T<SessionDataType>::Stream_ImageScreen_Message_T (Str
 }
 
 template <typename SessionDataType>
+Stream_ImageScreen_Message_T<SessionDataType>::~Stream_ImageScreen_Message_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Message_T::~Stream_ImageScreen_Message_T"));
+
+  if (inherited::data_.relinquishMemory)
+  {
+    MagickRelinquishMemory (inherited::data_.relinquishMemory);
+    inherited::data_.relinquishMemory = NULL;
+  } // end IF
+}
+
+template <typename SessionDataType>
 ACE_Message_Block*
 Stream_ImageScreen_Message_T<SessionDataType>::duplicate (void) const
 {

@@ -28,7 +28,7 @@
 
 //STREAM_FILE_Export const char libacestream_default_file_source_module_name_string[] =
 const char libacestream_default_file_source_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SOURCE_DEFAULT_NAME_STRING);
 
 int
 stream_file_dirent_selector_all_cb (const dirent* dirEntry_in)

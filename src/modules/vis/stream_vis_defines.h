@@ -23,8 +23,12 @@
 
 #include "ace/config-lite.h"
 
-#define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagick_Resize"
-#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAV_Resize"
+#if defined (FFMPEG_SUPPORT)
+#define STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING                       "LibAVResize"
+#endif // FFMPEG_SUPPORT
+#if defined (IMAGEMAGICK_SUPPORT)
+#define STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING                 "ImageMagickResize"
+#endif // IMAGEMAGICK_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING                           "Direct2D"
 #define STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING                           "Direct3D"

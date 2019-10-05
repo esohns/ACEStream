@@ -631,7 +631,7 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
   if (!Stream_MediaFramework_Tools::isRGB (subType_in,
                                            mediaFramework_in))
   { // *TODO*
-    ACE_ASSERT (false);
+    //ACE_ASSERT (false);
     ACE_NOTSUP_RETURN (0);
     ACE_NOTREACHED (return 0;)
   } // end IF

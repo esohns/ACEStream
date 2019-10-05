@@ -33,6 +33,9 @@
 #endif // UUIDS_H
 
 //#include <streams.h>
+
+// support imagemagick
+#define ssize_t ssize_t
 #endif // _MSC_VER
 
 // C RunTime Header Files

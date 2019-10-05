@@ -38,6 +38,9 @@ extern "C"
 #include "stream_istreamcontrol.h"
 #include "stream_session_data.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_lib_directdraw_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_ffmpeg_common.h"
 
 #include "stream_vis_common.h"
@@ -222,12 +225,18 @@ struct Stream_ImageScreen_Configuration
 #else
    : Test_U_Configuration ()
 #endif // GTK_USE
-   , timerConfiguration ()
-   , streamConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  , direct3DConfiguration ()
+#endif // ACE_WIN32 || ACE_WIN64
+  , timerConfiguration ()
+  , streamConfiguration ()
   {}
 
-  struct Common_TimerConfiguration         timerConfiguration;
-  Stream_ImageScreen_StreamConfiguration_t streamConfiguration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
+  struct Common_TimerConfiguration                    timerConfiguration;
+  Stream_ImageScreen_StreamConfiguration_t            streamConfiguration;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
