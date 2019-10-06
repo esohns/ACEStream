@@ -238,10 +238,10 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   int file_index_i = 0;
   std::string file_path_string;
   size_t file_size_i = 0;
-  MagickBooleanType result_3= MagickTrue;
+  MagickBooleanType result_3 = MagickTrue;
   unsigned char* data_p = NULL;
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  media_type_s.format = AV_PIX_FMT_BGR32;
+  media_type_s.format = AV_PIX_FMT_BGRA;
   MediaType media_type_2;
 
   // sanity check(s)

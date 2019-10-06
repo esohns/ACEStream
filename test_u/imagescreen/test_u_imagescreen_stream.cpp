@@ -45,16 +45,14 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 #endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
 // , decode_ (this,
 //            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING))
-#if defined (FFMPEG_SUPPORT)
- , convert_ (this,
-             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
-#endif // FFMPEG_SUPPORT
  , resize_ (this,
 #if defined (FFMPEG_SUPPORT)
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #elif defined (IMAGEMAGICK_SUPPORT)
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_IMAGEMAGICK_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT || IMAGEMAGICK_SUPPORT
+ , convert_ (this,
+             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , delay_ (this,
@@ -95,10 +93,8 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
 //  layout_in->append (&statisticReport_, NULL, 0);
 //  layout_in->append (&decode_, NULL, 0); // output is uncompressed RGBA
-#if defined (FFMPEG_SUPPORT)
-  layout_in->append (&convert_, NULL, 0); // output is uncompressed RGBA
-#endif // FFMPEG_SUPPORT
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&convert_, NULL, 0); // output is uncompressed BGRA
   layout_in->append (&delay_, NULL, 0);
   layout_in->append (&display_, NULL, 0);
 

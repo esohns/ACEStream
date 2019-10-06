@@ -365,7 +365,11 @@ do_work (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Stream_ImageScreen_Configuration configuration;
-  struct Stream_ImageScreen_UI_CBData ui_cb_data;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //configuration.direct3DConfiguration.presentationParameters.BackBufferFormat =
+  //  D3DFMT_X8R8G8B8;
+#endif // ACE_WIN32 || ACE_WIN64
+    struct Stream_ImageScreen_UI_CBData ui_cb_data;
 
   // initialize stream
   struct Stream_ModuleConfiguration module_configuration;
@@ -386,7 +390,7 @@ do_work (int argc_in,
       dirent_selector_cb;
   modulehandler_configuration.fullScreen = fullscreen_in;
   // X11 requires RGB32
-  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGBA;
   modulehandler_configuration.slurpFiles = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (

@@ -525,6 +525,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   const typename DataMessageType::DATA_T& message_data_r =
       message_inout->getR ();
   typename DataMessageType::DATA_T message_data_2;
+  message_data_2.format = message_data_r.format;
   DataMessageType* message_p = NULL;
 
   try {
@@ -645,7 +646,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                    ACE_Message_Block::DONT_DELETE); // own image datas
   message_p->wr_ptr (size_i);
 
-  message_data_2.format = inherited::configuration_->outputFormat;
+  message_data_2.format.resolution =
+    inherited::configuration_->outputFormat.resolution;
+  //message_data_2.format.resolution.cx = -message_data_2.format.resolution.cx;
   message_data_2.relinquishMemory = data_p;
   message_p->initialize (message_data_2,
                          session_id,
@@ -717,6 +720,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
       MediaType media_type_s = media_type_r;
       inherited::setResolution (inherited::configuration_->outputFormat.resolution,
                                 media_type_s);
+      //media_type_s.resolution.cx = -media_type_s.resolution.cx;
       session_data_r.formats.push_front (media_type_s);
 
       break;

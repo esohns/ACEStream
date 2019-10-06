@@ -678,6 +678,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T& message_data_r =
       const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
+  typename DataMessageType::DATA_T message_data_2;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
@@ -694,7 +695,7 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   }
   ACE_ASSERT (!message_inout->cont ());
 
-  inherited2::getMediaType (message_data_r,
+  inherited2::getMediaType (message_data_r.format,
                             media_type_s);
   ACE_ASSERT (inherited::configuration_);
   size_i =
@@ -720,8 +721,8 @@ Stream_Decoder_LibAVConverter1_T<ACE_SYNCH_USE,
   } // end IF
   message_p = dynamic_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
-  message_data_r.format = inherited::configuration_->outputFormat.format;
-  message_p->initialize (message_data_r,
+  message_data_2.format = inherited::configuration_->outputFormat;
+  message_p->initialize (message_data_2,
                          message_p->sessionId (),
                          NULL);
 

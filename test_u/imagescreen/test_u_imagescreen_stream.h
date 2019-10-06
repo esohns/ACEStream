@@ -106,10 +106,8 @@ class Stream_ImageScreen_Stream
   // modules
   Stream_ImageScreen_Source_Module  source_;
 //  Stream_ImageScreen_StatisticReport_Module statisticReport_;
-#if defined (FFMPEG_SUPPORT)
-  Stream_ImageScreen_Convert_Module convert_; // RGB24 --> RGB32
-#endif // FFMPEG_SUPPORT
   Stream_ImageScreen_Resize_Module  resize_; // --> window size/fullscreen
+  Stream_ImageScreen_Convert_Module convert_; // RGB32 --> BGR32
   Stream_ImageScreen_Delay_Module   delay_;
   Stream_ImageScreen_Display_Module display_;
 };
