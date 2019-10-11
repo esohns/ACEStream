@@ -1380,7 +1380,7 @@ continue_:
   // render to a window (GtkDrawingArea) ?
 continue_2:
   result =
-    graph_builder_p->FindFilterByName ((windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+    graph_builder_p->FindFilterByName ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                                                         : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_p);
   if (FAILED (result))
@@ -1390,7 +1390,7 @@ continue_2:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                                                             : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
@@ -1413,7 +1413,7 @@ continue_2:
     ACE_ASSERT (filter_2);
     result =
       graph_builder_p->AddFilter (filter_2,
-                                  (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                  (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                                                    : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
@@ -1474,7 +1474,7 @@ continue_2:
   graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB;
   graph_configuration.push_back (graph_entry);
   graph_entry.filterName =
-    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                      : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
   if (!Stream_MediaFramework_DirectShow_Tools::connect (graph_builder_p,

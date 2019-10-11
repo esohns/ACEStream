@@ -116,11 +116,11 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
 
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  //iterator_2 =
-  //  const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_.renderer).c_str ()));
+  iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  //ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -216,7 +216,7 @@ continue_:
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_.format,
                                                             (*iterator).second.second.outputFormat,
-                                                            (*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow,
+                                                            (*iterator).second.second.window,
                                                             (*iterator).second.second.builder,
                                                             graph_configuration))
   {

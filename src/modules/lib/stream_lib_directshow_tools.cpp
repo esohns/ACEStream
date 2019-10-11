@@ -1064,6 +1064,64 @@ Stream_MediaFramework_DirectShow_Tools::defaultCaptureFormat (IBaseFilter* filte
 }
 
 IBaseFilter*
+Stream_MediaFramework_DirectShow_Tools::next (IBaseFilter* filter_in)
+{
+  IBaseFilter* result = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (filter_in);
+
+  IPin* pin_p = NULL;
+  enum _PinDirection pin_direction_e;
+  IPin* pin_2 = NULL;
+  IEnumPins* enumerator_p = NULL;
+  HRESULT result_2 = filter_in->EnumPins (&enumerator_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+  while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
+  { ACE_ASSERT (pin_p);
+    result_2 = pin_p->QueryDirection (&pin_direction_e);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+      pin_p->Release (); pin_p = NULL;
+      enumerator_p->Release (); enumerator_p = NULL;
+      return NULL;
+    } // end IF
+    if (pin_direction_e != PINDIR_OUTPUT)
+    {
+      pin_p->Release (); pin_p = NULL;
+      continue;
+    } // end IF
+    result_2 = pin_p->ConnectedTo (&pin_2);
+    if (FAILED (result_2))
+    {
+      pin_p->Release (); pin_p = NULL;
+      continue;
+    } // end IF
+    pin_p->Release (); pin_p = NULL;
+    break;
+  } // end WHILE
+  enumerator_p->Release (); enumerator_p = NULL;
+  if (likely (pin_2))
+  {
+    result = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_2);
+    ACE_ASSERT (result);
+    pin_2->Release (); pin_2 = NULL;
+  } // end IF
+
+  return result;
+}
+
+IBaseFilter*
 Stream_MediaFramework_DirectShow_Tools::toFilter (IPin* pin_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFilter"));
@@ -1540,6 +1598,62 @@ continue_:
 
   return true;
 }
+
+bool
+Stream_MediaFramework_DirectShow_Tools::connect (IGraphBuilder* builder_in,
+                                                 IBaseFilter* filter_in,
+                                                 IBaseFilter* filter2_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::connectFirst"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+  ACE_ASSERT (filter_in);
+  ACE_ASSERT (filter2_in);
+
+  IPin* pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_in,
+                                                             PINDIR_OUTPUT);
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: has no output pin, aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+    return false;
+  } // end IF
+  IPin* pin_2 = Stream_MediaFramework_DirectShow_Tools::pin (filter2_in,
+                                                             PINDIR_INPUT);
+  if (!pin_2)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: has no input pin, aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter2_in).c_str ())));
+    pin_p->Release (); pin_p = NULL;
+    return false;
+  } // end IF
+
+  HRESULT result = builder_in->Connect (pin_p,
+                                        pin_2);
+  if (FAILED (result)) // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
+                        // 0x80040217: VFW_E_CANNOT_CONNECT
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("'intelligent' pin connection %s/%s <--> %s/%s failed: \"%s\" (0x%x), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_p).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (pin_2).c_str ()),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter2_in).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ()),
+                result));
+    pin_p->Release (); pin_p = NULL;
+    pin_2->Release (); pin_2 = NULL;
+    return false;
+  } // end IF
+  pin_p->Release (); pin_p = NULL;
+  pin_2->Release (); pin_2 = NULL;
+
+  return true;
+}
+
 bool
 Stream_MediaFramework_DirectShow_Tools::connectFirst (IGraphBuilder* builder_in,
                                                       const std::wstring& filterName_in)
@@ -1567,10 +1681,7 @@ Stream_MediaFramework_DirectShow_Tools::connectFirst (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::pin(PINDIR_OUTPUT), aborting\n")));
-
-    // clean up
-    filter_p->Release ();
-
+    filter_p->Release (); filter_p = NULL;
     return false;
   } // end IF
 
@@ -1589,18 +1700,16 @@ loop:
                   ACE_TEXT ("failed to IGraphBuilder::Render(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      pin_p->Release ();
-
+      filter_p->Release (); filter_p = NULL;
+      pin_p->Release (); pin_p = NULL;
       return false;
     } // end IF
+    filter_p->Release (); filter_p = NULL;
 
     return true;
   } // end IF
   ACE_ASSERT (pin_2);
-  pin_p->Release ();
+  pin_p->Release (); pin_p = NULL;
 
   filter_p = Stream_MediaFramework_DirectShow_Tools::toFilter (pin_2);
   if (!filter_p)
@@ -1608,10 +1717,7 @@ loop:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::toFilter(0x%@), aborting\n"),
                 pin_2));
-
-    // clean up
-    pin_2->Release ();
-
+    pin_2->Release (); pin_2 = NULL;
     return false;
   } // end IF
   pin_2->Release (); pin_2 = NULL;
@@ -1619,12 +1725,10 @@ loop:
   pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p, PINDIR_OUTPUT);
   if (!pin_p)
   {
-    // clean up
-    filter_p->Release ();
-
+    filter_p->Release (); filter_p = NULL;
     return true; // filter has no output pin --> sink
   } // end IF
-  filter_p->Release ();
+  filter_p->Release (); filter_p = NULL;
 
   goto loop;
 
@@ -2010,6 +2114,91 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
 }
 
 bool
+Stream_MediaFramework_DirectShow_Tools::append (IGraphBuilder* builder_in,
+                                                IBaseFilter* filter_in,
+                                                const std::wstring& filterName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::append"));
+
+    // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  // find trailing (connected) filter
+  IBaseFilter* prev_p = NULL;
+  IEnumFilters* enumerator_p = NULL;
+  HRESULT result = builder_in->EnumFilters (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    return false;
+  } // end IF
+  IBaseFilter* filter_p = NULL;
+  IBaseFilter* filter_2 = NULL;
+//next:
+  while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
+  { ACE_ASSERT (filter_p);
+    break;
+  } // end WHILE
+  enumerator_p->Release (); enumerator_p = NULL;
+  while (filter_p)
+  {
+    filter_2 = Stream_MediaFramework_DirectShow_Tools::next (filter_p);
+    if (filter_2)
+    {
+      filter_p->Release (); filter_p = NULL;
+      filter_p = filter_2;
+      continue;
+    } // end IF
+    break;
+  } // end WHILE
+  if (unlikely (!filter_p))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no trailing filter found, adding \"%s\"\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found trailing filter (was: \"%s\"), continuing\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ())));
+
+  result = builder_in->AddFilter (filter_in,
+                                  filterName_in.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    if (filter_p) filter_p->Release ();
+    return false;
+  } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ())));
+#endif // _DEBUG
+
+  if (filter_p)
+  {
+    if (!Stream_MediaFramework_DirectShow_Tools::connect (builder_in,
+                                                          filter_p,
+                                                          filter_in))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::connect(\"%s\",\"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_p).c_str ()),
+                  ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ())));
+      filter_p->Release (); filter_p = NULL;
+      return false;
+    } // end IF
+    filter_p->Release (); filter_p = NULL;
+  } // end IF
+
+  return true;
+}
+
+bool
 Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::clear"));
@@ -2148,6 +2337,40 @@ Stream_MediaFramework_DirectShow_Tools::disconnect (IBaseFilter* filter_in)
 }
 
 bool
+Stream_MediaFramework_DirectShow_Tools::remove (IGraphBuilder* builder_in,
+                                                IBaseFilter* filter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::remove"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+  ACE_ASSERT (filter_in);
+  ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::has (builder_in, ACE_TEXT_ALWAYS_WCHAR (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+
+  if (!Stream_MediaFramework_DirectShow_Tools::disconnect (filter_in))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::disconnect(%s), continuing\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+
+  HRESULT result = builder_in->RemoveFilter (filter_in);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
+    return false;
+  } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("removed \"%s\"...\n"),
+              ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::name (filter_in).c_str ())));
+#endif // _DEBUG
+
+  return true;
+}
+  
+bool
 Stream_MediaFramework_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::disconnect"));
@@ -2216,7 +2439,7 @@ Stream_MediaFramework_DirectShow_Tools::get (IGraphBuilder* builder_in,
   do
   {
     pin_p = Stream_MediaFramework_DirectShow_Tools::pin (filter_p,
-                                                        PINDIR_OUTPUT);
+                                                         PINDIR_OUTPUT);
     if (!pin_p)
       break; // done
     result = pin_p->ConnectedTo (&pin_2);

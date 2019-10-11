@@ -204,7 +204,7 @@ do_process_arguments (int argc_in,
                       enum Stream_MediaFramework_Type& mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
                       struct Common_UI_DisplayDevice& displayDevice_out,
-                      enum Stream_Visualization_VideoRenderer& renderer_out,
+                      //enum Stream_Visualization_VideoRenderer& renderer_out,
                       bool& traceInformation_out,
                       enum Stream_CameraScreen_ProgramMode& mode_out)
 {
@@ -252,7 +252,7 @@ do_process_arguments (int argc_in,
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
-  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
+  //renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
   traceInformation_out = false;
   mode_out = STREAM_CAMERASCREEN_PROGRAMMODE_NORMAL;
 
@@ -275,27 +275,27 @@ do_process_arguments (int argc_in,
     switch (option)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      case '2':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
-        break;
-      }
-      case '3':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
-        break;
-      }
+      //case '2':
+      //{
+      //  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
+      //  break;
+      //}
+      //case '3':
+      //{
+      //  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D;
+      //  break;
+      //}
       case 'c':
       {
         showConsole_out = true;
         break;
       }
 #else
-      case '1':
-      {
-        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
-        break;
-      }
+      //case '1':
+      //{
+      //  renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_X11;
+      //  break;
+      //}
 #endif // ACE_WIN32 || ACE_WIN64
       case 'd':
       {
@@ -386,7 +386,8 @@ do_initialize_directshow (const std::string& devicePath_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureFormat_inout,
-                          struct _AMMediaType& outputFormat_inout) // directshow sample grabber-
+                          struct _AMMediaType& outputFormat_inout,
+                          HWND& windowHandle_out) // directshow sample grabber-
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -512,43 +513,79 @@ do_initialize_directshow (const std::string& devicePath_in,
     goto error;
   } // end ELSE
 
-  if (hasUI_in)
-  {
-    IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
-    IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
-    return true;
-  } // end IF
+  IAMStreamConfig_out->Release (); IAMStreamConfig_out = NULL;
+  IGraphBuilder_out->Release (); IGraphBuilder_out = NULL;
 
-  if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            captureFormat_inout,
-                                                            outputFormat_inout,
-                                                            NULL,
-                                                            IGraphBuilder_out,
-                                                            graph_configuration))
+  DWORD window_style = (WS_CAPTION     |
+                        WS_MAXIMIZEBOX |
+                        WS_MINIMIZEBOX |
+                        //WS_OVERLAPPED     |
+                        WS_SIZEBOX     |
+                        WS_SYSMENU     |
+                        WS_VISIBLE);
+  DWORD window_style_ex = (WS_EX_APPWINDOW     |
+                           WS_EX_RIGHTSCROLLBAR// |
+                           /*WS_EX_WINDOWEDGE*/);
+  windowHandle_out =
+    CreateWindowEx (window_style_ex,                                  // dwExStyle
+#if defined (UNICODE)
+                    ACE_TEXT_ALWAYS_WCHAR ("EDIT"),                   // lpClassName
+                    ACE_TEXT_ALWAYS_WCHAR ("DirectShow"), // lpWindowName
+#else
+                    ACE_TEXT_ALWAYS_CHAR ("EDIT"),                    // lpClassName
+                    ACE_TEXT_ALWAYS_CHAR ("DirectShow"),  // lpWindowName
+#endif // UNICODE
+                    window_style,                                     // dwStyle
+                    CW_USEDEFAULT, CW_USEDEFAULT,                     // x,y
+                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH,        // width
+                    STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,       // height
+                    //parent_window_handle,                           // hWndParent
+                    NULL,                                             // hWndParent
+                    NULL,                                             // hMenu
+                    GetModuleHandle (NULL),                           // hInstance
+                    NULL);                                            // lpParam
+  if (unlikely (!windowHandle_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadVideoRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (IGraphBuilder_out);
-  result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&media_filter_p));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_filter_p);
-  result = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
-  } // end IF
-  media_filter_p->Release (); media_filter_p = NULL;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("opened display window (size: %dx%d, handle: 0x%@)\n"),
+              STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
+              windowHandle_out));
+
+  //if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
+  //                                                          captureFormat_inout,
+  //                                                          outputFormat_inout,
+  //                                                          windowHandle_out,
+  //                                                          IGraphBuilder_out,
+  //                                                          graph_configuration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Decoder_Tools::loadVideoRendererGraph(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (IGraphBuilder_out);
+  //result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&media_filter_p));
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_filter_p);
+  //result = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //media_filter_p->Release (); media_filter_p = NULL;
 
   return true;
 
@@ -910,11 +947,11 @@ do_work (const std::string& captureinterfaceIdentifier_in,
          const struct Common_UI_DisplayDevice& displayDevice_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Stream_CameraScreen_DirectShow_Configuration& directShowConfiguration_in,
-         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in,
+         struct Stream_CameraScreen_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
-         struct Stream_CameraScreen_Configuration& configuration_in,
+         struct Stream_CameraScreen_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
-         enum Stream_Visualization_VideoRenderer renderer_in)
+         )
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1011,18 +1048,18 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                          struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CameraScreen_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                                             &heap_allocator,     // heap allocator handle
-                                                                             true);               // block ?
+                                                                                  &heap_allocator,     // heap allocator handle
+                                                                                  true);               // block ?
   Stream_CameraScreen_DirectShow_Stream directshow_stream;
   Stream_CameraScreen_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
-                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_CameraScreen_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
-                                                                                       &heap_allocator,     // heap allocator handle
-                                                                                       true);               // block ?
+                                                                                            &heap_allocator,     // heap allocator handle
+                                                                                            true);               // block ?
   Stream_CameraScreen_MediaFoundation_Stream mediafoundation_stream;
   Stream_CameraScreen_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
-                                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+                                                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1052,14 +1089,14 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
                       displayDevice_in.device.c_str ());
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING),
                                                                              std::make_pair (module_configuration,
                                                                                              directshow_modulehandler_configuration)));
       directshow_stream_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
       directshow_stream_iterator_2 =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()));
+        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
       break;
     }
@@ -1090,7 +1127,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
       mediafoundation_stream_iterator_2 =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()));
+        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
       break;
     }
@@ -1126,14 +1163,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  //if ((*iterator).second.second.window)
-  //{
-  //  ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
-  //  window_handle =
-  //    //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
-  //    //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-  //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
-  //} // end IF
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
@@ -1150,13 +1179,15 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                      (*directshow_stream_iterator).second.second.builder,
                                      stream_config_p,
                                      directShowConfiguration_in.streamConfiguration.configuration_.format,
-                                     (*directshow_stream_iterator).second.second.outputFormat))
+                                     (*directshow_stream_iterator).second.second.outputFormat,
+                                     (*directshow_stream_iterator).second.second.window))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
         return;
       } // end IF
-      ACE_ASSERT (stream_config_p);
+      //ACE_ASSERT (stream_config_p);
+      ACE_ASSERT ((*directshow_stream_iterator).second.second.window);
       //directShowCBData_in.streamConfiguration = stream_config_p;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy ((*directshow_stream_iterator).second.second.outputFormat);
@@ -1164,6 +1195,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       (*directshow_stream_iterator_2).second.second.outputFormat =
         *media_type_p;
       CoTaskMemFree (media_type_p); media_type_p = NULL;
+      //directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
+      //  (*directshow_stream_iterator).second.second.window;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1524,8 +1557,8 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  enum Stream_Visualization_VideoRenderer video_renderer_e =
-    STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
+  //enum Stream_Visualization_VideoRenderer video_renderer_e =
+  //  STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW;
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
@@ -1545,7 +1578,7 @@ ACE_TMAIN (int argc_in,
                              media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
                              display_device_s,
-                             video_renderer_e,
+                             //video_renderer_e,
                              trace_information,
                              program_mode_e))
   {
@@ -1667,10 +1700,10 @@ ACE_TMAIN (int argc_in,
   struct Stream_CameraScreen_Configuration configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (GTK_USE)
-  if (video_renderer_e == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-    Common_UI_GTK_Tools::initialize (argc_in, argv_in);
-#endif // GTK_USE
+//#if defined (GTK_USE)
+//  if (video_renderer_e == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//    Common_UI_GTK_Tools::initialize (argc_in, argv_in);
+//#endif // GTK_USE
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1685,11 +1718,11 @@ ACE_TMAIN (int argc_in,
            display_device_s,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
-           mediafoundation_configuration,
+           mediafoundation_configuration
 #else
-           configuration,
+           configuration
 #endif // ACE_WIN32 || ACE_WIN64
-           video_renderer_e);
+          );
   timer.stop ();
 
   // debug info

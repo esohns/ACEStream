@@ -67,7 +67,14 @@ class Stream_MediaFramework_DirectShow_Tools
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
 
+  static bool append (IGraphBuilder*,       // graph builder handle
+                      IBaseFilter*,         // filter handle
+                      const std::wstring&); // filter name
   static bool clear (IGraphBuilder*); // graph handle
+  // *NOTE*: this uses IGraphBuilder::Connect())
+  static bool connect (IGraphBuilder*, // graph handle
+                       IBaseFilter*,   // filter 1
+                       IBaseFilter*);  // filter 2
   // *NOTE*: this uses 'direct' pin connection (i.e. IPin::Connect()) where
   //         possible, and 'intelligent' pin connection (i.e.
   //         IGraphBuilder::Connect()) as fallback
@@ -83,6 +90,8 @@ class Stream_MediaFramework_DirectShow_Tools
                          const std::wstring&); // source filter name
   static bool disconnect (IBaseFilter*); // filter handle
   static bool disconnect (IGraphBuilder*); // graph builder handle
+  static bool remove (IGraphBuilder*, // graph builder handle
+                      IBaseFilter*);  // filter handle
   static void get (IGraphBuilder*,                             // graph handle
                    const std::wstring&,                        // source filter name
                    Stream_MediaFramework_DirectShow_Graph_t&); // return value: graph layout
@@ -140,6 +149,7 @@ class Stream_MediaFramework_DirectShow_Tools
   static IPin* capturePin (IBaseFilter*); // filter handle
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static struct _AMMediaType* defaultCaptureFormat (IBaseFilter*); // filter handle
+  static IBaseFilter* next (IBaseFilter*); // filter handle
 
   static bool hasPropertyPages (IBaseFilter*); // filter handle
   // -------------------------------------

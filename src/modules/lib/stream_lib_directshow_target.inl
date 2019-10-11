@@ -655,7 +655,7 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
   std::wstring render_filter_name =
-    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                      : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   Stream_MediaFramework_DirectShow_GraphConfiguration_t graph_configuration;

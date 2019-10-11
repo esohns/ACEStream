@@ -323,55 +323,31 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
- if (GUI_SUPPORT)
-  if (GTK_USE)
-   set (ARGS "-g./etc/${ui_definition_file} ${ARGS}")
-  elseif (WXWIDGETS_USE)
-   set (ENVIRONMENT "DISPLAY=:0")
-  endif ()
- else ()
-  set (ARGS "-g ${ARGS}")
- endif (GUI_SUPPORT)
-
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
- set (ENVIRONMENT "GDK_BACKEND=x11")
+# set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+# set (ENVIRONMENT "GDK_BACKEND=x11")
 elseif (WIN32)
- if (GUI_SUPPORT)
-  set (ARGS "-g.\\\\etc\\\\${ui_definition_file} ${ARGS}")
-
-  if (GTK_USE)
-   if (GTK3_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   elseif (GTK2_USE)
-    file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
-    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                              G:/software/Development/dll
-                              ${GTK_LIB_PATH})
-   endif ()
-  elseif (WXWIDGETS_USE)
-   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                             ${wxWidgets_LIB_DIR})
-  endif ()
- else ()
-  set (ARGS "-g ${ARGS}")
- endif (GUI_SUPPORT)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                           ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${GTK_LIB_PATH}
+                           ${ACE_LIBRARY_PATH})
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${PROJECT_SOURCE_DIR}/../libpng/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
+ #                          ${PROJECT_SOURCE_DIR}/../ffmpeg/bin
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
 #                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE})
 endif ()
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camsave
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/camerascreen
                         ENVIRONMENT ${ENVIRONMENT})
 
 ##########################################

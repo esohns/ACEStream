@@ -434,15 +434,24 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
       // step2: assemble display format
-      ACE_ASSERT (window_);
       struct tagRECT area_s;
-      BOOL result = GetClientRect (window_, &area_s);
-      ACE_ASSERT (result);
-      height = area_s.bottom - area_s.top;
-      width = area_s.right - area_s.left;
+      ACE_OS::memset (&area_s, 0, sizeof (struct tagRECT));
+      if (window_)
+      {
+        BOOL result = GetClientRect (window_, &area_s);
+        ACE_ASSERT (result);
+        height = area_s.bottom - area_s.top;
+        width = area_s.right - area_s.left;
+      } // end IF
+      else
+      {
+        height = STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+        width = STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+        
+      } // end ELSE
 
       ACE_ASSERT (!session_data_r.formats.empty ());
-      inherited::getMediaType (session_data_r.formats.back (),
+      inherited::getMediaType (session_data_r.formats.front (),
                                media_type_s);
       ACE_ASSERT (media_type_s.pbFormat);
       if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
@@ -1042,6 +1051,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     window_ = NULL;
   } // end IF
 
+  // sanity check(s)
+  //ACE_ASSERT (configuration_in.window);
+
   inherited::getWindowType (configuration_in.window,
                             window_);
 
@@ -1117,9 +1129,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     goto continue_;
   // retrieve display device 'geometry' data (i.e. monitor coordinates)
   // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-  display_device_s =
-    Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string));
+  if (inherited::configuration_->display.handle)
+    display_device_s = inherited::configuration_->display;
+  else
+    display_device_s =
+      Common_UI_Tools::getDisplay (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->display.device));
   ACE_ASSERT (display_device_s.handle);
   ACE_OS::memset (&monitor_info_ex_s, 0, sizeof (MONITORINFOEX));
   monitor_info_ex_s.cbSize = sizeof (MONITORINFOEX);
@@ -1242,16 +1256,46 @@ continue_:
 
   // retrieve video window control and configure output
   result =
-    IGraphBuilder_in->FindFilterByName (STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+    IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
                                         &ibase_filter_p);
   if (unlikely (FAILED (result)))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT_WCHAR_TO_TCHAR (STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
+    result =
+      IGraphBuilder_in->FindFilterByName (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL,
+                                          &ibase_filter_p);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    // --> replace null renderer with video renderer
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: replacing null renderer with video renderer\n"),
+                inherited::mod_->name ()));
+    Stream_MediaFramework_DirectShow_Tools::remove (IGraphBuilder_in,
+                                                    ibase_filter_p);
+    ibase_filter_p->Release (); ibase_filter_p = NULL;
+    result =
+      CoCreateInstance (STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER, NULL,
+                        CLSCTX_INPROC_SERVER,
+                        IID_PPV_ARGS (&ibase_filter_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::GUIDToString (STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER).c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (ibase_filter_p);
+    Stream_MediaFramework_DirectShow_Tools::append (IGraphBuilder_in,
+                                                    ibase_filter_p,
+                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO);
   } // end IF
   ACE_ASSERT (ibase_filter_p);
   result = ibase_filter_p->GetClassID (&GUID_s);
@@ -1259,7 +1303,7 @@ continue_:
   if (InlineIsEqualGUID (CLSID_EnhancedVideoRenderer, GUID_s))
   { 
     if (unlikely (!Stream_MediaFramework_DirectShow_Tools::getVideoWindow (IGraphBuilder_in,
-                                                                           STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+                                                                           STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
                                                                            IMFVideoDisplayControl_out)))
     {
       ACE_DEBUG ((LM_ERROR,

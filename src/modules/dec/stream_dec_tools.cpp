@@ -1513,7 +1513,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererGraph (REFGUID deviceCategory_in,
   } // end ELSE
 
   if (!Stream_MediaFramework_DirectShow_Tools::reset (IGraphBuilder_in,
-                                                           deviceCategory_in))
+                                                      deviceCategory_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::reset(), aborting\n")));
@@ -1852,7 +1852,7 @@ render:
                   ACE_TEXT ("graph has 'AVI Decompressor' and 'Sample Grabber'; using default video renderer...\n")));
       CLSID_s = STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER;
     } // end IF
-    graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
+    graph_entry.filterName = STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
   } // end IF
   else
   {
@@ -2660,7 +2660,7 @@ grab:
 //render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
-    (windowHandle_in ? STREAM_DEC_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+    (windowHandle_in ? STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
                      : STREAM_LIB_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
 
   result =
