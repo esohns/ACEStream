@@ -119,6 +119,11 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ffmpeg/include>)
 
+ if (OPENGL_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
+ endif (OPENGL_SUPPORT)
+
  if (DEFINED ENV{ACE_ROOT})
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
@@ -210,6 +215,13 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
+if (OPENGL_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_opengl_glut.cpp
+      stream_vis_opengl_glut.h
+      stream_vis_opengl_glut.inl)
+endif (OPENGL_SUPPORT)
 
 if (UNIX)
  set (source_files
@@ -279,6 +291,7 @@ endif (GTK_SUPPORT)
 target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
 target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
 target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
+target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 
@@ -298,51 +311,68 @@ export (TARGETS ${PROJECT_NAME}_Visualization
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-if (WIN32)
- install (FILES
-          stream_vis_common.h
-          stream_vis_defines.h
-#          stream_vis_exports.h
-          stream_vis_gtk_cairo.h
-          stream_vis_gtk_cairo.inl
-          stream_vis_gtk_cairo_spectrum_analyzer.h
-          stream_vis_gtk_cairo_spectrum_analyzer.inl
-          stream_vis_gtk_pixbuf.h
-          stream_vis_gtk_pixbuf.inl
-          stream_vis_gtk_window.h
-          stream_vis_gtk_window.inl
-          stream_vis_imagemagick_resize.h
-          stream_vis_imagemagick_resize.inl
-          stream_vis_libav_resize.h
-          stream_vis_libav_resize.inl
-          stream_vis_target_direct3d.h
-          stream_vis_target_direct3d.inl
-          stream_vis_target_directshow.h
-          stream_vis_target_directshow.inl
-          stream_vis_target_mediafoundation.h
-          stream_vis_target_mediafoundation.inl
-          stream_vis_tools.h
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-else ()
- install (FILES
-          stream_vis_common.h
-          stream_vis_defines.h
-#          stream_vis_exports.h
-          stream_vis_gtk_cairo.h
-          stream_vis_gtk_cairo.inl
-          stream_vis_gtk_cairo_spectrum_analyzer.h
-          stream_vis_gtk_cairo_spectrum_analyzer.inl
-          stream_vis_gtk_pixbuf.h
-          stream_vis_gtk_pixbuf.inl
-          stream_vis_imagemagick_resize.h
-          stream_vis_imagemagick_resize.inl
-          stream_vis_libav_resize.h
-          stream_vis_libav_resize.inl
-          stream_vis_tools.h
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
+set (header_files
+     stream_vis_common.h
+     stream_vis_defines.h
+#     stream_vis_exports.h
+     stream_vis_tools.h)
+if (GTK_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl
+      stream_vis_gtk_window.h
+      stream_vis_gtk_window.inl)
+endif (GTK_SUPPORT)
+if (FFMPEG_SUPPORT)
+ set (header_files
+      ${header_files}
+     stream_vis_libav_resize.h
+     stream_vis_libav_resize.inl)
+endif (FFMPEG_SUPPORT)
+if (IMAGEMAGICK_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_imagemagick_resize.h
+      stream_vis_imagemagick_resize.inl)
+endif (IMAGEMAGICK_SUPPORT)
+if (OPENCV_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_opencv.h
+      stream_vis_opencv.inl
+      stream_vis_opencv_classifier.h
+      stream_vis_opencv_classifier.inl)
+endif (OPENCV_SUPPORT)
+if (OPENGL_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_opengl_glut.h
+      stream_vis_opengl_glut.inl)
+endif (OPENGL_SUPPORT)
+if (UNIX)
+ set (header_files
+      ${header_files}
+      stream_vis_x11_window.h
+      stream_vis_x11_window.inl)
+elseif (WIN32)
+ set (header_files
+      ${header_files}
+      stream_vis_target_direct3d.h
+      stream_vis_target_direct3d.inl
+      stream_vis_target_directshow.h
+      stream_vis_target_directshow.inl
+      stream_vis_target_mediafoundation.h
+      stream_vis_target_mediafoundation.inl)
 endif ()
+install (FILES
+         ${header_files}
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Visualization
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

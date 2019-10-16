@@ -52,6 +52,8 @@ Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream ()
  //           ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING))
+ , OpenGLDisplay_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::Stream_CameraScreen_DirectShow_Stream"));
 
@@ -80,7 +82,8 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
   //         close()d
   layout_in->append (&source_, NULL, 0);
   //modules_out.push_back (&statisticReport_);
-  layout_in->append (&display_, NULL, 0);
+  //layout_in->append (&display_, NULL, 0);
+  layout_in->append (&OpenGLDisplay_, NULL, 0);
 
   return true;
 }

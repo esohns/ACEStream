@@ -2247,6 +2247,7 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
       enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
+    filter_p->Release (); filter_p = NULL;
 #if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("removed \"%s\"...\n"),
@@ -2259,11 +2260,9 @@ Stream_MediaFramework_DirectShow_Tools::clear (IGraphBuilder* builder_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IEnumFilters::Reset(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result, true).c_str ())));
-      filter_p->Release (); filter_p = NULL;
       enumerator_p->Release (); enumerator_p = NULL;
       return false;
     } // end IF
-    filter_p->Release (); filter_p = NULL;
   } // end WHILE
   enumerator_p->Release (); enumerator_p = NULL;
 

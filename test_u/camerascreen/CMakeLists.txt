@@ -328,11 +328,13 @@ if (UNIX)
 elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/freeglut/bin GLUT_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_LIB_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
+                           ${GLUT_PATH}
                            ${GTK_LIB_PATH}
                            ${ACE_LIBRARY_PATH})
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}

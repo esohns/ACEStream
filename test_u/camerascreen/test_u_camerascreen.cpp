@@ -157,6 +157,10 @@ do_print_usage (const std::string& programName_in)
             << capture_device_identifier
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : OpenGL mode [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::string path = Common_File_Tools::getTempDirectory ();
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
@@ -196,6 +200,7 @@ bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
                       std::string& captureinterfaceIdentifier_out,
+                      bool& OpenGLMode_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       bool& showConsole_out,
 #endif // ACE_WIN32 || ACE_WIN64
@@ -214,6 +219,7 @@ do_process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
+  OpenGLMode_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_out)
   {
@@ -259,9 +265,9 @@ do_process_arguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("3cd:lmo:tvx"),
+                              ACE_TEXT ("3cd:glmo:tvx"),
 #else
-                              ACE_TEXT ("1d:lo:tvx"),
+                              ACE_TEXT ("1d:glo:tvx"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -301,6 +307,11 @@ do_process_arguments (int argc_in,
       {
         captureinterfaceIdentifier_out =
             ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'g':
+      {
+        OpenGLMode_out = true;
         break;
       }
       case 'l':
@@ -1552,6 +1563,7 @@ ACE_TMAIN (int argc_in,
   capture_device_identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
+  bool opengl_mode = false;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =
@@ -1570,6 +1582,7 @@ ACE_TMAIN (int argc_in,
   if (!do_process_arguments (argc_in,
                              argv_in,
                              capture_device_identifier,
+                             opengl_mode,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              show_console,
 #endif // ACE_WIN32 || ACE_WIN64

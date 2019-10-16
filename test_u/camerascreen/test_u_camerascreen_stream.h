@@ -110,7 +110,8 @@ class Stream_CameraScreen_DirectShow_Stream
 #if defined (GUI_SUPPORT)
   //Stream_CameraScreen_DirectShow_Direct3DDisplay_Module   display_;
   Stream_CameraScreen_DirectShow_Display_Module           display_;
-//#if defined (GTK_USE)
+  Stream_CameraScreen_OpenGL_Display_Module               OpenGLDisplay_;
+  //#if defined (GTK_USE)
 //  Stream_CameraScreen_DirectShow_GTKCairoDisplay_Module   GTKCairoDisplay_;
 //#endif // GTK_USE
 #endif // GUI_SUPPORT
