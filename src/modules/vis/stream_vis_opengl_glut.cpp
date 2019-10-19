@@ -21,6 +21,8 @@
 
 #include "stream_vis_opengl_glut.h"
 
+#include "common_gl_tools.h"
+
 #include "stream_vis_defines.h"
 
 const char libacestream_default_vis_opengl_glut_module_name_string[] =
@@ -33,65 +35,77 @@ const char libacestream_default_vis_opengl_glut_module_name_string[] =
 #define WHITE 2
 #define CYAN 3
 
-GLuint
-libacestream_glut_make_ball (void)
-{
-  GLuint list;
-  GLfloat a, b;
-  GLfloat da = 18.0F, db = 18.0F;
-  GLfloat radius = 1.0F;
-  GLuint color;
-  GLfloat x, y, z;
-
-  list = glGenLists (1);
-
-  glNewList (list, GL_COMPILE);
-
-  color = 0;
-  for (a = -90.0; a + da <= 90.0; a += da) {
-
-    glBegin (GL_QUAD_STRIP);
-    for (b = 0.0; b <= 360.0; b += db) {
-
-      if (color) {
-        glIndexi (RED);
-        glColor3f (1, 0, 0);
-      }
-      else {
-        glIndexi (WHITE);
-        glColor3f (1, 1, 1);
-      }
-
-      x = radius * COS (b) * COS (a);
-      y = radius * SIN (b) * COS (a);
-      z = radius * SIN (a);
-      glVertex3f (x, y, z);
-
-      x = radius * COS (b) * COS (a + da);
-      y = radius * SIN (b) * COS (a + da);
-      z = radius * SIN (a + da);
-      glVertex3f (x, y, z);
-
-      color = 1 - color;
-    }
-    glEnd ();
-
-  }
-
-  glEndList ();
-
-  return list;
-}
+//GLuint
+//libacestream_glut_make_ball (void)
+//{
+//  GLuint list;
+//  GLfloat a, b;
+//  GLfloat da = 18.0F, db = 18.0F;
+//  GLfloat radius = 1.0F;
+//  GLuint color;
+//  GLfloat x, y, z;
+//
+//  list = glGenLists (1);
+//
+//  glNewList (list, GL_COMPILE);
+//
+//  color = 0;
+//  for (a = -90.0; a + da <= 90.0; a += da) {
+//
+//    glBegin (GL_QUAD_STRIP);
+//    for (b = 0.0; b <= 360.0; b += db) {
+//
+//      if (color) {
+//        glIndexi (RED);
+//        glColor3f (1, 0, 0);
+//      }
+//      else {
+//        glIndexi (WHITE);
+//        glColor3f (1, 1, 1);
+//      }
+//
+//      x = radius * COS (b) * COS (a);
+//      y = radius * SIN (b) * COS (a);
+//      z = radius * SIN (a);
+//      glVertex3f (x, y, z);
+//
+//      x = radius * COS (b) * COS (a + da);
+//      y = radius * SIN (b) * COS (a + da);
+//      z = radius * SIN (a + da);
+//      glVertex3f (x, y, z);
+//
+//      color = 1 - color;
+//    }
+//    glEnd ();
+//
+//  }
+//
+//  glEndList ();
+//
+//  return list;
+//}
 
 void
-libacestream_glut_reshape (int width, int height)
+libacestream_glut_reshape (int width_in, int height_in)
 {
-  float aspect = (float)width / (float)height;
-  glViewport (0, 0, (GLint)width, (GLint)height);
+  glViewport (0, 0,
+    static_cast<GLsizei> (width_in), static_cast<GLsizei> (height_in));
+  // *TODO*: find out why this reports GL_INVALID_OPERATION
+  COMMON_GL_PRINT_ERROR;
+
   glMatrixMode (GL_PROJECTION);
+  COMMON_GL_ASSERT;
+
   glLoadIdentity ();
-  glOrtho (-6.0 * aspect, 6.0 * aspect, -6.0, 6.0, -6.0, 6.0);
+  COMMON_GL_ASSERT;
+
+  gluPerspective (45.0,
+    static_cast<GLdouble> (width_in) / static_cast<GLdouble> (height_in),
+                  0.1, 100.0);
+  COMMON_GL_ASSERT;
+
   glMatrixMode (GL_MODELVIEW);
+  COMMON_GL_ASSERT;
 }
 
 void
@@ -120,39 +134,79 @@ libacestream_glut_key (unsigned char k, int x, int y)
 void
 libacestream_glut_draw (void)
 {
-  GLint i;
+  struct OpenGL_GLUT_WindowData* cb_data_p =
+    static_cast<struct OpenGL_GLUT_WindowData*> (glutGetWindowData ());
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->queue);
 
-  glClear (GL_COLOR_BUFFER_BIT);
+  ACE_Message_Block* message_block_p = NULL;
 
-  glIndexi (CYAN);
-  glColor3f (0, 1, 1);
-  glBegin (GL_LINES);
-  for (i = -5; i <= 5; i++) {
-    glVertex2i (i, -5);
-    glVertex2i (i, 5);
-  }
-  for (i = -5; i <= 5; i++) {
-    glVertex2i (-5, i);
-    glVertex2i (5, i);
-  }
-  for (i = -5; i <= 5; i++) {
-    glVertex2i (i, -5);
-    glVertex2f (i * 1.15, -5.9);
-  }
-  glVertex2f (-5.3, -5.35);
-  glVertex2f (5.3, -5.35);
-  glVertex2f (-5.75, -5.9);
-  glVertex2f (5.75, -5.9);
+  GLuint tex_index;
+
+  message_block_p = NULL;
+   cb_data_p->queue->dequeue_head (message_block_p,
+                                   NULL);
+  ACE_ASSERT (message_block_p);
+  tex_index =
+    Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                  cb_data_p->mediaType.resolution.cx,
+                                  cb_data_p->mediaType.resolution.cy);
+  //glBindTexture (GL_TEXTURE_2D, tex_index);
+  message_block_p->release ();
+
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // *TODO*: find out why this reports GL_INVALID_OPERATION
+  COMMON_GL_PRINT_ERROR;
+
+  glBindTexture (GL_TEXTURE_2D, tex_index);
+  COMMON_GL_ASSERT;
+
+  glLoadIdentity (); // Reset the transformation matrix.
+  COMMON_GL_ASSERT;
+
+  glTranslatef (0.0f, 0.0f, -5.0f); // Move back into the screen 7
+  COMMON_GL_ASSERT;
+
+  static GLfloat cube_rotation = 0.0f;
+  glRotatef (cube_rotation, 1.0f, 1.0f, 1.0f);		// Rotate The Cube On X, Y, and Z
+  COMMON_GL_ASSERT;
+
+  glBegin (GL_QUADS);
+
+  // Front Face
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (1.0f, -1.0f, 1.0f); // Bottom Right Of The Texture and Quad
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (1.0f, 1.0f, 1.0f); // Top Right Of The Texture and Quad
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f, 1.0f, 1.0f); // Top Left Of The Texture and Quad
+  // Back Face
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (-1.0f, -1.0f, -1.0f); // Bottom Right Of The Texture and Quad
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (-1.0f, 1.0f, -1.0f); // Top Right Of The Texture and Quad
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (1.0f, 1.0f, -1.0f); // Top Left Of The Texture and Quad
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (1.0f, -1.0f, -1.0f); // Bottom Left Of The Texture and Quad
+  // Top Face
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f, 1.0f, -1.0f); // Top Left Of The Texture and Quad
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, 1.0f, 1.0f); // Bottom Left Of The Texture and Quad
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (1.0f, 1.0f, 1.0f); // Bottom Right Of The Texture and Quad
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (1.0f, 1.0f, -1.0f); // Top Right Of The Texture and Quad
+  // Bottom Face
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (-1.0f, -1.0f, -1.0f); // Top Right Of The Texture and Quad
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (1.0f, -1.0f, -1.0f); // Top Left Of The Texture and Quad
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Right Of The Texture and Quad
+  // Right face
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (1.0f, -1.0f, -1.0f); // Bottom Right Of The Texture and Quad
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (1.0f, 1.0f, -1.0f); // Top Right Of The Texture and Quad
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (1.0f, 1.0f, 1.0f); // Top Left Of The Texture and Quad
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (1.0f, -1.0f, 1.0f); // Bottom Left Of The Texture and Quad
+  // Left Face
+  glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f, -1.0f); // Bottom Left Of The Texture and Quad
+  glTexCoord2f (1.0f, 0.0f); glVertex3f (-1.0f, -1.0f, 1.0f); // Bottom Right Of The Texture and Quad
+  glTexCoord2f (1.0f, 1.0f); glVertex3f (-1.0f, 1.0f, 1.0f); // Top Right Of The Texture and Quad
+  glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f, 1.0f, -1.0f); // Top Left Of The Texture and Quad
+
   glEnd ();
 
-  glPushMatrix ();
-  glTranslatef (Xpos, Ypos, 0.0);
-  glScalef (2.0, 2.0, 2.0);
-  glRotatef (8.0, 0.0, 0.0, 1.0);
-  glRotatef (90.0, 1.0, 0.0, 0.0);
-  glRotatef (Zrot, 0.0, 0.0, 1.0);
-
-  glCallList (Ball);
+  cube_rotation -= 1.0f;					// Decrease The Rotation Variable For The Cube
 
   glPopMatrix ();
 

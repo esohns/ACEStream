@@ -121,6 +121,8 @@ elseif (WIN32)
 
  if (OPENGL_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/glm>)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/freeglut/include>)
  endif (OPENGL_SUPPORT)
 
@@ -136,6 +138,8 @@ elseif (WIN32)
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/error>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -296,6 +300,7 @@ target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib
 target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 
 target_link_libraries (${PROJECT_NAME}_Visualization Common)
+target_link_libraries (${PROJECT_NAME}_Visualization CommonOpenGL)
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 

@@ -23,6 +23,9 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_gl_defines.h"
+#include "common_gl_tools.h"
+
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,
@@ -48,11 +51,11 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , CBData_ ()
  , inSession_ (false)
- , mediaType_ ()
  , window_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_OpenGL_GLUT_T::Stream_Visualization_OpenGL_GLUT_T"));
 
+  ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
   CBData_.queue = inherited::msg_queue_;
 }
 
@@ -79,7 +82,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
+    ACE_OS::memset (&CBData_.mediaType, 0, sizeof (struct Stream_MediaFramework_FFMPEG_MediaType));
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -144,23 +147,53 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       inherited2::getMediaType (session_data_r.formats.front (),
-                                mediaType_);
+                                CBData_.mediaType);
 
       window_ = glutCreateWindow ("Bounce");
       glutSetWindow (window_);
       glutSetWindowData (&CBData_);
 
-      glCullFace (GL_BACK);
-      glEnable (GL_CULL_FACE);
-      glDisable (GL_DITHER);
-      glShadeModel (GL_FLAT);
+      glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
+      COMMON_GL_ASSERT;
+      //glClearDepth (1.0);                                 // Depth Buffer Setup
+      //COMMON_GL_ASSERT;
+      /* speedups */
+      //  glDisable (GL_CULL_FACE);
+      //  glEnable (GL_DITHER);
+      //  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+      //  glHint (GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
+      COMMON_GL_ASSERT;
+      //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+      //COMMON_GL_ASSERT;
+      //glEnable (GL_COLOR_MATERIAL);
+      //COMMON_GL_ASSERT;
+      //glEnable (GL_LIGHTING);
+      //COMMON_GL_ASSERT;
+      glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective
+      COMMON_GL_ASSERT;
+      glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
+      COMMON_GL_ASSERT;
+      glDepthMask (GL_TRUE);
+      COMMON_GL_ASSERT;
+      glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
+      COMMON_GL_ASSERT;
+      glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+      COMMON_GL_ASSERT;
+      glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+      COMMON_GL_ASSERT;
+      glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      COMMON_GL_ASSERT;
+      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      COMMON_GL_ASSERT;
+      glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+      COMMON_GL_ASSERT;
 
       glutDisplayFunc (libacestream_glut_draw);
       glutReshapeFunc (libacestream_glut_reshape);
       glutVisibilityFunc (libacestream_glut_visible);
       glutKeyboardFunc (libacestream_glut_key);
 
-      Ball = libacestream_glut_make_ball ();
+      //Ball = libacestream_glut_make_ball ();
 
       ACE_ASSERT (!inSession_);
       inSession_ = true;
