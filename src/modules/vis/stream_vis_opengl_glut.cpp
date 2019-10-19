@@ -217,36 +217,36 @@ libacestream_glut_draw (void)
 void
 libacestream_glut_idle (void)
 {
-  static float vel0 = -100.0;
-  static double t0 = -1.;
-  double t, dt;
-  t = glutGet (GLUT_ELAPSED_TIME) / 1000.;
-  if (t0 < 0.)
-    t0 = t;
-  dt = t - t0;
-  t0 = t;
+  //static float vel0 = -100.0;
+  //static double t0 = -1.;
+  //double t, dt;
+  //t = glutGet (GLUT_ELAPSED_TIME) / 1000.;
+  //if (t0 < 0.)
+  //  t0 = t;
+  //dt = t - t0;
+  //t0 = t;
 
-  Zrot += Zstep * dt;
+  //Zrot += Zstep * dt;
 
-  Xpos += Xvel * dt;
-  if (Xpos >= Xmax) {
-    Xpos = Xmax;
-    Xvel = -Xvel;
-    Zstep = -Zstep;
-  }
-  if (Xpos <= Xmin) {
-    Xpos = Xmin;
-    Xvel = -Xvel;
-    Zstep = -Zstep;
-  }
-  Ypos += Yvel * dt;
-  Yvel += G * dt;
-  if (Ypos < Ymin) {
-    Ypos = Ymin;
-    if (vel0 == -100.0)
-      vel0 = fabs (Yvel);
-    Yvel = vel0;
-  }
+  //Xpos += Xvel * dt;
+  //if (Xpos >= Xmax) {
+  //  Xpos = Xmax;
+  //  Xvel = -Xvel;
+  //  Zstep = -Zstep;
+  //}
+  //if (Xpos <= Xmin) {
+  //  Xpos = Xmin;
+  //  Xvel = -Xvel;
+  //  Zstep = -Zstep;
+  //}
+  //Ypos += Yvel * dt;
+  //Yvel += G * dt;
+  //if (Ypos < Ymin) {
+  //  Ypos = Ymin;
+  //  if (vel0 == -100.0)
+  //    vel0 = fabs (Yvel);
+  //  Yvel = vel0;
+  //}
   glutPostRedisplay ();
 }
 
