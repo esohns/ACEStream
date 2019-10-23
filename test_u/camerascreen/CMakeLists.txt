@@ -1,3 +1,5 @@
+add_definitions (-DFFMPEG_SUPPORT)
+
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)

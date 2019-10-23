@@ -25,3 +25,11 @@ src/html: libxml2-devel
 test_u:   libcap-devel libnl3-devel freeglut-devel
 test_i:   zlib-devel openssl-devel libreoffice-sdk
 
+* Ubuntu 19.10 ('sudo apt install')
+src/db:  libmysqlclient-dev
+src/dec: libsox-dev libmpg123-dev
+src/dev: libasound2-dev libv4l-dev
+src/doc: libreoffice-dev
+
+test_u:  freeglut3-dev
+

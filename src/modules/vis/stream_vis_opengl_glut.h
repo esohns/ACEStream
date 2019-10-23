@@ -21,7 +21,11 @@
 #ifndef STREAM_VIS_OPENGL_GLUT_T_H
 #define STREAM_VIS_OPENGL_GLUT_T_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
+#else
+#include "GL/gl.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -39,12 +43,12 @@ class ACE_Message_Block;
 class Stream_IAllocator;
 
 //GLuint Ball;
-GLfloat Zrot = 0.0F, Zstep = 180.0F;
-GLfloat Xpos = 0.0F, Ypos = 1.0F;
-GLfloat Xvel = 2.0F, Yvel = 0.0F;
-GLfloat Xmin = -4.0F, Xmax = 4.0F;
-GLfloat Ymin = -3.8F, Ymax = 4.0F;
-GLfloat G = -9.8F;
+//GLfloat Zrot = 0.0F, Zstep = 180.0F;
+//GLfloat Xpos = 0.0F, Ypos = 1.0F;
+//GLfloat Xvel = 2.0F, Yvel = 0.0F;
+//GLfloat Xmin = -4.0F, Xmax = 4.0F;
+//GLfloat Ymin = -3.8F, Ymax = 4.0F;
+//GLfloat G = -9.8F;
 
 //extern GLuint libacestream_glut_make_ball (void);
 extern void libacestream_glut_reshape (int, int);

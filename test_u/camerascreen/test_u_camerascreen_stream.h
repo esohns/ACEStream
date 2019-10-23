@@ -264,6 +264,7 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
   Stream_CameraScreen_Display_Module         display_;
   Stream_CameraScreen_Display_2_Module       display_2_;
+  Stream_CameraScreen_OpenGL_Display_Module  OpenGLDisplay_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

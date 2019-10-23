@@ -283,10 +283,10 @@ target_sources (${PROJECT_NAME}_Test_I
 add_subdirectory (camsave)
 # *IMPORTANT NOTE*: comment temporarily to disambiguate ACEStream <-> ACENetwork
 #                   interdependencies
-add_subdirectory (camstream)
-add_subdirectory (filestream)
-add_subdirectory (http_get)
-add_subdirectory (http_get_2)
+#add_subdirectory (camstream)
+#add_subdirectory (filestream)
+#add_subdirectory (http_get)
+#add_subdirectory (http_get_2)
 add_subdirectory (mp3player)
 
 add_custom_target (test_i ALL

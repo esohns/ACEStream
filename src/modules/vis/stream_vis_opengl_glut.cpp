@@ -149,8 +149,13 @@ libacestream_glut_draw (void)
   ACE_ASSERT (message_block_p);
   tex_index =
     Common_GL_Tools::loadTexture (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                   cb_data_p->mediaType.resolution.cx,
                                   cb_data_p->mediaType.resolution.cy);
+#else
+                                  cb_data_p->mediaType.resolution.width,
+                                  cb_data_p->mediaType.resolution.height);
+#endif // ACE_WIN32 || ACE_WIN64
   //glBindTexture (GL_TEXTURE_2D, tex_index);
   message_block_p->release ();
 

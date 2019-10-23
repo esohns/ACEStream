@@ -1176,6 +1176,8 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
  , display_2_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
+ , OpenGLDisplay_ (this,
+                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::Stream_CameraScreen_Stream"));
 
@@ -1205,13 +1207,14 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator != configuration_->end ());
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&statisticReport_, NULL, 0);
+  //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
   layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 //  if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-   layout_in->append (&display_, NULL, 0);
+  // layout_in->append (&display_, NULL, 0);
 //  else
 //  layout_in->append (&display_2_, NULL, 0);
+  layout_in->append (&OpenGLDisplay_, NULL, 0);
 
   return true;
 }

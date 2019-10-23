@@ -26,6 +26,9 @@ if (UNIX)
  if (FFMPEG_SUPPORT)
   pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavcodec libavutil)
  endif (FFMPEG_SUPPORT)
+ if (OPENGL_SUPPORT)
+#  pkg_check_modules (PKG_OPENGL_GLUT REQUIRED freeglut)
+ endif (OPENGL_SUPPORT)
 endif ()
 if (IMAGEMAGICK_SUPPORT)
  find_package (ImageMagick COMPONENTS MagickCore MagickWand)
@@ -72,14 +75,18 @@ if (UNIX)
                              $<BUILD_INTERFACE:${PKG_SOX_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
+# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                             $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
 
- target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
+# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+#                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src>)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/gl>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/image>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -131,7 +138,7 @@ elseif (WIN32)
                               $<BUILD_INTERFACE:$ENV{ACE_ROOT}>)
  else ()
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../ACE_TAO/ACE>)
+                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
  endif (DEFINED ENV{ACE_ROOT})
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -295,7 +302,12 @@ endif (GTK_SUPPORT)
 target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_SOX_LIBRARIES})
 target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_FFMPEG_LIBRARIES})
 target_link_libraries (${PROJECT_NAME}_Visualization ${ImageMagick_LIBRARIES})
-target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
+if (UNIX)
+# target_link_libraries (${PROJECT_NAME}_Visualization ${PKG_OPENGL_GLUT_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Visualization /usr/lib/x86_64-linux-gnu/libglut.so.3)
+elseif (WIN32)
+ target_link_libraries (${PROJECT_NAME}_Visualization $ENV{LIB_ROOT}/freeglut/lib/freeglut.lib)
+endif ()
 
 target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
 
