@@ -26,7 +26,7 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
+//#include "ace/config-lite.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"

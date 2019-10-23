@@ -80,7 +80,8 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
 
-# target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)
 #                             $<BUILD_INTERFACE:/usr/local/src/ACE_wrappers>)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
