@@ -186,6 +186,8 @@ if (UNIX)
   if (GTK_USE)
    target_link_libraries (${PROJECT_NAME}_Test_U ${GTK_LIBRARIES})
    if (GTKGLAREA_SUPPORT)
+    target_link_libraries (${PROJECT_NAME}_Test_U X11)
+    target_link_libraries (${PROJECT_NAME}_Test_U GL)
     target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
    endif (GTKGLAREA_SUPPORT)
 
