@@ -655,7 +655,7 @@ do_work (unsigned int bufferSize_in,
                                                            modulehandler_configuration,
                                                            CBData_in.configuration->allocatorConfiguration,
                                                            steam_configuration);
-  CBData_in.stream = &stream;
+  CBData_in.stream = istream_p;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 

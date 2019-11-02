@@ -956,8 +956,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
-  directory = (*iterator_2).second.second.targetFileName;
-  file_name = (*iterator_2).second.second.targetFileName;
+  directory = (*iterator_2).second.second.fileIdentifier.identifier;
+  file_name = (*iterator_2).second.second.fileIdentifier.identifier;
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
@@ -1353,7 +1353,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.second.targetFileName;
+  default_folder_uri += (*iterator_2).second.second.fileIdentifier.identifier;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -2861,9 +2861,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  (*iterator).second.second.targetFileName =
+  (*iterator).second.second.fileIdentifier.identifier =
     Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator).second.second.targetFileName.empty ())
+  if ((*iterator).second.second.fileIdentifier.identifier.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),
@@ -2908,9 +2908,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  (*iterator).second.second.targetFileName =
+  (*iterator).second.second.fileIdentifier.identifier =
     Common_UI_GTK_Tools::UTF8ToLocale (string_p, -1);
-  if ((*iterator).second.second.targetFileName.empty ())
+  if ((*iterator).second.second.fileIdentifier.identifier.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Tools::UTF8ToLocale(\"%s\"): \"%m\", returning\n"),

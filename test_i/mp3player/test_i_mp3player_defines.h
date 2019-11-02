@@ -23,7 +23,7 @@
 
 //#include "ace/config-lite.h"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
+//#define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
 #define TEST_I_DEFAULT_INPUT_FILE                    "D:\\test.mp3"
 #define TEST_I_DEFAULT_OUTPUT_FILE                   "output.wav"
 

@@ -575,7 +575,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE
 #endif // GUI_SUPPORT
-  modulehandler_configuration.targetFileName = fileName_in;
+  modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),

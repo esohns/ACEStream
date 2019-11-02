@@ -63,7 +63,7 @@ struct Test_I_ModuleHandlerConfiguration
   {}
 
   bool                   printProgressDot;
-  Common_File_Identifier fileIdentifier; // source-
+  Common_File_Identifier fileIdentifier; // source-/target-
 };
 
 struct Test_I_StreamConfiguration

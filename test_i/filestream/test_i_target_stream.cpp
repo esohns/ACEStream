@@ -114,7 +114,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // *TODO*: remove type inferences
   //  session_data_r.fileName =
   //    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second.fileIdentifier.identifier;
 
   // things to be done here:
   // [- initialize base class]
@@ -345,7 +345,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   // *TODO*: remove type inferences
   //  session_data_r.fileName =
   //    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second.fileIdentifier.identifier;
 
   // things to be done here:
   // [- initialize base class]

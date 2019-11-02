@@ -999,7 +999,7 @@ do_work (unsigned int bufferSize_in,
         &directshow_configuration.streamConfiguration;
       modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
-      modulehandler_configuration.targetFileName = fileName_in;
+      modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
       directshow_configuration.streamConfiguration.initialize (module_configuration,
                                                                modulehandler_configuration,
@@ -1037,7 +1037,7 @@ do_work (unsigned int bufferSize_in,
         &mediafoundation_configuration.streamConfiguration;
       modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
-      modulehandler_configuration.targetFileName = fileName_in;
+      modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
       mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                 std::make_pair (module_configuration,

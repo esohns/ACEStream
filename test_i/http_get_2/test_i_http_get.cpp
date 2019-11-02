@@ -844,7 +844,7 @@ do_work (const std::string& bootstrapFileName_in,
   stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
   modulehandler_configuration.stockItems.insert (stock_item);
   //modulehandler_configuration.stream = stream_p;
-  modulehandler_configuration.targetFileName = fileName_in;
+  modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   //modulehandler_configuration.hostName = hostName_in;
 
   //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_HEADER_STRING),

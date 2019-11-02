@@ -214,6 +214,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
+   , display ()
    , fullScreen (false)
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
@@ -248,6 +249,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
+  struct Common_UI_DisplayDevice                       display;
   bool                                                 fullScreen;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)

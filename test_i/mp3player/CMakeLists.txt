@@ -212,8 +212,8 @@ target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 #target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
-target_link_libraries (${EXECUTABLE} ACENetwork)
-target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
+#target_link_libraries (${EXECUTABLE} ACENetwork)
+#target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 
 if (UNIX)
 # target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})

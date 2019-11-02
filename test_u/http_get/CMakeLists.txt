@@ -255,13 +255,16 @@ set (ARGS "-l -t -u http://www.mirc.com/servers.ini")
 if (UNIX)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 elseif (WIN32)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
+                           ${FFMPEG_PATH}
+                           ${GTK_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}
                         ARGS ${ARGS}
 #                        FORWARD_ARGS
                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/httpget
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/http_get
                         ENVIRONMENT ${ENVIRONMENT})

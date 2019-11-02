@@ -3189,17 +3189,17 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directory =
-        (*directshow_modulehandler_iterator).second.second.targetFileName;
+        (*directshow_modulehandler_iterator).second.second.fileIdentifier.identifier;
       file_name =
-        (*directshow_modulehandler_iterator).second.second.targetFileName;
+        (*directshow_modulehandler_iterator).second.second.fileIdentifier.identifier;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       directory =
-        (*mediafoundation_modulehandler_iterator).second.second.targetFileName;
+        (*mediafoundation_modulehandler_iterator).second.second.fileIdentifier.identifier;
       file_name =
-        (*mediafoundation_modulehandler_iterator).second.second.targetFileName;
+        (*mediafoundation_modulehandler_iterator).second.second.fileIdentifier.identifier;
       break;
     }
     default:
@@ -3760,11 +3760,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       default_folder_uri +=
-        (*directshow_modulehandler_iterator).second.second.targetFileName;
+        (*directshow_modulehandler_iterator).second.second.fileIdentifier.identifier;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       default_folder_uri +=
-        (*mediafoundation_modulehandler_iterator).second.second.targetFileName;
+        (*mediafoundation_modulehandler_iterator).second.second.fileIdentifier.identifier;
       break;
     default:
     {
@@ -6096,11 +6096,11 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_modulehandler_iterator).second.second.targetFileName =
+      (*directshow_modulehandler_iterator).second.second.fileIdentifier.identifier =
         file_name;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_modulehandler_iterator).second.second.targetFileName =
+      (*mediafoundation_modulehandler_iterator).second.second.fileIdentifier.identifier =
         file_name;
       break;
     default:
@@ -6223,11 +6223,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_modulehandler_iterator).second.second.targetFileName =
+      (*directshow_modulehandler_iterator).second.second.fileIdentifier.identifier =
         file_name;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_modulehandler_iterator).second.second.targetFileName =
+      (*mediafoundation_modulehandler_iterator).second.second.fileIdentifier.identifier =
         file_name;
       break;
     default:

@@ -2231,7 +2231,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     goto continue_;
   ACE_ASSERT (inherited::configuration_);
   filename_string =
-    ACE_TEXT_ALWAYS_CHAR (ACE::dirname (inherited::configuration_->targetFileName.c_str (),
+    ACE_TEXT_ALWAYS_CHAR (ACE::dirname (inherited::configuration_->fileIdentifier.identifier.c_str (),
                                         ACE_DIRECTORY_SEPARATOR_CHAR));
   filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
   filename_string +=

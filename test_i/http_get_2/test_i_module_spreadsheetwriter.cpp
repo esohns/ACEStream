@@ -547,10 +547,10 @@ error:
         //ACE_ASSERT (!storable_p->isReadonly ());
 
         bool save_as = true;
-        if (Common_File_Tools::isValidFilename (inherited::configuration_->targetFileName))
+        if (Common_File_Tools::isValidFilename (inherited::configuration_->fileIdentifier.identifier))
         {
           filename =
-            ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
+            ::rtl::OUString::createFromAscii (inherited::configuration_->fileIdentifier.identifier.c_str ());
           result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
                                                                 filename_url);
           ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);

@@ -851,6 +851,8 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
+        case COMMON_UI_EVENT_STARTED:
+          break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,

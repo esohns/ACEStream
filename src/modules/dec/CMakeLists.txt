@@ -15,7 +15,7 @@ if (OPENCV_SUPPORT)
  add_definitions (-DOPENCV_SUPPORT)
 endif (OPENCV_SUPPORT)
 
-set (MPG123_DEFAULT OFF)
+set (MPG123_DEFAULT ON)
 option (MPG123_SUPPORT "support mpg123" ${MPG123_DEFAULT})
 if (MPG123_SUPPORT)
  add_definitions (-DMPG123_SUPPORT)

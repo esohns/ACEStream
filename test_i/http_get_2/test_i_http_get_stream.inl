@@ -136,7 +136,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.targetFileName = (*iterator).second.second.targetFileName;
+  session_data_r.targetFileName = (*iterator).second.second.fileIdentifier.identifier;
 
   // ---------------------------------------------------------------------------
 

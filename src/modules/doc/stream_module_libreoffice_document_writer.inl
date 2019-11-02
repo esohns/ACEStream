@@ -324,7 +324,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
       // generate document filename URL
       filename =
-        ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
+        ::rtl::OUString::createFromAscii (inherited::configuration_->fileIdentifier.identifier.c_str ());
       result_2 = osl_getProcessWorkingDir (&working_directory.pData);
       ACE_ASSERT (result_2 == osl_Process_E_None);
       result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
