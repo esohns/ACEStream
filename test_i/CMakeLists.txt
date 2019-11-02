@@ -191,6 +191,7 @@ if (UNIX)
      target_link_libraries (${PROJECT_NAME}_Test_I X11)
      target_link_libraries (${PROJECT_NAME}_Test_I GL)
      target_link_libraries (${PROJECT_NAME}_Test_I $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
+     target_link_libraries (${PROJECT_NAME}_Test_I GL)
     endif (GTKGLAREA_SUPPORT)
 
 #    target_link_libraries (${PROJECT_NAME}_Test_I CommonOpenGL)

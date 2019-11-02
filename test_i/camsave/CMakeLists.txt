@@ -68,6 +68,7 @@ if (NOT EXISTS ${${PROJECT_NAME}_DIR})
 endif ()
 add_definitions (-DSTREAM_HAS_DLL)
 add_definitions (-DSTREAM_DEC_HAS_DLL)
+add_definitions (-DFFMPEG_SUPPORT)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)

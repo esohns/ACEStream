@@ -602,7 +602,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GUI_SUPPORT)
       (!ui_definition_file_path.empty () && !Common_File_Tools::isReadable (ui_definition_file_path)) ||
 #endif // GUI_SUPPORT
-      !Common_File_Tools::isDirectory (image_file_path) && !Common_File_Tools::isReadable (image_file_path))
+      (!Common_File_Tools::isDirectory (image_file_path) || !Common_File_Tools::isReadable (image_file_path)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid argument(s), aborting\n")));

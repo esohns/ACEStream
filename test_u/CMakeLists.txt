@@ -181,7 +181,6 @@ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../src/modules/lib>)
 
 if (UNIX)
-
  if (GUI_SUPPORT)
   if (GTK_USE)
    target_link_libraries (${PROJECT_NAME}_Test_U ${GTK_LIBRARIES})
@@ -189,6 +188,7 @@ if (UNIX)
     target_link_libraries (${PROJECT_NAME}_Test_U X11)
     target_link_libraries (${PROJECT_NAME}_Test_U GL)
     target_link_libraries (${PROJECT_NAME}_Test_U $ENV{LIB_ROOT}/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a)
+    target_link_libraries (${PROJECT_NAME}_Test_U GL)
    endif (GTKGLAREA_SUPPORT)
 
    if (GTKGL_SUPPORT)

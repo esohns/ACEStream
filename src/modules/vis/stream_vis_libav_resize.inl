@@ -711,7 +711,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: resizing %ux%u to %ux%u\n"),
               inherited::mod_->name (),
-              message_data_r.resolution.width, message_data_r.resolution.height,
+              message_data_r.format.resolution.width, message_data_r.format.resolution.height,
               inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // _DEBUG
@@ -726,8 +726,8 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
                             message_data_r.format.resolution.cx, message_data_r.format.resolution.cy, message_data_r.format.format,
                             inherited::configuration_->outputFormat.resolution.cx, inherited::configuration_->outputFormat.resolution.cy, message_data_r.format.format,
 #else
-                            message_data_r.resolution.width, message_data_r.resolution.height, message_data_r.format,
-                            inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, message_data_r.format,
+                            message_data_r.format.resolution.width, message_data_r.format.resolution.height, message_data_r.format.format,
+                            inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height, message_data_r.format.format,
 #endif // ACE_WIN32 || ACE_WIN64
                             flags_i,                      // flags
                             NULL, NULL,
@@ -746,7 +746,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                static_cast<int> (message_data_r.format.resolution.cx));
 #else
-                               static_cast<int> (message_data_r.resolution.width));
+                               static_cast<int> (message_data_r.format.resolution.width));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result >= 0);
   result =
@@ -755,7 +755,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               static_cast<int> (message_data_r.format.resolution.cy),
 #else
-                              static_cast<int> (message_data_r.resolution.height),
+                              static_cast<int> (message_data_r.format.resolution.height),
 #endif // ACE_WIN32 || ACE_WIN64
                               reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
                               line_sizes_a);
@@ -768,7 +768,7 @@ Stream_Visualization_LibAVResize1_T<ACE_SYNCH_USE,
                                                      inherited::frame_->data)))
 #else
   if (unlikely (!Stream_Module_Decoder_Tools::scale (inherited::context_,
-                                                     message_data_r.resolution.width, message_data_r.resolution.height, message_data_r.format,
+                                                     message_data_r.format.resolution.width, message_data_r.format.resolution.height, message_data_r.format.format,
                                                      data_a,
                                                      inherited::configuration_->outputFormat.resolution.width, inherited::configuration_->outputFormat.resolution.height,
                                                      inherited::frame_->data)))

@@ -115,6 +115,7 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_ImageScreen_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_ImageScreen_Source* source_impl_p = NULL;
+  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -163,7 +164,6 @@ Stream_ImageScreen_Stream::initialize (const typename inherited::CONFIGURATION_T
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
   media_type_s.format = AV_PIX_FMT_RGB32;
   session_data_p->formats.push_front (media_type_s);
   //  session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
