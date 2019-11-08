@@ -161,7 +161,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
     case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
     {
-//      bool use_SSL = false;
+      std::string host_name_string, host_name_string_2;
+      std::string uri_string, uri_string_2;
+      bool use_SSL = false, use_SSL_2 = false;
 
       // step1: redirected --> extract location
       iterator =
@@ -183,19 +185,45 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                   ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
-      //if (!HTTP_Tools::parseURL ((*iterator).second,
-      //                           host_name_string,
-      //                           uri_string,
-      //                           use_SSL))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
-      //              inherited::mod_->name (),
-      //              ACE_TEXT ((*iterator).second.c_str ())));
-      //  goto error;
-      //} // end IF
+      // step2: send request ?
+      // *IMPORTANT NOTE*: only auto-effectuate same-server/protocol redirects
+      if (!HTTP_Tools::parseURL ((*iterator).second,
+                                 host_name_string,
+                                 uri_string,
+                                 use_SSL))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT ((*iterator).second.c_str ())));
+        goto error;
+      } // end IF
+      if (!HTTP_Tools::parseURL (inherited::configuration_->URL,
+                                 host_name_string_2,
+                                 uri_string_2,
+                                 use_SSL_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT ((*iterator).second.c_str ())));
+        goto error;
+      } // end IF
+      if (likely ((host_name_string != host_name_string_2) ||
+                  (use_SSL != use_SSL_2)))
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTPS connection, cannot proceed\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
 
-      // step2: send request
+        received_ = true;
+
+        passMessageDownstream_out = true;
+
+        goto continue_;
+      } // end IF
+
       if (!send ((*iterator).second,
                  inherited::configuration_->HTTPHeaders,
                  inherited::configuration_->HTTPForm))
@@ -236,8 +264,7 @@ continue_:
 
   if (!passMessageDownstream_out)
   {
-    message_inout->release ();
-    message_inout = NULL;
+    message_inout->release (); message_inout = NULL;
   } // end IF
 }
 
@@ -469,6 +496,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   {
     ACE_ASSERT ((*iterator).second == hostname_string);
   } // end ELSE
+
   // *TODO*: estimate a reasonable buffer size
   DataMessageType* message_p = makeRequest (URI_string,
                                             headers,

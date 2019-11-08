@@ -33,7 +33,7 @@ if NOT exist "%SourceDirectory%" (
  echo invalid directory ^(was: "%SourceDirectory%"^)^, exiting
  goto Failed
 )
-set ACE_ROOT=D:\projects\ATCD\ACE
+set ACE_ROOT=%LIB_ROOT%\ACE_TAO\ACE
 if NOT exist "%ACE_ROOT%" (
  echo invalid directory ^(was: "%ACE_ROOT%"^)^, exiting
  goto Failed
