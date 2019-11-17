@@ -572,7 +572,7 @@ do_work (unsigned int bufferSize_in,
 
 //  connection_configuration.connectionManager = iconnection_manager_p;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
   connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                        configuration.streamConfiguration);
 

@@ -535,7 +535,7 @@ do_work (unsigned int bufferSize_in,
     statisticReportingInterval_in;
 //  connection_configuration.connectionManager = connection_manager_p;
   tcp_connection_configuration.messageAllocator = &message_allocator;
-  tcp_connection_configuration.PDUSize = bufferSize_in;
+  tcp_connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
   tcp_connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                            configuration.streamConfiguration);
 

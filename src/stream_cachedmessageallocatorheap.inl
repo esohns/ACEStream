@@ -172,6 +172,9 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::free (void* handle_in)
   //switch (message_block_p->msg_type ())
   switch (message_block_p->msg_priority ())
   {
+    case 0:
+      sessionMessageAllocator_.free (handle_in);
+      break;
     //case ACE_Message_Block::MB_NORMAL: // undifferentiated
     //case ACE_Message_Block::MB_BREAK:
     //case ACE_Message_Block::MB_FLUSH:
@@ -181,13 +184,10 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::free (void* handle_in)
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case std::numeric_limits<unsigned long>::max ():
+    case UINT32_MAX:
       inherited::free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:
-    case std::numeric_limits<unsigned long>::min ():
-      sessionMessageAllocator_.free (handle_in);
-      break;
     default:
     {
       //ACE_DEBUG ((LM_ERROR,

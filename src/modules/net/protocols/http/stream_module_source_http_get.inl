@@ -423,13 +423,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: remove type inference
   DataMessageType* message_out =
-    inherited::allocateMessage ((*iterator).second->PDUSize);
+    inherited::allocateMessage ((*iterator).second->allocatorConfiguration->defaultBufferSize);
   if (!message_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                 inherited::mod_->name (),
-                (*iterator).second->PDUSize));
+                (*iterator).second->allocatorConfiguration->defaultBufferSize));
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)

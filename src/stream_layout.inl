@@ -199,10 +199,10 @@ restart:
        iterator_3 != modules_a.rend ();
        ++iterator_3)
   {
-    result = (*iterator_3)->link (NULL);
-    if (unlikely (result == -1))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Module::link(NULL): \"%m\", continuing\n")));
+    /*result =*/ (*iterator_3)->link (NULL);
+//    if (unlikely (result == -1))
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_Module::link(NULL): \"%m\", continuing\n")));
   } // end FOR
   goto restart;
 

@@ -195,7 +195,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case std::numeric_limits<ACE_UINT32>::max ():
+    case UINT32_MAX:
       inherited::free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:
