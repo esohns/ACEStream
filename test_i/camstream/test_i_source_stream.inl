@@ -120,7 +120,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
-                                  ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                                  ConnectorType>::load (Stream_ILayout* layout_out,
                                                         bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::load"));
@@ -131,13 +131,25 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_DirectShow_CamSource_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, NULL, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TARGET_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
+                  false);
+  layout_out->append (module_p, NULL, 0);
+  module_p = NULL;
   if ((*iterator).second.second.window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_DirectShow_Display_Module (this,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING)),
                     false);
-    modules_out.push_back (module_p);
+    layout_out->append (module_p, NULL, 0);
   } // end IF
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  //else
@@ -148,24 +160,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
 //#endif
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Source_DirectShow_StatisticReport_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_DirectShow_CamSource_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
+  //ACE_NEW_RETURN (module_p,
+  //                Test_I_Source_DirectShow_StatisticReport_Module (this,
+  //                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+  //                false);
+  //modules_out.push_back (module_p);
 
   delete_out = true;
 
@@ -310,8 +309,10 @@ continue_:
   } // end IF
 
   // sanity check(s)
+  ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
   if (!(*iterator).second.second.direct3DConfiguration->handle)
-  { ACE_ASSERT ((*iterator).second.second.direct3DConfiguration);
+  {
+    Stream_MediaFramework_DirectDraw_Tools::initialize (false);
     if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (*(*iterator).second.second.direct3DConfiguration,
                                                             direct3D_manager_p,
                                                             reset_token))
@@ -604,13 +605,15 @@ error:
   {
     (*iterator).second.second.direct3DConfiguration->handle->Release (); (*iterator).second.second.direct3DConfiguration->handle = NULL;
   } // end IF
-  if (session_data_p->direct3DDevice)
+  if (session_data_p)
   {
-    session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
+    if (session_data_p->direct3DDevice)
+    {
+      session_data_p->direct3DDevice->Release (); session_data_p->direct3DDevice = NULL;
+    } // end IF
+    Stream_MediaFramework_DirectShow_Tools::free (session_data_p->formats);
+    session_data_p->resetToken = 0;
   } // end IF
-  Stream_MediaFramework_DirectShow_Tools::free (session_data_p->formats);
-  session_data_p->resetToken = 0;
-
   if (isample_grabber_p)
     isample_grabber_p->Release ();
   if (media_filter_p)

@@ -922,7 +922,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
-  struct Test_I_AllocatorConfiguration* allocator_configuration_p =
+  struct Common_FlexParserAllocatorConfiguration* allocator_configuration_p =
     NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -1149,7 +1149,7 @@ do_work (unsigned int bufferSize_in,
 
   ACE_ASSERT (allocator_configuration_p);
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_I_AllocatorConfiguration> heap_allocator;
+                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1378,9 +1378,9 @@ do_work (unsigned int bufferSize_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
       } // end IF
-      if (bufferSize_in)
-        NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->PDUSize =
-          bufferSize_in;
+      //if (bufferSize_in)
+      //  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->PDUSize =
+      //    bufferSize_in;
       NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->statisticReportingInterval =
         statisticReportingInterval_in;
       dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
@@ -1410,9 +1410,9 @@ do_work (unsigned int bufferSize_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
       } // end IF
-      if (bufferSize_in)
-        (*connection_configuration_iterator).second->PDUSize =
-          bufferSize_in;
+      //if (bufferSize_in)
+      //  (*connection_configuration_iterator).second->PDUSize =
+      //    bufferSize_in;
       (*connection_configuration_iterator).second->statisticReportingInterval =
         statisticReportingInterval_in;
 
@@ -1450,7 +1450,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
   if (bufferSize_in)
-    connection_configuration.PDUSize = bufferSize_in;
+    connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
@@ -2662,12 +2662,25 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_I_Target_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
+  struct Test_I_Target_DirectShow_Configuration directshow_configuration;
+  struct Test_I_Target_MediaFoundation_Configuration mediafoundation_configuration;
+  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
   switch (media_framework_e)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       //directshow_ui_cb_data.progressData.state = &directshow_ui_cb_data;
       ui_cb_data_p = &directshow_ui_cb_data;
+      directshow_ui_cb_data.configuration = &directshow_configuration;
+      directshow_configuration.GTKConfiguration.argc = argc_in;
+      directshow_configuration.GTKConfiguration.argv = argv_in;
+      directshow_configuration.GTKConfiguration.CBData = ui_cb_data_p;
+      directshow_configuration.GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_target_UI_cb;
+      directshow_configuration.GTKConfiguration.eventHooks.initHook =
+        idle_initialize_target_UI_cb;
+      directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
+      directshow_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_file);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2675,6 +2688,7 @@ ACE_TMAIN (int argc_in,
       //mediafoundation_ui_cb_data.progressData.state =
       //  &mediafoundation_ui_cb_data;
       ui_cb_data_p = &mediafoundation_ui_cb_data;
+      mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
       break;
     }
     default:
@@ -2692,16 +2706,16 @@ ACE_TMAIN (int argc_in,
     }
   } // end SWITCH
 #if defined (GTK_USE)
-  Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  ui_cb_data_p->configuration->GTKConfiguration.argc = argc_in;
-  ui_cb_data_p->configuration->GTKConfiguration.argv = argv_in;
-  ui_cb_data_p->configuration->GTKConfiguration.CBData = ui_cb_data_p;
-  ui_cb_data_p->configuration->GTKConfiguration.eventHooks.finiHook =
-    idle_finalize_target_UI_cb;
-  ui_cb_data_p->configuration->GTKConfiguration.eventHooks.initHook =
-    idle_initialize_target_UI_cb;
-  ui_cb_data_p->configuration->GTKConfiguration.definition = &gtk_ui_definition;
-  ui_cb_data_p->configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
+  //Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
+  //ui_cb_data_p->configuration->GTKConfiguration.argc = argc_in;
+  //ui_cb_data_p->configuration->GTKConfiguration.argv = argv_in;
+  //ui_cb_data_p->configuration->GTKConfiguration.CBData = ui_cb_data_p;
+  //ui_cb_data_p->configuration->GTKConfiguration.eventHooks.finiHook =
+  //  idle_finalize_target_UI_cb;
+  //ui_cb_data_p->configuration->GTKConfiguration.eventHooks.initHook =
+  //  idle_initialize_target_UI_cb;
+  //ui_cb_data_p->configuration->GTKConfiguration.definition = &gtk_ui_definition;
+  //ui_cb_data_p->configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
 #endif // GTK_USE
 #else
   struct Test_I_Target_UI_CBData ui_cb_data;
@@ -2859,8 +2873,34 @@ ACE_TMAIN (int argc_in,
   if (gtk_glade_file.empty ())
     goto continue_;
 
-  result_2 =
-      gtk_manager_p->initialize (ui_cb_data_p->configuration->GTKConfiguration);
+  switch (media_framework_e)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      result_2 =
+        gtk_manager_p->initialize (directshow_configuration.GTKConfiguration);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      result_2 =
+        gtk_manager_p->initialize (mediafoundation_configuration.GTKConfiguration);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  media_framework_e));
+            
+      // *PORTABILITY*: on Windows, finalize ACE...
+      result = ACE::fini ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+      return EXIT_FAILURE;
+    }
+  } // end SWITCH
   if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,

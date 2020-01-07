@@ -2108,15 +2108,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (iterator != state_r.builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT hresult = CoInitializeEx (NULL,
-                                    COINIT_MULTITHREADED);
-  if (FAILED (hresult))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
+  //HRESULT hresult = CoInitializeEx (NULL,
+  //                                  COINIT_MULTITHREADED);
+  //if (FAILED (hresult))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
 #endif
 
   // step1: initialize dialog window(s)
@@ -2719,6 +2719,11 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("drawing area window handle: 0x%@\n"),
                   (*directshow_modulehandler_iterator).second.second.window));
+
+      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      directshow_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+        gdk_win32_window_get_impl_hwnd (window_p);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

@@ -5275,15 +5275,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
-                                       ui_cb_data_p->configuration->ALSAConfiguration.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
-    return;
-  } // end IF
-  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
-      ui_cb_data_p->handle;
+//  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
+//                                       ui_cb_data_p->configuration->ALSAConfiguration.format))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
+//    return;
+//  } // end IF
+//  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+//      ui_cb_data_p->handle;
 #endif
 
   combo_box_p =

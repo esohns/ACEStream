@@ -47,6 +47,11 @@ class HTTPGet_SessionMessage
                                       HTTPGet_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      HTTPGet_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_FlexParserAllocatorConfiguration,
@@ -67,11 +72,6 @@ class HTTPGet_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      HTTPGet_SessionData_t,
-                                      struct Stream_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   HTTPGet_SessionMessage (const HTTPGet_SessionMessage&);
 

@@ -762,22 +762,22 @@ struct Test_I_Target_Configuration
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_DirectShow_Stream_Message,
                                           Test_I_Target_DirectShow_SessionMessage> Test_I_Target_DirectShow_MessageAllocator_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_MediaFoundation_Stream_Message,
                                           Test_I_Target_MediaFoundation_SessionMessage> Test_I_Target_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;

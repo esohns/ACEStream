@@ -81,7 +81,7 @@ typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Source_SessionMessage> Test_I_Source_Message_t;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Net_AllocatorConfiguration> Test_I_Source_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> Test_I_Source_ControlMessage_t;
 
 //////////////////////////////////////////
 
@@ -89,14 +89,14 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Net_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_Source_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_StreamConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Net_AllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
                                       Test_I_Source_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP> Test_I_Source_TCPConnectionConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Net_AllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
                                       Test_I_Source_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_UDP> Test_I_Source_UDPConnectionConfiguration_t;
 
@@ -131,14 +131,14 @@ typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Net_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Net_AllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
                                       Test_I_Target_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP> Test_I_Target_TCPConnectionConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Net_AllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
                                       Test_I_Target_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_UDP> Test_I_Target_UDPConnectionConfiguration_t;
 
@@ -190,7 +190,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_StreamConfiguration,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
-                                      struct Net_AllocatorConfiguration,
+                                      struct Common_FlexParserAllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_ModuleHandlerConfiguration,
                                       struct Test_I_Source_SessionData,
@@ -211,7 +211,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_StreamConfiguration,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
-                                      struct Net_AllocatorConfiguration,
+                                      struct Common_FlexParserAllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_ModuleHandlerConfiguration,
                                       struct Test_I_Source_SessionData,

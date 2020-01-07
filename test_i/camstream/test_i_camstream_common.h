@@ -287,11 +287,14 @@ struct Test_I_CamStream_Configuration
 #else
    : Test_I_Configuration ()
 #endif // GUI_SUPPORT
+   , allocatorConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {}
 
+  struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
+
   // *************************** protocol data *********************************
-  enum Net_TransportLayerType protocol;
+  enum Net_TransportLayerType       protocol;
 };
 
 //////////////////////////////////////////

@@ -51,17 +51,16 @@ struct Test_I_MP3Player_Configuration
 {
   Test_I_MP3Player_Configuration ()
    : Test_I_Configuration ()
-   //, signalHandlerConfiguration ()
+   , allocatorConfiguration ()
    //, connectionConfigurations ()
    , streamConfiguration ()
   {}
 
-  // **************************** signal data **********************************
-  //struct Test_I_HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Common_AllocatorConfiguration allocatorConfiguration;
   // **************************** socket data **********************************
   //Net_ConnectionConfigurations_t                   connectionConfigurations;
   // **************************** stream data **********************************
-  Test_I_StreamConfiguration_t                     streamConfiguration;
+  Test_I_StreamConfiguration_t         streamConfiguration;
 };
 
 #endif

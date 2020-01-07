@@ -70,7 +70,6 @@
     <property name="website_label" translatable="yes">github project site</property>
     <property name="authors">Erik Sohns</property>
     <property name="logo_icon_name">image-missing</property>
-    <property name="license_type">gpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog_about_vbox">
         <property name="visible">True</property>
@@ -114,7 +113,6 @@
               <object class="GtkVBox" id="vbox_controls">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="valign">start</property>
                 <child>
                   <object class="GtkHBox" id="hbox_actions_information">
                     <property name="visible">True</property>
@@ -354,8 +352,6 @@
                                         <property name="tooltip_text" translatable="yes">capture device</property>
                                         <property name="model">liststore_source</property>
                                         <property name="focus_on_click">False</property>
-                                        <property name="id_column">0</property>
-                                        <property name="active_id">device</property>
                                       </object>
                                     </child>
                                   </object>
@@ -497,7 +493,6 @@
                                                         <property name="tooltip_text" translatable="yes">format</property>
                                                         <property name="model">liststore_format</property>
                                                         <property name="focus_on_click">False</property>
-                                                        <property name="id_column">0</property>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>

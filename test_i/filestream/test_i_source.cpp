@@ -511,7 +511,7 @@ do_work (unsigned int bufferSize_in,
   //  &configuration.streamConfiguration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_I_AllocatorConfiguration> heap_allocator;
+                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,

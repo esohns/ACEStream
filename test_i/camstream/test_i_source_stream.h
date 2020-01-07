@@ -74,7 +74,7 @@ class Test_I_Source_DirectShow_Stream_T
                         StreamStateType,
                         ConfigurationType,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -92,7 +92,7 @@ class Test_I_Source_DirectShow_Stream_T
                         StreamStateType,
                         ConfigurationType,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -106,8 +106,8 @@ class Test_I_Source_DirectShow_Stream_T
   virtual ~Test_I_Source_DirectShow_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: module list
+                     bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
   virtual bool initialize (const CONFIGURATION_T&);
@@ -171,7 +171,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         StreamStateType,
                         ConfigurationType,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -190,7 +190,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         StreamStateType,
                         ConfigurationType,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -280,7 +280,7 @@ class Test_I_Source_V4L_Stream_T
                         StreamStateType,
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -298,7 +298,7 @@ class Test_I_Source_V4L_Stream_T
                         StreamStateType,
                         struct Test_I_Source_V4L_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Test_I_AllocatorConfiguration,
+                        struct Common_FlexParserAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,

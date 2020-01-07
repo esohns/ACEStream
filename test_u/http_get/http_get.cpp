@@ -606,7 +606,7 @@ do_work (unsigned int bufferSize_in,
     statisticReportingInterval_in;
 
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
   connection_configuration.initialize (CBData_in.configuration->allocatorConfiguration,
                                        CBData_in.configuration->streamConfiguration);
 

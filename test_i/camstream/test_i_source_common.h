@@ -226,7 +226,7 @@ typedef Stream_SessionData_T<Test_I_Source_V4L_SessionData> Test_I_Source_V4L_Se
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
 
 struct Stream_Statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -248,7 +248,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_StreamState,
                       struct Test_I_Source_DirectShow_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Test_I_AllocatorConfiguration,
+                      struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       Test_I_Source_DirectShow_SessionData,
@@ -265,7 +265,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_StreamState,
                       struct Test_I_Source_MediaFoundation_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Test_I_AllocatorConfiguration,
+                      struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       Test_I_Source_MediaFoundation_SessionData,
@@ -287,7 +287,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_V4L_StreamState,
                       struct Test_I_Source_V4L_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Test_I_AllocatorConfiguration,
+                      struct Common_FlexParserAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_V4L_ModuleHandlerConfiguration,
                       Test_I_Source_V4L_SessionData,
@@ -627,7 +627,7 @@ struct Test_I_Source_DirectShow_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_I_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_Source_DirectShow_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_StreamConfiguration_t;
@@ -655,7 +655,7 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_I_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration> Test_I_Source_MediaFoundation_StreamConfiguration_t;
@@ -678,7 +678,7 @@ struct Test_I_Source_V4L_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_I_AllocatorConfiguration,
+                               struct Common_FlexParserAllocatorConfiguration,
                                struct Test_I_Source_V4L_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_Source_V4L_ModuleHandlerConfiguration> Test_I_Source_V4L_StreamConfiguration_t;
@@ -729,11 +729,13 @@ struct Test_I_Source_DirectShow_Configuration
 {
   Test_I_Source_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
+   , direct3DConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfigurations ()
   {}
 
+  struct Stream_MediaFramework_Direct3D_Configuration        direct3DConfiguration;
   // **************************** signal data **********************************
   struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
@@ -784,9 +786,9 @@ struct Test_I_Source_V4L_Configuration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_ControlMessage_T<ENUM Stream_ControlMessageType,
-//                                struct Test_I_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
+//                                struct Common_FlexParserAllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
@@ -802,7 +804,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
@@ -818,7 +820,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test_I_Source_MediaFoundation_ISubscribe_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
+                                          struct Common_FlexParserAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Source_V4L_Stream_Message,
                                           Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_MessageAllocator_t;

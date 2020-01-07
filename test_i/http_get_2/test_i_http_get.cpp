@@ -792,7 +792,7 @@ do_work (const std::string& bootstrapFileName_in,
     connection_configuration.address.is_loopback ();
   //connection_configuration.writeOnly = true;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
+  connection_configuration.allocatorConfiguration_.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
   connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
                                        configuration.streamConfiguration);
 

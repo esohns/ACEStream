@@ -405,6 +405,7 @@ do_work (unsigned int bufferSize_in,
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   Stream_Filecopy_Stream stream;
   struct Stream_ModuleConfiguration module_configuration;
+  struct Stream_AllocatorConfiguration allocator_configuration;
   Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,
                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_Filecopy_Module_EventHandler* event_handler_p =
@@ -418,7 +419,7 @@ do_work (unsigned int bufferSize_in,
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -444,17 +445,18 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
   CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
   CBData_in.configuration->streamConfiguration.configuration_.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  CBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                       std::make_pair (module_configuration,
-                                                                                       moduleheandler_configuration)));
+  struct Stream_Configuration stream_configuration;
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           moduleheandler_configuration,
+                                                           allocator_configuration,
+                                                           stream_configuration);
   CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
       true;
 

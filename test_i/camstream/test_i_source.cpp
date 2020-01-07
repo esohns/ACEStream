@@ -836,18 +836,16 @@ do_work (const std::string& deviceIdentifier_in,
   // step0a: initialize event dispatch
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_I_Source_DirectShow_Configuration directshow_configuration;
-  struct Test_I_Source_MediaFoundation_Configuration mediafoundation_configuration;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      camstream_configuration_p = &directshow_configuration;
+      camstream_configuration_p = directShowCBData_in.configuration;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      camstream_configuration_p = &mediafoundation_configuration;
+      camstream_configuration_p = mediaFoundationCBData_in.configuration;
       break;
     }
     default:
@@ -859,8 +857,7 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  struct Test_I_Source_V4L_Configuration V4L_configuration;
-  camstream_configuration_p = &V4L_configuration;
+  camstream_configuration_p = v4l2CBData_in.configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
@@ -880,17 +877,17 @@ do_work (const std::string& deviceIdentifier_in,
       &camstream_configuration_p->dispatchConfiguration;
 
   // step0b: initialize configuration and stream
-  struct Test_I_AllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Common_FlexParserAllocatorConfiguration* allocator_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       allocator_configuration_p =
-        &directshow_configuration.allocatorConfiguration;
+        &directShowCBData_in.configuration->allocatorConfiguration;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       allocator_configuration_p =
-        &mediafoundation_configuration.allocatorConfiguration;
+        &mediaFoundationCBData_in.configuration->allocatorConfiguration;
       break;
     default:
     {
@@ -901,13 +898,13 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  allocator_configuration_p = &V4L_configuration.allocatorConfiguration;
+  allocator_configuration_p = &v4l2CBData_in->configuration.allocatorConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_configuration_p);
   if (bufferSize_in)
     allocator_configuration_p->defaultBufferSize = bufferSize_in;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_I_AllocatorConfiguration> heap_allocator;
+                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -982,19 +979,17 @@ do_work (const std::string& deviceIdentifier_in,
                                                               std::make_pair (module_configuration,
                                                                               directshow_modulehandler_configuration)));
 
-      directshow_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+      directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             directshow_stream_configuration));
       directshow_stream_iterator =
-        directshow_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_configuration.streamConfigurations.end ());
+        directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
       allocator_configuration_p =
         &(*directshow_stream_iterator).second.allocatorConfiguration_;
 
       directshow_stream_configuration.configuration_.module = NULL;
-      directshow_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
+      directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                                             directshow_stream_configuration));
-
-      directShowCBData_in.configuration = &directshow_configuration;
 
       break;
     }
@@ -1010,24 +1005,22 @@ do_work (const std::string& deviceIdentifier_in,
       mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                    std::make_pair (module_configuration,
                                                                                    mediafoundation_modulehandler_configuration)));
-      mediafoundation_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+      mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                  mediafoundation_stream_configuration));
       mediafoundation_stream_iterator =
-        mediafoundation_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_configuration.streamConfigurations.end ());
+        mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
       mediafoundation_stream_iterator =
-        mediafoundation_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_configuration.streamConfigurations.end ());
+        mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
       allocator_configuration_p =
         &(*mediafoundation_stream_iterator).second.allocatorConfiguration_;
 
       mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                    std::make_pair (module_configuration,
                                                                                    mediafoundation_modulehandler_configuration)));
-      mediafoundation_configuration.streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
+      mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                                                  mediafoundation_stream_configuration));
-
-      mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
 
       break;
     }
@@ -1272,27 +1265,27 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_stream_iterator =
-        directshow_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-      ACE_ASSERT (directshow_stream_iterator != directshow_configuration.streamConfigurations.end ());      
+        directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
 
       result =
         directshow_tcp_connection_configuration.initialize (directShowCBData_in.configuration->allocatorConfiguration,
                                                             (*directshow_stream_iterator).second);
       ACE_ASSERT (result);
-      directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+      directShowCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                 &directshow_tcp_connection_configuration));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_stream_iterator =
-        mediafoundation_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_configuration.streamConfigurations.end ());
+        mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
       result =
         mediafoundation_tcp_connection_configuration.initialize (mediaFoundationCBData_in.configuration->allocatorConfiguration,
                                                                  (*mediafoundation_stream_iterator).second);
-      mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+      mediaFoundationCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                      &mediafoundation_tcp_connection_configuration));
       break;
     }
@@ -1335,8 +1328,8 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       connection_iterator =
-        directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (connection_iterator != directshow_configuration.connectionConfigurations.end ());
+        directShowCBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (connection_iterator != directShowCBData_in.configuration->connectionConfigurations.end ());
 
       directshow_tcp_connection_manager_p =
         TEST_I_SOURCE_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
@@ -1354,8 +1347,8 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       connection_iterator =
-        mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (connection_iterator != mediafoundation_configuration.connectionConfigurations.end ());
+        mediaFoundationCBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (connection_iterator != mediaFoundationCBData_in.configuration->connectionConfigurations.end ());
 
       mediafoundation_tcp_connection_manager_p =
         TEST_I_SOURCE_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
@@ -1463,7 +1456,7 @@ do_work (const std::string& deviceIdentifier_in,
 
       dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &directshow_message_allocator;
-      (*connection_iterator).second->PDUSize = bufferSize_in;
+      //(*connection_iterator).second->PDUSize = bufferSize_in;
       dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
                                                                                                                              (*directshow_stream_iterator).second);
       break;
@@ -1471,9 +1464,9 @@ do_work (const std::string& deviceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       // *************************** media foundation ****************************
-      mediafoundation_configuration.mediaFoundationConfiguration.controller =
-        ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
-                                                                            : mediaFoundationCBData_in.UDPStream);
+      mediaFoundationCBData_in.configuration->mediaFoundationConfiguration.controller =
+        ((mediaFoundationCBData_in.configuration->protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
+                                                                                      : mediaFoundationCBData_in.UDPStream);
 
       result_2 =
         NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
@@ -1498,7 +1491,7 @@ do_work (const std::string& deviceIdentifier_in,
 
       dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
-      (*connection_iterator).second->PDUSize = bufferSize_in;
+      //(*connection_iterator).second->PDUSize = bufferSize_in;
       dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
                                                                                                                              (*mediafoundation_stream_iterator).second);
       break;
@@ -1532,7 +1525,7 @@ do_work (const std::string& deviceIdentifier_in,
     statisticReportingInterval_in;
   dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
-  (*connection_iterator).second->PDUSize = bufferSize_in;
+  (*connection_iterator).second->allocatorConfiguration->defaultBufferSize = bufferSize_in;
   dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
                                                                                                              (*stream_iterator).second);
 
@@ -1541,6 +1534,7 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1548,9 +1542,11 @@ do_work (const std::string& deviceIdentifier_in,
       (*directshow_modulehandler_iterator).second.second.allocatorConfiguration =
         allocator_configuration_p;
       (*directshow_modulehandler_iterator).second.second.configuration =
-        &directshow_configuration;
+        directShowCBData_in.configuration;
       (*directshow_modulehandler_iterator).second.second.connectionConfigurations =
-        &directshow_configuration.connectionConfigurations;
+        &directShowCBData_in.configuration->connectionConfigurations;
+      (*directshow_modulehandler_iterator).second.second.direct3DConfiguration =
+        &directShowCBData_in.configuration->direct3DConfiguration;
       (*directshow_modulehandler_iterator).second.second.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       //(*directshow_modulehandler_iterator).second.second.stream =
@@ -1569,9 +1565,9 @@ do_work (const std::string& deviceIdentifier_in,
       (*mediafoundation_modulehandler_iterator).second.second.allocatorConfiguration =
         allocator_configuration_p;
       (*mediafoundation_modulehandler_iterator).second.second.configuration =
-        &mediafoundation_configuration;
+        mediaFoundationCBData_in.configuration;
       (*mediafoundation_modulehandler_iterator).second.second.connectionConfigurations =
-        &mediafoundation_configuration.connectionConfigurations;
+        &mediaFoundationCBData_in.configuration->connectionConfigurations;
       (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval =
           ACE_Time_Value (statisticReportingInterval_in, 0);
       //(*mediafoundation_modulehandler_iterator).second.second.stream =
@@ -1655,27 +1651,27 @@ do_work (const std::string& deviceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_configuration.signalHandlerConfiguration.connectionManager =
+      directShowCBData_in.configuration->signalHandlerConfiguration.connectionManager =
         TEST_I_SOURCE_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
-      directshow_configuration.signalHandlerConfiguration.dispatchState =
+      directShowCBData_in.configuration->signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      directshow_configuration.signalHandlerConfiguration.stream =
+      directShowCBData_in.configuration->signalHandlerConfiguration.stream =
         directShowCBData_in.stream;
       result =
-        directshow_signal_handler.initialize (directshow_configuration.signalHandlerConfiguration);
+        directshow_signal_handler.initialize (directShowCBData_in.configuration->signalHandlerConfiguration);
       event_handler_p = &directshow_signal_handler;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      mediafoundation_configuration.signalHandlerConfiguration.connectionManager =
+      mediaFoundationCBData_in.configuration->signalHandlerConfiguration.connectionManager =
         TEST_I_SOURCE_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
-      mediafoundation_configuration.signalHandlerConfiguration.dispatchState =
+      mediaFoundationCBData_in.configuration->signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      mediafoundation_configuration.signalHandlerConfiguration.stream =
+      mediaFoundationCBData_in.configuration->signalHandlerConfiguration.stream =
         mediaFoundationCBData_in.stream;
       result =
-        mediafoundation_signal_handler.initialize (mediafoundation_configuration.signalHandlerConfiguration);
+        mediafoundation_signal_handler.initialize (mediaFoundationCBData_in.configuration->signalHandlerConfiguration);
       event_handler_p = &mediafoundation_signal_handler;
       break;
     }
@@ -1730,6 +1726,9 @@ do_work (const std::string& deviceIdentifier_in,
   {
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+    gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (gtk_manager_p);
+    ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR_2 ());
     ACE_ASSERT (ui_state_p);
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
@@ -1788,10 +1787,10 @@ do_work (const std::string& deviceIdentifier_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
         directshow_stream_iterator =
-          directshow_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (directshow_stream_iterator != directshow_configuration.streamConfigurations.end ());
+          directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
 
-        if (directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+        if (directShowCBData_in.configuration->protocol == NET_TRANSPORTLAYER_TCP)
         {
           stream_p = directShowCBData_in.stream;
           result =
@@ -1807,7 +1806,7 @@ do_work (const std::string& deviceIdentifier_in,
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        if (mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+        if (mediaFoundationCBData_in.configuration->protocol == NET_TRANSPORTLAYER_TCP)
         {
           stream_p = mediaFoundationCBData_in.stream;
           result =
@@ -2168,6 +2167,8 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_UI_CBData directshow_ui_cb_data;
   struct Test_I_Source_MediaFoundation_UI_CBData mediafoundation_ui_cb_data;
+  struct Test_I_Source_DirectShow_Configuration directshow_configuration;
+  struct Test_I_Source_MediaFoundation_Configuration mediafoundation_configuration;
   Stream_MediaFramework_Tools::initialize (media_framework_e);
   switch (media_framework_e)
   {
@@ -2181,6 +2182,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
       ui_cb_data_p = &directshow_ui_cb_data;
 #endif // GTK_USE
+      directshow_ui_cb_data.configuration = &directshow_configuration;
       directshow_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
       directshow_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
       directshow_ui_cb_data.configuration->GTKConfiguration.CBData = &directshow_ui_cb_data;
@@ -2205,6 +2207,7 @@ ACE_TMAIN (int argc_in,
 #if defined (GTK_USE)
       ui_cb_data_p = &mediafoundation_ui_cb_data;
 #endif // GTK_USE
+      mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
       mediafoundation_ui_cb_data.configuration->GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
@@ -2240,8 +2243,10 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Test_I_Source_V4L_UI_CBData ui_cb_data;
+  struct Test_I_Source_V4L_Configuration V4L_configuration;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  ui_cb_data.configuration = &V4L_configuration;
   ui_cb_data.configuration->GTKConfiguration.argc = argc_in;
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;

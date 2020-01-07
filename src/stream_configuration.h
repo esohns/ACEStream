@@ -121,7 +121,7 @@ struct Stream_ModuleHandlerConfiguration
    , timerManager (NULL)
   {}
 
-  struct Stream_AllocatorConfiguration* allocatorConfiguration;
+  struct Common_AllocatorConfiguration* allocatorConfiguration;
   bool                                  computeThroughput;                    // statistic/... module(s)
   enum Stream_HeadModuleConcurrency     concurrency;                          // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work

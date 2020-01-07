@@ -43,15 +43,15 @@
 //#include "test_i_connection_common.h"
 #include "test_i_defines.h"
 
-struct Test_I_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  Test_I_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  }
-};
+//struct Test_I_AllocatorConfiguration
+// : Stream_AllocatorConfiguration
+//{
+//  Test_I_AllocatorConfiguration ()
+//   : Stream_AllocatorConfiguration ()
+//  {
+//    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
+//  }
+//};
 
 struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
@@ -121,15 +121,15 @@ struct Test_I_MediaFoundationConfiguration
 struct Test_I_Configuration
 {
   Test_I_Configuration ()
-   : allocatorConfiguration ()
-   , dispatchConfiguration ()
+   : /*allocatorConfiguration ()
+   ,*/ dispatchConfiguration ()
    , signalHandlerConfiguration ()
    , parserConfiguration ()
    //, streamConfiguration ()
    , userData ()
   {}
 
-  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
+//  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
   struct Common_EventDispatchConfiguration dispatchConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;

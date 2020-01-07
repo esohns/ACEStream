@@ -300,13 +300,16 @@ elseif (WIN32)
  else ()
   set (ARGS "-c -g -l -t")
  endif (GTK_SUPPORT)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${GTK_PATH}
                            G:/software/Development/dll
                           # ${PROJECT_SOURCE_DIR}/../libxml2/bin
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib)
+                           ${ACE_PATH})
  if (GTK_SUPPORT)
   if (GTK3_SUPPORT)
    set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
@@ -617,13 +620,15 @@ if (UNIX)
                            ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/${CMAKE_BUILD_TYPE})
  file (TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/../test_i/camstream WORKING_DIRECTORY)
 elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ImageMagick IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../libpng-1.6.25/cmake/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavcodec
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswresample
-                           ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
-                           ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                           ${FFMPEG_PATH}
+#                           ${PROJECT_SOURCE_DIR}/../assimp/cmake/code/${CMAKE_BUILD_TYPE}
+                           ${GTK_PATH}
+                           ${ACE_PATH}
                            ${PROJECT_SOURCE_DIR}/../Common/cmake/src/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/${CMAKE_BUILD_TYPE}
                            ${PROJECT_SOURCE_DIR}/../Common/cmake/src/ui/${CMAKE_BUILD_TYPE}
