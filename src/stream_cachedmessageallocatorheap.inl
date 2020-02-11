@@ -150,6 +150,7 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::malloc (size_t bytes_in)
 
     return NULL;
   } // end IF
+  message_block_p->msg_priority (bytes_in ? UINT64_MAX : 0);
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
@@ -184,7 +185,7 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::free (void* handle_in)
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case UINT32_MAX:
+    case UINT64_MAX:
       inherited::free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:

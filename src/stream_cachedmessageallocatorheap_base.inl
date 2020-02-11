@@ -94,6 +94,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     delete data_block_p; data_block_p = NULL;
     return NULL;
   } // end IF
+  message_block_p->msg_priority (STREAM_MESSAGE_CONTROL_PRIORITY);
 
   return message_block_p;
 }
@@ -157,6 +158,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
     delete data_block_p; data_block_p = NULL;
     return NULL;
   } // end IF
+  message_block_p->msg_priority (bytes_in ? UINT64_MAX : 0);
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
@@ -195,7 +197,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case UINT32_MAX:
+    case UINT64_MAX:
       inherited::free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:

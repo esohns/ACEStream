@@ -114,6 +114,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     data_block_p->release (); data_block_p = NULL;
     return NULL;
   } // end IF
+  message_p->msg_priority (STREAM_MESSAGE_CONTROL_PRIORITY);
 
   // ... and return the result
   return message_p;
@@ -184,6 +185,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     data_block_p->release (); data_block_p = NULL;
     return NULL;
   } // end IF
+  message_p->msg_priority (bytes_in ? UINT64_MAX : 0);
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType ||
@@ -227,6 +229,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate [Session]MessageType(%u): \"%m\", aborting\n"),
                 bytes_in));
+//  message_p->msg_priority (bytes_in ? UINT64_MAX : 0);
 
   return result_p;
 }
@@ -267,7 +270,7 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
       break;
     //case ACE_Message_Block::MB_DATA:
     //case ACE_Message_Block::MB_PROTO:
-    case UINT32_MAX:
+    case UINT64_MAX:
       dataMessageAllocator_.free (handle_in);
       break;
     //case ACE_Message_Block::MB_USER:

@@ -2705,20 +2705,10 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     }
   } // end SWITCH
-#if defined (GTK_USE)
-  //Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
-  //ui_cb_data_p->configuration->GTKConfiguration.argc = argc_in;
-  //ui_cb_data_p->configuration->GTKConfiguration.argv = argv_in;
-  //ui_cb_data_p->configuration->GTKConfiguration.CBData = ui_cb_data_p;
-  //ui_cb_data_p->configuration->GTKConfiguration.eventHooks.finiHook =
-  //  idle_finalize_target_UI_cb;
-  //ui_cb_data_p->configuration->GTKConfiguration.eventHooks.initHook =
-  //  idle_initialize_target_UI_cb;
-  //ui_cb_data_p->configuration->GTKConfiguration.definition = &gtk_ui_definition;
-  //ui_cb_data_p->configuration->GTKConfiguration.RCFiles.push_back (gtk_rc_file);
-#endif // GTK_USE
 #else
   struct Test_I_Target_UI_CBData ui_cb_data;
+  struct Test_I_Target_Configuration configuration;
+  ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
 #if defined (GTK_USE)
   Common_UI_GtkBuilderDefinition_t gtk_ui_definition;
@@ -2873,6 +2863,7 @@ ACE_TMAIN (int argc_in,
   if (gtk_glade_file.empty ())
     goto continue_;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (media_framework_e)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2901,6 +2892,10 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     }
   } // end SWITCH
+#else
+  result_2 =
+    gtk_manager_p->initialize (configuration.GTKConfiguration);
+#endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,
