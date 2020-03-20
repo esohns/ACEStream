@@ -71,7 +71,7 @@ class Stream_DataMessageBase_T
   virtual void setPR (DataType*&); // data
 
   // implement Common_IDumpState
-  virtual void dump_state () const;
+  //virtual void dump_state () const;
 
  protected:
   // *NOTE*: this ctor doesn't allocate a buffer off the heap

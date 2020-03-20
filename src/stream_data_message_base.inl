@@ -188,23 +188,22 @@ Stream_DataMessageBase_T<DataType,
   delete data_inout; data_inout = NULL;
 }
 
-template <typename DataType,
-          typename AllocatorConfigurationType,
-          typename MessageType,
-          typename CommandType>
-void
-Stream_DataMessageBase_T<DataType,
-                         AllocatorConfigurationType,
-                         MessageType,
-                         CommandType>::dump_state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::dump_state"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
+//template <typename DataType,
+//          typename AllocatorConfigurationType,
+//          typename MessageType,
+//          typename CommandType>
+//void
+//Stream_DataMessageBase_T<DataType,
+//                         AllocatorConfigurationType,
+//                         MessageType,
+//                         CommandType>::dump_state () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::dump_state"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)  
+//}
 
 template <typename DataType,
           typename AllocatorConfigurationType,
