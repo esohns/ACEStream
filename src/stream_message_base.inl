@@ -129,14 +129,14 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , id_ (0)
- , isInitialized_ (true)
+ , isInitialized_ (sessionId_in != 0)
  , sessionId_ (sessionId_in)
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
   // sanity check(s)
-  //ACE_ASSERT (sessionId_in);
+  ACE_ASSERT (dataBlock_in);
 
   if (incrementMessageCounter_in)
     ++OWN_TYPE_T::currentId;
@@ -164,7 +164,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   // *WARNING*: need to finalize initialization through initialize()
 
   // sanity check(s)
-  ACE_ASSERT (sessionId_in);
+//  ACE_ASSERT (sessionId_in);
 
   // reset read/write pointers
   inherited::reset ();

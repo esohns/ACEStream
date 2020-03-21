@@ -50,13 +50,7 @@ class Stream_DataMessageBase_T
 
  public:
   // convenient types
-  typedef Stream_DataMessageBase_T<DataType,
-                                   AllocatorConfigurationType,
-                                   MessageType,
-                                   CommandType> OWN_TYPE_T;
-  typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
-  typedef CommandType COMMAND_T;
 
   // initialization-after-construction
   using inherited::initialize;
@@ -74,6 +68,12 @@ class Stream_DataMessageBase_T
   //virtual void dump_state () const;
 
  protected:
+  // convenient types
+  typedef Stream_DataMessageBase_T<DataType,
+                                   AllocatorConfigurationType,
+                                   MessageType,
+                                   CommandType> OWN_TYPE_T;
+
   // *NOTE*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_T (Stream_SessionId_t, // session id
                             MessageType,        // message type
@@ -127,10 +127,7 @@ class Stream_DataMessageBase_2
 
  public:
   // convenient types
-  typedef Stream_DataMessageBase_2<DataType,
-                                   AllocatorConfigurationType,
-                                   MessageType,
-                                   CommandType> OWN_TYPE_T;
+  typedef CommandType COMMAND_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction
@@ -150,6 +147,12 @@ class Stream_DataMessageBase_2
   virtual void dump_state () const;
 
  protected:
+  // convenient types
+  typedef Stream_DataMessageBase_2<DataType,
+                                   AllocatorConfigurationType,
+                                   MessageType,
+                                   CommandType> OWN_TYPE_T;
+
   // *IMPORTANT NOTE*: fire-and-forget API
   // *NOTE*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_2 (Stream_SessionId_t, // session id
