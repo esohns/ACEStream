@@ -26,12 +26,15 @@
 
 #include "ace/FILE_IO.h"
 #include "ace/Log_Msg.h"
+#include "ace/Module.h"
 #include "ace/OS.h"
+#include "ace/Stream.h"
 
 #include "common_file_tools.h"
 
 #include "stream_common.h"
 #include "stream_iallocator.h"
+#include "stream_istreamcontrol.h"
 #include "stream_macros.h"
 
 void
@@ -225,10 +228,51 @@ error:
                 ACE_TEXT ("failed to ACE_File_IO::close(): \"%m\", continuing\n")));
 }
 
+bool
+Stream_Tools::isFirstModule (const Stream_Base_t& stream_in,
+                             const Stream_Module_t& module_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::isFirstModule"));
+
+  Stream_Iterator_t iterator (stream_in);
+  const Stream_Module_t* module_p = NULL;
+  bool is_first_b = true, found_b = false;
+  for (;
+       !iterator.done ();
+       iterator.next (module_p))
+  { ACE_ASSERT (module_p);
+    if ((module_p == &module_in) ||
+        !ACE_OS::strcmp (module_in.name (),
+                         module_p->name ()))
+    {
+      found_b = true;
+      break;
+    } // end IF
+    is_first_b = false;
+  } // end FOR
+
+  return found_b && is_first_b;
+}
+
+bool
+Stream_Tools::has (Stream_IStream_t* stream_in,
+                   const std::string& name_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::has"));
+
+  // sanity check(s)
+  ACE_ASSERT (stream_in);
+  ACE_ASSERT (!name_in.empty ());
+
+  return stream_in->find (name_in,
+                          false,
+                          false) != NULL;
+}
+
 std::string
 Stream_Tools::timeStampToLocalString (const ACE_Time_Value& timeStamp_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStampTOLocalString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStampToLocalString"));
 
   // initialize return value(s)
   std::string result;

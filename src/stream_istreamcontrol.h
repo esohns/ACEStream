@@ -95,6 +95,7 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T
  : public Stream_ILock_T<ACE_SYNCH_USE>
+ , public Common_IGetR_T<ACE_Stream<ACE_SYNCH_USE, TimePolicyType> > // get stream handle
  , public Common_ISetP_T<ACE_Stream<ACE_SYNCH_USE, TimePolicyType> > // set upstream
  , public Common_IDumpState
 {

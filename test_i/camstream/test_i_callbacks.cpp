@@ -1859,7 +1859,7 @@ stream_processing_function (void* arg_in)
         result_2 =
           V4L_thread_data_p->CBData->stream->initialize ((*stream_iterator).second);
         const Test_I_Source_V4L_SessionData_t* session_data_container_p =
-          &V4L_thread_data_p->CBData->stream->getR ();
+          &V4L_thread_data_p->CBData->stream->getR_2 ();
         session_ui_cb_data_p =
           &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1910,7 +1910,7 @@ stream_processing_function (void* arg_in)
         result_2 =
           V4L_thread_data_p->CBData->UDPStream->initialize ((*stream_iterator).second);
         const Test_I_Source_V4L_SessionData_t* session_data_container_p =
-          &V4L_thread_data_p->CBData->UDPStream->getR ();
+          &V4L_thread_data_p->CBData->UDPStream->getR_2 ();
         session_ui_cb_data_p =
           &const_cast<Test_I_Source_V4L_SessionData&> (session_data_container_p->getR ());
 #endif // ACE_WIN32 || ACE_WIN64

@@ -116,6 +116,23 @@ class Stream_Module_Net_IO_Stream_T
   // convenient types
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
+  typedef Stream_Base_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        StreamName,
+                        ControlType,
+                        NotificationType,
+                        StatusType,
+                        StateType,
+                        ConfigurationType,
+                        StatisticContainerType,
+                        AllocatorConfigurationType,
+                        ModuleConfigurationType,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType> STREAM_BASE_T;
 
   Stream_Module_Net_IO_Stream_T ();
   inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); }
@@ -139,7 +156,8 @@ class Stream_Module_Net_IO_Stream_T
                      bool = true); // locked access ?
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
-  using inherited::getR;
+  inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (inherited::sessionData_); return *inherited::sessionData_; }
+//  using inherited::getR_2;
 
   // override Common_IStatistic_T
   //virtual bool collect (StatisticContainerType&); // return value: statistic data

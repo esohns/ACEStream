@@ -976,7 +976,7 @@ action_start_activate_cb (GtkAction* action_in,
   } // end IF
   thread_data_p->CBData = data_p;
   const Stream_Filecopy_SessionData_t* session_data_container_p =
-    &data_p->stream->getR ();
+    &data_p->stream->getR_2 ();
   ACE_ASSERT (session_data_container_p);
   const struct Stream_Filecopy_SessionData& session_data_r =
     session_data_container_p->getR ();

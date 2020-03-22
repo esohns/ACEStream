@@ -127,7 +127,6 @@ class Stream_DataMessageBase_2
 
  public:
   // convenient types
-  typedef CommandType COMMAND_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction

@@ -26,8 +26,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-//#include "stream_exports.h"
-
 // forward declarations
 class ACE_Message_Block;
 enum Stream_MessageType;
@@ -38,7 +36,6 @@ class Stream_IAllocator;
 // *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
 #define STREAM_TOOLS_STRFTIME_SIZE   19
 
-//class Stream_Export Stream_Tools
 class Stream_Tools
 {
  public:
@@ -47,6 +44,11 @@ class Stream_Tools
 
   static void dump (const ACE_Message_Block*, // data buffer(s)
                     const std::string&);      // filename
+
+  static bool isFirstModule (const Stream_Base_t&,    // stream handle
+                             const Stream_Module_t&); // module handle
+  static bool has (Stream_IStream_t*,   // stream handle
+                   const std::string&); // module name
 
   static std::string messageTypeToString (enum Stream_MessageType); // as returned by msg_type()
 

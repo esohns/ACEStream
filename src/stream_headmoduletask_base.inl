@@ -214,6 +214,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
       return result;
     }
+    case STREAM_HEADMODULECONCURRENCY_CONCURRENT:
     default:
       break;
   } // end SWITCH
@@ -336,6 +337,23 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       return -1;
     }
   } // end IF
+
+  // *NOTE*: when the head module is not a head module after all, spawn a worker
+  //         thread here
+  //if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) &&
+  //    !Stream_Tools::isFirstModule (getP ()->getR (),
+  //                                  *inherited::mod_))
+  //{
+  //  generateSessionMessages_ = false;
+  //  try {
+  //    start ();
+  //  } catch (...) {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::start(), aborting\n"),
+  //                inherited::mod_->name ()));
+  //    return -1;
+  //  }
+  //} // end IF
 
   return 0;
 }

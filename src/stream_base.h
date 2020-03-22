@@ -118,7 +118,7 @@ class Stream_Base_T
                                                       ModuleConfigurationType,
                                                       HandlerConfigurationType> >
  , public Common_IStatistic_T<StatisticContainerType>
- , public Common_IGetR_T<SessionDataContainerType>
+ , public Common_IGetR_2_T<SessionDataContainerType>
  , public Common_ISetPR_T<SessionDataContainerType>
  //, public Common_IGetR_2_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
  //                                                TimePolicyType,
@@ -239,6 +239,8 @@ class Stream_Base_T
   virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // recurse upstream (if any) ?
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
+  inline virtual const typename ISTREAM_T::STREAM_T& getR () const { return *this; }; // return value: type
+  inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
@@ -247,7 +249,6 @@ class Stream_Base_T
   inline virtual std::string name () const { std::string name_s = StreamName; return name_s; }
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
-  inline virtual void setP (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual typename ISTREAM_T::STREAM_T* downstream () const;
@@ -263,7 +264,7 @@ class Stream_Base_T
   virtual void dump_state () const;
 
   // implement Common_IGet/Set_T
-  inline virtual const SessionDataContainerType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; }
+  inline virtual const SessionDataContainerType& getR_2 () const { ACE_ASSERT (sessionData_); return *sessionData_; }
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
   virtual void setPR (SessionDataContainerType*&);
   //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };

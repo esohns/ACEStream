@@ -271,6 +271,8 @@ typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t
 typedef std::deque<std::string> Stream_Branches_t;
 typedef Stream_Branches_t::const_iterator Stream_BranchesIterator_t;
 
+typedef Stream_IStream_T<ACE_MT_SYNCH,
+                         Common_TimePolicy_t> Stream_IStream_t;
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_INotify_t;
 typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_IStateMachine_t;
 

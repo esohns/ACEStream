@@ -87,7 +87,7 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   Common_IInitialize_T<Test_I_Source_StreamConfiguration_t>* iinitialize_p =
     NULL;
-  Common_IGetR_T<Test_I_Source_SessionData_t>* iget_p = NULL;
+  Common_IGetR_2_T<Test_I_Source_SessionData_t>* iget_p = NULL;
   std::ostringstream converter;
   const Test_I_Source_SessionData_t* session_data_container_p = NULL;
   const struct Test_I_Source_SessionData* session_thread_data_p = NULL;
@@ -167,7 +167,7 @@ loop:
                 ACE_TEXT (istream_p->name ().c_str ())));
     goto done;
   } // end IF
-  session_data_container_p = &iget_p->getR ();
+  session_data_container_p = &iget_p->getR_2 ();
   ACE_ASSERT (session_data_container_p);
   session_thread_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_thread_data_p);
