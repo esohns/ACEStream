@@ -30,6 +30,8 @@
 #include "common_configuration.h"
 #include "common_file_common.h"
 
+#include "common_parser_common.h"
+
 #include "stream_common.h"
 #include "stream_configuration.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
