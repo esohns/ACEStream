@@ -43,6 +43,8 @@
 
 #include "common_timer_common.h"
 
+#include "common_signal_common.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_defines.h"

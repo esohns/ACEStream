@@ -109,7 +109,6 @@ set (source_files
      stream_datablockallocatorheap.h
      stream_datablockallocatorheap.inl
      stream_defines.h
-#     stream_exports.h
      stream_head_task.cpp
      stream_head_task.h
      stream_head_task.inl
@@ -124,7 +123,6 @@ set (source_files
      stream_imessagequeue.h
      stream_imodule.h
      stream_inotify.h
-     stream_iparser.h
      stream_isessionnotify.h
      stream_istreamcontrol.h
      stream_itask.h
@@ -271,7 +269,6 @@ install (FILES
          stream_datablockallocatorheap.h
          stream_datablockallocatorheap.inl
          stream_defines.h
-#         stream_exports.h
          stream_head_task.h
          stream_head_task.inl
          stream_headmoduletask_base.h
@@ -284,7 +281,6 @@ install (FILES
          stream_imessagequeue.h
          stream_imodule.h
          stream_inotify.h
-         stream_iparser.h
          stream_isessionnotify.h
          stream_istreamcontrol.h
          stream_itask.h

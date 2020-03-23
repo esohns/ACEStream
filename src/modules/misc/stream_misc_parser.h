@@ -28,11 +28,11 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_ilock.h"
+#include "common_iparser.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_imodule.h"
-#include "stream_iparser.h"
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_misc_parser_module_name_string[];
