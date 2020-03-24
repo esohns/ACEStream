@@ -36,7 +36,8 @@ add_definitions (-DHAVE_CONFIG_H)
 if (UNIX)
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
 
- include_directories (/usr/local/src/ACE_wrappers)
+# include_directories (/usr/local/src/ACE_wrappers)
+ include_directories ($ENV{LIB_ROOT}/ACE_TAO/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
