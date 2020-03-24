@@ -877,7 +877,7 @@ do_work (const std::string& deviceIdentifier_in,
       &camstream_configuration_p->dispatchConfiguration;
 
   // step0b: initialize configuration and stream
-  struct Common_FlexParserAllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Common_Parser_FlexAllocatorConfiguration* allocator_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -904,7 +904,7 @@ do_work (const std::string& deviceIdentifier_in,
   if (bufferSize_in)
     allocator_configuration_p->defaultBufferSize = bufferSize_in;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
+                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,

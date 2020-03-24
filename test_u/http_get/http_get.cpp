@@ -581,7 +581,7 @@ do_work (unsigned int bufferSize_in,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
+                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,

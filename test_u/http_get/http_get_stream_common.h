@@ -55,7 +55,7 @@ class HTTPGet_SessionMessage;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> HTTPGet_ControlMessage_t;
 
 struct HTTPGet_MessageData
 {
@@ -112,11 +112,11 @@ typedef HTTPGet_Subscribers_t::iterator HTTPGet_SubscribersIterator_t;
 //extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_FlexParserAllocatorConfiguration,
+                               struct Common_Parser_FlexAllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_Parser_FlexAllocatorConfiguration,
                                       HTTPGet_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP> HTTPGet_ConnectionConfiguration_t;
 typedef Net_IConnection_T<ACE_INET_Addr,

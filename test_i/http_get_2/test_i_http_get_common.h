@@ -179,13 +179,13 @@ class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;
 //struct Test_I_HTTPGet_StreamConfiguration;
 //struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 //static constexpr const char stream_name_string_[] =
 //    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
 //typedef Stream_Configuration_T<stream_name_string_,
-//                               struct Common_FlexParserAllocatorConfiguration,
+//                               struct Common_Parser_FlexAllocatorConfiguration,
 //                               struct Test_I_HTTPGet_StreamConfiguration,
 //                               struct Stream_ModuleConfiguration,
 //                               struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_HTTPGet_StreamConfiguration_t;
@@ -199,7 +199,7 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //                      struct Test_I_HTTPGet_StreamConfiguration,
 //                      Test_I_Statistic_t,
 //                      Test_I_StatisticHandlerReactor_t,
-//                      struct Common_FlexParserAllocatorConfiguration,
+//                      struct Common_Parser_FlexAllocatorConfiguration,
 //                      struct Stream_ModuleConfiguration,
 //                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
 //                      struct Test_I_HTTPGet_SessionData,
@@ -232,7 +232,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , URL ()
   {}
 
-  struct Common_FlexParserAllocatorConfiguration* allocatorConfiguration;
+  struct Common_Parser_FlexAllocatorConfiguration* allocatorConfiguration;
   struct Test_I_HTTPGet_Configuration*            configuration;
   Test_I_IConnection_t*                           connection; // net source/IO module
   Net_ConnectionConfigurations_t*                 connectionConfigurations;
@@ -287,13 +287,13 @@ struct Test_I_HTTPGet_Configuration
   {}
 
   // *NOTE*: use the stream configurations' allocator configuration
-  //struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
+  //struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
   Net_ConnectionConfigurations_t       connectionConfigurations;
   Test_I_HTTPGet_StreamConfiguration_t streamConfiguration;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_FlexParserAllocatorConfiguration,
+                                          struct Common_Parser_FlexAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

@@ -295,7 +295,7 @@ error:
 
       break;
 
-error_2:
+//error_2:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

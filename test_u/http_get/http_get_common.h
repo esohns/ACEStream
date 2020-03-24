@@ -65,9 +65,9 @@ typedef Common_IStatistic_T<struct Stream_Statistic> HTTPGet_StatisticReportingH
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> HTTPGet_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_FlexParserAllocatorConfiguration,
+                                          struct Common_Parser_FlexAllocatorConfiguration,
                                           HTTPGet_ControlMessage_t,
                                           HTTPGet_Message,
                                           HTTPGet_SessionMessage> HTTPGet_MessageAllocator_t;
@@ -111,7 +111,7 @@ struct HTTPGet_Configuration
    , streamConfiguration ()
   {}
 
-  struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
+  struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
   // **************************** signal data **********************************
   struct HTTPGet_SignalHandlerConfiguration      signalHandlerConfiguration;
   // **************************** socket data **********************************

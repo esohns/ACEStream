@@ -54,7 +54,7 @@ class Test_I_Source_Stream_T
                                         struct Test_I_Source_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_FlexParserAllocatorConfiguration,
+                                        struct Common_Parser_FlexAllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Source_ModuleHandlerConfiguration,
                                         struct Test_I_Source_SessionData, // session data
@@ -76,7 +76,7 @@ class Test_I_Source_Stream_T
                                         struct Test_I_Source_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_FlexParserAllocatorConfiguration,
+                                        struct Common_Parser_FlexAllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Source_ModuleHandlerConfiguration,
                                         struct Test_I_Source_SessionData, // session data

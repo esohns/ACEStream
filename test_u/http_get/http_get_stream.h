@@ -26,6 +26,8 @@
 
 #include "common_time_common.h"
 
+#include "common_parser_common.h"
+
 #include "stream_base.h"
 #include "stream_common.h"
 
@@ -52,7 +54,7 @@ class HTTPGet_Stream_T
                         struct HTTPGet_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_FlexParserAllocatorConfiguration,
+                        struct Common_Parser_FlexAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct HTTPGet_ModuleHandlerConfiguration,
                         struct HTTPGet_SessionData,
@@ -70,7 +72,7 @@ class HTTPGet_Stream_T
                         struct HTTPGet_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_FlexParserAllocatorConfiguration,
+                        struct Common_Parser_FlexAllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct HTTPGet_ModuleHandlerConfiguration,
                         struct HTTPGet_SessionData,

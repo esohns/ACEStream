@@ -53,6 +53,9 @@ extern "C"
 #include "common.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
+
+#include "common_parser_common.h"
+
 #include "common_time_common.h"
 
 #if defined (GUI_SUPPORT)
@@ -291,10 +294,10 @@ struct Test_I_CamStream_Configuration
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {}
 
-  struct Common_FlexParserAllocatorConfiguration allocatorConfiguration;
+  struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
 
   // *************************** protocol data *********************************
-  enum Net_TransportLayerType       protocol;
+  enum Net_TransportLayerType                     protocol;
 };
 
 //////////////////////////////////////////

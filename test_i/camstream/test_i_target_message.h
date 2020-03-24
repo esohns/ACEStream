@@ -52,17 +52,17 @@ class Test_I_Target_SessionMessage;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
- : public Stream_MediaFramework_DirectShow_MessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+ : public Stream_MediaFramework_DirectShow_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                                          enum Stream_MessageType,
                                                          Test_I_CommandType_t>
 {
-  typedef Stream_MediaFramework_DirectShow_MessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+  typedef Stream_MediaFramework_DirectShow_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                                          enum Stream_MessageType,
                                                          Test_I_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
                                                  Test_I_Target_DirectShow_SessionMessage>;
@@ -100,16 +100,16 @@ class Test_I_Target_DirectShow_Stream_Message
 
 class Test_I_Target_MediaFoundation_Stream_Message
  : public Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
-                                                              struct Common_FlexParserAllocatorConfiguration,
+                                                              struct Common_Parser_FlexAllocatorConfiguration,
                                                               enum Stream_MessageType>
 {
   typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
-                                                              struct Common_FlexParserAllocatorConfiguration,
+                                                              struct Common_Parser_FlexAllocatorConfiguration,
                                                               enum Stream_MessageType> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
                                                  Test_I_Target_MediaFoundation_SessionMessage>;
@@ -146,17 +146,17 @@ class Test_I_Target_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Target_Stream_Message
- : public Stream_MessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+ : public Stream_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                enum Stream_MessageType,
                                Test_I_CommandType_t>
 {
-  typedef Stream_MessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+  typedef Stream_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                enum Stream_MessageType,
                                Test_I_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_SessionMessage>;

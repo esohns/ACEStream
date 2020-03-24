@@ -198,7 +198,7 @@ struct Test_I_HTTPGet_Configuration;
 struct Test_I_SocketHandlerConfiguration;
 extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_FlexParserAllocatorConfiguration,
+                               struct Common_Parser_FlexAllocatorConfiguration,
                                struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
@@ -211,7 +211,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_HTTPGet_StreamState,
                       struct Test_I_HTTPGet_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Common_FlexParserAllocatorConfiguration,
+                      struct Common_Parser_FlexAllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                       struct Test_I_Stream_SessionData,
@@ -284,11 +284,11 @@ struct Test_I_HTTPGet_StreamState
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;
 
 //typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_FlexParserAllocatorConfiguration,
+                                          struct Common_Parser_FlexAllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

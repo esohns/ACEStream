@@ -42,19 +42,19 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class HTTPGet_SessionMessage
- : public Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       HTTPGet_SessionData_t,
                                       struct Stream_UserData>
 {
-  typedef Stream_SessionMessageBase_T<struct Common_FlexParserAllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       HTTPGet_SessionData_t,
                                       struct Stream_UserData> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  HTTPGet_ControlMessage_t,
                                                  HTTPGet_Message,
                                                  HTTPGet_SessionMessage>;

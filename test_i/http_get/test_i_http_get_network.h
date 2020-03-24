@@ -60,7 +60,7 @@
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;
 class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
 struct Test_I_Stream_SessionData;
@@ -72,11 +72,11 @@ typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_Ses
 //struct Test_I_StreamConfiguration;
 //struct Test_I_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_FlexParserAllocatorConfiguration,
+                               struct Common_Parser_FlexAllocatorConfiguration,
                                struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
                                struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
-typedef Net_ConnectionConfiguration_T<struct Common_FlexParserAllocatorConfiguration,
+typedef Net_ConnectionConfiguration_T<struct Common_Parser_FlexAllocatorConfiguration,
                                       Test_I_StreamConfiguration_t,
                                       NET_TRANSPORTLAYER_TCP> Test_I_HTTPGet_ConnectionConfiguration_t;
 
@@ -101,7 +101,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_HTTPGet_StreamConfiguration,
                                       struct Stream_Statistic,
                                       Common_Timer_Manager_t,
-                                      struct Common_FlexParserAllocatorConfiguration,
+                                      struct Common_Parser_FlexAllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                       struct Test_I_Stream_SessionData,

@@ -331,7 +331,7 @@ do_work (unsigned int bufferSize_in,
   struct Test_I_MP3Player_Configuration configuration;
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_FlexParserAllocatorConfiguration> heap_allocator;
+                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,

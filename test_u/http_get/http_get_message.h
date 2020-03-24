@@ -44,7 +44,7 @@ class ACE_Message_Block;
 class HTTPGet_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Common_FlexParserAllocatorConfiguration> HTTPGet_ControlMessage_t;
+                                struct Common_Parser_FlexAllocatorConfiguration> HTTPGet_ControlMessage_t;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -78,18 +78,18 @@ class HTTPGet_MessageDataContainer
 
 class HTTPGet_Message
  : public Stream_DataMessageBase_2<HTTPGet_MessageDataContainer,
-                                   struct Common_FlexParserAllocatorConfiguration,
+                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t>
 {
   typedef Stream_DataMessageBase_2<HTTPGet_MessageDataContainer,
-                                   struct Common_FlexParserAllocatorConfiguration,
+                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  HTTPGet_ControlMessage_t,
                                                  HTTPGet_Message,
                                                  HTTP_SessionMessage>;

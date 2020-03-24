@@ -23,6 +23,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_parser_common.h"
+
 #include "stream_data_message_base.h"
 
 #include "http_codes.h"
@@ -67,18 +69,18 @@ class Test_I_Stream_MessageData
 
 class Test_I_Stream_Message
  : public Stream_DataMessageBase_2<Test_I_Stream_MessageData,
-                                   struct Common_FlexParserAllocatorConfiguration,
+                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t>
 {
   typedef Stream_DataMessageBase_2<Test_I_Stream_MessageData,
-                                   struct Common_FlexParserAllocatorConfiguration,
+                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    HTTP_Method_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_FlexParserAllocatorConfiguration,
+                                                 struct Common_Parser_FlexAllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
