@@ -1955,7 +1955,7 @@ do_work (unsigned int bufferSize_in,
 
       // connect
       ACE_INET_Addr listen_address;
-      ACE_thread_t thread_id;
+      //ACE_thread_t thread_id;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (mediaFramework_in)
       {
@@ -2307,7 +2307,7 @@ do_work (unsigned int bufferSize_in,
         } // end ELSE
       } // end SWITCH
 #else
-      ACE_thread_t thread_id = 0;
+      //ACE_thread_t thread_id = 0;
       CBData_in.configuration->signalHandlerConfiguration.listener->start (thread_id);
       ACE_UNUSED_ARG (thread_id);
       result_2 =

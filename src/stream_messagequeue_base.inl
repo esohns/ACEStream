@@ -37,6 +37,64 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
+unsigned int
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::flush (bool flushSessionMessages_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::flush"));
+
+  ACE_UNUSED_ARG (flushSessionMessages_in);
+
+  int result = inherited::flush ();
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", returning\n")));
+    return 0;
+  } // end IF
+
+  return static_cast<unsigned int> (result);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+void
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                          TimePolicyType>::waitForIdleState () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::waitForIdleState"));
+
+  ACE_Time_Value one_second (1, 0);
+  size_t number_of_messages = 0;
+  int result = -1;
+
+  do
+  {
+    number_of_messages = const_cast<OWN_TYPE_T*> (this)->message_count ();
+    if (unlikely (number_of_messages > 0))
+    {
+#if defined (_DEBUG)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("waiting (count: %u message(s))...\n"),
+                  number_of_messages));
+#endif // _DEBUG
+
+      result = ACE_OS::sleep (one_second);
+      if (unlikely (result == -1))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    &one_second));
+
+      continue;
+    } // end IF
+
+    // OK: queue is empty (at the moment)
+    break;
+  } while (true);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
 void
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::dump_state () const

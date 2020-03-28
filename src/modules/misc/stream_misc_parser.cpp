@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "stream_misc_parser.h"
 
 #include "stream_misc_defines.h"

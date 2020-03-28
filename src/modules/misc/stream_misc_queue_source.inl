@@ -50,12 +50,15 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             StatisticHandlerType,
-                            UserDataType>::Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                        bool autoStart_in,
-                                                                        bool generateSessionMessages_in)
- : inherited (lock_in,
-              autoStart_in,
-              generateSessionMessages_in)
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            UserDataType>::Stream_Module_QueueReader_T (ISTREAM_T* stream_in)
+#else
+                            UserDataType>::Stream_Module_QueueReader_T (typename inherited::ISTREAM_T* stream_in)
+#endif // ACE_WIN32 || ACE_WIN64
+ : inherited (stream_in,                               // stream handle
+              false,                                   // auto-start ? (active mode only)
+              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
+              true)                                    // generate sesssion messages ?)
  , queue_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::Stream_Module_QueueReader_T"));
@@ -98,8 +101,87 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
     queue_ = NULL;
   } // end IF
 
+  queue_ = configuration_in.queue;
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename UserDataType>
+void
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            StatisticHandlerType,
+                            UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::handleSessionMessage"));
+
+  int result = -1;
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::isInitialized_);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      int result = inherited::activate ();
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task_T::activate(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
+      goto continue_;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+
+continue_:
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      if (likely (inherited::thr_count_))
+      {
+        stop ();
+        inherited::wait ();
+      } // end IF
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 }
 
 template <ACE_SYNCH_DECL,
@@ -136,7 +218,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
   ACE_ASSERT (queue_);
 
   // increment thread count
-  ++inherited::thr_count;
+  ++inherited::thr_count_;
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -170,7 +252,72 @@ done:
   inherited::finished ();
 
   // decrement thread count
-  --inherited::thr_count;
+  --inherited::thr_count_;
 
   return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename UserDataType>
+void
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            StatisticHandlerType,
+                            UserDataType>::stop ()
+{
+  COMMON_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::stop"));
+
+  // sanity check(s)
+  ACE_ASSERT (queue_);
+  ACE_ASSERT (!queue_->deactivated ());
+
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       ACE_Message_Block::MB_STOP,         // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  int result = queue_->enqueue (message_block_p, NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_head(): \"%m\", continuing\n"),
+                inherited::mod_->name ()));
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF
 }

@@ -44,16 +44,10 @@ class Stream_MessageQueue_T
                          ACE_Notification_Strategy* = NULL); // notification callback handle
   inline virtual ~Stream_MessageQueue_T () {}
 
-  // implement Stream_IMessageQueue
-  virtual unsigned int flush (bool = false);
-  virtual void waitForIdleState () const;
+  // implement (part of) Stream_IMessageQueue
+  virtual unsigned int flush (bool = false); // flush session messages ?
 
  private:
-  // convenient types
-  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionMessageType> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))

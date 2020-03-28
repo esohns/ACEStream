@@ -32,6 +32,8 @@
 // forward declarations
 class ACE_Message_Queue_Base;
 
+extern const char libacestream_default_misc_queue_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
@@ -83,9 +85,12 @@ class Stream_Module_QueueReader_T
                                       UserDataType> inherited;
 
  public:
-  Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                               bool = false,              // auto-start ?
-                               bool = true);              // generate session messages ?
+   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   Stream_Module_QueueReader_T (ISTREAM_T*); // stream handle
+#else
+   Stream_Module_QueueReader_T (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
   inline virtual ~Stream_Module_QueueReader_T () {}
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -111,6 +116,9 @@ class Stream_Module_QueueReader_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T (const Stream_Module_QueueReader_T&))
@@ -118,6 +126,8 @@ class Stream_Module_QueueReader_T
 
   // helper methods
   virtual int svc (void);
+
+  void stop ();
 
   ACE_Message_Queue_Base* queue_;
 };

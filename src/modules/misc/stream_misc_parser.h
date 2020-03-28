@@ -28,11 +28,14 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_ilock.h"
-#include "common_iparser.h"
+
+#include "common_iscanner.h"
+#include "common_parser_base.h"
+
 #include "common_time_common.h"
 
 #include "stream_common.h"
-#include "stream_imodule.h"
+#include "stream_messagequeue_base.h"
 #include "stream_task_base_synch.h"
 
 extern const char libacestream_default_misc_parser_module_name_string[];
@@ -184,11 +187,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ScannerStateType, // implements struct Common_ScannerState
-          typename ParserType, // yacc/bison-
-          typename ParserConfigurationType,
-          typename ParserInterfaceType, // implements Common_IParser_T
-          typename ParserArgumentType, // yacc/bison-
+          typename ParserDriverType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_Parser_T
@@ -203,9 +202,7 @@ class Stream_Module_Parser_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
- , public ParserInterfaceType
- , virtual public Common_ILexScanner_T<ScannerStateType,
-                                       ParserInterfaceType>
+ , public ParserDriverType
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -218,20 +215,15 @@ class Stream_Module_Parser_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef ParserDriverType inherited2;
 
  public:
-  // convenient types
-  typedef Common_ILexScanner_T<ScannerStateType,
-                               ParserInterfaceType> ISCANNER_T;
-
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Parser_T (ISTREAM_T*,                     // stream handle
+  Stream_Module_Parser_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Module_Parser_T (typename inherited::ISTREAM_T*, // stream handle
+  Stream_Module_Parser_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-                          bool,  // debug scanning ?
-                          bool); // debug parsing ?
   virtual ~Stream_Module_Parser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -243,77 +235,32 @@ class Stream_Module_Parser_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement (part of) ParserInterfaceType
-  inline virtual bool initialize (const ParserConfigurationType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
-  inline virtual void dump_state () const { ACE_ASSERT (false); ACE_NOTSUP; }
-  virtual bool parse (ACE_Message_Block*); // data buffer handle
-//  virtual void error (const YYLTYPE&,      // location
-  inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; }
-
-  // implement (part of) Common_ILexScanner_T
-  inline virtual ACE_Message_Block* buffer () { return fragment_; }
-//  inline virtual bool debug () const { return bittorrent_get_debug (scannerState_); };
-  inline virtual bool isBlocking () const { return blockInParse_; }
-  inline virtual void offset (unsigned int offset_in) { offset_ += offset_in; }
-  inline virtual unsigned int offset () const { return offset_; }
-  virtual bool begin (const char*,   // buffer
-                      unsigned int); // size
-  virtual void end ();
-  virtual bool switchBuffer (bool = false); // unlink current fragment ?
-  // *NOTE*: (waits for and) appends the next data chunk to fragment_;
-  virtual void waitBuffer ();
-  virtual void error (const std::string&); // message
-  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; }
-  inline virtual const ParserInterfaceType* const getP_2 () const { return this; }
-  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-
- protected:
-  ParserConfigurationType* configuration_;
-
-  DataMessageType*         fragment_;
-  bool                     isFirst_;
-  unsigned int             offset_; // parsed fragment bytes
-  bool                     trace_;
-
-  // parser
-//  ParserType               parser_;
-//  ArgumentType            argument_;
-
-  // scanner
-  struct yy_buffer_state*  buffer_;
-  yyscan_t                 state_;
-  ScannerStateType         scannerState_;
-  bool                     useYYScanBuffer_;
-
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
 
-  // stub (part of) Common_ILexScanner_T
-  inline virtual void debug (yyscan_t, bool) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual bool initialize (yyscan_t&, ScannerStateType*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
-  inline virtual void finalize (yyscan_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual struct yy_buffer_state* create (yyscan_t, char*, size_t) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
-  inline virtual void destroy (yyscan_t, struct yy_buffer_state*&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual bool lex () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  // convenient types
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 Common_ILock_T<ACE_SYNCH_USE>,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> STREAM_TASK_BASE_T;
 
   // override some ACE_Task_T methods
   virtual int svc (void);
 
-  // helper types
-  struct MEMORY_BUFFER_T
-   : std::streambuf
-  {
-    void set (char* buffer_in, unsigned int size_in) {
-      this->setg (buffer_in, buffer_in, buffer_in + size_in);
-    }
-  };
+  void stop ();
 
-  bool                     blockInParse_;
-
-  MEMORY_BUFFER_T          streamBuffer_;
-  std::istream             stream_;
+  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
+  MESSAGE_QUEUE_T parserQueue_;
 };
 
 // include template definition

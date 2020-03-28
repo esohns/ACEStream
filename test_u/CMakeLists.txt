@@ -155,6 +155,8 @@ elseif (WIN32)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/log>)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/parser>)
+ target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../Common/src/timer>)
  if (GUI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
@@ -314,12 +316,13 @@ add_subdirectory (filecopy)
 #                   interdependencies
 add_subdirectory (http_get)
 add_subdirectory (imagescreen)
+add_subdirectory (parser)
 add_subdirectory (riff_decoder)
 
 # phonies
 add_custom_target (test_u ALL
                    COMMENT "building test_u...")
-add_dependencies (test_u audioeffect camerascreen filecopy HTTP_GET imagescreen RIFF_decoder)
+add_dependencies (test_u audioeffect camerascreen filecopy HTTP_GET imagescreen parser RIFF_decoder)
 
 cmake_policy (SET CMP0012 NEW)
 if (NOT BUILD_TEST_U)

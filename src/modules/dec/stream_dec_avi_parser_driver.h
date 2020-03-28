@@ -26,12 +26,13 @@
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
 
+#include "common_parser_defines.h"
+
 #include "stream_common.h"
 #include "stream_imessage.h"
 
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
-//#include "stream_dec_exports.h"
 //#include "stream_dec_riff_scanner.h"
 
 // forward declaration(s)

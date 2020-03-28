@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include "common_parser_defines.h"
+
 #include "stream_common.h"
 #include "stream_control_message.h"
 #include "stream_inotify.h"

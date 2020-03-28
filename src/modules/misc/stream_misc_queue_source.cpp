@@ -19,5 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
 #include "stream_misc_queue_source.h"
+
+#include "stream_misc_defines.h"
+
+const char libacestream_default_misc_queue_module_name_string[] =
+ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_QUEUE_DEFAULT_NAME_STRING);

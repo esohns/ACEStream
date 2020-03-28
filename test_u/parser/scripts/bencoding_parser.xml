@@ -1,0 +1,927 @@
+<?xml version="1.0"?>
+
+<bison-xml-report version="3.0.4" bug-report="bug-bison@gnu.org" url="http://www.gnu.org/software/bison/">
+
+  <filename>./../scripts/bencoding.y</filename>
+
+  <grammar>
+    <rules>
+      <rule number="0" usefulness="useful">
+        <lhs>$accept</lhs>
+        <rhs>
+          <symbol>bencoding</symbol>
+          <symbol>&quot;end&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="1" usefulness="useful">
+        <lhs>$@1</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="2" usefulness="useful">
+        <lhs>bencoding</lhs>
+        <rhs>
+          <symbol>&quot;dictionary&quot;</symbol>
+          <symbol>$@1</symbol>
+          <symbol>dictionary_items</symbol>
+        </rhs>
+      </rule>
+      <rule number="3" usefulness="useful">
+        <lhs>$@2</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="4" usefulness="useful">
+        <lhs>bencoding</lhs>
+        <rhs>
+          <symbol>&quot;list&quot;</symbol>
+          <symbol>$@2</symbol>
+          <symbol>list_items</symbol>
+        </rhs>
+      </rule>
+      <rule number="5" usefulness="useful">
+        <lhs>bencoding</lhs>
+        <rhs>
+          <symbol>&quot;string&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="6" usefulness="useful">
+        <lhs>bencoding</lhs>
+        <rhs>
+          <symbol>&quot;integer&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="7" usefulness="useful">
+        <lhs>bencoding</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="8" usefulness="useful">
+        <lhs>list_items</lhs>
+        <rhs>
+          <symbol>list_items</symbol>
+          <symbol>list_item</symbol>
+        </rhs>
+      </rule>
+      <rule number="9" usefulness="useful">
+        <lhs>list_items</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="10" usefulness="useful">
+        <lhs>list_item</lhs>
+        <rhs>
+          <symbol>&quot;string&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="11" usefulness="useful">
+        <lhs>list_item</lhs>
+        <rhs>
+          <symbol>&quot;integer&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="12" usefulness="useful">
+        <lhs>$@3</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="13" usefulness="useful">
+        <lhs>list_item</lhs>
+        <rhs>
+          <symbol>&quot;list&quot;</symbol>
+          <symbol>$@3</symbol>
+          <symbol>list_items</symbol>
+        </rhs>
+      </rule>
+      <rule number="14" usefulness="useful">
+        <lhs>$@4</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="15" usefulness="useful">
+        <lhs>list_item</lhs>
+        <rhs>
+          <symbol>&quot;dictionary&quot;</symbol>
+          <symbol>$@4</symbol>
+          <symbol>dictionary_items</symbol>
+        </rhs>
+      </rule>
+      <rule number="16" usefulness="useful">
+        <lhs>list_item</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="17" usefulness="useful">
+        <lhs>dictionary_items</lhs>
+        <rhs>
+          <symbol>dictionary_items</symbol>
+          <symbol>dictionary_item</symbol>
+        </rhs>
+      </rule>
+      <rule number="18" usefulness="useful">
+        <lhs>dictionary_items</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="19" usefulness="useful">
+        <lhs>$@5</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="20" usefulness="useful">
+        <lhs>dictionary_item</lhs>
+        <rhs>
+          <symbol>&quot;string&quot;</symbol>
+          <symbol>$@5</symbol>
+          <symbol>dictionary_value</symbol>
+        </rhs>
+      </rule>
+      <rule number="21" usefulness="useful">
+        <lhs>dictionary_item</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="22" usefulness="useful">
+        <lhs>dictionary_value</lhs>
+        <rhs>
+          <symbol>&quot;string&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="23" usefulness="useful">
+        <lhs>dictionary_value</lhs>
+        <rhs>
+          <symbol>&quot;integer&quot;</symbol>
+        </rhs>
+      </rule>
+      <rule number="24" usefulness="useful">
+        <lhs>$@6</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="25" usefulness="useless-in-parser">
+        <lhs>dictionary_value</lhs>
+        <rhs>
+          <symbol>&quot;list&quot;</symbol>
+          <symbol>$@6</symbol>
+          <symbol>list_items</symbol>
+        </rhs>
+      </rule>
+      <rule number="26" usefulness="useful">
+        <lhs>$@7</lhs>
+        <rhs>
+          <empty/>
+        </rhs>
+      </rule>
+      <rule number="27" usefulness="useless-in-parser">
+        <lhs>dictionary_value</lhs>
+        <rhs>
+          <symbol>&quot;dictionary&quot;</symbol>
+          <symbol>$@7</symbol>
+          <symbol>dictionary_items</symbol>
+        </rhs>
+      </rule>
+    </rules>
+    <terminals>
+      <terminal symbol-number="0" token-number="0" name="&quot;end&quot;" usefulness="useful"/>
+      <terminal symbol-number="1" token-number="256" name="error" usefulness="useful"/>
+      <terminal symbol-number="3" token-number="258" name="&quot;integer&quot;" usefulness="useful"/>
+      <terminal symbol-number="4" token-number="259" name="&quot;string&quot;" usefulness="useful"/>
+      <terminal symbol-number="5" token-number="260" name="&quot;list&quot;" usefulness="useful"/>
+      <terminal symbol-number="6" token-number="261" name="&quot;dictionary&quot;" usefulness="useful"/>
+    </terminals>
+    <nonterminals>
+      <nonterminal symbol-number="7" name="$accept" usefulness="useful"/>
+      <nonterminal symbol-number="8" name="bencoding" usefulness="useful"/>
+      <nonterminal symbol-number="9" name="$@1" usefulness="useful"/>
+      <nonterminal symbol-number="10" name="$@2" usefulness="useful"/>
+      <nonterminal symbol-number="11" name="list_items" usefulness="useful"/>
+      <nonterminal symbol-number="12" name="list_item" usefulness="useful"/>
+      <nonterminal symbol-number="13" name="$@3" usefulness="useful"/>
+      <nonterminal symbol-number="14" name="$@4" usefulness="useful"/>
+      <nonterminal symbol-number="15" name="dictionary_items" usefulness="useful"/>
+      <nonterminal symbol-number="16" name="dictionary_item" usefulness="useful"/>
+      <nonterminal symbol-number="17" name="$@5" usefulness="useful"/>
+      <nonterminal symbol-number="18" name="dictionary_value" usefulness="useful"/>
+      <nonterminal symbol-number="19" name="$@6" usefulness="useful"/>
+      <nonterminal symbol-number="20" name="$@7" usefulness="useful"/>
+    </nonterminals>
+  </grammar>
+
+  <automaton>
+
+    <state number="0">
+      <itemset>
+        <item rule-number="0" point="0"/>
+        <item rule-number="2" point="0"/>
+        <item rule-number="4" point="0"/>
+        <item rule-number="5" point="0"/>
+        <item rule-number="6" point="0"/>
+        <item rule-number="7" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;integer&quot;" state="1"/>
+          <transition type="shift" symbol="&quot;string&quot;" state="2"/>
+          <transition type="shift" symbol="&quot;list&quot;" state="3"/>
+          <transition type="shift" symbol="&quot;dictionary&quot;" state="4"/>
+          <transition type="goto" symbol="bencoding" state="5"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="7" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="1">
+      <itemset>
+        <item rule-number="6" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="6" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="2">
+      <itemset>
+        <item rule-number="5" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="5" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="3">
+      <itemset>
+        <item rule-number="3" point="0"/>
+        <item rule-number="4" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@2" state="6"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="3" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="4">
+      <itemset>
+        <item rule-number="1" point="0"/>
+        <item rule-number="2" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@1" state="7"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="1" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="5">
+      <itemset>
+        <item rule-number="0" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;end&quot;" state="8"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="6">
+      <itemset>
+        <item rule-number="4" point="2"/>
+        <item rule-number="8" point="0"/>
+        <item rule-number="9" point="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="list_items" state="9"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="9" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="7">
+      <itemset>
+        <item rule-number="2" point="2"/>
+        <item rule-number="17" point="0"/>
+        <item rule-number="18" point="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="dictionary_items" state="10"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="18" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="8">
+      <itemset>
+        <item rule-number="0" point="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="accept" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="9">
+      <itemset>
+        <item rule-number="4" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="8" point="1"/>
+        <item rule-number="10" point="0"/>
+        <item rule-number="11" point="0"/>
+        <item rule-number="13" point="0"/>
+        <item rule-number="15" point="0"/>
+        <item rule-number="16" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;integer&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;string&quot;" state="12"/>
+          <transition type="shift" symbol="&quot;list&quot;" state="13"/>
+          <transition type="shift" symbol="&quot;dictionary&quot;" state="14"/>
+          <transition type="goto" symbol="list_item" state="15"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="4" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="16" enabled="false"/>
+          <reduction symbol="$default" rule="4" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="10">
+      <itemset>
+        <item rule-number="2" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="17" point="1"/>
+        <item rule-number="20" point="0"/>
+        <item rule-number="21" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;string&quot;" state="16"/>
+          <transition type="goto" symbol="dictionary_item" state="17"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="2" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="21" enabled="false"/>
+          <reduction symbol="$default" rule="2" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="11">
+      <itemset>
+        <item rule-number="11" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="11" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="12">
+      <itemset>
+        <item rule-number="10" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="10" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="13">
+      <itemset>
+        <item rule-number="12" point="0"/>
+        <item rule-number="13" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@3" state="18"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="12" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="14">
+      <itemset>
+        <item rule-number="14" point="0"/>
+        <item rule-number="15" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@4" state="19"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="14" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="15">
+      <itemset>
+        <item rule-number="8" point="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="8" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="16">
+      <itemset>
+        <item rule-number="19" point="0"/>
+        <item rule-number="20" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@5" state="20"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="19" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="17">
+      <itemset>
+        <item rule-number="17" point="2"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="17" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="18">
+      <itemset>
+        <item rule-number="8" point="0"/>
+        <item rule-number="9" point="0"/>
+        <item rule-number="13" point="2"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="list_items" state="21"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="9" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="19">
+      <itemset>
+        <item rule-number="15" point="2"/>
+        <item rule-number="17" point="0"/>
+        <item rule-number="18" point="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="dictionary_items" state="22"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="18" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="20">
+      <itemset>
+        <item rule-number="20" point="2"/>
+        <item rule-number="22" point="0"/>
+        <item rule-number="23" point="0"/>
+        <item rule-number="25" point="0"/>
+        <item rule-number="27" point="0"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;integer&quot;" state="23"/>
+          <transition type="shift" symbol="&quot;string&quot;" state="24"/>
+          <transition type="shift" symbol="&quot;list&quot;" state="25"/>
+          <transition type="shift" symbol="&quot;dictionary&quot;" state="26"/>
+          <transition type="goto" symbol="dictionary_value" state="27"/>
+        </transitions>
+        <errors/>
+        <reductions/>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="21">
+      <itemset>
+        <item rule-number="8" point="1"/>
+        <item rule-number="10" point="0"/>
+        <item rule-number="11" point="0"/>
+        <item rule-number="13" point="0"/>
+        <item rule-number="13" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="15" point="0"/>
+        <item rule-number="16" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;integer&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;string&quot;" state="12"/>
+          <transition type="shift" symbol="&quot;list&quot;" state="13"/>
+          <transition type="shift" symbol="&quot;dictionary&quot;" state="14"/>
+          <transition type="goto" symbol="list_item" state="15"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="13" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="13" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="13" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="13" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="13" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="16" enabled="false"/>
+          <reduction symbol="$default" rule="13" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="22">
+      <itemset>
+        <item rule-number="15" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="17" point="1"/>
+        <item rule-number="20" point="0"/>
+        <item rule-number="21" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;string&quot;" state="16"/>
+          <transition type="goto" symbol="dictionary_item" state="17"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="15" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="15" enabled="true"/>
+          <reduction symbol="&quot;integer&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="15" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="15" enabled="true"/>
+          <reduction symbol="&quot;list&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="15" enabled="true"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="21" enabled="false"/>
+          <reduction symbol="$default" rule="15" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="23">
+      <itemset>
+        <item rule-number="23" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="23" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="24">
+      <itemset>
+        <item rule-number="22" point="1"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="22" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="25">
+      <itemset>
+        <item rule-number="24" point="0"/>
+        <item rule-number="25" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@6" state="28"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="24" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="26">
+      <itemset>
+        <item rule-number="26" point="0"/>
+        <item rule-number="27" point="1"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="$@7" state="29"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="26" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="27">
+      <itemset>
+        <item rule-number="20" point="3"/>
+      </itemset>
+      <actions>
+        <transitions/>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="20" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="28">
+      <itemset>
+        <item rule-number="8" point="0"/>
+        <item rule-number="9" point="0"/>
+        <item rule-number="25" point="2"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="list_items" state="30"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="9" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="29">
+      <itemset>
+        <item rule-number="17" point="0"/>
+        <item rule-number="18" point="0"/>
+        <item rule-number="27" point="2"/>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="goto" symbol="dictionary_items" state="31"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="$default" rule="18" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="30">
+      <itemset>
+        <item rule-number="8" point="1"/>
+        <item rule-number="10" point="0"/>
+        <item rule-number="11" point="0"/>
+        <item rule-number="13" point="0"/>
+        <item rule-number="15" point="0"/>
+        <item rule-number="16" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="25" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;integer&quot;" state="11"/>
+          <transition type="shift" symbol="&quot;string&quot;" state="12"/>
+          <transition type="shift" symbol="&quot;list&quot;" state="13"/>
+          <transition type="shift" symbol="&quot;dictionary&quot;" state="14"/>
+          <transition type="goto" symbol="list_item" state="15"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="16" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="25" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="25" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="25" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="25" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="16" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="25" enabled="false"/>
+          <reduction symbol="$default" rule="16" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+
+    <state number="31">
+      <itemset>
+        <item rule-number="17" point="1"/>
+        <item rule-number="20" point="0"/>
+        <item rule-number="21" point="0">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+        <item rule-number="27" point="3">
+          <lookaheads>
+            <symbol>&quot;end&quot;</symbol>
+            <symbol>&quot;integer&quot;</symbol>
+            <symbol>&quot;string&quot;</symbol>
+            <symbol>&quot;list&quot;</symbol>
+            <symbol>&quot;dictionary&quot;</symbol>
+          </lookaheads>
+        </item>
+      </itemset>
+      <actions>
+        <transitions>
+          <transition type="shift" symbol="&quot;string&quot;" state="16"/>
+          <transition type="goto" symbol="dictionary_item" state="17"/>
+        </transitions>
+        <errors/>
+        <reductions>
+          <reduction symbol="&quot;end&quot;" rule="21" enabled="true"/>
+          <reduction symbol="&quot;end&quot;" rule="27" enabled="false"/>
+          <reduction symbol="&quot;integer&quot;" rule="21" enabled="true"/>
+          <reduction symbol="&quot;integer&quot;" rule="27" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="21" enabled="false"/>
+          <reduction symbol="&quot;string&quot;" rule="27" enabled="false"/>
+          <reduction symbol="&quot;list&quot;" rule="21" enabled="true"/>
+          <reduction symbol="&quot;list&quot;" rule="27" enabled="false"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="21" enabled="true"/>
+          <reduction symbol="&quot;dictionary&quot;" rule="27" enabled="false"/>
+          <reduction symbol="$default" rule="21" enabled="true"/>
+        </reductions>
+      </actions>
+      <solved-conflicts/>
+    </state>
+  </automaton>
+</bison-xml-report>

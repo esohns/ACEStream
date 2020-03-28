@@ -64,6 +64,8 @@
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
+#include "stream_misc_defines.h"
+
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
 #endif // HAVE_CONFIG_H
@@ -924,7 +926,6 @@ ACE_TMAIN (int argc_in,
   bool show_console;
 #endif
   bool log_to_file;
-  bool use_thread_pool;
   bool use_reactor;
   unsigned int statistic_reporting_interval;
   unsigned int number_of_dispatch_threads;
@@ -1067,19 +1068,9 @@ ACE_TMAIN (int argc_in,
   if (NET_STREAM_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (use_reactor                      &&
-      (number_of_dispatch_threads > 1) &&
-      !use_thread_pool)
-  { // *NOTE*: see also: man (2) select
-    // *TODO*: verify this for MS Windows based systems
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
-    use_thread_pool = true;
-  } // end IF
   if ((!UI_file_path.empty () &&
        !Common_File_Tools::isReadable (UI_file_path))                      ||
-      (host_name.empty () && URL.empty ())                                 ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
+      (host_name.empty () && URL.empty ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));

@@ -1,0 +1,17 @@
+%option yylineno entails a performance penalty ONLY on rules that can match newline characters
+flex version 2.6.4 usage statistics:
+  scanner options: -bdps--reentrantvBL8 -Cafer -obencoding_scanner.cpp -PBencoding_
+  111/2000 NFA states
+  37/1000 DFA states (151 words)
+  23 rules
+  No backing up
+  6/40 start conditions
+  88 epsilon states, 39 double epsilon states
+  9/100 character classes needed 572/750 words of storage, 0 reused
+  88 state/nextstate pairs created
+  56/32 unique/duplicate transitions
+  259 table entries
+  7/256 equivalence classes created
+  0 (0 saved) hash collisions, 32 DFAs equal
+  1 sets of reallocations needed
+  515 total table entries needed

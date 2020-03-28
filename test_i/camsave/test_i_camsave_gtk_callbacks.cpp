@@ -1943,7 +1943,7 @@ stream_processing_function (void* arg_in)
       } // end IF
       stream_p = directshow_cb_data_p->stream;
       directshow_session_data_container_p =
-        &directshow_cb_data_p->stream->getR ();
+        &directshow_cb_data_p->stream->getR_2 ();
       directshow_session_data_p = &directshow_session_data_container_p->getR ();
       thread_data_p->sessionId = directshow_session_data_p->sessionId;
       converter << directshow_session_data_p->sessionId;
@@ -1959,7 +1959,7 @@ stream_processing_function (void* arg_in)
       } // end IF
       stream_p = mediafoundation_cb_data_p->stream;
       mediafoundation_session_data_container_p =
-        &mediafoundation_cb_data_p->stream->getR ();
+        &mediafoundation_cb_data_p->stream->getR_2 ();
       mediafoundation_session_data_p =
         &mediafoundation_session_data_container_p->getR ();
       thread_data_p->sessionId = mediafoundation_session_data_p->sessionId;

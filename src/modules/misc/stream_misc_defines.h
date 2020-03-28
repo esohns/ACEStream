@@ -27,7 +27,8 @@
 #define STREAM_MISC_DELAY_DEFAULT_NAME_STRING                       "Delay"
 #define STREAM_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
 #define STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
-#define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"
+#define STREAM_MISC_PARSER_DEFAULT_NAME_STRING                      "Parser"
+#define STREAM_MISC_QUEUE_DEFAULT_NAME_STRING                       "Queue"
 #define STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -58,18 +59,5 @@
 #define STREAM_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
 #define STREAM_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
 #endif
-
-#define STREAM_MISC_PARSER_DEFAULT_LEX_TRACE                        false
-#define STREAM_MISC_PARSER_DEFAULT_YACC_TRACE                       false
-
-#define YY_END_OF_BUFFER_CHAR                                       0 // "\0\0"
-#define STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE                2
-// *IMPORTANT NOTE*: scans buffers in-place (avoids a copy,
-//         see: http://flex.sourceforge.net/manual/Multiple-Input-Buffers.html)
-//         --> in order to use yy_scan_buffer(), the buffer needs to have been
-//             prepared for usage by flex: buffers need two trailing '\0's
-//             BEYOND their datas' tail byte (i.e. at positions length() + 1 and
-//             length() + 2)
-#define STREAN_MISC_PARSER_FLEX_USE_YY_SCAN_BUFFER                  true
 
 #endif

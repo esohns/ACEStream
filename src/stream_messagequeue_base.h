@@ -48,8 +48,8 @@ class Stream_MessageQueueBase_T
   inline virtual ~Stream_MessageQueueBase_T () {}
 
   // implement Stream_IMessageQueue
-  inline virtual unsigned int flush (bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
-  inline virtual void waitForIdleState () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual unsigned int flush (bool = false);
+  virtual void waitForIdleState () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -60,6 +60,8 @@ class Stream_MessageQueueBase_T
                             TimePolicyType> MESSAGE_QUEUE_T;
   typedef ACE_Message_Queue_Iterator<ACE_SYNCH_USE,
                                      TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
+  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                                    TimePolicyType> OWN_TYPE_T;
 
   // *IMPORTANT NOTE*: override so that the queue considers the # of enqueued
   //                   messages (instead of the amount of enqueued bytes) to
