@@ -235,11 +235,8 @@ class Stream_Module_Parser_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
 
+ protected:
   // convenient types
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -253,13 +250,20 @@ class Stream_Module_Parser_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> STREAM_TASK_BASE_T;
 
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
+
+  // convenient types
+  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
+
   // override some ACE_Task_T methods
   virtual int svc (void);
 
   void stop ();
 
-  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t> MESSAGE_QUEUE_T;
   MESSAGE_QUEUE_T parserQueue_;
 };
 

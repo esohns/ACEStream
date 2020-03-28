@@ -20,10 +20,11 @@
 
 #include "ace/Log_Msg.h"
 
+#include "common_parser_defines.h"
+
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-//#include "stream_misc_defines.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -155,7 +156,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
     configuration_ = NULL;
     fragment_ = NULL;
     offset_ = 0;
-    trace_ = STREAM_MISC_PARSER_DEFAULT_YACC_TRACE;
+    trace_ = COMMON_PARSER_DEFAULT_YACC_TRACE;
 
     blockInParse_ = false;
     isFirst_ = true;
@@ -503,7 +504,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
   // initialize next buffer
 
   // append the "\0\0"-sequence, as required by flex
-  ACE_ASSERT (fragment_->capacity () - fragment_->length () >= STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
+  ACE_ASSERT (fragment_->capacity () - fragment_->length () >= COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(fragment_->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(fragment_->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
@@ -675,7 +676,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 
   // create/initialize a new buffer state
   streamBuffer_.set (fragment_->rd_ptr (),
-                     fragment_->length () + STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
+                     fragment_->length () + COMMON_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
 //  stream_.rdbuf (&streamBuffer_);
   scanner_.switch_streams (&stream_, NULL);
 
