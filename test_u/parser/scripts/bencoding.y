@@ -171,6 +171,8 @@ typedef union YYSTYPE
 
 // terminals
 %token
+ END_OF_LIST       "list_end"
+ END_OF_DICTIONARY "dictionary_end"
 // END_OF_FRAGMENT   "end_of_fragment"
  END 0             "end"
 ;
@@ -226,7 +228,7 @@ bencoding:        "dictionary" {
                     YYACCEPT; }
                   | "list" {
                     iparser->pushList ($1); }
-                  list_items {
+                  list_items "list_end" {
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     Bencoding_List_t* list_p = &list_r;
                     try {
@@ -276,7 +278,7 @@ list_item:        "string" {
                     list_r.push_back (element_p); }
                   | "list" {
                     iparser->pushList ($1); }
-                  list_items {
+                  list_items "list_end" {
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,
                                       Bencoding_Element ());
@@ -288,7 +290,7 @@ list_item:        "string" {
                     list_r.push_back (element_p); }
                   | "dictionary"  {
                     iparser->pushDictionary ($1); }
-                  dictionary_items {
+                  dictionary_items "dictionary_end" {
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,
                                       Bencoding_Element ());
@@ -347,7 +349,7 @@ dictionary_value: "string" {
                                 $1)); }*/
                   | "list" {
                     iparser->pushList ($1); }
-                  list_items {
+                  list_items "list_end" {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,
@@ -369,7 +371,7 @@ dictionary_value: "string" {
                                 ACE_TEXT (BitTorrent_Tools::ListToString (*$3).c_str ()))); }*/
                   | "dictionary"  {
                     iparser->pushDictionary ($1); }
-                  dictionary_items {
+                  dictionary_items "dictionary_end" {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,

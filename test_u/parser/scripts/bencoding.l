@@ -121,7 +121,6 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
   location->step ();
 
   unsigned int      string_length = 0;
-  bool              in_structure = false;
   bool              string_is_key = false;
   std::stringstream converter;
 
@@ -136,19 +135,19 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
 
 <INITIAL>{
 {DIGIT}{1}             { yyless (0);
-                         BEGIN(state_string); }
+                         yy_push_state (state_string, yyscanner); }
 "i"                    { yyless (0);
-                         BEGIN(state_integer); }
+                         yy_push_state (state_integer, yyscanner); }
 "l"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         BEGIN(state_list);
+                         yy_push_state (state_list, yyscanner);
                          ACE_NEW_NORETURN (yylval->lval,
                                            Bencoding_List_t);
                          ACE_ASSERT (yylval->lval);
                          return yy::parser::token::LIST; }
 "d"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
                          ACE_ASSERT (yylval->dval);
@@ -169,13 +168,12 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
                          if (!string_length)
                          { // --> found an empty string
                            ACE_ASSERT (yylval->sval);
+                           yy_pop_state (yyscanner); // return to structure
                            if (string_is_key)
                            {
                              string_is_key = false;
                              BEGIN(state_dictionary_value);
                            } // end IF
-                           else if (in_structure)
-                             yy_pop_state (yyscanner); // return to structure
                            return yy::parser::token::STRING;
                          } // END IF
                        }
@@ -185,21 +183,19 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
                          yylval->sval->push_back (yytext[0]);
                          for (unsigned int i = 0; i < (string_length - 1); ++i)
                            yylval->sval->push_back (static_cast<char> (yyinput (yyscanner)));
+                         yy_pop_state (yyscanner); // return to structure
                          if (string_is_key)
                          {
                            string_is_key = false;
                            BEGIN(state_dictionary_value);
                          } // end IF
-                         else if (in_structure)
-                           yy_pop_state (yyscanner); // return to structure
                          string_length = 0;
                          return yy::parser::token::STRING; }
 } // end <state_string>
 <state_integer>{
 "e"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); // return to structure
+                         yy_pop_state (yyscanner); // return to structure
                          return yy::parser::token::INTEGER; }
 {DIGIT}+               {
                          parser->offset (yyleng);
@@ -213,24 +209,20 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
 <state_list>{
 "e"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); } // return to structure
+                         yy_pop_state (yyscanner);
+                         return yy::parser::token::END_OF_LIST; }
 {DIGIT}{1}             { yyless (0);
-                         in_structure = true;
                          yy_push_state (state_string, yyscanner); }
 "i"                    { yyless (0);
-                         in_structure = true;
                          yy_push_state (state_integer, yyscanner); }
 "l"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
                          ACE_NEW_NORETURN (yylval->lval,
                                            Bencoding_List_t);
                          ACE_ASSERT (yylval->lval);
                          return yy::parser::token::LIST; }
 "d"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
                          yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
@@ -240,29 +232,25 @@ DICTIONARY                        (d({STRING}({INTEGER}|{STRING}|{LIST}|{DICTION
 <state_dictionary_key>{
 "e"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); } // return to structure
+                         yy_pop_state (yyscanner);
+                         return yy::parser::token::END_OF_DICTIONARY; }
 {DIGIT}{1}             { yyless (0);
                          string_is_key = true;
-                         BEGIN(state_string); }
+                         yy_push_state (state_string, yyscanner); }
 } // end <state_dictionary_key>
 <state_dictionary_value>{
 {DIGIT}{1}             { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_string, yyscanner); }
 "i"                    { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_integer, yyscanner); }
 "l"                    { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_list, yyscanner); }
 "d"                    { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
@@ -312,7 +300,7 @@ Bencoding_wrap (yyscan_t yyscanner)
   // 4. continue scanning
 
   // step1
-//  std::string the_rest;
+  std::string the_rest;
 //  the_rest.append (yytext, yyleng);
 //  for (char c = yyinput (yyscanner);
 //       c != EOF;

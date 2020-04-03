@@ -1165,11 +1165,11 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  int result = parserQueue_.enqueue_head (message_block_p, NULL);
+  int result = parserQueue_.enqueue (message_block_p, NULL);
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_head(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", continuing\n"),
                 inherited::mod_->name ()));
     message_block_p->release (); message_block_p = NULL;
   } // end IF

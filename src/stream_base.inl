@@ -883,8 +883,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istreamcontrol_p->stop (wait_in,
-                             recurseupstream_in,
-                             lockedAccess_in);
+                            recurseupstream_in,
+                            lockedAccess_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::stop(), returning\n"),

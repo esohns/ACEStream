@@ -1004,9 +1004,9 @@ static const flex_int32_t yy_rule_can_match_eol[24] =
 
 static const flex_int32_t yy_rule_linenum[23] =
     {   0,
-      139,  141,  143,  150,  159,  168,  183,  200,  205,  211,
-      215,  219,  222,  225,  232,  242,  246,  251,  255,  259,
-      263,  274
+      138,  140,  142,  149,  158,  167,  181,  197,  201,  207,
+      211,  215,  217,  219,  225,  234,  238,  243,  246,  249,
+      252,  262
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -1492,7 +1492,6 @@ YY_DECL
   location->step ();
 
   unsigned int      string_length = 0;
-  bool              in_structure = false;
   bool              string_is_key = false;
   std::stringstream converter;
 
@@ -1574,18 +1573,18 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 { yyless (0);
-                         BEGIN(state_string); }
+                         yy_push_state (state_string, yyscanner); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 { yyless (0);
-                         BEGIN(state_integer); }
+                         yy_push_state (state_integer, yyscanner); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         BEGIN(state_list);
+                         yy_push_state (state_list, yyscanner);
                          ACE_NEW_NORETURN (yylval->lval,
                                            Bencoding_List_t);
                          ACE_ASSERT (yylval->lval);
@@ -1595,7 +1594,7 @@ case 4:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
                          ACE_ASSERT (yylval->dval);
@@ -1622,13 +1621,12 @@ YY_RULE_SETUP
                          if (!string_length)
                          { // --> found an empty string
                            ACE_ASSERT (yylval->sval);
+                           yy_pop_state (yyscanner); // return to structure
                            if (string_is_key)
                            {
                              string_is_key = false;
                              BEGIN(state_dictionary_value);
                            } // end IF
-                           else if (in_structure)
-                             yy_pop_state (yyscanner); // return to structure
                            return yy::parser::token::STRING;
                          } // END IF
                        }
@@ -1642,13 +1640,12 @@ YY_RULE_SETUP
                          yylval->sval->push_back (yytext[0]);
                          for (unsigned int i = 0; i < (string_length - 1); ++i)
                            yylval->sval->push_back (static_cast<char> (yyinput (yyscanner)));
+                         yy_pop_state (yyscanner); // return to structure
                          if (string_is_key)
                          {
                            string_is_key = false;
                            BEGIN(state_dictionary_value);
                          } // end IF
-                         else if (in_structure)
-                           yy_pop_state (yyscanner); // return to structure
                          string_length = 0;
                          return yy::parser::token::STRING; }
 	YY_BREAK
@@ -1658,8 +1655,7 @@ case 8:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); // return to structure
+                         yy_pop_state (yyscanner); // return to structure
                          return yy::parser::token::INTEGER; }
 	YY_BREAK
 case 9:
@@ -1682,26 +1678,23 @@ case 11:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); } // return to structure
+                         yy_pop_state (yyscanner);
+                         return yy::parser::token::END_OF_LIST; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 { yyless (0);
-                         in_structure = true;
                          yy_push_state (state_string, yyscanner); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 { yyless (0);
-                         in_structure = true;
                          yy_push_state (state_integer, yyscanner); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
                          ACE_NEW_NORETURN (yylval->lval,
                                            Bencoding_List_t);
                          ACE_ASSERT (yylval->lval);
@@ -1711,7 +1704,6 @@ case 15:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
                          yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
@@ -1724,44 +1716,40 @@ case 16:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         if (in_structure)
-                           yy_pop_state (yyscanner); } // return to structure
+                         yy_pop_state (yyscanner);
+                         return yy::parser::token::END_OF_DICTIONARY; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 { yyless (0);
                          string_is_key = true;
-                         BEGIN(state_string); }
+                         yy_push_state (state_string, yyscanner); }
 	YY_BREAK
 // end <state_dictionary_key>
 
 case 18:
 YY_RULE_SETUP
 { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_string, yyscanner); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_integer, yyscanner); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 { yyless (0);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_list, yyscanner); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
                          parser->offset (1);
-                         in_structure = true;
-                         BEGIN(state_dictionary_key);
+                         yy_push_state (state_dictionary_key, yyscanner);
                          yy_push_state (state_dictionary_key, yyscanner);
                          ACE_NEW_NORETURN (yylval->dval,
                                            Bencoding_Dictionary_t);
@@ -3279,15 +3267,15 @@ Bencoding_wrap (yyscan_t yyscanner)
 
   // step1
   std::string the_rest;
-  the_rest.append (yytext, yyleng);
+//  the_rest.append (yytext, yyleng);
 //  for (char c = yyinput (yyscanner);
 //       c != EOF;
 //       c = yyinput (yyscanner));
   yyg->yy_c_buf_p += yyleng;
   yyg->yy_hold_char = *yyg->yy_c_buf_p;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("the rest: \"%s\"\n"),
-              ACE_TEXT (the_rest.c_str ())));
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("the rest: \"%s\"\n"),
+//              ACE_TEXT (the_rest.c_str ())));
 
   // step2
   if (!driver->switchBuffer ())
@@ -3299,10 +3287,10 @@ Bencoding_wrap (yyscan_t yyscanner)
   } // end IF
 
   // step3
-  //for (std::string::reverse_iterator iterator = the_rest.rbegin ();
-  //     iterator != the_rest.rend ();
-  //     ++iterator)
-  //  unput (*iterator);
+//  for (std::string::reverse_iterator iterator = the_rest.rbegin ();
+//       iterator != the_rest.rend ();
+//       ++iterator)
+//    unput (*iterator);
 
   // step4
   // yymore ();

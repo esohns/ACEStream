@@ -1,8 +1,8 @@
-// A Bison parser, made by GNU Bison 3.0.4.
+// A Bison parser, made by GNU Bison 3.4.1.
 
 // Skeleton implementation for Bison LALR(1) parsers in C++
 
-// Copyright (C) 2002-2015 Free Software Foundation, Inc.
+// Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,8 +29,11 @@
 
 // This special exception was added by the Free Software Foundation in
 // version 2.2 of Bison.
-// //                    "%code top" blocks.
 
+// Undocumented macros, especially those whose name start with YY_,
+// are private implementation details.  Do not rely on them.
+
+// //                    "%code top" blocks.
 
 #include "stdafx.h"
 
@@ -40,25 +43,11 @@
 
 
 
-// First part of user declarations.
-
-
-
-# ifndef YY_NULLPTR
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULLPTR nullptr
-#  else
-#   define YY_NULLPTR 0
-#  endif
-# endif
 
 #include "bencoding_parser.h"
 
-// User implementation prologue.
-
 
 // Unqualified %code blocks.
-
 
 // *NOTE*: necessary only if %debug is set in the definition file (see: parser.y)
 /*#if defined (YYDEBUG)
@@ -95,7 +84,6 @@
 
 
 
-
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
@@ -105,6 +93,15 @@
 # endif
 # ifndef YY_
 #  define YY_(msgid) msgid
+# endif
+#endif
+
+// Whether we are compiled with exception support.
+#ifndef YY_EXCEPTIONS
+# if defined __GNUC__ && !defined __EXCEPTIONS
+#  define YY_EXCEPTIONS 0
+# else
+#  define YY_EXCEPTIONS 1
 # endif
 #endif
 
@@ -125,7 +122,7 @@
         {                                                               \
           (Current).begin = (Current).end = YYRHSLOC (Rhs, 0).end;      \
         }                                                               \
-    while (/*CONSTCOND*/ false)
+    while (false)
 # endif
 
 
@@ -144,7 +141,7 @@
     {                                           \
       *yycdebug_ << Title << ' ';               \
       yy_print_ (*yycdebug_, Symbol);           \
-      *yycdebug_ << std::endl;                  \
+      *yycdebug_ << '\n';                       \
     }                                           \
   } while (false)
 
@@ -163,9 +160,9 @@
 #else // !YYDEBUG
 
 # define YYCDEBUG if (false) std::cerr
-# define YY_SYMBOL_PRINT(Title, Symbol)  YYUSE(Symbol)
-# define YY_REDUCE_PRINT(Rule)           static_cast<void>(0)
-# define YY_STACK_PRINT()                static_cast<void>(0)
+# define YY_SYMBOL_PRINT(Title, Symbol)  YYUSE (Symbol)
+# define YY_REDUCE_PRINT(Rule)           static_cast<void> (0)
+# define YY_STACK_PRINT()                static_cast<void> (0)
 
 #endif // !YYDEBUG
 
@@ -176,7 +173,6 @@
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
-
 
 namespace yy {
 
@@ -191,7 +187,7 @@ namespace yy {
   {
     if (*yystr == '"')
       {
-        std::string yyr = "";
+        std::string yyr;
         char const *yyp = yystr;
 
         for (;;)
@@ -204,7 +200,10 @@ namespace yy {
             case '\\':
               if (*++yyp != '\\')
                 goto do_not_strip_quotes;
-              // Fall through.
+              else
+                goto append;
+
+            append:
             default:
               yyr += *yyp;
               break;
@@ -233,110 +232,89 @@ namespace yy {
   parser::~parser ()
   {}
 
+  parser::syntax_error::~syntax_error () YY_NOEXCEPT YY_NOTHROW
+  {}
 
   /*---------------.
   | Symbol types.  |
   `---------------*/
 
-  inline
-  parser::syntax_error::syntax_error (const location_type& l, const std::string& m)
-    : std::runtime_error (m)
-    , location (l)
-  {}
-
   // basic_symbol.
+#if 201103L <= YY_CPLUSPLUS
   template <typename Base>
-  inline
-  parser::basic_symbol<Base>::basic_symbol ()
-    : value ()
+  parser::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
+    : Base (std::move (that))
+    , value (std::move (that.value))
+    , location (std::move (that.location))
   {}
+#endif
 
   template <typename Base>
-  inline
-  parser::basic_symbol<Base>::basic_symbol (const basic_symbol& other)
-    : Base (other)
-    , value ()
-    , location (other.location)
-  {
-    value = other.value;
-  }
-
-
-  template <typename Base>
-  inline
-  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const semantic_type& v, const location_type& l)
-    : Base (t)
-    , value (v)
-    , location (l)
+  parser::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
+    : Base (that)
+    , value (that.value)
+    , location (that.location)
   {}
 
 
   /// Constructor for valueless symbols.
   template <typename Base>
-  inline
-  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_MOVE_REF (location_type) l)
     : Base (t)
     , value ()
     , location (l)
   {}
 
   template <typename Base>
-  inline
-  parser::basic_symbol<Base>::~basic_symbol ()
-  {
-    clear ();
-  }
+  parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_RVREF (semantic_type) v, YY_RVREF (location_type) l)
+    : Base (t)
+    , value (YY_MOVE (v))
+    , location (YY_MOVE (l))
+  {}
 
   template <typename Base>
-  inline
-  void
-  parser::basic_symbol<Base>::clear ()
-  {
-    Base::clear ();
-  }
-
-  template <typename Base>
-  inline
   bool
-  parser::basic_symbol<Base>::empty () const
+  parser::basic_symbol<Base>::empty () const YY_NOEXCEPT
   {
     return Base::type_get () == empty_symbol;
   }
 
   template <typename Base>
-  inline
   void
   parser::basic_symbol<Base>::move (basic_symbol& s)
   {
-    super_type::move(s);
-    value = s.value;
-    location = s.location;
+    super_type::move (s);
+    value = YY_MOVE (s.value);
+    location = YY_MOVE (s.location);
   }
 
   // by_type.
-  inline
   parser::by_type::by_type ()
     : type (empty_symbol)
   {}
 
-  inline
-  parser::by_type::by_type (const by_type& other)
-    : type (other.type)
+#if 201103L <= YY_CPLUSPLUS
+  parser::by_type::by_type (by_type&& that)
+    : type (that.type)
+  {
+    that.clear ();
+  }
+#endif
+
+  parser::by_type::by_type (const by_type& that)
+    : type (that.type)
   {}
 
-  inline
   parser::by_type::by_type (token_type t)
     : type (yytranslate_ (t))
   {}
 
-  inline
   void
   parser::by_type::clear ()
   {
     type = empty_symbol;
   }
 
-  inline
   void
   parser::by_type::move (by_type& that)
   {
@@ -344,33 +322,28 @@ namespace yy {
     that.clear ();
   }
 
-  inline
   int
-  parser::by_type::type_get () const
+  parser::by_type::type_get () const YY_NOEXCEPT
   {
     return type;
   }
 
 
   // by_state.
-  inline
-  parser::by_state::by_state ()
+  parser::by_state::by_state () YY_NOEXCEPT
     : state (empty_state)
   {}
 
-  inline
-  parser::by_state::by_state (const by_state& other)
-    : state (other.state)
+  parser::by_state::by_state (const by_state& that) YY_NOEXCEPT
+    : state (that.state)
   {}
 
-  inline
   void
-  parser::by_state::clear ()
+  parser::by_state::clear () YY_NOEXCEPT
   {
     state = empty_state;
   }
 
-  inline
   void
   parser::by_state::move (by_state& that)
   {
@@ -378,14 +351,12 @@ namespace yy {
     that.clear ();
   }
 
-  inline
-  parser::by_state::by_state (state_type s)
+  parser::by_state::by_state (state_type s) YY_NOEXCEPT
     : state (s)
   {}
 
-  inline
   parser::symbol_number_type
-  parser::by_state::type_get () const
+  parser::by_state::type_get () const YY_NOEXCEPT
   {
     if (state == empty_state)
       return empty_symbol;
@@ -393,33 +364,39 @@ namespace yy {
       return yystos_[state];
   }
 
-  inline
   parser::stack_symbol_type::stack_symbol_type ()
   {}
 
-
-  inline
-  parser::stack_symbol_type::stack_symbol_type (state_type s, symbol_type& that)
-    : super_type (s, that.location)
+  parser::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
+    : super_type (YY_MOVE (that.state), YY_MOVE (that.value), YY_MOVE (that.location))
   {
-    value = that.value;
+#if 201103L <= YY_CPLUSPLUS
+    // that is emptied.
+    that.state = empty_state;
+#endif
+  }
+
+  parser::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
+    : super_type (s, YY_MOVE (that.value), YY_MOVE (that.location))
+  {
     // that is emptied.
     that.type = empty_symbol;
   }
 
-  inline
+#if YY_CPLUSPLUS < 201103L
   parser::stack_symbol_type&
-  parser::stack_symbol_type::operator= (const stack_symbol_type& that)
+  parser::stack_symbol_type::operator= (stack_symbol_type& that)
   {
     state = that.state;
     value = that.value;
     location = that.location;
+    // that is emptied.
+    that.state = empty_state;
     return *this;
   }
-
+#endif
 
   template <typename Base>
-  inline
   void
   parser::yy_destroy_ (const char* yymsg, basic_symbol<Base>& yysym) const
   {
@@ -439,57 +416,40 @@ namespace yy {
     std::ostream& yyoutput = yyo;
     YYUSE (yyoutput);
     symbol_number_type yytype = yysym.type_get ();
+#if defined __GNUC__ && ! defined __clang__ && ! defined __ICC && __GNUC__ * 100 + __GNUC_MINOR__ <= 408
     // Avoid a (spurious) G++ 4.8 warning about "array subscript is
     // below array bounds".
     if (yysym.empty ())
       std::abort ();
+#endif
     yyo << (yytype < yyntokens_ ? "token" : "nterm")
         << ' ' << yytname_[yytype] << " ("
         << yysym.location << ": ";
     switch (yytype)
     {
-            case 3: // "integer"
-
-
+      case 5: // "integer"
         { debug_stream () << (yysym.value.ival); }
-
         break;
 
-      case 4: // "string"
-
-
+      case 6: // "string"
         { debug_stream () << *(yysym.value.sval); }
-
         break;
 
-      case 5: // "list"
-
-
+      case 7: // "list"
         { debug_stream () << Common_Parser_Bencoding_Tools::ListToString (*(yysym.value.lval)); }
-
         break;
 
-      case 6: // "dictionary"
-
-
+      case 8: // "dictionary"
         { if ((yysym.value.dval)) debug_stream () << Common_Parser_Bencoding_Tools::DictionaryToString (*(yysym.value.dval)); }
-
         break;
 
-      case 11: // list_items
-
-
+      case 13: // list_items
         { debug_stream () << Common_Parser_Bencoding_Tools::ListToString (*(yysym.value.lval)); }
-
         break;
 
-      case 15: // dictionary_items
-
-
+      case 17: // dictionary_items
         { if ((yysym.value.dval)) debug_stream () << Common_Parser_Bencoding_Tools::DictionaryToString (*(yysym.value.dval)); }
-
         break;
-
 
       default:
         break;
@@ -498,26 +458,27 @@ namespace yy {
   }
 #endif
 
-  inline
   void
-  parser::yypush_ (const char* m, state_type s, symbol_type& sym)
-  {
-    stack_symbol_type t (s, sym);
-    yypush_ (m, t);
-  }
-
-  inline
-  void
-  parser::yypush_ (const char* m, stack_symbol_type& s)
+  parser::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
   {
     if (m)
-      YY_SYMBOL_PRINT (m, s);
-    yystack_.push (s);
+      YY_SYMBOL_PRINT (m, sym);
+    yystack_.push (YY_MOVE (sym));
   }
 
-  inline
   void
-  parser::yypop_ (unsigned int n)
+  parser::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
+  {
+#if 201103L <= YY_CPLUSPLUS
+    yypush_ (m, stack_symbol_type (s, std::move (sym)));
+#else
+    stack_symbol_type ss (s, sym);
+    yypush_ (m, ss);
+#endif
+  }
+
+  void
+  parser::yypop_ (int n)
   {
     yystack_.pop (n);
   }
@@ -549,7 +510,7 @@ namespace yy {
   }
 #endif // YYDEBUG
 
-  inline parser::state_type
+  parser::state_type
   parser::yy_lr_goto_state_ (state_type yystate, int yysym)
   {
     int yyr = yypgoto_[yysym - yyntokens_] + yystate;
@@ -559,16 +520,22 @@ namespace yy {
       return yydefgoto_[yysym - yyntokens_];
   }
 
-  inline bool
+  bool
   parser::yy_pact_value_is_default_ (int yyvalue)
   {
     return yyvalue == yypact_ninf_;
   }
 
-  inline bool
+  bool
   parser::yy_table_value_is_error_ (int yyvalue)
   {
     return yyvalue == yytable_ninf_;
+  }
+
+  int
+  parser::operator() ()
+  {
+    return parse ();
   }
 
   int
@@ -592,15 +559,14 @@ namespace yy {
     /// The return value of parse ().
     int yyresult;
 
-    // FIXME: This shoud be completely indented.  It is not yet to
-    // avoid gratuitous conflicts when merging into the master branch.
+#if YY_EXCEPTIONS
     try
+#endif // YY_EXCEPTIONS
       {
-    YYCDEBUG << "Starting parse" << std::endl;
+    YYCDEBUG << "Starting parse\n";
 
 
     // User initialization code.
-    
 {
   // initialize the location
   yyla.location.initialize (NULL);
@@ -613,21 +579,25 @@ namespace yy {
        location values to have been already stored, initialize these
        stacks with a primary value.  */
     yystack_.clear ();
-    yypush_ (YY_NULLPTR, 0, yyla);
+    yypush_ (YY_NULLPTR, 0, YY_MOVE (yyla));
 
-    // A new symbol was pushed on the stack.
+  /*-----------------------------------------------.
+  | yynewstate -- push a new symbol on the stack.  |
+  `-----------------------------------------------*/
   yynewstate:
-    YYCDEBUG << "Entering state " << yystack_[0].state << std::endl;
+    YYCDEBUG << "Entering state " << yystack_[0].state << '\n';
 
     // Accept?
     if (yystack_[0].state == yyfinal_)
-      goto yyacceptlab;
+      YYACCEPT;
 
     goto yybackup;
 
-    // Backup.
-  yybackup:
 
+  /*-----------.
+  | yybackup.  |
+  `-----------*/
+  yybackup:
     // Try to take a decision without lookahead.
     yyn = yypact_[yystack_[0].state];
     if (yy_pact_value_is_default_ (yyn))
@@ -637,15 +607,20 @@ namespace yy {
     if (yyla.empty ())
       {
         YYCDEBUG << "Reading a token: ";
+#if YY_EXCEPTIONS
         try
+#endif // YY_EXCEPTIONS
           {
             yyla.type = yytranslate_ (yylex (&yyla.value, &yyla.location, iparser, iscanner->getR ().lexState));
           }
+#if YY_EXCEPTIONS
         catch (const syntax_error& yyexc)
           {
+            YYCDEBUG << "Caught exception: " << yyexc.what() << '\n';
             error (yyexc);
             goto yyerrlab1;
           }
+#endif // YY_EXCEPTIONS
       }
     YY_SYMBOL_PRINT ("Next token is", yyla);
 
@@ -670,8 +645,9 @@ namespace yy {
       --yyerrstatus_;
 
     // Shift the lookahead token.
-    yypush_ ("Shifting", yyn, yyla);
+    yypush_ ("Shifting", yyn, YY_MOVE (yyla));
     goto yynewstate;
+
 
   /*-----------------------------------------------------------.
   | yydefault -- do the default action for the current state.  |
@@ -682,14 +658,15 @@ namespace yy {
       goto yyerrlab;
     goto yyreduce;
 
+
   /*-----------------------------.
-  | yyreduce -- Do a reduction.  |
+  | yyreduce -- do a reduction.  |
   `-----------------------------*/
   yyreduce:
     yylen = yyr2_[yyn];
     {
       stack_symbol_type yylhs;
-      yylhs.state = yy_lr_goto_state_(yystack_[yylen].state, yyr1_[yyn]);
+      yylhs.state = yy_lr_goto_state_ (yystack_[yylen].state, yyr1_[yyn]);
       /* If YYLEN is nonzero, implement the default value of the
          action: '$$ = $1'.  Otherwise, use the top of the stack.
 
@@ -701,27 +678,27 @@ namespace yy {
       else
         yylhs.value = yystack_[0].value;
 
-      // Compute the default @$.
+      // Default location.
       {
-        slice<stack_symbol_type, stack_type> slice (yystack_, yylen);
-        YYLLOC_DEFAULT (yylhs.location, slice, yylen);
+        stack_type::slice range (yystack_, yylen);
+        YYLLOC_DEFAULT (yylhs.location, range, yylen);
+        yyerror_range[1].location = yylhs.location;
       }
 
       // Perform the reduction.
       YY_REDUCE_PRINT (yyn);
+#if YY_EXCEPTIONS
       try
+#endif // YY_EXCEPTIONS
         {
           switch (yyn)
             {
   case 2:
-
     {
                     iparser->pushDictionary ((yystack_[0].value.dval)); }
-
     break;
 
   case 3:
-
     {
                     Bencoding_Dictionary_t& dictionary_r = iparser->current ();
                     Bencoding_Dictionary_t* dictionary_p = &dictionary_r;
@@ -732,18 +709,14 @@ namespace yy {
                                   ACE_TEXT ("caught exception in Bencoding_IParser::record(), continuing\n")));
                     }
                     YYACCEPT; }
-
     break;
 
   case 4:
-
     {
                     iparser->pushList ((yystack_[0].value.lval)); }
-
     break;
 
   case 5:
-
     {
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     Bencoding_List_t* list_p = &list_r;
@@ -754,11 +727,9 @@ namespace yy {
                                   ACE_TEXT ("caught exception in Bencoding_IParser::record_2(), continuing\n")));
                     }
                     YYACCEPT; }
-
     break;
 
   case 6:
-
     {
                     try {
                       iparser->record_3 ((yystack_[0].value.sval));
@@ -767,11 +738,9 @@ namespace yy {
                                   ACE_TEXT ("caught exception in Bencoding_IParser::record_3(), continuing\n")));
                     }
                     YYACCEPT; }
-
     break;
 
   case 7:
-
     {
                     try {
                       iparser->record_4 ((yystack_[0].value.ival));
@@ -780,29 +749,21 @@ namespace yy {
                                   ACE_TEXT ("caught exception in Bencoding_IParser::record_4(), continuing\n")));
                     }
                     YYACCEPT; }
-
     break;
 
   case 8:
-
     { }
-
     break;
 
   case 9:
-
     { }
-
     break;
 
   case 10:
-
     { }
-
     break;
 
   case 11:
-
     {
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     Bencoding_Element* element_p = NULL;
@@ -812,11 +773,9 @@ namespace yy {
                     element_p->type = Bencoding_Element::BENCODING_TYPE_STRING;
                     element_p->string = (yystack_[0].value.sval);
                     list_r.push_back (element_p); }
-
     break;
 
   case 12:
-
     {
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     Bencoding_Element* element_p = NULL;
@@ -826,40 +785,32 @@ namespace yy {
                     element_p->type = Bencoding_Element::BENCODING_TYPE_INTEGER;
                     element_p->integer = (yystack_[0].value.ival);
                     list_r.push_back (element_p); }
-
     break;
 
   case 13:
-
     {
                     iparser->pushList ((yystack_[0].value.lval)); }
-
     break;
 
   case 14:
-
     {
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,
                                       Bencoding_Element ());
                     ACE_ASSERT (element_p);
                     element_p->type = Bencoding_Element::BENCODING_TYPE_LIST;
-                    element_p->list = (yystack_[0].value.lval);
+                    element_p->list = (yystack_[1].value.lval);
                     iparser->popList ();
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     list_r.push_back (element_p); }
-
     break;
 
   case 15:
-
     {
                     iparser->pushDictionary ((yystack_[0].value.dval)); }
-
     break;
 
   case 16:
-
     {
                     Bencoding_Element* element_p = NULL;
                     ACE_NEW_NORETURN (element_p,
@@ -867,52 +818,38 @@ namespace yy {
                     ACE_ASSERT (element_p);
                     element_p->type =
                       Bencoding_Element::BENCODING_TYPE_DICTIONARY;
-                    element_p->dictionary = (yystack_[0].value.dval);
+                    element_p->dictionary = (yystack_[1].value.dval);
                     iparser->popDictionary ();
                     Bencoding_List_t& list_r = iparser->current_2 ();
                     list_r.push_back (element_p); }
-
     break;
 
   case 17:
-
     { }
-
     break;
 
   case 18:
-
     { }
-
     break;
 
   case 19:
-
     { }
-
     break;
 
   case 20:
-
     {
                     iparser->pushKey ((yystack_[0].value.sval)); }
-
     break;
 
   case 21:
-
     { }
-
     break;
 
   case 22:
-
     { }
-
     break;
 
   case 23:
-
     {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
@@ -927,11 +864,9 @@ namespace yy {
                                                          element_p)); }*/
                     dictionary_r.push_back (std::make_pair (key_string_p,
                                                             element_p)); }
-
     break;
 
   case 24:
-
     {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
@@ -946,18 +881,14 @@ namespace yy {
                                                          element_p)); }*/
                     dictionary_r.push_back (std::make_pair (key_string_p,
                                                             element_p)); }
-
     break;
 
   case 25:
-
     {
                     iparser->pushList ((yystack_[0].value.lval)); }
-
     break;
 
   case 26:
-
     {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
@@ -965,7 +896,7 @@ namespace yy {
                                       Bencoding_Element ());
                     ACE_ASSERT (element_p);
                     element_p->type = Bencoding_Element::BENCODING_TYPE_LIST;
-                    element_p->list = (yystack_[0].value.lval);
+                    element_p->list = (yystack_[1].value.lval);
                     iparser->popList ();
                     Bencoding_Dictionary_t& dictionary_r =
                       iparser->current ();
@@ -973,18 +904,14 @@ namespace yy {
                                                          element_p)); }*/
                     dictionary_r.push_back (std::make_pair (key_string_p,
                                                             element_p)); }
-
     break;
 
   case 27:
-
     {
                     iparser->pushDictionary ((yystack_[0].value.dval)); }
-
     break;
 
   case 28:
-
     {
                     std::string* key_string_p = &iparser->getKey ();
                     Bencoding_Element* element_p = NULL;
@@ -993,7 +920,7 @@ namespace yy {
                     ACE_ASSERT (element_p);
                     element_p->type =
                       Bencoding_Element::BENCODING_TYPE_DICTIONARY;
-                    element_p->dictionary = (yystack_[0].value.dval);
+                    element_p->dictionary = (yystack_[1].value.dval);
                     iparser->popDictionary ();
                     Bencoding_Dictionary_t& dictionary_r =
                       iparser->current ();
@@ -1001,7 +928,6 @@ namespace yy {
                                                          element_p)); }*/
                     dictionary_r.push_back (std::make_pair (key_string_p,
                                                             element_p)); }
-
     break;
 
 
@@ -1010,20 +936,24 @@ namespace yy {
               break;
             }
         }
+#if YY_EXCEPTIONS
       catch (const syntax_error& yyexc)
         {
+          YYCDEBUG << "Caught exception: " << yyexc.what() << '\n';
           error (yyexc);
           YYERROR;
         }
+#endif // YY_EXCEPTIONS
       YY_SYMBOL_PRINT ("-> $$ =", yylhs);
       yypop_ (yylen);
       yylen = 0;
       YY_STACK_PRINT ();
 
       // Shift the result of the reduction.
-      yypush_ (YY_NULLPTR, yylhs);
+      yypush_ (YY_NULLPTR, YY_MOVE (yylhs));
     }
     goto yynewstate;
+
 
   /*--------------------------------------.
   | yyerrlab -- here on detecting error.  |
@@ -1061,18 +991,17 @@ namespace yy {
   | yyerrorlab -- error raised explicitly by YYERROR.  |
   `---------------------------------------------------*/
   yyerrorlab:
-
-    /* Pacify compilers like GCC when the user code never invokes
-       YYERROR and the label yyerrorlab therefore never appears in user
-       code.  */
+    /* Pacify compilers when the user code never invokes YYERROR and
+       the label yyerrorlab therefore never appears in user code.  */
     if (false)
-      goto yyerrorlab;
-    yyerror_range[1].location = yystack_[yylen - 1].location;
+      YYERROR;
+
     /* Do not reclaim the symbols of the rule whose action triggered
        this YYERROR.  */
     yypop_ (yylen);
     yylen = 0;
     goto yyerrlab1;
+
 
   /*-------------------------------------------------------------.
   | yyerrlab1 -- common code for both syntax error and YYERROR.  |
@@ -1110,20 +1039,30 @@ namespace yy {
 
       // Shift the error token.
       error_token.state = yyn;
-      yypush_ ("Shifting", error_token);
+      yypush_ ("Shifting", YY_MOVE (error_token));
     }
     goto yynewstate;
 
-    // Accept.
+
+  /*-------------------------------------.
+  | yyacceptlab -- YYACCEPT comes here.  |
+  `-------------------------------------*/
   yyacceptlab:
     yyresult = 0;
     goto yyreturn;
 
-    // Abort.
+
+  /*-----------------------------------.
+  | yyabortlab -- YYABORT comes here.  |
+  `-----------------------------------*/
   yyabortlab:
     yyresult = 1;
     goto yyreturn;
 
+
+  /*-----------------------------------------------------.
+  | yyreturn -- parsing is finished, return the result.  |
+  `-----------------------------------------------------*/
   yyreturn:
     if (!yyla.empty ())
       yy_destroy_ ("Cleanup: discarding lookahead", yyla);
@@ -1139,12 +1078,12 @@ namespace yy {
 
     return yyresult;
   }
+#if YY_EXCEPTIONS
     catch (...)
       {
-        YYCDEBUG << "Exception caught: cleaning lookahead and stack"
-                 << std::endl;
+        YYCDEBUG << "Exception caught: cleaning lookahead and stack\n";
         // Do not try to display the values of the reclaimed symbols,
-        // as their printer might throw an exception.
+        // as their printers might throw an exception.
         if (!yyla.empty ())
           yy_destroy_ (YY_NULLPTR, yyla);
 
@@ -1155,12 +1094,13 @@ namespace yy {
           }
         throw;
       }
+#endif // YY_EXCEPTIONS
   }
 
   void
   parser::error (const syntax_error& yyexc)
   {
-    error (yyexc.location, yyexc.what());
+    error (yyexc.location, yyexc.what ());
   }
 
   // Generate an error message.
@@ -1236,12 +1176,13 @@ namespace yy {
         case N:                               \
           yyformat = S;                       \
         break
-        YYCASE_(0, YY_("syntax error"));
-        YYCASE_(1, YY_("syntax error, unexpected %s"));
-        YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
-        YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
-        YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
-        YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
+      default: // Avoid compiler warnings.
+        YYCASE_ (0, YY_("syntax error"));
+        YYCASE_ (1, YY_("syntax error, unexpected %s"));
+        YYCASE_ (2, YY_("syntax error, unexpected %s, expecting %s"));
+        YYCASE_ (3, YY_("syntax error, unexpected %s, expecting %s or %s"));
+        YYCASE_ (4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
+        YYCASE_ (5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
 #undef YYCASE_
       }
 
@@ -1260,81 +1201,83 @@ namespace yy {
   }
 
 
-  const signed char parser::yypact_ninf_ = -19;
+  const signed char parser::yypact_ninf_ = -20;
 
   const signed char parser::yytable_ninf_ = -1;
 
   const signed char
   parser::yypact_[] =
   {
-       0,   -19,   -19,   -19,   -19,     1,   -19,   -19,   -19,    10,
-       3,   -19,   -19,   -19,   -19,   -19,   -19,   -19,   -19,   -19,
-      14,    10,     3,   -19,   -19,   -19,   -19,   -19,   -19,   -19,
-      10,     3
+       2,   -20,   -20,   -20,   -20,    11,   -20,   -20,   -20,    -2,
+      14,   -20,   -20,   -20,   -20,   -20,   -20,   -20,   -20,   -20,
+     -20,    20,    10,    25,   -20,   -20,   -20,   -20,   -20,   -20,
+     -20,   -20,   -20,    16,    26,   -20,   -20
   };
 
   const unsigned char
   parser::yydefact_[] =
   {
-       8,     7,     6,     4,     2,     0,    10,    19,     1,     5,
-       3,    12,    11,    13,    15,     9,    20,    18,    10,    19,
-       0,    14,    16,    24,    23,    25,    27,    21,    10,    19,
-      17,    22
+       8,     7,     6,     4,     2,     0,    10,    19,     1,     0,
+       3,     5,    12,    11,    13,    15,     9,    20,    18,    10,
+      19,     0,     0,     0,    24,    23,    25,    27,    21,    14,
+      16,    10,    19,     0,     0,    26,    28
   };
 
   const signed char
   parser::yypgoto_[] =
   {
-     -19,   -19,   -19,   -19,   -18,   -19,   -19,   -19,   -17,   -19,
-     -19,   -19,   -19,   -19
+     -20,   -20,   -20,   -20,   -19,   -20,   -20,   -20,   -18,   -20,
+     -20,   -20,   -20,   -20
   };
 
   const signed char
   parser::yydefgoto_[] =
   {
-      -1,     5,     7,     6,     9,    15,    18,    19,    10,    17,
-      20,    27,    28,    29
+      -1,     5,     7,     6,     9,    16,    19,    20,    10,    18,
+      21,    28,    31,    32
   };
 
   const unsigned char
   parser::yytable_[] =
   {
-      21,     8,    22,     1,     2,     3,     4,    16,     0,     0,
-      30,     0,    31,    11,    12,    13,    14,    23,    24,    25,
-      26
+      22,    11,    23,    12,    13,    14,    15,     1,     2,     3,
+       4,     8,    33,    29,    34,    12,    13,    14,    15,    35,
+      17,    12,    13,    14,    15,    24,    25,    26,    27,    30,
+      36,    17,    17
   };
 
-  const signed char
+  const unsigned char
   parser::yycheck_[] =
   {
-      18,     0,    19,     3,     4,     5,     6,     4,    -1,    -1,
-      28,    -1,    29,     3,     4,     5,     6,     3,     4,     5,
-       6
+      19,     3,    20,     5,     6,     7,     8,     5,     6,     7,
+       8,     0,    31,     3,    32,     5,     6,     7,     8,     3,
+       6,     5,     6,     7,     8,     5,     6,     7,     8,     4,
+       4,     6,     6
   };
 
   const unsigned char
   parser::yystos_[] =
   {
-       0,     3,     4,     5,     6,     8,    10,     9,     0,    11,
-      15,     3,     4,     5,     6,    12,     4,    16,    13,    14,
-      17,    11,    15,     3,     4,     5,     6,    18,    19,    20,
-      11,    15
+       0,     5,     6,     7,     8,    10,    12,    11,     0,    13,
+      17,     3,     5,     6,     7,     8,    14,     6,    18,    15,
+      16,    19,    13,    17,     5,     6,     7,     8,    20,     3,
+       4,    21,    22,    13,    17,     3,     4
   };
 
   const unsigned char
   parser::yyr1_[] =
   {
-       0,     7,     9,     8,    10,     8,     8,     8,     8,    11,
-      11,    12,    12,    13,    12,    14,    12,    12,    15,    15,
-      17,    16,    16,    18,    18,    19,    18,    20,    18
+       0,     9,    11,    10,    12,    10,    10,    10,    10,    13,
+      13,    14,    14,    15,    14,    16,    14,    14,    17,    17,
+      19,    18,    18,    20,    20,    21,    20,    22,    20
   };
 
   const unsigned char
   parser::yyr2_[] =
   {
-       0,     2,     0,     3,     0,     3,     1,     1,     0,     2,
-       0,     1,     1,     0,     3,     0,     3,     0,     2,     0,
-       0,     3,     0,     1,     1,     0,     3,     0,     3
+       0,     2,     0,     3,     0,     4,     1,     1,     0,     2,
+       0,     1,     1,     0,     4,     0,     4,     0,     2,     0,
+       0,     3,     0,     1,     1,     0,     4,     0,     4
   };
 
 
@@ -1344,19 +1287,20 @@ namespace yy {
   const char*
   const parser::yytname_[] =
   {
-  "\"end\"", "error", "$undefined", "\"integer\"", "\"string\"",
-  "\"list\"", "\"dictionary\"", "$accept", "bencoding", "$@1", "$@2",
-  "list_items", "list_item", "$@3", "$@4", "dictionary_items",
-  "dictionary_item", "$@5", "dictionary_value", "$@6", "$@7", YY_NULLPTR
+  "\"end\"", "error", "$undefined", "\"list_end\"", "\"dictionary_end\"",
+  "\"integer\"", "\"string\"", "\"list\"", "\"dictionary\"", "$accept",
+  "bencoding", "$@1", "$@2", "list_items", "list_item", "$@3", "$@4",
+  "dictionary_items", "dictionary_item", "$@5", "dictionary_value", "$@6",
+  "$@7", YY_NULLPTR
   };
 
 #if YYDEBUG
-  const unsigned short int
+  const unsigned short
   parser::yyrline_[] =
   {
-       0,   215,   215,   215,   227,   227,   239,   247,   255,   256,
-     258,   259,   268,   277,   277,   289,   289,   302,   303,   305,
-     306,   306,   309,   310,   329,   348,   348,   370,   370
+       0,   217,   217,   217,   229,   229,   241,   249,   257,   258,
+     260,   261,   270,   279,   279,   291,   291,   304,   305,   307,
+     308,   308,   311,   312,   331,   350,   350,   372,   372
   };
 
   // Print the state stack on the debug stream.
@@ -1369,18 +1313,18 @@ namespace yy {
            i_end = yystack_.end ();
          i != i_end; ++i)
       *yycdebug_ << ' ' << i->state;
-    *yycdebug_ << std::endl;
+    *yycdebug_ << '\n';
   }
 
   // Report on the debug stream that the rule \a yyrule is going to be reduced.
   void
   parser::yy_reduce_print_ (int yyrule)
   {
-    unsigned int yylno = yyrline_[yyrule];
+    unsigned yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
     // Print the symbols being reduced, and their result.
     *yycdebug_ << "Reducing stack by rule " << yyrule - 1
-               << " (line " << yylno << "):" << std::endl;
+               << " (line " << yylno << "):\n";
     // The symbols being reduced.
     for (int yyi = 0; yyi < yynrhs; yyi++)
       YY_SYMBOL_PRINT ("   $" << yyi + 1 << " =",
@@ -1388,16 +1332,16 @@ namespace yy {
   }
 #endif // YYDEBUG
 
-  // Symbol number corresponding to token number t.
-  inline
   parser::token_number_type
   parser::yytranslate_ (int t)
   {
+    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
+    // TOKEN-NUM as returned by yylex.
     static
     const token_number_type
     translate_table[] =
     {
-     0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1423,22 +1367,20 @@ namespace yy {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6
+       5,     6,     7,     8
     };
-    const unsigned int user_token_number_max_ = 261;
+    const unsigned user_token_number_max_ = 263;
     const token_number_type undef_token_ = 2;
 
-    if (static_cast<int>(t) <= yyeof_)
+    if (static_cast<int> (t) <= yyeof_)
       return yyeof_;
-    else if (static_cast<unsigned int> (t) <= user_token_number_max_)
+    else if (static_cast<unsigned> (t) <= user_token_number_max_)
       return translate_table[t];
     else
       return undef_token_;
   }
 
-
 } // yy
-
 
 
 
