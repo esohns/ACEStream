@@ -877,7 +877,7 @@ do_work (const std::string& deviceIdentifier_in,
       &camstream_configuration_p->dispatchConfiguration;
 
   // step0b: initialize configuration and stream
-  struct Common_Parser_FlexAllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -904,7 +904,7 @@ do_work (const std::string& deviceIdentifier_in,
   if (bufferSize_in)
     allocator_configuration_p->defaultBufferSize = bufferSize_in;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
+                         struct Common_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -937,8 +937,8 @@ do_work (const std::string& deviceIdentifier_in,
   } // end SWITCH
 #else
   Test_I_Source_V4L_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,     // heap allocator handle
-                                                           true);               // block ?
+                                                          &heap_allocator,     // heap allocator handle
+                                                          true);               // block ?
   allocator_p = &message_allocator;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_p);
@@ -980,7 +980,7 @@ do_work (const std::string& deviceIdentifier_in,
                                                                               directshow_modulehandler_configuration)));
 
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                            directshow_stream_configuration));
+                                                                                      directshow_stream_configuration));
       directshow_stream_iterator =
         directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
@@ -989,7 +989,7 @@ do_work (const std::string& deviceIdentifier_in,
 
       directshow_stream_configuration.configuration_.module = NULL;
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
-                                                                            directshow_stream_configuration));
+                                                                                      directshow_stream_configuration));
 
       break;
     }
@@ -1036,39 +1036,50 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L_StreamConfigurationsIterator_t stream_iterator;
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
 
-  Test_I_Source_V4L_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
-                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Test_I_Source_V4L_EventHandler_t event_handler (&v4l2CBData_in);
+  Test_I_Source_V4L_Module_EventHandler_Module event_handler_module ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
+                                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
+//  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.connectionConfigurations =
+      &v4l2CBData_in.configuration->connectionConfigurations;
   modulehandler_configuration.deviceIdentifier.identifier = deviceIdentifier_in;
+  modulehandler_configuration.subscriber = &event_handler;
 
-  Test_I_Source_V4L_StreamConfiguration_t stream_configuration;
-  stream_configuration.configuration_.format.format.width =
+  struct Test_I_Source_V4L_StreamConfiguration stream_configuration;
+  Test_I_Source_V4L_StreamConfiguration_t stream_configuration_2;
+  Test_I_Source_V4L_StreamConfiguration_t stream_configuration_3;
+  stream_configuration.format.format.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
-  stream_configuration.configuration_.format.format.height =
+  stream_configuration.format.format.height =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
-  stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                               std::make_pair (module_configuration,
-                                                               modulehandler_configuration)));
+  stream_configuration.messageAllocator = allocator_p;
+  stream_configuration.module = &event_handler_module;
+
+  stream_configuration_2.initialize (module_configuration,
+                                     modulehandler_configuration,
+                                     *allocator_configuration_p,
+                                     stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            stream_configuration));
+                                                                            stream_configuration_2));
   stream_iterator =
     v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
-  stream_iterator =
-    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
-  allocator_configuration_p =
-    &(*stream_iterator).second.allocatorConfiguration_;
+  modulehandler_iterator = (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
+  allocator_configuration_p = &(*stream_iterator).second.allocatorConfiguration_;
 
-  stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                               std::make_pair (module_configuration,
-                                                               modulehandler_configuration)));
+  stream_configuration.module = NULL;
+  stream_configuration_3.initialize (module_configuration,
+                                     modulehandler_configuration,
+                                     *allocator_configuration_p,
+                                     stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
-                                                            stream_configuration));
-  //stream_iterator =
-  //  V4L_configuration.streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  //ACE_ASSERT (stream_iterator != V4L_configuration.streamConfigurations.end ());
+                                                            stream_configuration_3));
+//  stream_iterator =
+//    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+//  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                    : NET_TRANSPORTLAYER_TCP);
@@ -1301,6 +1312,9 @@ do_work (const std::string& deviceIdentifier_in,
   stream_iterator =
     v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
   ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
+//  stream_iterator =
+//    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+//  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 
   result =
     connection_configuration.initialize (v4l2CBData_in.configuration->allocatorConfiguration,
@@ -1423,7 +1437,7 @@ do_work (const std::string& deviceIdentifier_in,
                                                                                                               : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                      &v4l2CBData_in.subscribersLock);
   event_handler_p =
-    dynamic_cast<Test_I_Source_V4L_Module_EventHandler*> (event_handler.writer ());
+    dynamic_cast<Test_I_Source_V4L_Module_EventHandler*> (event_handler_module.writer ());
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1503,10 +1517,11 @@ do_work (const std::string& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
-                                                                                  hostName_in.c_str (),
-                                                                                  1,
-                                                                                  ACE_ADDRESS_FAMILY_INET);
+  result_2 =
+    NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.set (port_in,
+                                                                                    hostName_in.c_str (),
+                                                                                    1,
+                                                                                    ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,

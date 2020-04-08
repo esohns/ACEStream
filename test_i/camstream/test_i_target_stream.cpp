@@ -1021,9 +1021,8 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_TCPStream::load"));
 
-//  // initialize return value(s)
-//  modules_out.clear ();
-//  delete_out = false;
+  // initialize return value(s)
+  delete_out = true;
   ACE_ASSERT (delete_out);
 
   Stream_Module_t* module_p = NULL;
@@ -1051,6 +1050,12 @@ Test_I_Target_TCPStream::load (Stream_ILayout* layout_in,
   module_p = NULL;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Resize_Module (this,
+                                               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Display_Module (this,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),

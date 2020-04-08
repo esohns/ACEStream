@@ -61,6 +61,7 @@
 #define STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL 10 // ms
 
 #define STREAM_SUBSTREAM_DISPLAY_NAME                    "display"
+#define STREAM_SUBSTREAM_NETWORK_NAME                    "network"
 #define STREAM_SUBSTREAM_SAVE_NAME                       "save to file"
 
 // statistic

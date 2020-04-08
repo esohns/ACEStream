@@ -393,9 +393,9 @@ error_2:
                   file_descriptor, ACE_TEXT ("VIDIOC_QUERYCAP")));
       goto close;
     } // end IF
-
-    listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
-                                                 device_filename));
+    if (device_capabilities.device_caps & V4L2_CAP_VIDEO_CAPTURE)
+      listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
+                                                   device_filename));
 
 close:
     result_2 = v4l2_close (file_descriptor);
@@ -1554,9 +1554,10 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (false); // *TODO*
-  ACE_UNUSED_ARG (height);
-  ACE_UNUSED_ARG (width);
+  (*stream_iterator).second.configuration_.format.format.height = height;
+  (*stream_iterator).second.configuration_.format.format.width = width;
+  Stream_Device_Tools::setFormat (V4L_ui_cb_data_p->fileDescriptor,
+                                  (*stream_iterator).second.configuration_.format.format);
 #endif
 }
 
@@ -2100,7 +2101,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_iterator =
     (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -2117,7 +2118,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //              ACE_TEXT (Common_Error_Tools::errorToString (hresult).c_str ())));
   //  return G_SOURCE_REMOVE;
   //} // end IF
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -2792,6 +2793,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+  (*iterator_4).second.second.outputFormat.resolution.height =
+      static_cast<__u32> (allocation.height);
+  (*iterator_4).second.second.outputFormat.resolution.width =
+      static_cast<__u32> (allocation.width);
   (*iterator_4).second.second.area.height =
       static_cast<__u32> (allocation.height);
   (*iterator_4).second.second.area.width =
@@ -2908,7 +2913,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   if (!ui_cb_data_p->progressData.eventSourceId)
     goto continue_;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, state_r.lock, G_SOURCE_REMOVE);
+//  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, state_r.lock, G_SOURCE_REMOVE);
     if (!g_source_remove (ui_cb_data_p->progressData.eventSourceId))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
@@ -2919,7 +2924,7 @@ idle_end_source_UI_cb (gpointer userData_in)
     ACE_OS::memset (&(ui_cb_data_p->progressData.statistic),
                     0,
                     sizeof (ui_cb_data_p->progressData.statistic));
-  } // end lock scope
+//  } // end lock scope
   progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -3892,6 +3897,12 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (!(*iterator_2).second.second.pixelBuffer);
   (*iterator_2).second.second.pixelBuffer = pixbuf_p;
   ui_cb_data_p->pixelBuffer = pixbuf_p;
+  (*modulehandler_iterator).second.second.outputFormat.format =
+      AV_PIX_FMT_RGB24;
+  (*modulehandler_iterator).second.second.outputFormat.resolution.height =
+      static_cast<__u32> (allocation.height);
+  (*modulehandler_iterator).second.second.outputFormat.resolution.width =
+      static_cast<__u32> (allocation.width);
 #endif
 
   return G_SOURCE_REMOVE;
@@ -4789,9 +4800,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   if (V4L_ui_cb_data_p->fileDescriptor != -1)
-    (*modulehandler_iterator).second.second.fileDescriptor =
+    (*modulehandler_iterator).second.second.deviceIdentifier.fileDescriptor =
       V4L_ui_cb_data_p->fileDescriptor;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // retrieve port number
   spin_button_p =
@@ -4946,7 +4957,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end SWITCH
 #else
   result_3 =
-    Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.fileDescriptor,
+    Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.deviceIdentifier.fileDescriptor,
                                     (*stream_iterator).second.configuration_.format.format);
 #endif
   if (!result_3)
@@ -5068,7 +5079,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 
     // step3: start progress reporting
-    ACE_ASSERT (!ui_cb_data_p->progressData.eventSourceId);
+//    ACE_ASSERT (!ui_cb_data_p->progressData.eventSourceId);
     ui_cb_data_p->progressData.eventSourceId =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
@@ -6948,6 +6959,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     return;
   } // end IF
+
   n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -7152,6 +7164,8 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   } // end SWITCH
 #else
   (*stream_iterator).second.configuration_.format.format.pixelformat = format_i;
+  (*modulehandler_iterator).second.second.outputFormat.format =
+      Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i);
 
   result =
     load_resolutions (V4L_ui_cb_data_p->fileDescriptor,

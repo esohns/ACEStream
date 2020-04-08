@@ -294,7 +294,7 @@ struct Test_I_CamStream_Configuration
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {}
 
-  struct Common_Parser_FlexAllocatorConfiguration allocatorConfiguration;
+  struct Common_AllocatorConfiguration            allocatorConfiguration;
 
   // *************************** protocol data *********************************
   enum Net_TransportLayerType                     protocol;

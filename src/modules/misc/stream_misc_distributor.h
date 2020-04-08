@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType>
+          typename SessionDataType> // reference counted-
 class Stream_Miscellaneous_Distributor_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

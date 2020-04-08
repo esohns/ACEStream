@@ -179,6 +179,6 @@ typedef Test_I_Source_V4L_Stream_T<struct Test_I_Source_V4L_StreamState,
                                     Test_I_Source_V4L_SessionMessage,
                                     Test_I_Source_V4L_InetConnectionManager_t,
                                     Test_I_Source_V4L_UDPAsynchConnector_t> Test_I_Source_V4L_AsynchUDPStream_t;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #endif

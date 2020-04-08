@@ -14,6 +14,10 @@ if (UNIX)
  pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
 endif (UNIX)
 
+if (FFMPEG_SUPPORT)
+ add_definitions (-DFFMPEG_SUPPORT)
+endif (FFMPEG_SUPPORT)
+
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}

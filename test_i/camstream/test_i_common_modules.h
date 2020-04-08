@@ -60,6 +60,7 @@
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 #include "stream_vis_gtk_pixbuf.h"
+#include "stream_vis_libav_resize.h"
 #endif // GTK_USE
 #endif // GUI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -487,6 +488,21 @@ typedef Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_MT_SYNCH,
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+typedef Stream_Miscellaneous_Distributor_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                           Test_I_ControlMessage_t,
+                                           Test_I_Source_V4L_Stream_Message,
+                                           Test_I_Source_V4L_SessionMessage,
+                                           Test_I_Source_V4L_SessionData_t> Test_I_Source_V4L_Distributor;
+typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_Source_V4L_ModuleHandlerConfiguration,
+                                           Test_I_ControlMessage_t,
+                                           Test_I_Source_V4L_Stream_Message,
+                                           Test_I_Source_V4L_SessionMessage,
+                                           Test_I_Source_V4L_SessionData_t,
+                                           struct Stream_MediaFramework_V4L_MediaType> Test_I_Source_V4L_Resize;
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Source_V4L_ModuleHandlerConfiguration,
@@ -654,6 +670,14 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+typedef Stream_Visualization_LibAVResize_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_Target_ModuleHandlerConfiguration,
+                                           Test_I_ControlMessage_t,
+                                           Test_I_Target_Stream_Message,
+                                           Test_I_Target_SessionMessage,
+                                           Test_I_Target_SessionData_t,
+                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_Target_Resize;
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
                                        struct Test_I_Target_ModuleHandlerConfiguration,
@@ -841,6 +865,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_MediaFoundation_SessionData,        
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_misc_distributor_module_name_string,
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Test_I_Source_V4L_Distributor);                 // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_vis_libav_resize_module_name_string,
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Test_I_Source_V4L_Resize);                            // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L_SessionData,                  // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Test_I_Source_V4L_ModuleHandlerConfiguration,   // module handler configuration type
                               libacestream_default_vis_gtk_pixbuf_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_I_Source_V4L_Display);                            // writer type
@@ -920,6 +956,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,        
 #else
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                  // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Test_I_Target_ModuleHandlerConfiguration,   // module handler configuration type
+                              libacestream_default_vis_libav_resize_module_name_string,
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Test_I_Target_Resize);                             // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration,        // module handler configuration type

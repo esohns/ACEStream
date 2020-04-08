@@ -170,10 +170,6 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -216,7 +212,6 @@ do_processArguments (int argc_in,
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
                      unsigned short& listeningPortNumber_out,
-                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -251,8 +246,6 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = TEST_I_DEFAULT_PORT;
-  useReactor_out =
-          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -264,9 +257,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:c:e:f::g::lmn:op:rs:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::lmn:op:s:tuvx:z:"),
 #else
-                              ACE_TEXT ("b:c:e:f::g::ln:op:rs:tuvx:z:"),
+                              ACE_TEXT ("b:c:e:f::g::ln:op:s:tuvx:z:"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -346,11 +339,6 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> listeningPortNumber_out;
-        break;
-      }
-      case 'r':
-      {
-        useReactor_out = true;
         break;
       }
       case 's':
@@ -841,7 +829,6 @@ do_work (unsigned int bufferSize_in,
          const std::string& networkInterface_in,
          bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
-         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
@@ -907,9 +894,9 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_UNUSED_ARG (serialize_output);
   event_dispatch_configuration_s.numberOfProactorThreads =
-          (!useReactor_in ? numberOfDispatchThreads_in : 0);
+          numberOfDispatchThreads_in;
   event_dispatch_configuration_s.numberOfReactorThreads =
-          (useReactor_in ? numberOfDispatchThreads_in : 0);
+          numberOfDispatchThreads_in;
   if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -922,7 +909,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
-  struct Common_Parser_FlexAllocatorConfiguration* allocator_configuration_p =
+  struct Common_AllocatorConfiguration* allocator_configuration_p =
     NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
@@ -958,11 +945,9 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration.allocatorConfiguration_;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
-  if (useReactor_in)
-    camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
+  camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
       numberOfDispatchThreads_in;
-  else
-    camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
+  camstream_configuration_p->dispatchConfiguration.numberOfProactorThreads =
       numberOfDispatchThreads_in;
 
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
@@ -1077,6 +1062,11 @@ do_work (unsigned int bufferSize_in,
   //  V4L2_PIX_FMT_BGR24;
   //modulehandler_configuration.format.fmt.pix.sizeimage = 230400;
   //modulehandler_configuration.format.fmt.pix.width = 320;
+  modulehandler_configuration.outputFormat.format =
+      AV_PIX_FMT_RGB24;
+  modulehandler_configuration.outputFormat.resolution.height = 480;
+  modulehandler_configuration.outputFormat.resolution.width = 640;
+
   modulehandler_configuration.inbound = true;
   modulehandler_configuration.printProgressDot =
     UIDefinitionFilename_in.empty ();
@@ -1087,17 +1077,17 @@ do_work (unsigned int bufferSize_in,
 //  modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = fileName_in;
 
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
+  Test_I_Target_StreamConfiguration stream_configuration;
+  stream_configuration.format.format = AV_PIX_FMT_RGB24;
+  stream_configuration.format.resolution.height = 480;
+  stream_configuration.format.resolution.width = 640;
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                configuration.streamConfiguration.allocatorConfiguration_,
+                                                stream_configuration);
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
-
-  configuration.streamConfiguration.initialize (module_configuration,
-                                                (*iterator).second.second,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
-                                                configuration.streamConfiguration.configuration_);
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1149,7 +1139,7 @@ do_work (unsigned int bufferSize_in,
 
   ACE_ASSERT (allocator_configuration_p);
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
+                         struct Common_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1212,9 +1202,7 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_Module_EventHandler* event_handler_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_TimerConfiguration timer_configuration;
-  timer_configuration.dispatch =
-    (useReactor_in ? COMMON_TIMER_DISPATCH_REACTOR
-                   : COMMON_TIMER_DISPATCH_PROACTOR);
+  timer_configuration.dispatch = COMMON_TIMER_DISPATCH_PROACTOR;
   Common_Timer_Manager_t* timer_manager_p =
         COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
@@ -1436,7 +1424,7 @@ do_work (unsigned int bufferSize_in,
 #else
   connection_configuration.address.set_port_number (listeningPortNumber_in,
                                                     1);
-  connection_configuration.bufferSize = bufferSize_in;
+//  connection_configuration.bufferSize = bufferSize_in;
   connection_configuration.useLoopBackDevice = useLoopBack_in;
   if (connection_configuration.useLoopBackDevice)
   {
@@ -1450,7 +1438,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
   if (bufferSize_in)
-    connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
+    allocator_configuration_p->defaultBufferSize = bufferSize_in;
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
@@ -1690,10 +1678,10 @@ do_work (unsigned int bufferSize_in,
       tcp_connection_manager_p;
   configuration.signalHandlerConfiguration.dispatchState =
       &event_dispatch_state_s;
-  if (useReactor_in)
-    configuration.signalHandlerConfiguration.listener =
-        TEST_I_TARGET_LISTENER_SINGLETON::instance ();
-  else
+//  if (useReactor_in)
+//    configuration.signalHandlerConfiguration.listener =
+//        TEST_I_TARGET_LISTENER_SINGLETON::instance ();
+//  else
     configuration.signalHandlerConfiguration.listener =
         TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1711,8 +1699,7 @@ do_work (unsigned int bufferSize_in,
     timer_manager_p->stop ();
     goto clean;
   } // end IF
-  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                       : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         event_handler_2,
@@ -1861,10 +1848,10 @@ do_work (unsigned int bufferSize_in,
       } // end SWITCH
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
-      if (useReactor_in)
-        ACE_NEW_NORETURN (i_udp_connector_p,
-                          Test_I_Target_UDPConnector_t (true));
-      else
+//      if (useReactor_in)
+//        ACE_NEW_NORETURN (i_udp_connector_p,
+//                          Test_I_Target_UDPConnector_t (true));
+//      else
         ACE_NEW_NORETURN (i_udp_connector_p,
                           Test_I_Target_UDPAsynchConnector_t (true));
       ACE_ASSERT (i_udp_connector_p);
@@ -2014,102 +2001,99 @@ do_work (unsigned int bufferSize_in,
 #else
       configuration.handle = i_udp_connector_p->connect (listen_address);
 #endif // ACE_WIN32 || ACE_WIN64
-      if (!useReactor_in)
+      // *TODO*: avoid tight loop here
+      ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
+      //result = ACE_OS::sleep (timeout);
+      //if (result == -1)
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+      //              &timeout));
+      ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
+        NULL;
+      Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
+        NULL;
+      bool done = false;
+#else
+      typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
+          NULL;
+#endif // ACE_WIN32 || ACE_WIN64
+      do
       {
-        // *TODO*: avoid tight loop here
-        ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
-        //result = ACE_OS::sleep (timeout);
-        //if (result == -1)
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-        //              &timeout));
-        ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        Test_I_Target_MediaFoundation_UDPAsynchConnector_t::ICONNECTION_T* mediafoundation_connection_p =
-          NULL;
-        Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
-          NULL;
-        bool done = false;
-#else
-        typename Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
-            NULL;
-#endif // ACE_WIN32 || ACE_WIN64
-        do
+        switch (mediaFramework_in)
         {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          switch (mediaFramework_in)
+          case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-            {
-              directshow_connection_p =
-                directshow_udp_connection_manager_p->get (listen_address);
-              break;
-            }
-            case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-            {
-              mediafoundation_connection_p =
-                mediafoundation_udp_connection_manager_p->get (listen_address);
-              break;
-            }
-            default:
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                          mediaFramework_in));
-              return;
-            } // end ELSE
-          } // end SWITCH
+            directshow_connection_p =
+              directshow_udp_connection_manager_p->get (listen_address);
+            break;
+          }
+          case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          {
+            mediafoundation_connection_p =
+              mediafoundation_udp_connection_manager_p->get (listen_address);
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                        mediaFramework_in));
+            return;
+          } // end ELSE
+        } // end SWITCH
 #else
-          connection_p = udp_connection_manager_p->get (listen_address);
+        connection_p = udp_connection_manager_p->get (listen_address);
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          switch (mediaFramework_in)
+        switch (mediaFramework_in)
+        {
+          case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
           {
-            case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+            if (directshow_connection_p)
             {
-              if (directshow_connection_p)
-              {
-                directshow_configuration.handle =
-                  reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
-                directshow_connection_p->decrease ();
-                done = true;
-                break;
-              } // end IF
+              directshow_configuration.handle =
+                reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
+              directshow_connection_p->decrease ();
+              done = true;
               break;
-            }
-            case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-            {
-              if (mediafoundation_connection_p)
-              {
-                mediafoundation_configuration.handle =
-                  reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
-                mediafoundation_connection_p->decrease ();
-                done = true;
-                break;
-              } // end IF
-              break;
-            }
-            default:
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                          mediaFramework_in));
-              return;
-            } // end ELSE
-          } // end SWITCH
-          if (done)
+            } // end IF
             break;
+          }
+          case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+          {
+            if (mediafoundation_connection_p)
+            {
+              mediafoundation_configuration.handle =
+                reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
+              mediafoundation_connection_p->decrease ();
+              done = true;
+              break;
+            } // end IF
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                        mediaFramework_in));
+            return;
+          } // end ELSE
+        } // end SWITCH
+        if (done)
+          break;
 #else
-          if (connection_p)
-          {
-            configuration.handle =
-                static_cast<ACE_HANDLE> (connection_p->id ());
-            connection_p->decrease ();
-            break;
-          } // end IF
+        if (connection_p)
+        {
+          configuration.handle =
+              static_cast<ACE_HANDLE> (connection_p->id ());
+          connection_p->decrease ();
+          break;
+        } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
-        } while (COMMON_TIME_NOW < deadline);
-      } // end IF
+      } while (COMMON_TIME_NOW < deadline);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       switch (mediaFramework_in)
       {
@@ -2372,7 +2356,7 @@ clean:
 //    connection_manager_p->abort ();
   } // end IF
   else
-    Common_Tools::dispatchEvents (useReactor_in,
+    Common_Tools::dispatchEvents (false,
                                   group_id);
 
   // wait for connection processing to complete
@@ -2555,8 +2539,6 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = TEST_I_DEFAULT_PORT;
-  bool use_reactor =
-          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -2581,7 +2563,6 @@ ACE_TMAIN (int argc_in,
                             network_interface,
                             use_loopback,
                             listening_port_number,
-                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -2764,8 +2745,7 @@ ACE_TMAIN (int argc_in,
                                                                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
                                                                                 lock_2);
 #else
-  Test_I_Target_SignalHandler_t signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Target_SignalHandler_t signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                                 lock_2);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_Sig_Set signal_set (0);
@@ -2792,7 +2772,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           use_reactor,
+                                           false,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -2815,8 +2795,7 @@ ACE_TMAIN (int argc_in,
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2840,8 +2819,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2901,8 +2879,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -2937,7 +2914,6 @@ continue_:
            network_interface,
            use_loopback,
            listening_port_number,
-           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
@@ -2983,8 +2959,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -3041,8 +3016,7 @@ continue_:
               elapsed_rusage.ru_nivcsw));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

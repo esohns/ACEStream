@@ -405,8 +405,8 @@ continue_:
       message_block_p->release (); message_block_p = NULL;
       return;
     } // end IF
+    ACE_ASSERT (message_block_p->length () == PDUSize_);
   } // end IF
-  ACE_ASSERT (message_block_p->length () == PDUSize_);
 
   int result_2 = inherited::put_next (message_block_p, NULL);
   if (unlikely (result_2 == -1))

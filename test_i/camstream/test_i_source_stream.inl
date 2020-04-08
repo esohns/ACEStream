@@ -35,6 +35,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_defines.h"
+#include "stream_misc_defines.h"
 #include "stream_stat_defines.h"
 #include "stream_vis_defines.h"
 
@@ -1244,40 +1245,60 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
-                            ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                            ConnectorType>::load (Stream_ILayout* layout_inout,
                                                   bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L_Stream_T::load"));
 
   Stream_Module_t* module_p = NULL;
   // *TODO*: remove type inference
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L_Display_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  Test_I_Source_V4L_CamSource_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-#endif // GTK_USE
-#endif // GUI_SUPPORT
-  ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
-                  false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_StatisticReport_Module (this,
                                                              ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L_CamSource_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
+                  TARGET_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
                   false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
+  module_p = NULL;
+#if defined (GUI_SUPPORT)
+#if defined (GTK_USE)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_V4L_Distributor_Module (this,
+                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING)),
+                  false);
+  layout_inout->append (module_p, NULL, 0);
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  branch_p = module_p;
+  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
+  Stream_IDistributorModule* idistributor_p =
+      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+  ACE_ASSERT (idistributor_p);
+  idistributor_p->initialize (inherited::configuration_->configuration_.branches);
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_V4L_Resize_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
+                  false);
+  layout_inout->append (module_p, branch_p, 0);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_V4L_Display_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
+                  false);
+  layout_inout->append (module_p, branch_p, 0);
+  module_p = NULL;
+#endif // GTK_USE
+#endif // GUI_SUPPORT
 
   delete_out = true;
 
