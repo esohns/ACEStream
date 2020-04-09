@@ -296,8 +296,7 @@ next:
     result = inherited::getq (message_block_p,
                               &no_wait);
     if (result >= 0)
-    {
-      ACE_ASSERT (message_block_p);
+    { ACE_ASSERT (message_block_p);
       message_type = message_block_p->msg_type ();
       switch (message_type)
       {

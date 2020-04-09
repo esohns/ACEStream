@@ -52,7 +52,7 @@ class Test_I_Target_TCPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
+                                        struct Common_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
@@ -74,7 +74,7 @@ class Test_I_Target_TCPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
+                                        struct Common_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
@@ -131,7 +131,7 @@ class Test_I_Target_UDPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
+                                        struct Common_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
@@ -153,7 +153,7 @@ class Test_I_Target_UDPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
+                                        struct Common_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data

@@ -43,16 +43,16 @@ class Stream_MessageAllocatorHeapBase_T;
 template <typename MessageType,
           typename SessionMessageType>
 class Test_I_Message_T
- : public Stream_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
+ : public Stream_MessageBase_T<struct Common_AllocatorConfiguration,
                                MessageType,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_Parser_FlexAllocatorConfiguration,
+                                                 struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_T<enum Stream_ControlType,
                                                                          enum Stream_ControlMessageType,
-                                                                         struct Common_Parser_FlexAllocatorConfiguration>,
+                                                                         struct Common_AllocatorConfiguration>,
                                                  Test_I_Message_T<MessageType,
                                                                   SessionMessageType>,
                                                  SessionMessageType>;
@@ -76,7 +76,7 @@ class Test_I_Message_T
   Test_I_Message_T (const Test_I_Message_T&);
 
  private:
-  typedef Stream_MessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
+  typedef Stream_MessageBase_T<struct Common_AllocatorConfiguration,
                                MessageType,
                                Stream_CommandType_t> inherited;
 

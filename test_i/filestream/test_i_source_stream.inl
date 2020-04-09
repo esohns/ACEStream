@@ -93,11 +93,10 @@ template <typename ConnectionManagerType,
 bool
 Test_I_Source_Stream_T<ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
+                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
 #else
-                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
+                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 #endif
-                                                   ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -112,11 +111,10 @@ Test_I_Source_Stream_T<ConnectionManagerType,
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in,
-                              handle_in))
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF

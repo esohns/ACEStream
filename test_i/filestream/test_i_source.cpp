@@ -144,10 +144,6 @@ do_printUsage (const std::string& programName_in)
             << NET_ADDRESS_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -184,7 +180,6 @@ do_processArguments (int argc_in,
                      std::string& hostName_out,
                      bool& logToFile_out,
                      unsigned short& port_out,
-                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -222,8 +217,6 @@ do_processArguments (int argc_in,
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
   port_out = NET_ADDRESS_DEFAULT_PORT;
-  useReactor_out =
-          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -234,7 +227,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:e:f:g::h:lp:rs:tuvx:z:"),
+                              ACE_TEXT ("b:e:f:g::h:lp:s:tuvx:z:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -289,11 +282,6 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> port_out;
-        break;
-      }
-      case 'r':
-      {
-        useReactor_out = true;
         break;
       }
       case 's':
@@ -447,7 +435,6 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFile_in,
          const std::string& hostName_in,
          unsigned short port_in,
-         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
@@ -459,7 +446,6 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  struct Test_I_Source_Configuration configuration;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -471,13 +457,11 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
 
   // step0a: initialize event dispatch
-  if (useReactor_in)
-    configuration.dispatchConfiguration.numberOfReactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       numberOfDispatchThreads_in;
-  else
-    configuration.dispatchConfiguration.numberOfProactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       numberOfDispatchThreads_in;
-  if (!Common_Tools::initializeEventDispatch (configuration.dispatchConfiguration))
+  if (!Common_Tools::initializeEventDispatch (CBData_in.configuration->dispatchConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -485,18 +469,18 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0b: initialize configuration and stream
-  configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
-                                      : NET_TRANSPORTLAYER_TCP);
-  if (useReactor_in)
-    ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_TCPStream_t ());
-  else
+  CBData_in.configuration->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
+                                                 : NET_TRANSPORTLAYER_TCP);
+//  if (useReactor_in)
+//    ACE_NEW_NORETURN (CBData_in.stream,
+//                      Test_I_Source_TCPStream_t ());
+//  else
     ACE_NEW_NORETURN (CBData_in.stream,
                       Test_I_Source_AsynchTCPStream_t ());
-  if (useReactor_in)
-    ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_UDPStream_t ());
-  else
+//  if (useReactor_in)
+//    ACE_NEW_NORETURN (CBData_in.UDPStream,
+//                      Test_I_Source_UDPStream_t ());
+//  else
     ACE_NEW_NORETURN (CBData_in.UDPStream,
                       Test_I_Source_AsynchUDPStream_t ());
   if (!CBData_in.stream || !CBData_in.UDPStream)
@@ -511,8 +495,8 @@ do_work (unsigned int bufferSize_in,
   //  &configuration.streamConfiguration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -527,7 +511,7 @@ do_work (unsigned int bufferSize_in,
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
 
-  CBData_in.configuration = &configuration;
+//  CBData_in.configuration = &configuration;
   Test_I_Source_EventHandler ui_event_handler (&CBData_in);
   Test_I_Stream_Source_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
@@ -573,28 +557,26 @@ do_work (unsigned int bufferSize_in,
 //  connection_configuration.connectionManager = iconnection_manager_p;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
-  connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
-                                       configuration.streamConfiguration);
 
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 &connection_configuration));
+  CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                            &connection_configuration));
 
   Net_ConnectionConfigurationsIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+    CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+    &CBData_in.configuration->streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.connectionManager = iconnection_manager_p;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   modulehandler_configuration.printProgressDot =
     UIDefinitionFile_in.empty ();
   modulehandler_configuration.connectionConfigurations =
-    &configuration.connectionConfigurations;
+    &CBData_in.configuration->connectionConfigurations;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   //modulehandler_configuration.stream =
@@ -609,19 +591,32 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
 
   // ********************* (sub-)stream configuration data *********************
+  struct Common_AllocatorConfiguration allocator_configuration;
+  struct Test_I_Source_StreamConfiguration stream_configuration;
+  Test_I_Source_StreamConfiguration_t stream_configuration_2;
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      bufferSize_in;
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
-    &message_allocator;
-  configuration.streamConfiguration.configuration_.module =
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  stream_configuration.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           modulehandler_configuration,
+                                                           allocator_configuration,
+                                                           stream_configuration);
+
+  stream_configuration.module = NULL;
+  stream_configuration_2.initialize (module_configuration,
+                                     modulehandler_configuration,
+                                     allocator_configuration,
+                                     stream_configuration);
+  connection_configuration.initialize (allocator_configuration,
+                                       stream_configuration_2);
+  //  stream_iterator =
+  //    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+  //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 
   // step0c: initialize connection manager
   struct Net_UserData user_data_s;
@@ -664,13 +659,13 @@ do_work (unsigned int bufferSize_in,
 
   struct Common_EventDispatchState event_dispatch_state_s;
   event_dispatch_state_s.configuration =
-    &configuration.dispatchConfiguration;
+    &CBData_in.configuration->dispatchConfiguration;
 
   // step0e: initialize signal handling
-  configuration.signalHandlerConfiguration.dispatchState =
+  CBData_in.configuration->signalHandlerConfiguration.dispatchState =
     &event_dispatch_state_s;
-  configuration.signalHandlerConfiguration.stream = CBData_in.stream;
-  if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
+  CBData_in.configuration->signalHandlerConfiguration.stream = CBData_in.stream;
+  if (!signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize signal handler, returning\n")));
@@ -679,8 +674,7 @@ do_work (unsigned int bufferSize_in,
     delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
     return;
   } // end IF
-  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                       : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -790,19 +784,19 @@ do_work (unsigned int bufferSize_in,
   {
 #endif // GUI_SUPPORT
     Test_I_StreamBase_t* stream_p =
-      ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
+      ((CBData_in.configuration->protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                           : CBData_in.UDPStream);
     ACE_ASSERT (stream_p);
 
     unsigned int counter = 0;
 loop:
-    if (!stream_p->initialize (configuration.streamConfiguration))
+    if (!stream_p->initialize (CBData_in.configuration->streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
-      Common_Tools::finalizeEventDispatch (useReactor_in,
-                                           !useReactor_in,
-                                           group_id);
+      Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                           event_dispatch_state_s.reactorGroupId,
+                                           true);
       timer_manager_p->stop ();
       delete CBData_in.stream; CBData_in.stream = NULL;
       delete CBData_in.UDPStream; CBData_in.UDPStream = NULL;
@@ -837,13 +831,13 @@ loop:
     // clean up
     iconnection_manager_p->stop ();
     iconnection_manager_p->wait ();
-    Common_Tools::finalizeEventDispatch (useReactor_in,
-                                         !useReactor_in,
-                                         group_id);
+    Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                         event_dispatch_state_s.reactorGroupId,
+                                         true);
 #if defined (GUI_SUPPORT)
   } // end IF
   else
-    Common_Tools::dispatchEvents (useReactor_in,
+    Common_Tools::dispatchEvents (false,
                                   group_id);
 #endif // GUI_SUPPORT
 
@@ -946,8 +940,6 @@ ACE_TMAIN (int argc_in,
   std::string host_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   bool log_to_file = false;
   unsigned short port = NET_ADDRESS_DEFAULT_PORT;
-  bool use_reactor =
-          (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -967,7 +959,6 @@ ACE_TMAIN (int argc_in,
                             host_name,
                             log_to_file,
                             port,
-                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -1032,8 +1023,11 @@ ACE_TMAIN (int argc_in,
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
   ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+  struct Test_I_Source_Configuration configuration;
+
 #if defined (GUI_SUPPORT)
   struct Test_I_Source_UI_CBData ui_cb_data;
+  ui_cb_data.configuration = &configuration;
   ui_cb_data.loop = loop;
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -1100,7 +1094,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           use_reactor,
+                                           false,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1117,16 +1111,14 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  Test_I_Source_SignalHandler signal_handler (((ui_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Source_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                               lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1150,8 +1142,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1185,8 +1176,7 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-      Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                  : COMMON_SIGNAL_DISPATCH_PROACTOR),
+      Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                      signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
@@ -1211,7 +1201,6 @@ ACE_TMAIN (int argc_in,
            gtk_glade_file,
            host_name,
            port,
-           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
@@ -1245,8 +1234,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1303,8 +1291,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif
 
-  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);

@@ -153,7 +153,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_StreamState,
                       struct Test_I_Source_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Common_Parser_FlexAllocatorConfiguration,
+                      struct Common_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_ModuleHandlerConfiguration,
                       struct Test_I_Source_SessionData,
@@ -212,7 +212,7 @@ struct Test_I_Source_Configuration
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_Parser_FlexAllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Test_I_Source_ControlMessage_t,
                                           Test_I_Source_Message_t,
                                           Test_I_Source_SessionMessage> Test_I_Source_MessageAllocator_t;

@@ -44,49 +44,41 @@ class Stream_IAllocator;
 template <typename ConnectionManagerType,
           typename ConnectorType>
 class Test_I_Source_Stream_T
- : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        struct Test_I_Source_StreamState,
-                                        struct Test_I_Source_StreamConfiguration,
-                                        struct Stream_Statistic,
-                                        Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        struct Test_I_Source_ModuleHandlerConfiguration,
-                                        struct Test_I_Source_SessionData, // session data
-                                        Test_I_Source_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Source_ControlMessage_t,
-                                        Test_I_Source_Message_t,
-                                        Test_I_Source_SessionMessage,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Stream_UserData>
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Source_StreamState,
+                        struct Test_I_Source_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Common_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_Source_ModuleHandlerConfiguration,
+                        Test_I_Source_SessionData,
+                        Test_I_Source_SessionData_t,
+                        Test_I_Source_ControlMessage_t,
+                        Test_I_Source_Message_t,
+                        Test_I_Source_SessionMessage>
 {
-  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        Common_TimePolicy_t,
-                                        stream_name_string_,
-                                        enum Stream_ControlType,
-                                        enum Stream_SessionMessageType,
-                                        enum Stream_StateMachine_ControlState,
-                                        struct Test_I_Source_StreamState,
-                                        struct Test_I_Source_StreamConfiguration,
-                                        struct Stream_Statistic,
-                                        Common_Timer_Manager_t,
-                                        struct Common_Parser_FlexAllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
-                                        struct Test_I_Source_ModuleHandlerConfiguration,
-                                        struct Test_I_Source_SessionData, // session data
-                                        Test_I_Source_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Source_ControlMessage_t,
-                                        Test_I_Source_Message_t,
-                                        Test_I_Source_SessionMessage,
-                                        ACE_INET_Addr,
-                                        ConnectionManagerType,
-                                        struct Stream_UserData> inherited;
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Source_StreamState,
+                        struct Test_I_Source_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Common_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_Source_ModuleHandlerConfiguration,
+                        Test_I_Source_SessionData,
+                        Test_I_Source_SessionData_t,
+                        Test_I_Source_ControlMessage_t,
+                        Test_I_Source_Message_t,
+                        Test_I_Source_SessionMessage> inherited;
 
  public:
   Test_I_Source_Stream_T ();
@@ -98,11 +90,10 @@ class Test_I_Source_Stream_T
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&,
+  virtual bool initialize (const CONFIGURATION_T&);
 #else
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&,
-#endif
-                           ACE_HANDLE); // socket handle
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
+#endif // ACE_WIN32 || ACE_WIN64
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_

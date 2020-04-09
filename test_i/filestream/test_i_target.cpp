@@ -145,10 +145,6 @@ do_printUsage (const std::string& programName_in)
             << NET_ADDRESS_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
-            << (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR)
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
@@ -183,7 +179,6 @@ do_processArguments (int argc_in,
                      std::string& netWorkInterface_out,
                      bool& useLoopBack_out,
                      unsigned short& listeningPortNumber_out,
-                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& useUDP_out,
@@ -213,7 +208,6 @@ do_processArguments (int argc_in,
   netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = NET_ADDRESS_DEFAULT_PORT;
-  useReactor_out = (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
@@ -222,7 +216,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:e:f:g::ln:op:rs:tuvx:"),
+                              ACE_TEXT ("b:c:e:f:g::ln:op:s:tuvx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -290,11 +284,6 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> listeningPortNumber_out;
-        break;
-      }
-      case 'r':
-      {
-        useReactor_out = true;
         break;
       }
       case 's':
@@ -442,7 +431,6 @@ do_work (unsigned int bufferSize_in,
          const std::string& networkInterface_in,
          bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
-         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
@@ -457,25 +445,22 @@ do_work (unsigned int bufferSize_in,
   ACE_UNUSED_ARG (networkInterface_in);
 
   int result = -1;
-  struct Test_I_Target_Configuration configuration;
 
   // step0a: initialize configuration
-  if (useReactor_in)
-    CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfReactorThreads =
       numberOfDispatchThreads_in;
-  else
-    CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
+  CBData_in.configuration->dispatchConfiguration.numberOfProactorThreads =
       numberOfDispatchThreads_in;
   //configuration.userData.connectionConfiguration =
   //    &configuration.connectionConfiguration;
   //configuration.userData.streamConfiguration =
   //  &configuration.streamConfiguration;
-  configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
-                                      : NET_TRANSPORTLAYER_TCP);
+  CBData_in.configuration->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
+                                                 : NET_TRANSPORTLAYER_TCP);
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -485,7 +470,7 @@ do_work (unsigned int bufferSize_in,
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
 
-  CBData_in.configuration = &configuration;
+//  CBData_in.configuration = &configuration;
 //  Stream_GTK_CBData* cb_data_base_p = &CBData_in;
 //  cb_data_base_p->configuration = &configuration;
   Test_I_Target_EventHandler ui_event_handler (&CBData_in);
@@ -536,22 +521,24 @@ do_work (unsigned int bufferSize_in,
 //  connection_configuration.connectionManager = connection_manager_p;
   tcp_connection_configuration.messageAllocator = &message_allocator;
   tcp_connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
-  tcp_connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
-                                           configuration.streamConfiguration);
+  tcp_connection_configuration.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
+                                           CBData_in.configuration->streamConfiguration);
 
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("TCP"),
-                                                                 &tcp_connection_configuration));
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("UDP"),
-                                                                 &udp_connection_configuration));
+  CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                            &tcp_connection_configuration));
+  CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("TCP"),
+                                                                            &tcp_connection_configuration));
+  CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("UDP"),
+                                                                            &udp_connection_configuration));
   Net_ConnectionConfigurationsIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("TCP"));
-  ACE_ASSERT (iterator !=configuration.connectionConfigurations.end ());
+    CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("TCP"));
+  ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
   Net_ConnectionConfigurationsIterator_t iterator_2 =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("UDP"));
-  ACE_ASSERT (iterator !=configuration.connectionConfigurations.end ());
+    CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR ("UDP"));
+  ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
   // ********************** module configuration data **************************
@@ -559,7 +546,7 @@ do_work (unsigned int bufferSize_in,
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
 //  modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
-    &configuration.connectionConfigurations;
+    &CBData_in.configuration->connectionConfigurations;
 //  modulehandler_configuration.connectionManager = connection_manager_p;
   modulehandler_configuration.inbound = true;
   modulehandler_configuration.printProgressDot =
@@ -567,7 +554,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
-      &configuration.streamConfiguration;
+      &CBData_in.configuration->streamConfiguration;
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
   modulehandler_configuration.subscriber = &ui_event_handler;
@@ -578,20 +565,25 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
-  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_3 != configuration.streamConfiguration.end ());
+  struct Common_AllocatorConfiguration allocator_configuration;
+  struct Test_I_Target_StreamConfiguration stream_configuration;
+  if (bufferSize_in)
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.cloneModule = true;
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
-  configuration.streamConfiguration.configuration_.module =
-      (!UIDefinitionFile_in.empty () ? &event_handler
-                                     : NULL);
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  stream_configuration.cloneModule = true;
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.module =
+    (!UIDefinitionFile_in.empty () ? &event_handler
+                                   : NULL);
+  stream_configuration.printFinalReport = true;
+  CBData_in.configuration->streamConfiguration.initialize (module_configuration,
+                                                           modulehandler_configuration,
+                                                           allocator_configuration,
+                                                           stream_configuration);
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != CBData_in.configuration->streamConfiguration.end ());
+
   // ********************* listener configuration data ************************
 //  configuration.listenerConfiguration.connectionConfiguration =
 //    dynamic_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second);
@@ -604,9 +596,9 @@ do_work (unsigned int bufferSize_in,
   // step0b: initialize event dispatch
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
   event_dispatch_configuration_s.numberOfProactorThreads =
-    (!useReactor_in ? numberOfDispatchThreads_in : 0);
+    numberOfDispatchThreads_in;
   event_dispatch_configuration_s.numberOfReactorThreads =
-    (useReactor_in ? numberOfDispatchThreads_in : 0);
+    numberOfDispatchThreads_in;
   if (!Common_Tools::initializeEventDispatch (event_dispatch_configuration_s))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -659,10 +651,10 @@ do_work (unsigned int bufferSize_in,
   // step0e: initialize signal handling
   CBData_in.configuration->signalHandlerConfiguration.dispatchState =
     &event_dispatch_state_s;
-  if (useReactor_in)
-    CBData_in.configuration->signalHandlerConfiguration.listener =
-      TEST_I_TARGET_LISTENER_SINGLETON::instance ();
-  else
+//  if (useReactor_in)
+//    CBData_in.configuration->signalHandlerConfiguration.listener =
+//      TEST_I_TARGET_LISTENER_SINGLETON::instance ();
+//  else
     CBData_in.configuration->signalHandlerConfiguration.listener =
       TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
@@ -676,8 +668,7 @@ do_work (unsigned int bufferSize_in,
     timer_manager_p->stop ();
     return;
   } // end IF
-  if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                       : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -779,10 +770,10 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();;
       ACE_ASSERT (iconnection_manager_p);
       Test_I_Target_IUDPConnector_t* connector_p = NULL;
-      if (useReactor_in)
-        ACE_NEW_NORETURN (connector_p,
-                          Test_I_InboundUDPConnector_t (true));
-      else
+//      if (useReactor_in)
+//        ACE_NEW_NORETURN (connector_p,
+//                          Test_I_InboundUDPConnector_t (true));
+//      else
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPAsynchConnector_t (true));
       if (!connector_p)
@@ -790,9 +781,9 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate memory, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -816,9 +807,9 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
 
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -841,10 +832,10 @@ do_work (unsigned int bufferSize_in,
       // connect
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time
-      configuration.handle =
+      CBData_in.configuration->handle =
         connector_p->connect (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress);
-      if (!useReactor_in)
-      {
+//      if (!useReactor_in)
+//      {
         // *TODO*: avoid tight loop here
         ACE_Time_Value timeout (NET_CONNECTION_ASYNCH_DEFAULT_TIMEOUT_S, 0);
         //result = ACE_OS::sleep (timeout);
@@ -864,23 +855,23 @@ do_work (unsigned int bufferSize_in,
             configuration.handle =
               reinterpret_cast<ACE_HANDLE> (connection_p->id ());
 #else
-            configuration.handle =
+            CBData_in.configuration->handle =
               static_cast<ACE_HANDLE> (connection_p->id ());
 #endif
             connection_p->decrease (); connection_p = NULL;
             break;
           } // end IF
         } while (COMMON_TIME_NOW < deadline);
-      } // end IF
-      if (configuration.handle == ACE_INVALID_HANDLE)
+//      } // end IF
+      if (CBData_in.configuration->handle == ACE_INVALID_HANDLE)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (NET_SOCKET_CONFIGURATION_UDP_CAST((*iterator).second)->listenAddress).c_str ())));
 
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -912,9 +903,9 @@ do_work (unsigned int bufferSize_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
 
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -941,9 +932,9 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT ("failed to start listener (port: %u), returning\n"),
                     listeningPortNumber_in));
 
-        Common_Tools::finalizeEventDispatch (useReactor_in,
-                                             !useReactor_in,
-                                             group_id);
+        Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                             event_dispatch_state_s.reactorGroupId,
+                                             true);
         //		{ // synch access
         //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -966,7 +957,7 @@ do_work (unsigned int bufferSize_in,
 
   // *NOTE*: from this point on, clean up any remote connections !
 
-  Common_Tools::dispatchEvents (useReactor_in,
+  Common_Tools::dispatchEvents (false,
                                 group_id);
 
   // clean up
@@ -1062,8 +1053,6 @@ ACE_TMAIN (int argc_in,
   std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = NET_ADDRESS_DEFAULT_PORT;
-  bool use_reactor =
-    (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
@@ -1084,7 +1073,6 @@ ACE_TMAIN (int argc_in,
                             network_interface,
                             use_loopback,
                             listening_port_number,
-                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
                             use_UDP,
@@ -1158,6 +1146,7 @@ ACE_TMAIN (int argc_in,
   Common_MessageStack_t* logstack_p = NULL;
   ACE_SYNCH_MUTEX* lock_p = NULL;
   ACE_SYNCH_RECURSIVE_MUTEX* lock_2 = NULL;
+  struct Test_I_Target_Configuration configuration;
 #if defined (GUI_SUPPORT)
 //  struct Common_UI_CBData* ui_cb_data_p = NULL;
 #if defined (GTK_USE)
@@ -1171,6 +1160,7 @@ ACE_TMAIN (int argc_in,
   lock_2 = &state_r.subscribersLock;
 #endif // GTK_USE
   struct Test_I_Target_UI_CBData ui_cb_data;
+  ui_cb_data.configuration = &configuration;
   //ui_cb_data.progressData.state = &ui_cb_data;
 #endif // GUI_SUPPORT
 
@@ -1229,7 +1219,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Signal_Tools::preInitialize (signal_set,
-                                           use_reactor,
+                                           false,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1246,16 +1236,14 @@ ACE_TMAIN (int argc_in,
 #endif
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler (((ui_cb_data.configuration->dispatchConfiguration.numberOfReactorThreads > 0) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Stream_Target_SignalHandler signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                               lock_2);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1279,8 +1267,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1316,8 +1303,7 @@ ACE_TMAIN (int argc_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager_T::initialize(), aborting\n")));
 
-      Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                  : COMMON_SIGNAL_DISPATCH_PROACTOR),
+      Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                      signal_set,
                                      previous_signal_actions,
                                      previous_signal_mask);
@@ -1344,7 +1330,6 @@ ACE_TMAIN (int argc_in,
            network_interface,
            use_loopback,
            listening_port_number,
-           use_reactor,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
@@ -1378,8 +1363,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
 
-    Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                : COMMON_SIGNAL_DISPATCH_PROACTOR),
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    signal_set,
                                    previous_signal_actions,
                                    previous_signal_mask);
@@ -1436,8 +1420,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #endif
 
-  Common_Signal_Tools::finalize ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                              : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                  signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
