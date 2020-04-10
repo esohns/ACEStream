@@ -202,7 +202,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                         O_TRUNC |
                         O_WRONLY);
 
-      int result =
+      result =
         path_.set (ACE_TEXT (session_data_r.targetFileName.c_str ()));
       if (unlikely (result == -1))
       {

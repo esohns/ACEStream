@@ -42,13 +42,12 @@ Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
 }
 
 bool
-Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
+Stream_Filecopy_Stream::load (Stream_ILayout* layout_inout,
                               bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::load"));
 
   // initialize return value(s)
-  modules_out.clear ();
   delete_out = false;
 
   Stream_Module_t* module_p = NULL;
@@ -56,19 +55,19 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
                   Stream_Filecopy_FileReader_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR ("FileReader")),
                   false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_StatisticReport_Module (this,
                                                           ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_FileWriter_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
                   false);
-  modules_out.push_back (module_p);
+  layout_inout->append (module_p, NULL, 0);
 
   delete_out = true;
 
@@ -120,6 +119,7 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   session_data_p->fileName = (*iterator).second.second.fileIdentifier.identifier;
   session_data_p->size =
     Common_File_Tools::size ((*iterator).second.second.fileIdentifier.identifier);
+  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
 
   // ---------------------------------------------------------------------------
 

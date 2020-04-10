@@ -430,6 +430,7 @@ do_work (unsigned int bufferSize_in,
                                                         true);               // block ?
   // ********************** module configuration data **************************
   struct Stream_Filecopy_ModuleHandlerConfiguration moduleheandler_configuration;
+  moduleheandler_configuration.allocatorConfiguration = &allocator_configuration;
   if (!UIDefinitionFile_in.empty ())
     moduleheandler_configuration.concurrency =
         STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -447,12 +448,11 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
-  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
-  CBData_in.configuration->streamConfiguration.configuration_.module =
+  struct Stream_Configuration stream_configuration;
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  struct Stream_Configuration stream_configuration;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            moduleheandler_configuration,
                                                            allocator_configuration,

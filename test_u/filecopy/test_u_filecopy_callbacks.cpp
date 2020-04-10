@@ -670,8 +670,8 @@ idle_update_info_display_cb (gpointer userData_in)
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
     for (Common_UI_Events_t::ITERATOR iterator_2 (state_r.eventStack);
-         !iterator_2.done ();
-         iterator_2.next (event_p))
+         iterator_2.next (event_p);
+         iterator_2.advance ())
     { ACE_ASSERT (event_p);
       switch (*event_p)
       {
@@ -804,11 +804,13 @@ idle_update_progress_cb (gpointer userData_in)
 #endif
     } // end IF
 
-    Common_UI_GTK_PendingActionsIterator_t iterator_3 =
-        data_p->pendingActions.find (*iterator_2);
-    ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
-    state_r.eventSourceIds.erase ((*iterator_3).first);
-    data_p->pendingActions.erase (iterator_3);
+//    Common_UI_GTK_PendingActionsIterator_t iterator_3 =
+//        data_p->pendingActions.find (*iterator_2);
+//    ACE_ASSERT (iterator_3 != data_p->pendingActions.end ());
+//    state_r.eventSourceIds.erase ((*iterator_3).first);
+//    data_p->pendingActions.erase (iterator_3);
+    state_r.eventSourceIds.clear ();
+    data_p->pendingActions.clear ();
   } // end FOR
   data_p->completedActions.clear ();
 
