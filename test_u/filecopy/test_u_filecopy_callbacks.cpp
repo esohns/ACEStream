@@ -786,9 +786,15 @@ idle_update_progress_cb (gpointer userData_in)
   {
     result = thread_manager_p->join (*iterator_2, &exit_status);
     if (result == -1)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
                   *iterator_2));
+#else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
+                  *iterator_2));
+#endif // ACE_WIN32 || ACE_WIN64
     else if (exit_status)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -801,7 +807,7 @@ idle_update_progress_cb (gpointer userData_in)
                   ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
                   *iterator_2,
                   exit_status));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
 //    Common_UI_GTK_PendingActionsIterator_t iterator_3 =
