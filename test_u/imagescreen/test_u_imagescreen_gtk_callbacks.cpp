@@ -141,7 +141,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_ADAPTER_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_ADAPTER_NAME)));
   ACE_ASSERT (list_store_p);
   if (!load_display_adapters (list_store_p))
   {
@@ -153,7 +153,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                         1, GTK_SORT_DESCENDING);
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
@@ -173,7 +173,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
   if (!load_display_devices (list_store_p))
   {
@@ -185,7 +185,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                         1, GTK_SORT_DESCENDING);
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -290,7 +290,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -607,7 +607,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_4;
   gboolean result = gtk_combo_box_get_active_iter (combo_box_p,
@@ -615,7 +615,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (result);
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -890,7 +890,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (result);
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
@@ -913,7 +913,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   // select corresponding adapter
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
   struct Common_UI_DisplayAdapter display_adapter_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

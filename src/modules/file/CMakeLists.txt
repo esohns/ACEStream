@@ -15,7 +15,7 @@ add_library (${PROJECT_NAME}_File STATIC "")
 if (UNIX)
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_File PUBLIC
-                              $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+                              "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
  endif (IMAGEMAGICK_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_File PUBLIC
@@ -31,17 +31,6 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_File PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/timer>)
 elseif (WIN32)
-# if (DEFINED ENV{DXSDK_DIR})
-#  target_include_directories (${PROJECT_NAME}_File PUBLIC
-#                              $<BUILD_INTERFACE:$ENV{DXSDK_DIR}/Include>)
-# else ()
-#  set (DXSDK_DIR
-#       "$ENV{PROGRAMFILES}/Microsoft DirectX SDK (June 2010)/Include")
-# message (STATUS "DirectX SDK directory: \"${DXSDK_DIR}\"")
-#  target_include_directories (${PROJECT_NAME}_File PUBLIC
-#                              $<BUILD_INTERFACE:${DXSDK_DIR}>)
-# endif (DEFINED ENV{DXSDK_DIR})
-
  if (IMAGEMAGICK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_File PUBLIC
                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ImageMagick/include>)
@@ -74,7 +63,6 @@ target_include_directories (${PROJECT_NAME}_File PUBLIC
 ############## next target ################
 set (source_files
      stream_file_defines.h
-#     stream_file_exports.h
      stream_file_source.cpp
      stream_file_source.h
      stream_file_source.inl

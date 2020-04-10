@@ -78,7 +78,7 @@ if (UNIX)
 # target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 #                             $<BUILD_INTERFACE:${PKG_OPENGL_GLUT_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:$ENV{LIB_ROOT}/ACE_TAO/ACE>)

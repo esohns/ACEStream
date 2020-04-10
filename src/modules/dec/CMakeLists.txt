@@ -78,7 +78,9 @@ if (UNIX)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_FFMPEG_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                             $<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>)
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${ImageMagick_INCLUDE_DIRS}>")
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              $<BUILD_INTERFACE:${PKG_OPENCV_INCLUDE_DIRS}>)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -183,7 +185,8 @@ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../vis>)
 
-#message (STATUS "INTERFACE_INCLUDE_DIRECTORIES=${INTERFACE_INCLUDE_DIRECTORIES}")
+#get_target_property (debug ${PROJECT_NAME}_Decoder INTERFACE_INCLUDE_DIRECTORIES)
+#message ("INTERFACE_INCLUDE_DIRECTORIES=${debug}")
 
 ############## next target ################
 set (source_files
