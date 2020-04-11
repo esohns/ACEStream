@@ -28,7 +28,7 @@ extern "C"
 
 #include "ace/Log_Msg.h"
 
-#include "common_defines.h"
+#include "common_parser_defines.h"
 
 #include "stream_macros.h"
 

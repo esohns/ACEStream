@@ -21,14 +21,6 @@
 #ifndef STREAM_VISUALIZATION_COMMON_H
 #define STREAM_VISUALIZATION_COMMON_H
 
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-#include <deque>
-#endif // GTKGL_SUPPORT
-
-#include "gtk/gtk.h"
-#endif // GTK_SUPPORT
-
 #include "ace/config-lite.h"
 
 enum Stream_Visualization_Framework
@@ -38,7 +30,12 @@ enum Stream_Visualization_Framework
   STREAM_VISUALIZATION_FRAMEWORK_DIRECTSHOW,
   STREAM_VISUALIZATION_FRAMEWORK_GDI,
   STREAM_VISUALIZATION_FRAMEWORK_MEDIAFOUNDATION,
+#else
+  STREAM_VISUALIZATION_FRAMEWORK_X11,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
+  STREAM_VISUALIZATION_FRAMEWORK_GTK,
+#endif // GTK_SUPPORT
   ////////////////////////////////////////
   STREAM_VISUALIZATION_FRAMEWORK_MAX,
   STREAM_VISUALIZATION_FRAMEWORK_INVALID
@@ -92,35 +89,5 @@ enum Stream_Visualization_SpectrumAnalyzer_3DMode
   STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_MAX,
   STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID
 };
-
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
-enum Stream_Visualization_OpenGL_InstructionType
-{
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_BG,
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_SET_COLOR_FG,
-  ////////////////////////////////////////
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_MAX,
-  STREAM_VISUALIZATION_OPENGL_INSTRUCTION_INVALID
-};
-struct Stream_Visualization_OpenGL_Instruction
-{
-  Stream_Visualization_OpenGL_Instruction ()
-   : type (STREAM_VISUALIZATION_OPENGL_INSTRUCTION_INVALID)
-  {}
-
-  enum Stream_Visualization_OpenGL_InstructionType type;
-  union {
-#if GTK_CHECK_VERSION(3,0,0)
-    struct _GdkRGBA                                color;
-#else
-    GdkColor                                       color;
-#endif // GTK_CHECK_VERSION(3,0,0)
-  };
-};
-typedef std::deque<struct Stream_Visualization_OpenGL_Instruction> Stream_Visualization_OpenGL_Instructions_t;
-typedef Stream_Visualization_OpenGL_Instructions_t::const_iterator Stream_Visualization_OpenGL_InstructionsIterator_t;
-#endif // GTKGL_SUPPORT
-#endif // GTK_SUPPORT
 
 #endif

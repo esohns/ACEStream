@@ -20,7 +20,7 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 
 //#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)

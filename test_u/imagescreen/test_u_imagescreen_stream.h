@@ -21,17 +21,17 @@
 #ifndef TEST_U_IMAGESCREEN_STREAM_H
 #define TEST_U_IMAGESCREEN_STREAM_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-#include <minwindef.h>
-#else
-#include <windef.h>
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#include <winnt.h>
-#include <guiddef.h>
-#include <mfidl.h>
-#include <mfobjects.h>
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+//#include <minwindef.h>
+//#else
+//#include <windef.h>
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+//#include <winnt.h>
+//#include <guiddef.h>
+//#include <mfidl.h>
+//#include <mfobjects.h>
+//#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -105,7 +105,6 @@ class Stream_ImageScreen_Stream
 
   // modules
   Stream_ImageScreen_Source_Module  source_;
-//  Stream_ImageScreen_StatisticReport_Module statisticReport_;
   Stream_ImageScreen_Resize_Module  resize_; // --> window size/fullscreen
   Stream_ImageScreen_Convert_Module convert_; // RGB32 --> BGR32
   Stream_ImageScreen_Delay_Module   delay_;

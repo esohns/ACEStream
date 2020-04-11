@@ -55,6 +55,21 @@ file(INSTALL DESTINATION "/usr/local/include/ACEStream" TYPE FILE FILES
     )
 endif()
 
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xmod_includex" OR NOT CMAKE_INSTALL_COMPONENT)
+  list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
+   "/usr/local/include/ACEStream/stream_file_imagemagick_source.h;/usr/local/include/ACEStream/stream_file_imagemagick_source.inl")
+  if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+  if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+file(INSTALL DESTINATION "/usr/local/include/ACEStream" TYPE FILE FILES
+    "/mnt/win_d/projects/ACEStream/src/modules/file/stream_file_imagemagick_source.h"
+    "/mnt/win_d/projects/ACEStream/src/modules/file/stream_file_imagemagick_source.inl"
+    )
+endif()
+
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xmod_libx" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
    "/usr/local/lib/libACEStream_File.a")

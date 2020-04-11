@@ -14,8 +14,8 @@
 # EXTERNAL cache entries
 ########################
 
-//The directory containing a CMake configuration file for ACENetwork.
-ACENetwork_DIR:PATH=/mnt/win_d/projects/ACENetwork/cmake
+//No help, variable specified on the command line.
+ACENetwork_DIR:PATH=/mnt/win_d/projects/ACENetwork/clang
 
 //Value Computed by CMake
 ACEStream_BINARY_DIR:STATIC=/mnt/win_d/projects/ACEStream/clang
@@ -27,7 +27,7 @@ ACEStream_DIR:PATH=/mnt/win_d/projects/ACEStream/clang
 ACEStream_Database_LIB_DEPENDS:STATIC=general;Common;general;ACEStream;
 
 //Dependencies for the target
-ACEStream_Decoder_LIB_DEPENDS:STATIC=general;asound;general;sox;general;avcodec;general;avutil;general;avformat;general;swscale;general;Common;general;ACEStream;
+ACEStream_Decoder_LIB_DEPENDS:STATIC=general;asound;general;sox;general;avcodec;general;avutil;general;avformat;general;swscale;general;/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;general;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;general;Common;general;ACEStream;
 
 //Dependencies for the target
 ACEStream_Device_LIB_DEPENDS:STATIC=general;asound;general;v4l2;general;ACEStream_Decoder;
@@ -36,7 +36,7 @@ ACEStream_Device_LIB_DEPENDS:STATIC=general;asound;general;v4l2;general;ACEStrea
 ACEStream_Document_LIB_DEPENDS:STATIC=general;Common;general;ACEStream;
 
 //Dependencies for the target
-ACEStream_File_LIB_DEPENDS:STATIC=general;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;general;Common;general;ACEStream;
+ACEStream_File_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;general;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;general;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;general;Common;general;ACEStream;
 
 //Dependencies for the target
 ACEStream_HTML_LIB_DEPENDS:STATIC=general;Common;general;ACEStream;
@@ -69,7 +69,7 @@ ACEStream_Test_I_LIB_DEPENDS:STATIC=general;gmodule-2.0;general;gthread-2.0;gene
 ACEStream_Test_U_LIB_DEPENDS:STATIC=general;gmodule-2.0;general;gthread-2.0;general;gtk-x11-2.0;general;gdk-x11-2.0;general;pangocairo-1.0;general;atk-1.0;general;cairo;general;gdk_pixbuf-2.0;general;gio-2.0;general;pangoft2-1.0;general;pango-1.0;general;gobject-2.0;general;glib-2.0;general;fontconfig;general;freetype;general;X11;general;GL;general;/media/erik/USB_BLACK/lib/gtkglarea/gtkgl/.libs/libgtkgl-2.0.a;general;GL;general;CommonUI_GTK;general;CommonUI;general;Common;
 
 //Dependencies for the target
-ACEStream_Visualization_LIB_DEPENDS:STATIC=general;gmodule-2.0;general;gthread-2.0;general;gtk-x11-2.0;general;gdk-x11-2.0;general;pangocairo-1.0;general;atk-1.0;general;cairo;general;gdk_pixbuf-2.0;general;gio-2.0;general;pangoft2-1.0;general;pango-1.0;general;gobject-2.0;general;glib-2.0;general;fontconfig;general;freetype;general;sox;general;swscale;general;avcodec;general;avutil;general;/usr/lib/x86_64-linux-gnu/libglut.so.3;general;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;general;Common;general;CommonOpenGL;general;ACEStream;
+ACEStream_Visualization_LIB_DEPENDS:STATIC=general;gmodule-2.0;general;gthread-2.0;general;gtk-x11-2.0;general;gdk-x11-2.0;general;pangocairo-1.0;general;atk-1.0;general;cairo;general;gdk_pixbuf-2.0;general;gio-2.0;general;pangoft2-1.0;general;pango-1.0;general;gobject-2.0;general;glib-2.0;general;fontconfig;general;freetype;general;sox;general;swscale;general;avcodec;general;avutil;general;/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;general;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;general;/usr/lib/x86_64-linux-gnu/libglut.so.3;general;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;general;Common;general;CommonOpenGL;general;ACEStream;
 
 //searching for libACE.so (system paths)
 ACE_LIBRARY:FILEPATH=/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so
@@ -434,8 +434,8 @@ CURSES_NCURSES_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libncurses.so
 //curses support
 CURSES_SUPPORT:BOOL=ON
 
-//The directory containing a CMake configuration file for Common.
-Common_DIR:PATH=/mnt/win_d/projects/Common/cmake
+//No help, variable specified on the command line.
+Common_DIR:PATH=/mnt/win_d/projects/Common/clang
 
 //in debugger
 DEBUG_DEBUGGER:BOOL=TRUE
@@ -464,6 +464,9 @@ GTK2_SUPPORT:BOOL=ON
 //use GTK2
 GTK2_USE:STRING=ON
 
+//GTK3 support
+GTK3_SUPPORT:BOOL=ON
+
 //enable GTK GL support
 GTKGLAREA_SUPPORT:BOOL=ON
 
@@ -479,11 +482,11 @@ GTK_SUPPORT:BOOL=ON
 //use GTK
 GTK_USE:STRING=ON
 
-//use GTK3 (default)
-GTK_VERSION:STRING=gtk3
+//No help, variable specified on the command line.
+GTK_VERSION:STRING=gtk2
 
 //Updating GTK Version Option
-GTK_VERSION_LAST:STRING=gtk3
+GTK_VERSION_LAST:STRING=gtk2
 
 //Path to a library.
 GTK_Xi_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libXi.so
@@ -521,8 +524,26 @@ GTK_gtkgl_LIBRARY:FILEPATH=GTK_gtkgl_LIBRARY-NOTFOUND
 //enable graphical user interface support
 GUI_SUPPORT:BOOL=ON
 
+//Path to the ImageMagick binary directory.
+IMAGEMAGICK_BINARY_PATH:PATH=ImageMagick_EXECUTABLE_DIR-NOTFOUND
+
+//Path to ImageMagick's composite executable.
+IMAGEMAGICK_COMPOSITE_EXECUTABLE:FILEPATH=
+
+//Path to ImageMagick's convert executable.
+IMAGEMAGICK_CONVERT_EXECUTABLE:FILEPATH=
+
+//Path to ImageMagick's import executable.
+IMAGEMAGICK_IMPORT_EXECUTABLE:FILEPATH=
+
+//Path to ImageMagick's mogrify executable.
+IMAGEMAGICK_MOGRIFY_EXECUTABLE:FILEPATH=
+
+//Path to ImageMagick's montage executable.
+IMAGEMAGICK_MONTAGE_EXECUTABLE:FILEPATH=
+
 //support ImageMagick
-IMAGEMAGICK_SUPPORT:BOOL=OFF
+IMAGEMAGICK_SUPPORT:BOOL=ON
 
 //Installation directory for executables
 INSTALL_BIN_DIR:PATH=bin
@@ -535,6 +556,27 @@ INSTALL_INCLUDE_DIR:PATH=include
 
 //Installation directory for libraries
 INSTALL_LIB_DIR:PATH=lib
+
+//Path to the ImageMagick binary directory.
+ImageMagick_EXECUTABLE_DIR:PATH=ImageMagick_EXECUTABLE_DIR-NOTFOUND
+
+//Path to the ImageMagick arch-specific include dir.
+ImageMagick_MagickCore_ARCH_INCLUDE_DIR:PATH=/usr/include/x86_64-linux-gnu/ImageMagick-6
+
+//Path to the ImageMagick arch-independent include dir.
+ImageMagick_MagickCore_INCLUDE_DIR:PATH=/usr/include/ImageMagick-6
+
+//Path to the ImageMagick Magick++ library.
+ImageMagick_MagickCore_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so
+
+//Path to the ImageMagick arch-specific include dir.
+ImageMagick_MagickWand_ARCH_INCLUDE_DIR:PATH=/usr/include/x86_64-linux-gnu/ImageMagick-6
+
+//Path to the ImageMagick arch-independent include dir.
+ImageMagick_MagickWand_INCLUDE_DIR:PATH=/usr/include/ImageMagick-6
+
+//Path to the ImageMagick Magick++ library.
+ImageMagick_MagickWand_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so
 
 //use libglade
 LIBGLADE_USE:BOOL=OFF
@@ -549,7 +591,7 @@ MPG123_SUPPORT:BOOL=ON
 OPENCV_SUPPORT:BOOL=OFF
 
 //Path to a file.
-OPENGL_EGL_INCLUDE_DIR:PATH=OPENGL_EGL_INCLUDE_DIR-NOTFOUND
+OPENGL_EGL_INCLUDE_DIR:PATH=/usr/include
 
 //Path to a file.
 OPENGL_GLX_INCLUDE_DIR:PATH=/usr/include
@@ -642,6 +684,15 @@ ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
 ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
 
 //Path to a library.
+pkgcfg_lib_PC_MagickCore_MagickCore-6.Q16:FILEPATH=/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so
+
+//Path to a library.
+pkgcfg_lib_PC_MagickWand_MagickCore-6.Q16:FILEPATH=/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so
+
+//Path to a library.
+pkgcfg_lib_PC_MagickWand_MagickWand-6.Q16:FILEPATH=/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so
+
+//Path to a library.
 pkgcfg_lib_PKG_ALSA_asound:FILEPATH=/usr/lib/x86_64-linux-gnu/libasound.so
 
 //Path to a library.
@@ -703,6 +754,39 @@ pkgcfg_lib_PKG_GTK_2_pangocairo-1.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libpangoc
 
 //Path to a library.
 pkgcfg_lib_PKG_GTK_2_pangoft2-1.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_atk-1.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libatk-1.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_cairo:FILEPATH=/usr/lib/x86_64-linux-gnu/libcairo.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_cairo-gobject:FILEPATH=/usr/lib/x86_64-linux-gnu/libcairo-gobject.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_gdk-3:FILEPATH=/usr/lib/x86_64-linux-gnu/libgdk-3.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_gdk_pixbuf-2.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_gio-2.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libgio-2.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_glib-2.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libglib-2.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_gobject-2.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libgobject-2.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_gtk-3:FILEPATH=/usr/lib/x86_64-linux-gnu/libgtk-3.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_pango-1.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libpango-1.0.so
+
+//Path to a library.
+pkgcfg_lib_PKG_GTK_3_pangocairo-1.0:FILEPATH=/usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so
 
 //Path to a library.
 pkgcfg_lib_PKG_LIBALSA_asound:FILEPATH=/usr/lib/x86_64-linux-gnu/libasound.so
@@ -884,7 +968,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=30
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=31
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -977,6 +1061,8 @@ COTIREMSG_filecopy:INTERNAL=CXX target filecopy cotired without unity build.
 COTIREMSG_imagescreen:INTERNAL=CXX target imagescreen cotired without unity build.
 //mp3player cotire message.
 COTIREMSG_mp3player:INTERNAL=CXX target mp3player cotired without unity build.
+//parser cotire message.
+COTIREMSG_parser:INTERNAL=CXX target parser cotired without unity build.
 //ADVANCED property for variable: CPACK_BINARY_DEB
 CPACK_BINARY_DEB-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CPACK_BINARY_FREEBSD
@@ -1019,6 +1105,8 @@ CURSES_INCLUDE_PATH-ADVANCED:INTERNAL=1
 CURSES_NCURSES_LIBRARY-ADVANCED:INTERNAL=1
 //Details about finding Curses
 FIND_PACKAGE_MESSAGE_DETAILS_Curses:INTERNAL=[/usr/lib/x86_64-linux-gnu/libcurses.so][/usr/include][v()]
+//Details about finding ImageMagick
+FIND_PACKAGE_MESSAGE_DETAILS_ImageMagick:INTERNAL=[/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so][/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so][v()]
 //Details about finding OpenGL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libOpenGL.so][/usr/lib/x86_64-linux-gnu/libGLX.so][/usr/include][cfound components:  OpenGL ][v()]
 //Details about finding OpenSSL
@@ -1065,6 +1153,18 @@ GTK_gtk_LIBRARY-ADVANCED:INTERNAL=1
 GTK_gtkgl_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: GTK_gtkgl_LIBRARY
 GTK_gtkgl_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_BINARY_PATH
+IMAGEMAGICK_BINARY_PATH-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_COMPOSITE_EXECUTABLE
+IMAGEMAGICK_COMPOSITE_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_CONVERT_EXECUTABLE
+IMAGEMAGICK_CONVERT_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_IMPORT_EXECUTABLE
+IMAGEMAGICK_IMPORT_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_MOGRIFY_EXECUTABLE
+IMAGEMAGICK_MOGRIFY_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: IMAGEMAGICK_MONTAGE_EXECUTABLE
+IMAGEMAGICK_MONTAGE_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OPENGL_EGL_INCLUDE_DIR
 OPENGL_EGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OPENGL_GLX_INCLUDE_DIR
@@ -1087,6 +1187,74 @@ OPENSSL_CRYPTO_LIBRARY-ADVANCED:INTERNAL=1
 OPENSSL_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OPENSSL_SSL_LIBRARY
 OPENSSL_SSL_LIBRARY-ADVANCED:INTERNAL=1
+PC_MagickCore_CFLAGS:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6
+PC_MagickCore_CFLAGS_I:INTERNAL=
+PC_MagickCore_CFLAGS_OTHER:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16
+PC_MagickCore_FOUND:INTERNAL=1
+PC_MagickCore_INCLUDEDIR:INTERNAL=/usr/include/ImageMagick-6
+PC_MagickCore_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6
+PC_MagickCore_LDFLAGS:INTERNAL=-lMagickCore-6.Q16
+PC_MagickCore_LDFLAGS_OTHER:INTERNAL=
+PC_MagickCore_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+PC_MagickCore_LIBRARIES:INTERNAL=MagickCore-6.Q16
+PC_MagickCore_LIBRARY_DIRS:INTERNAL=
+PC_MagickCore_LIBS:INTERNAL=
+PC_MagickCore_LIBS_L:INTERNAL=
+PC_MagickCore_LIBS_OTHER:INTERNAL=
+PC_MagickCore_LIBS_PATHS:INTERNAL=
+PC_MagickCore_MagickCore_INCLUDEDIR:INTERNAL=
+PC_MagickCore_MagickCore_LIBDIR:INTERNAL=
+PC_MagickCore_MagickCore_PREFIX:INTERNAL=
+PC_MagickCore_MagickCore_VERSION:INTERNAL=
+PC_MagickCore_PREFIX:INTERNAL=/usr
+PC_MagickCore_STATIC_CFLAGS:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6
+PC_MagickCore_STATIC_CFLAGS_I:INTERNAL=
+PC_MagickCore_STATIC_CFLAGS_OTHER:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16
+PC_MagickCore_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6
+PC_MagickCore_STATIC_LDFLAGS:INTERNAL=-lMagickCore-6.Q16;-llcms2;-lfreetype;-llqr-1;-lglib-2.0;-lfftw3;-lxml2;-lfontconfig;-lfreetype;-lXext;-lSM;-lICE;-lX11;-lXt;-llzma;-lbz2;-lz;-lltdl;-lm;-lgomp;-lm
+PC_MagickCore_STATIC_LDFLAGS_OTHER:INTERNAL=
+PC_MagickCore_STATIC_LIBDIR:INTERNAL=
+PC_MagickCore_STATIC_LIBRARIES:INTERNAL=MagickCore-6.Q16;lcms2;freetype;lqr-1;glib-2.0;fftw3;xml2;fontconfig;freetype;Xext;SM;ICE;X11;Xt;lzma;bz2;z;ltdl;m;gomp;m
+PC_MagickCore_STATIC_LIBRARY_DIRS:INTERNAL=
+PC_MagickCore_STATIC_LIBS:INTERNAL=
+PC_MagickCore_STATIC_LIBS_L:INTERNAL=
+PC_MagickCore_STATIC_LIBS_OTHER:INTERNAL=
+PC_MagickCore_STATIC_LIBS_PATHS:INTERNAL=
+PC_MagickCore_VERSION:INTERNAL=6.9.10
+PC_MagickWand_CFLAGS:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6
+PC_MagickWand_CFLAGS_I:INTERNAL=
+PC_MagickWand_CFLAGS_OTHER:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16
+PC_MagickWand_FOUND:INTERNAL=1
+PC_MagickWand_INCLUDEDIR:INTERNAL=/usr/include/ImageMagick-6
+PC_MagickWand_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6;/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6
+PC_MagickWand_LDFLAGS:INTERNAL=-lMagickWand-6.Q16;-lMagickCore-6.Q16
+PC_MagickWand_LDFLAGS_OTHER:INTERNAL=
+PC_MagickWand_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+PC_MagickWand_LIBRARIES:INTERNAL=MagickWand-6.Q16;MagickCore-6.Q16
+PC_MagickWand_LIBRARY_DIRS:INTERNAL=
+PC_MagickWand_LIBS:INTERNAL=
+PC_MagickWand_LIBS_L:INTERNAL=
+PC_MagickWand_LIBS_OTHER:INTERNAL=
+PC_MagickWand_LIBS_PATHS:INTERNAL=
+PC_MagickWand_MagickWand_INCLUDEDIR:INTERNAL=
+PC_MagickWand_MagickWand_LIBDIR:INTERNAL=
+PC_MagickWand_MagickWand_PREFIX:INTERNAL=
+PC_MagickWand_MagickWand_VERSION:INTERNAL=
+PC_MagickWand_PREFIX:INTERNAL=/usr
+PC_MagickWand_STATIC_CFLAGS:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6;-I/usr/include/x86_64-linux-gnu//ImageMagick-6;-I/usr/include/ImageMagick-6
+PC_MagickWand_STATIC_CFLAGS_I:INTERNAL=
+PC_MagickWand_STATIC_CFLAGS_OTHER:INTERNAL=-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16;-fopenmp;-DMAGICKCORE_HDRI_ENABLE=0;-DMAGICKCORE_QUANTUM_DEPTH=16
+PC_MagickWand_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6;/usr/include/x86_64-linux-gnu//ImageMagick-6;/usr/include/ImageMagick-6
+PC_MagickWand_STATIC_LDFLAGS:INTERNAL=-lMagickWand-6.Q16;-llcms2;-lfreetype;-llqr-1;-lglib-2.0;-lfftw3;-lxml2;-lfontconfig;-lfreetype;-lXext;-lSM;-lICE;-lX11;-lXt;-llzma;-lbz2;-lz;-lltdl;-lm;-lgomp;-lm;-lMagickCore-6.Q16;-llcms2;-lfreetype;-llqr-1;-lglib-2.0;-lfftw3;-lxml2;-lfontconfig;-lfreetype;-lXext;-lSM;-lICE;-lX11;-lXt;-llzma;-lbz2;-lz;-lltdl;-lm;-lgomp;-lm
+PC_MagickWand_STATIC_LDFLAGS_OTHER:INTERNAL=
+PC_MagickWand_STATIC_LIBDIR:INTERNAL=
+PC_MagickWand_STATIC_LIBRARIES:INTERNAL=MagickWand-6.Q16;lcms2;freetype;lqr-1;glib-2.0;fftw3;xml2;fontconfig;freetype;Xext;SM;ICE;X11;Xt;lzma;bz2;z;ltdl;m;gomp;m;MagickCore-6.Q16;lcms2;freetype;lqr-1;glib-2.0;fftw3;xml2;fontconfig;freetype;Xext;SM;ICE;X11;Xt;lzma;bz2;z;ltdl;m;gomp;m
+PC_MagickWand_STATIC_LIBRARY_DIRS:INTERNAL=
+PC_MagickWand_STATIC_LIBS:INTERNAL=
+PC_MagickWand_STATIC_LIBS_L:INTERNAL=
+PC_MagickWand_STATIC_LIBS_OTHER:INTERNAL=
+PC_MagickWand_STATIC_LIBS_PATHS:INTERNAL=
+PC_MagickWand_VERSION:INTERNAL=6.9.10
 PKG_ALSA_CFLAGS:INTERNAL=
 PKG_ALSA_CFLAGS_I:INTERNAL=
 PKG_ALSA_CFLAGS_OTHER:INTERNAL=
@@ -1293,26 +1461,36 @@ PKG_GTK_2_gtk+-2.0_INCLUDEDIR:INTERNAL=/usr/include
 PKG_GTK_2_gtk+-2.0_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
 PKG_GTK_2_gtk+-2.0_PREFIX:INTERNAL=/usr
 PKG_GTK_2_gtk+-2.0_VERSION:INTERNAL=2.24.32
-PKG_GTK_3_CFLAGS:INTERNAL=
+PKG_GTK_3_CFLAGS:INTERNAL=-pthread;-I/usr/include/gtk-3.0;-I/usr/include/at-spi2-atk/2.0;-I/usr/include/at-spi-2.0;-I/usr/include/dbus-1.0;-I/usr/lib/x86_64-linux-gnu/dbus-1.0/include;-I/usr/include/gtk-3.0;-I/usr/include/gio-unix-2.0;-I/usr/include/cairo;-I/usr/include/libdrm;-I/usr/include/pango-1.0;-I/usr/include/harfbuzz;-I/usr/include/pango-1.0;-I/usr/include/fribidi;-I/usr/include/atk-1.0;-I/usr/include/cairo;-I/usr/include/pixman-1;-I/usr/include/uuid;-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include/gdk-pixbuf-2.0;-I/usr/include/libmount;-I/usr/include/blkid;-I/usr/include/glib-2.0;-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 PKG_GTK_3_CFLAGS_I:INTERNAL=
-PKG_GTK_3_CFLAGS_OTHER:INTERNAL=
-PKG_GTK_3_FOUND:INTERNAL=
-PKG_GTK_3_INCLUDEDIR:INTERNAL=
-PKG_GTK_3_LIBDIR:INTERNAL=
+PKG_GTK_3_CFLAGS_OTHER:INTERNAL=-pthread
+PKG_GTK_3_FOUND:INTERNAL=1
+PKG_GTK_3_INCLUDEDIR:INTERNAL=/usr/include
+PKG_GTK_3_INCLUDE_DIRS:INTERNAL=/usr/include/gtk-3.0;/usr/include/at-spi2-atk/2.0;/usr/include/at-spi-2.0;/usr/include/dbus-1.0;/usr/lib/x86_64-linux-gnu/dbus-1.0/include;/usr/include/gtk-3.0;/usr/include/gio-unix-2.0;/usr/include/cairo;/usr/include/libdrm;/usr/include/pango-1.0;/usr/include/harfbuzz;/usr/include/pango-1.0;/usr/include/fribidi;/usr/include/atk-1.0;/usr/include/cairo;/usr/include/pixman-1;/usr/include/uuid;/usr/include/freetype2;/usr/include/libpng16;/usr/include/gdk-pixbuf-2.0;/usr/include/libmount;/usr/include/blkid;/usr/include/glib-2.0;/usr/lib/x86_64-linux-gnu/glib-2.0/include
+PKG_GTK_3_LDFLAGS:INTERNAL=-lgtk-3;-lgdk-3;-lpangocairo-1.0;-lpango-1.0;-latk-1.0;-lcairo-gobject;-lcairo;-lgdk_pixbuf-2.0;-lgio-2.0;-lgobject-2.0;-lglib-2.0
+PKG_GTK_3_LDFLAGS_OTHER:INTERNAL=
+PKG_GTK_3_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+PKG_GTK_3_LIBRARIES:INTERNAL=gtk-3;gdk-3;pangocairo-1.0;pango-1.0;atk-1.0;cairo-gobject;cairo;gdk_pixbuf-2.0;gio-2.0;gobject-2.0;glib-2.0
+PKG_GTK_3_LIBRARY_DIRS:INTERNAL=
 PKG_GTK_3_LIBS:INTERNAL=
 PKG_GTK_3_LIBS_L:INTERNAL=
 PKG_GTK_3_LIBS_OTHER:INTERNAL=
 PKG_GTK_3_LIBS_PATHS:INTERNAL=
-PKG_GTK_3_PREFIX:INTERNAL=
-PKG_GTK_3_STATIC_CFLAGS:INTERNAL=
+PKG_GTK_3_PREFIX:INTERNAL=/usr
+PKG_GTK_3_STATIC_CFLAGS:INTERNAL=-pthread;-I/usr/include/gtk-3.0;-I/usr/include/at-spi2-atk/2.0;-I/usr/include/at-spi-2.0;-I/usr/include/dbus-1.0;-I/usr/lib/x86_64-linux-gnu/dbus-1.0/include;-I/usr/include/gtk-3.0;-I/usr/include/gio-unix-2.0;-I/usr/include/cairo;-I/usr/include/libdrm;-I/usr/include/pango-1.0;-I/usr/include/harfbuzz;-I/usr/include/pango-1.0;-I/usr/include/fribidi;-I/usr/include/atk-1.0;-I/usr/include/cairo;-I/usr/include/pixman-1;-I/usr/include/uuid;-I/usr/include/freetype2;-I/usr/include/libpng16;-I/usr/include/gdk-pixbuf-2.0;-I/usr/include/libmount;-I/usr/include/blkid;-I/usr/include/glib-2.0;-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 PKG_GTK_3_STATIC_CFLAGS_I:INTERNAL=
-PKG_GTK_3_STATIC_CFLAGS_OTHER:INTERNAL=
+PKG_GTK_3_STATIC_CFLAGS_OTHER:INTERNAL=-pthread
+PKG_GTK_3_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include/gtk-3.0;/usr/include/at-spi2-atk/2.0;/usr/include/at-spi-2.0;/usr/include/dbus-1.0;/usr/lib/x86_64-linux-gnu/dbus-1.0/include;/usr/include/gtk-3.0;/usr/include/gio-unix-2.0;/usr/include/cairo;/usr/include/libdrm;/usr/include/pango-1.0;/usr/include/harfbuzz;/usr/include/pango-1.0;/usr/include/fribidi;/usr/include/atk-1.0;/usr/include/cairo;/usr/include/pixman-1;/usr/include/uuid;/usr/include/freetype2;/usr/include/libpng16;/usr/include/gdk-pixbuf-2.0;/usr/include/libmount;/usr/include/blkid;/usr/include/glib-2.0;/usr/lib/x86_64-linux-gnu/glib-2.0/include
+PKG_GTK_3_STATIC_LDFLAGS:INTERNAL=-lgtk-3;-latk-bridge-2.0;-latspi;-lXtst;-ldbus-1;-lpthread;-lsystemd;-lgdk-3;-lXinerama;-lXi;-lXrandr;-lXcursor;-lXcomposite;-lxkbcommon;-lwayland-cursor;-lwayland-egl;-lwayland-client;-lepoxy;-ldl;-lGL;-lpthread;-pthread;-lm;-ldl;-lEGL;-lpthread;-pthread;-lm;-ldl;-lXdamage;-lXfixes;-lX11-xcb;-lxcb-glx;-lxcb-dri2;-lXxf86vm;-ldrm;-lpangocairo-1.0;-lpangoft2-1.0;-lharfbuzz;-lm;-lgraphite2;-lpango-1.0;-lm;-lfribidi;-latk-1.0;-lcairo-gobject;-lcairo;-lz;-lpixman-1;-lfontconfig;-luuid;-lexpat;-lfreetype;-lpng16;-lm;-lz;-lm;-lxcb-shm;-lxcb-render;-lXrender;-lXext;-lX11;-lpthread;-lxcb;-lXau;-lXdmcp;-lgdk_pixbuf-2.0;-lm;-lgio-2.0;-ldl;-pthread;-lresolv;-pthread;-lgmodule-2.0;-ldl;-lz;-lmount;-lblkid;-lselinux;-lsepol;-lpcre2-8;-pthread;-lgobject-2.0;-pthread;-lffi;-lglib-2.0;-pthread;-lpcre;-pthread
+PKG_GTK_3_STATIC_LDFLAGS_OTHER:INTERNAL=-pthread
 PKG_GTK_3_STATIC_LIBDIR:INTERNAL=
+PKG_GTK_3_STATIC_LIBRARIES:INTERNAL=gtk-3;atk-bridge-2.0;atspi;Xtst;dbus-1;pthread;systemd;gdk-3;Xinerama;Xi;Xrandr;Xcursor;Xcomposite;xkbcommon;wayland-cursor;wayland-egl;wayland-client;epoxy;dl;GL;pthread;m;dl;EGL;pthread;m;dl;Xdamage;Xfixes;X11-xcb;xcb-glx;xcb-dri2;Xxf86vm;drm;pangocairo-1.0;pangoft2-1.0;harfbuzz;m;graphite2;pango-1.0;m;fribidi;atk-1.0;cairo-gobject;cairo;z;pixman-1;fontconfig;uuid;expat;freetype;png16;m;z;m;xcb-shm;xcb-render;Xrender;Xext;X11;pthread;xcb;Xau;Xdmcp;gdk_pixbuf-2.0;m;gio-2.0;dl;resolv;gmodule-2.0;dl;z;mount;blkid;selinux;sepol;pcre2-8;gobject-2.0;ffi;glib-2.0;pcre
+PKG_GTK_3_STATIC_LIBRARY_DIRS:INTERNAL=
 PKG_GTK_3_STATIC_LIBS:INTERNAL=
 PKG_GTK_3_STATIC_LIBS_L:INTERNAL=
 PKG_GTK_3_STATIC_LIBS_OTHER:INTERNAL=
 PKG_GTK_3_STATIC_LIBS_PATHS:INTERNAL=
-PKG_GTK_3_VERSION:INTERNAL=
+PKG_GTK_3_VERSION:INTERNAL=3.24.12
 PKG_GTK_3_gmodule-2.0_INCLUDEDIR:INTERNAL=
 PKG_GTK_3_gmodule-2.0_LIBDIR:INTERNAL=
 PKG_GTK_3_gmodule-2.0_PREFIX:INTERNAL=
@@ -1619,10 +1797,13 @@ _OPENSSL_openssl_INCLUDEDIR:INTERNAL=
 _OPENSSL_openssl_LIBDIR:INTERNAL=
 _OPENSSL_openssl_PREFIX:INTERNAL=
 _OPENSSL_openssl_VERSION:INTERNAL=
+__pkg_config_arguments_PC_MagickCore:INTERNAL=QUIET;MagickCore
+__pkg_config_arguments_PC_MagickWand:INTERNAL=QUIET;MagickWand
 __pkg_config_arguments_PKG_ALSA:INTERNAL=REQUIRED;alsa
 __pkg_config_arguments_PKG_CAP:INTERNAL=REQUIRED;libcap
 __pkg_config_arguments_PKG_FFMPEG:INTERNAL=REQUIRED;libswscale;libavutil;libavcodec
 __pkg_config_arguments_PKG_GTK_2:INTERNAL=gmodule-2.0;gthread-2.0;gtk+-2.0
+__pkg_config_arguments_PKG_GTK_3:INTERNAL=gtk+-3.0
 __pkg_config_arguments_PKG_LIBALSA:INTERNAL=REQUIRED;alsa
 __pkg_config_arguments_PKG_LIBV4L2:INTERNAL=REQUIRED;libv4l2
 __pkg_config_arguments_PKG_LIBXML2:INTERNAL=REQUIRED;libxml-2.0
@@ -1631,6 +1812,8 @@ __pkg_config_arguments_PKG_MYSQL:INTERNAL=REQUIRED;mysqlclient
 __pkg_config_arguments_PKG_SOX:INTERNAL=REQUIRED;sox
 __pkg_config_arguments_PKG_V4L2:INTERNAL=REQUIRED;libv4l2
 __pkg_config_arguments__OPENSSL:INTERNAL=QUIET;openssl
+__pkg_config_checked_PC_MagickCore:INTERNAL=1
+__pkg_config_checked_PC_MagickWand:INTERNAL=1
 __pkg_config_checked_PKG_ALSA:INTERNAL=1
 __pkg_config_checked_PKG_CAP:INTERNAL=1
 __pkg_config_checked_PKG_FFMPEG:INTERNAL=1

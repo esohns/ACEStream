@@ -17,17 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <limits>
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/Synch.h"
-#include "test_u_tools.h"
-
 #include "ace/Log_Msg.h"
-#include "ace/Thread_Manager.h"
+//#include "ace/Thread_Manager.h"
 
 #include "stream_macros.h"
 

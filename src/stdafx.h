@@ -24,10 +24,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
 
-//#if defined (LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 #if defined (VALGRIND_SUPPORT)
 #include "valgrind/valgrind.h"
-#endif
+#endif // VALGRIND_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "Common_config.h"

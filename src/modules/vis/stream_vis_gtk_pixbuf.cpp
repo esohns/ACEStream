@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_vis_gtk_pixbuf.h"
 
 #include "stream_vis_defines.h"

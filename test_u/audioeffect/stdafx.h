@@ -58,5 +58,3 @@
 #endif // GUI_SUPPORT
 
 #include "test_u_audioeffect_common.h"
-
-// *TODO*: reference additional headers your program requires here

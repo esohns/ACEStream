@@ -39,6 +39,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/mnt/win_d/projects/ACEStream/clang/test_u/filecopy/cmake_install.cmake")
   include("/mnt/win_d/projects/ACEStream/clang/test_u/http_get/cmake_install.cmake")
   include("/mnt/win_d/projects/ACEStream/clang/test_u/imagescreen/cmake_install.cmake")
+  include("/mnt/win_d/projects/ACEStream/clang/test_u/parser/cmake_install.cmake")
   include("/mnt/win_d/projects/ACEStream/clang/test_u/riff_decoder/cmake_install.cmake")
 
 endif()

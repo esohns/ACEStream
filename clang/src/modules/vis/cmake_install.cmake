@@ -34,7 +34,7 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xmod_includex" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/usr/local/include/ACEStream/stream_vis_common.h;/usr/local/include/ACEStream/stream_vis_defines.h;/usr/local/include/ACEStream/stream_vis_tools.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo.inl;/usr/local/include/ACEStream/stream_vis_gtk_cairo_spectrum_analyzer.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo_spectrum_analyzer.inl;/usr/local/include/ACEStream/stream_vis_gtk_pixbuf.h;/usr/local/include/ACEStream/stream_vis_gtk_pixbuf.inl;/usr/local/include/ACEStream/stream_vis_gtk_window.h;/usr/local/include/ACEStream/stream_vis_gtk_window.inl;/usr/local/include/ACEStream/stream_vis_libav_resize.h;/usr/local/include/ACEStream/stream_vis_libav_resize.inl;/usr/local/include/ACEStream/stream_vis_opengl_glut.h;/usr/local/include/ACEStream/stream_vis_opengl_glut.inl;/usr/local/include/ACEStream/stream_vis_x11_window.h;/usr/local/include/ACEStream/stream_vis_x11_window.inl")
+   "/usr/local/include/ACEStream/stream_vis_common.h;/usr/local/include/ACEStream/stream_vis_defines.h;/usr/local/include/ACEStream/stream_vis_tools.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo.inl;/usr/local/include/ACEStream/stream_vis_gtk_cairo_spectrum_analyzer.h;/usr/local/include/ACEStream/stream_vis_gtk_cairo_spectrum_analyzer.inl;/usr/local/include/ACEStream/stream_vis_gtk_common.h;/usr/local/include/ACEStream/stream_vis_gtk_pixbuf.h;/usr/local/include/ACEStream/stream_vis_gtk_pixbuf.inl;/usr/local/include/ACEStream/stream_vis_gtk_window.h;/usr/local/include/ACEStream/stream_vis_gtk_window.inl;/usr/local/include/ACEStream/stream_vis_libav_resize.h;/usr/local/include/ACEStream/stream_vis_libav_resize.inl;/usr/local/include/ACEStream/stream_vis_imagemagick_resize.h;/usr/local/include/ACEStream/stream_vis_imagemagick_resize.inl;/usr/local/include/ACEStream/stream_vis_opengl_glut.h;/usr/local/include/ACEStream/stream_vis_opengl_glut.inl;/usr/local/include/ACEStream/stream_vis_x11_window.h;/usr/local/include/ACEStream/stream_vis_x11_window.inl")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
@@ -49,12 +49,15 @@ file(INSTALL DESTINATION "/usr/local/include/ACEStream" TYPE FILE FILES
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_cairo.inl"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_cairo_spectrum_analyzer.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_cairo_spectrum_analyzer.inl"
+    "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_common.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_pixbuf.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_pixbuf.inl"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_window.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_gtk_window.inl"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_libav_resize.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_libav_resize.inl"
+    "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_imagemagick_resize.h"
+    "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_imagemagick_resize.inl"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_opengl_glut.h"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_opengl_glut.inl"
     "/mnt/win_d/projects/ACEStream/src/modules/vis/stream_vis_x11_window.h"

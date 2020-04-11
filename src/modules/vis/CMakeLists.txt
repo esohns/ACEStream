@@ -45,13 +45,13 @@ elseif (WIN32)
  endif (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
-set (LLVM_COMPILER_ID_STRING "Clang")
-string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
- add_compile_options (-std=c++11)
- #add_compile_options (-fPIC)
-endif ()
+#set (LLVM_COMPILER_ID_STRING "Clang")
+#string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+#string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+#if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+# add_compile_options (-std=c++11)
+# add_compile_options (-fPIC)
+#endif ()
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
@@ -184,7 +184,6 @@ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
 set (source_files
      stream_vis_common.h
      stream_vis_defines.h
-#     stream_vis_exports.h
      stream_vis_tools.cpp
      stream_vis_tools.h)
 if (GTK_SUPPORT)
@@ -196,6 +195,7 @@ if (GTK_SUPPORT)
       stream_vis_gtk_cairo_spectrum_analyzer.cpp
       stream_vis_gtk_cairo_spectrum_analyzer.h
       stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_common.h
       stream_vis_gtk_pixbuf.cpp
       stream_vis_gtk_pixbuf.h
       stream_vis_gtk_pixbuf.inl
@@ -332,7 +332,6 @@ export (TARGETS ${PROJECT_NAME}_Visualization
 set (header_files
      stream_vis_common.h
      stream_vis_defines.h
-#     stream_vis_exports.h
      stream_vis_tools.h)
 if (GTK_SUPPORT)
  set (header_files
@@ -341,6 +340,7 @@ if (GTK_SUPPORT)
       stream_vis_gtk_cairo.inl
       stream_vis_gtk_cairo_spectrum_analyzer.h
       stream_vis_gtk_cairo_spectrum_analyzer.inl
+      stream_vis_gtk_common.h
       stream_vis_gtk_pixbuf.h
       stream_vis_gtk_pixbuf.inl
       stream_vis_gtk_window.h
@@ -396,4 +396,3 @@ install (TARGETS ${PROJECT_NAME}_Visualization
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
-

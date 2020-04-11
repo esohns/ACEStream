@@ -21,6 +21,8 @@
 #ifndef STREAM_VIS_GTK_WINDOW_H
 #define STREAM_VIS_GTK_WINDOW_H
 
+#include "gtk/gtk.h"
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 

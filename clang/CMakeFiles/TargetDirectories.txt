@@ -236,6 +236,17 @@
 /mnt/win_d/projects/ACEStream/clang/test_u/imagescreen/CMakeFiles/imagescreen_pch.dir
 /mnt/win_d/projects/ACEStream/clang/test_u/imagescreen/CMakeFiles/test.dir
 /mnt/win_d/projects/ACEStream/clang/test_u/imagescreen/CMakeFiles/package.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/install/strip.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/install/local.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/install.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/list_install_components.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/rebuild_cache.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/edit_cache.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/parser_pch.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/test.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/package.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/parser.dir
+/mnt/win_d/projects/ACEStream/clang/test_u/parser/CMakeFiles/package_source.dir
 /mnt/win_d/projects/ACEStream/clang/test_u/riff_decoder/CMakeFiles/install/strip.dir
 /mnt/win_d/projects/ACEStream/clang/test_u/riff_decoder/CMakeFiles/install/local.dir
 /mnt/win_d/projects/ACEStream/clang/test_u/riff_decoder/CMakeFiles/install.dir

@@ -45,7 +45,7 @@ unset(_expectedTargets)
 add_library(ACEStream STATIC IMPORTED)
 
 set_target_properties(ACEStream PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/../../Common/cmake;/mnt/win_d/projects/ACEStream/src/../../Common/src;/mnt/win_d/projects/ACEStream/src/../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/../3rd_party/tree;/mnt/win_d/projects/ACEStream/clang/src/..;/mnt/win_d/projects/ACEStream/src;/mnt/win_d/projects/ACEStream/src/modules/lib;/mnt/win_d/projects/ACEStream/src/modules/misc;/mnt/win_d/projects/ACEStream/src/modules/stat"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/../../Common/cmake;/mnt/win_d/projects/ACEStream/src/../../Common/src;/mnt/win_d/projects/ACEStream/src/../../Common/src/parser;/mnt/win_d/projects/ACEStream/src/../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/../3rd_party/tree;/mnt/win_d/projects/ACEStream/clang/src/..;/mnt/win_d/projects/ACEStream/src;/mnt/win_d/projects/ACEStream/src/modules/lib;/mnt/win_d/projects/ACEStream/src/modules/misc;/mnt/win_d/projects/ACEStream/src/modules/stat"
 )
 
 # Create imported target ACEStream_Database
@@ -59,7 +59,7 @@ set_target_properties(ACEStream_Database PROPERTIES
 add_library(ACEStream_Decoder STATIC IMPORTED)
 
 set_target_properties(ACEStream_Decoder PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/cmake;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../3rd_party/bison;/mnt/win_d/projects/ACEStream/src/modules/dec/../..;/mnt/win_d/projects/ACEStream/src/modules/dec/../dev;/mnt/win_d/projects/ACEStream/src/modules/dec/../lib;/mnt/win_d/projects/ACEStream/src/modules/dec/../vis"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/mnt/win_d/projects/ACEStream/src/modules/dec;/usr/include/ImageMagick-6;/usr/include/x86_64-linux-gnu/ImageMagick-6;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/cmake;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/parser;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/dec/../../../3rd_party/bison;/mnt/win_d/projects/ACEStream/src/modules/dec/../..;/mnt/win_d/projects/ACEStream/src/modules/dec/../dev;/mnt/win_d/projects/ACEStream/src/modules/dec/../lib;/mnt/win_d/projects/ACEStream/src/modules/dec/../vis"
 )
 
 # Create imported target ACEStream_Device
@@ -80,7 +80,7 @@ set_target_properties(ACEStream_Document PROPERTIES
 add_library(ACEStream_File STATIC IMPORTED)
 
 set_target_properties(ACEStream_File PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/cmake;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/file/../..;/mnt/win_d/projects/ACEStream/src/modules/file/../lib"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/ImageMagick-6;/usr/include/x86_64-linux-gnu/ImageMagick-6;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/cmake;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/file/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/file/../..;/mnt/win_d/projects/ACEStream/src/modules/file/../lib"
 )
 
 # Create imported target ACEStream_HTML
@@ -101,7 +101,7 @@ set_target_properties(ACEStream_MediaFramework PROPERTIES
 add_library(ACEStream_Miscellaneous STATIC IMPORTED)
 
 set_target_properties(ACEStream_Miscellaneous PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../3rd_party/bison;/mnt/win_d/projects/ACEStream/clang/src/modules/misc/../../..;/mnt/win_d/projects/ACEStream/src/modules/misc/../..;/mnt/win_d/projects/ACEStream/src/modules/misc/../dec;/mnt/win_d/projects/ACEStream/src/modules/misc/../dev;/mnt/win_d/projects/ACEStream/src/modules/misc/../file;/mnt/win_d/projects/ACEStream/src/modules/misc/../lib"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/error;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/parser;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/misc/../../../3rd_party/bison;/mnt/win_d/projects/ACEStream/clang/src/modules/misc/../../..;/mnt/win_d/projects/ACEStream/src/modules/misc/../..;/mnt/win_d/projects/ACEStream/src/modules/misc/../dec;/mnt/win_d/projects/ACEStream/src/modules/misc/../dev;/mnt/win_d/projects/ACEStream/src/modules/misc/../file;/mnt/win_d/projects/ACEStream/src/modules/misc/../lib"
 )
 
 # Create imported target ACEStream_Network
@@ -129,7 +129,7 @@ set_target_properties(ACEStream_Statistic PROPERTIES
 add_library(ACEStream_Visualization STATIC IMPORTED)
 
 set_target_properties(ACEStream_Visualization PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/gtk-2.0;/usr/lib/x86_64-linux-gnu/gtk-2.0/include;/usr/include/pango-1.0;/usr/include/atk-1.0;/usr/include/cairo;/usr/include/pixman-1;/usr/include/gdk-pixbuf-2.0;/usr/include/libmount;/usr/include/blkid;/usr/include/pango-1.0;/usr/include/harfbuzz;/usr/include/pango-1.0;/usr/include/fribidi;/usr/include/glib-2.0;/usr/lib/x86_64-linux-gnu/glib-2.0/include;/usr/include/uuid;/usr/include/freetype2;/usr/include/libpng16;/media/erik/USB_BLACK/lib/gtkglarea;/usr/include/x86_64-linux-gnu;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/gl;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/math;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/ui/gtk;/mnt/win_d/projects/ACEStream/clang/src/modules/vis/../../..;/mnt/win_d/projects/ACEStream/src/modules/vis/../..;/mnt/win_d/projects/ACEStream/src/modules/vis/../dec;/mnt/win_d/projects/ACEStream/src/modules/vis/../dev;/mnt/win_d/projects/ACEStream/src/modules/vis/../lib;/mnt/win_d/projects/ACEStream/src/modules/vis/../stat"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/include/gtk-2.0;/usr/lib/x86_64-linux-gnu/gtk-2.0/include;/usr/include/pango-1.0;/usr/include/atk-1.0;/usr/include/cairo;/usr/include/pixman-1;/usr/include/gdk-pixbuf-2.0;/usr/include/libmount;/usr/include/blkid;/usr/include/pango-1.0;/usr/include/harfbuzz;/usr/include/pango-1.0;/usr/include/fribidi;/usr/include/glib-2.0;/usr/lib/x86_64-linux-gnu/glib-2.0/include;/usr/include/uuid;/usr/include/freetype2;/usr/include/libpng16;/media/erik/USB_BLACK/lib/gtkglarea;/usr/include/x86_64-linux-gnu;/usr/include/ImageMagick-6;/usr/include/x86_64-linux-gnu/ImageMagick-6;/media/erik/USB_BLACK/lib/ACE_TAO/ACE;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/gl;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/image;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/log;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/math;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/timer;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/ui;/mnt/win_d/projects/ACEStream/src/modules/vis/../../../../Common/src/ui/gtk;/mnt/win_d/projects/ACEStream/clang/src/modules/vis/../../..;/mnt/win_d/projects/ACEStream/src/modules/vis/../..;/mnt/win_d/projects/ACEStream/src/modules/vis/../dec;/mnt/win_d/projects/ACEStream/src/modules/vis/../dev;/mnt/win_d/projects/ACEStream/src/modules/vis/../lib;/mnt/win_d/projects/ACEStream/src/modules/vis/../stat"
 )
 
 # Import target "ACEStream" for configuration "Debug"
@@ -152,7 +152,7 @@ set_target_properties(ACEStream_Database PROPERTIES
 set_property(TARGET ACEStream_Decoder APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(ACEStream_Decoder PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
-  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "asound;sox;avcodec;avutil;avformat;swscale;Common;ACEStream"
+  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "asound;sox;avcodec;avutil;avformat;swscale;/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;Common;ACEStream"
   IMPORTED_LOCATION_DEBUG "/mnt/win_d/projects/ACEStream/clang/src/modules/dec/libACEStream_Decoder.a"
   )
 
@@ -176,7 +176,7 @@ set_target_properties(ACEStream_Document PROPERTIES
 set_property(TARGET ACEStream_File APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(ACEStream_File PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
-  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;Common;ACEStream"
+  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;Common;ACEStream"
   IMPORTED_LOCATION_DEBUG "/mnt/win_d/projects/ACEStream/clang/src/modules/file/libACEStream_File.a"
   )
 
@@ -232,7 +232,7 @@ set_target_properties(ACEStream_Statistic PROPERTIES
 set_property(TARGET ACEStream_Visualization APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(ACEStream_Visualization PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
-  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "gmodule-2.0;gthread-2.0;gtk-x11-2.0;gdk-x11-2.0;pangocairo-1.0;atk-1.0;cairo;gdk_pixbuf-2.0;gio-2.0;pangoft2-1.0;pango-1.0;gobject-2.0;glib-2.0;fontconfig;freetype;sox;swscale;avcodec;avutil;/usr/lib/x86_64-linux-gnu/libglut.so.3;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;Common;CommonOpenGL;ACEStream"
+  IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "gmodule-2.0;gthread-2.0;gtk-x11-2.0;gdk-x11-2.0;pangocairo-1.0;atk-1.0;cairo;gdk_pixbuf-2.0;gio-2.0;pangoft2-1.0;pango-1.0;gobject-2.0;glib-2.0;fontconfig;freetype;sox;swscale;avcodec;avutil;/usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so;/usr/lib/x86_64-linux-gnu/libMagickWand-6.Q16.so;/usr/lib/x86_64-linux-gnu/libglut.so.3;/media/erik/USB_BLACK/lib/ACE_TAO/ACE/lib/libACE.so;Common;CommonOpenGL;ACEStream"
   IMPORTED_LOCATION_DEBUG "/mnt/win_d/projects/ACEStream/clang/src/modules/vis/libACEStream_Visualization.a"
   )
 
