@@ -46,6 +46,9 @@ m4/lt~obsolete.m4
 
 # Kdevelop
 .kdev4/
+
+#Linux
+clang/
 cmake/
 
 # MSVC
