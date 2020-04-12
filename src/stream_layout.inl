@@ -361,7 +361,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
         inherited::number_of_children (iterator);
     if (unlikely (num_branches_i <= index_in))
     { // --> module is (sub-)branch 'head'
-      ACE_ASSERT (!index_in || (index_in == num_branches_i));
+//      ACE_ASSERT (!index_in || (index_in == num_branches_i));
       iterator = inherited::append_child (iterator, module_in);
       ACE_ASSERT (inherited::is_valid (iterator));
       return true;

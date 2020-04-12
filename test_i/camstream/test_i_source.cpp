@@ -216,7 +216,7 @@ do_processArguments (int argc_in,
                      bool& showConsole_out,
 #else
                      std::string& deviceIdentifier_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      std::string& gtkRcFile_out,
                      bool& useUncompressedFormat_out,
                      std::string& gtkGladeFile_out,
@@ -224,7 +224,7 @@ do_processArguments (int argc_in,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_MediaFramework_Type& mediaFramework_out,
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
                      unsigned short& port_out,
                      enum Common_EventDispatchType& eventDispatchType_in,
                      unsigned int& statisticReportingInterval_out,
