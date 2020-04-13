@@ -175,17 +175,17 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       break;
     }
-    case STREAM_SESSION_MESSAGE_LINK:
-    {
-      // sanity check(s)
-      ACE_ASSERT (inherited::parserContext_.sessionData);
+    //case STREAM_SESSION_MESSAGE_LINK:
+    //{
+    //  // sanity check(s)
+    //  ACE_ASSERT (inherited::parserContext_.sessionData);
 
-      // *TODO*: remove type inference
-      inherited::parserContext_.sessionData =
-        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
+    //  // *TODO*: remove type inference
+    //  inherited::parserContext_.sessionData =
+    //    &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
 
-      break;
-    }
+    //  break;
+    //}
     case STREAM_SESSION_MESSAGE_STEP:
     {
       if (inherited::parserContext_.parserContext)

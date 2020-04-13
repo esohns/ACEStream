@@ -29,7 +29,6 @@
 #include "stream_stat_defines.h"
 
 #include "branch_common_modules.h"
-//#include "branch_module_parser.h"
 
 Branch_Stream::Branch_Stream ()
  : inherited ()
@@ -82,6 +81,29 @@ Branch_Stream::load (Stream_ILayout* layout_inout,
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (inherited::configuration_->configuration_.branches);
+  module_p = NULL;
+  ACE_ASSERT (inherited::configuration_->configuration_.module);
+  Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
+                             Common_TimePolicy_t> >* iclone_p =
+      dynamic_cast<Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
+                                              Common_TimePolicy_t> >*> (inherited::configuration_->configuration_.module);
+  if (unlikely (!iclone_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Common_IClone_T> failed, aborting\n")));
+    return false;
+  } // end IF
+  module_p = iclone_p->clone ();
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, branch_p, 1);
+  module_p = NULL;
+  module_p = iclone_p->clone ();
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, branch_p, 2);
+  module_p = NULL;
+  module_p = iclone_p->clone ();
+  ACE_ASSERT (module_p);
+  layout_inout->append (module_p, branch_p, 3);
   module_p = NULL;
 
   delete_out = true;

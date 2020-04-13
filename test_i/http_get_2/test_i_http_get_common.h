@@ -175,8 +175,8 @@ struct Test_I_SAXParserContext
   enum Test_I_SAXParserState state;
 };
 
-class Test_I_Stream_Message;
-class Test_I_Stream_SessionMessage;
+//class Test_I_Stream_Message;
+//class Test_I_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
                                 struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;

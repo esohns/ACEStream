@@ -663,15 +663,15 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (connection_);
 
-      //// update session data
-      //connection_->info (handle_h,
-      //                   local_SAP, peer_SAP);
-      //// *TODO*: remove type inferences
-      //ACE_ASSERT (session_data_r.lock);
-      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-      //  session_data_r.connectionStates.insert (std::make_pair (handle_h,
-      //                                                          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
-      //} // end lock scope
+      // update session data
+      connection_->info (handle_h,
+                         local_SAP, peer_SAP);
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.connectionStates.insert (std::make_pair (handle_h,
+                                                                &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
+      } // end lock scope
 
       if (likely (notify_connect))
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);

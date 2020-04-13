@@ -194,7 +194,6 @@ set (${EXECUTABLE}_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_i_common_modules.h
-#     test_i_connection_manager_common.h
      test_i_message.cpp
      test_i_message.h
      test_i_module_spreadsheetwriter.cpp
@@ -203,8 +202,6 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_module_htmlparser.h
      test_i_module_httpget.cpp
      test_i_module_httpget.h
-#     test_i_module_httpparser.cpp
-#     test_i_module_httpparser.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_http_get.cpp
@@ -217,7 +214,12 @@ set (${EXECUTABLE}_EXE_SRCS
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
      test_i_http_get_stream.inl)
-#  test_i_template_instantiations.cpp
+if (WIN32)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_i_module_msoffice_spreadsheetwriter.cpp
+      test_i_module_msoffice_spreadsheetwriter.h)
+endif (WIN32)
 set (${EXECUTABLE}_EXE_SCRIPTS
      etc/soffice.ini
      etc/sofficerc
@@ -228,14 +230,14 @@ if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 endif (UNIX)
 
-set (LLVM_COMPILER_ID_STRING "Clang")
-string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
-string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
-if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
- add_compile_options (-std=c++11)
+#set (LLVM_COMPILER_ID_STRING "Clang")
+#string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+#string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+#if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+# add_compile_options (-std=c++11)
  #add_compile_options (-fPIC)
- add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
-endif ()
+# add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+#endif ()
 
 cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -250,9 +252,9 @@ endif ()
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 elseif (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
- set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 
  if (SSL_USE)
   target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
@@ -307,6 +309,10 @@ elseif (WIN32)
 endif ()
 #target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 
+if (WIN32)
+  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
@@ -337,7 +343,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c./../../../test_i/http_get_2/etc/soffice.ini -f./../../../test_i/http_get_2/etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+                         ARGS "-c./etc/soffice.ini -f./etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/bin
@@ -348,14 +354,27 @@ if (UNIX)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
+# file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/Debug ZLIB_LIBRARY_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
+                           ${FFMPEG_LIBRARY_PATH}
+#                           ${ICONV_LIBRARY_PATH}
+ #                          ${LIBXML_LIBRARY_PATH}
+  #                         ${LIBMYSQL_LIBRARY_PATH}
+                           ${SSL_LIBRARY_PATH}
+                           ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -d -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\template.ods -h localhost -i.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+                         ARGS "-c.\\\\etc\\\\soffice.ini -d -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #                        FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
@@ -366,6 +385,6 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../ACENetwork/cmake/src/protocol/http/Debug
                                               \"${OO_APP_DIRECTORY}\"
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get_2
                          ENVIRONMENT foo=bar;_NO_DEBUG_HEAP=1)
 endif ()

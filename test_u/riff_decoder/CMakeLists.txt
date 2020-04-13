@@ -173,6 +173,11 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
 endif (UNIX)
+
+if (WIN32)
+  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonTimer)
@@ -197,3 +202,17 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR}
          COMPONENT test_u)
+
+set (ARGS "-d -f servers.ini -l -t")
+if (UNIX)
+ set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH})
+endif ()
+create_target_launcher (${EXECUTABLE}
+                        ARGS ${ARGS}
+#                        FORWARD_ARGS
+                        RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/riff_decoder
+                        ENVIRONMENT ${ENVIRONMENT})

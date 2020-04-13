@@ -100,6 +100,10 @@ set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
+if (WIN32)
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 #target_link_libraries (${EXECUTABLE} CommonParser)

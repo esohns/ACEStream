@@ -77,7 +77,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_T::forward"));
 
   // sanity check(s)
-  ACE_ASSERT (!queues_.empty ());
+  //ACE_ASSERT (!queues_.empty ());
   ACE_ASSERT (messageBlock_in);
 
   int result = -1;
@@ -581,7 +581,7 @@ Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (lockedAccess_in);
 
   // sanity check(s)
-  ACE_ASSERT (!queues_.empty ());
+  //ACE_ASSERT (!queues_.empty ());
 
   ACE_Message_Block* message_block_p = NULL;
 

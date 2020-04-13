@@ -212,16 +212,16 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       if (likely ((host_name_string != host_name_string_2) ||
                   (use_SSL != use_SSL_2)))
       {
-        ACE_DEBUG ((LM_DEBUG,
+        ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: URL (was: \"%s\") redirects to a different host, and/or requires a HTTPS connection, cannot proceed\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
 
-        received_ = true;
+        received_ = false;
 
-        passMessageDownstream_out = true;
+        passMessageDownstream_out = false;
 
-        goto continue_;
+        goto error;
       } // end IF
 
       if (!send ((*iterator).second,

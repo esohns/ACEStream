@@ -640,6 +640,8 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
+
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -655,6 +657,8 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.parserConfiguration =
     &configuration.parserConfiguration;
   modulehandler_configuration.passive = false;
+  modulehandler_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   //modulehandler_configuration.stream = stream_p;
@@ -664,7 +668,6 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-  struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = module_p;
   stream_configuration.printFinalReport = true;

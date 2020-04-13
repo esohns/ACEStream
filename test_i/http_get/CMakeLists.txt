@@ -251,6 +251,11 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 endif ()
 
+if (WIN32)
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
@@ -302,13 +307,25 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libiconv/bin ICONV_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libmysql/lib LIBMYSQL_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/libxml2/bin LIBXML_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_LIBRARY_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/zlib/cmake/Release ZLIB_LIBRARY_PATH)
+ set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
+                           ${FFMPEG_LIBRARY_PATH}
+                           ${ICONV_LIBRARY_PATH}
+                           ${LIBXML_LIBRARY_PATH}
+                           ${LIBMYSQL_LIBRARY_PATH}
+                           ${SSL_LIBRARY_PATH}
+                           ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
                          ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 80 -r -t -u http://www.heise.de/newsticker.html"
 #                        FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/win32/bin
-                                              ${PROJECT_SOURCE_DIR}/../libmysql_2/cmake/libmysql/Debug
+                         RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+#                                              ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug

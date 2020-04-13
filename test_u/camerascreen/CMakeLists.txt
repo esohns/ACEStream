@@ -229,7 +229,10 @@ elseif (WIN32)
 #  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
-# *TODO*: repair WIN32 pkgconfig support
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE""
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+
  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg//lib/avformat.lib)
  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg//lib/avcodec.lib)
 endif ()

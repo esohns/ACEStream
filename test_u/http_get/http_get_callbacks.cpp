@@ -104,8 +104,8 @@ stream_processing_function (void* arg_in)
   Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p =
     dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iinitialize_p);
-  Common_IGetR_T<HTTPGet_SessionData_t>* iget_p =
-    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> (thread_data_p->CBData->stream);
+  Common_IGetR_2_T<HTTPGet_SessionData_t>* iget_p =
+    dynamic_cast<Common_IGetR_2_T<HTTPGet_SessionData_t>*> (thread_data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   //  GtkStatusbar* statusbar_p = NULL;
   const HTTPGet_SessionData_t* session_data_container_p = NULL;
@@ -133,7 +133,7 @@ stream_processing_function (void* arg_in)
     } // end IF
     istream_control_p->start ();
 
-    session_data_container_p = &iget_p->getR ();
+    session_data_container_p = &iget_p->getR_2 ();
     ACE_ASSERT (session_data_container_p);
     session_ui_cb_data_p =
       &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->getR ());

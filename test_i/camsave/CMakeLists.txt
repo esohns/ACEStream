@@ -266,13 +266,16 @@ elseif (WIN32)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 
 # *TODO*: repair WIN32 pkgconfig support
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavformat/avformat.lib)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avformat.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg/libavcodec/avcodec.lib)
  target_link_libraries (${EXECUTABLE} $ENV{LIB_ROOT}/ffmpeg/lib/avcodec.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
+if (WIN32)
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonLog)
@@ -281,8 +284,7 @@ target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  if (WIN32)
   # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (WIN32)
  target_link_libraries (${EXECUTABLE} CommonUI)
  if (GTK_USE)

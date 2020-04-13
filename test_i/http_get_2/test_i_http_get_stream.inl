@@ -22,6 +22,10 @@
 
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "test_i_module_msoffice_spreadsheetwriter.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  : inherited ()
@@ -51,6 +55,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
                   Test_I_HTTPMarshal_Module (this,
                                              ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal")),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   //ACE_NEW_RETURN (module_p,
@@ -63,30 +68,42 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
                   Test_I_ZIPDecompressor_Module (this,
                                                  ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor")),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR ("NetSource")),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTTPGet_Module (this,
                                                 ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTMLParser_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR ("HTMLParser")),
                   false);
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_NEW_RETURN (module_p,
+                  Test_I_MSOffice_SpreadsheetWriter_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
+                  false);
+#else
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_SpreadsheetWriter_Module (this,
                                                           ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
                   false);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 

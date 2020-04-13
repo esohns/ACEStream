@@ -134,7 +134,7 @@ class Test_I_HTTPGet_Stream_T
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPConnector_t> Test_I_HTTPGet_Stream_t;
 #if defined (SSL_USE)
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_SSLConnector_t> Test_I_HTTPGet_SSL_Stream_t;
-#endif
+#endif // SSL_USE
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
 
 #endif

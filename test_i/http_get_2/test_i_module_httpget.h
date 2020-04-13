@@ -56,7 +56,7 @@ class Test_I_Stream_HTTPGet
 
  public:
   Test_I_Stream_HTTPGet (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_HTTPGet ();
+  inline virtual ~Test_I_Stream_HTTPGet () {}
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
@@ -78,7 +78,7 @@ class Test_I_Stream_HTTPGet
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,                 // session data type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_HTTPGet_SessionData,                 // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_net_http_get_module_name_string,

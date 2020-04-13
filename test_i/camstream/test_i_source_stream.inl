@@ -1280,7 +1280,7 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   branch_p = module_p;
   inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
+  //inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_NETWORK_NAME));
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
@@ -1289,13 +1289,13 @@ Test_I_Source_V4L_Stream_T<StreamStateType,
                   Test_I_Source_V4L_Resize_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING)),
                   false);
-  layout_inout->append (module_p, branch_p, 0);
+  layout_inout->append (module_p, branch_p, 1);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L_Display_Module (this,
                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                   false);
-  layout_inout->append (module_p, branch_p, 0);
+  layout_inout->append (module_p, branch_p, 1);
   module_p = NULL;
 #endif // GTK_USE
 #endif // GUI_SUPPORT

@@ -163,21 +163,21 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // sessi
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_HTTPGet);                          // writer type
 
-typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
-                                   Common_TimePolicy_t,
-                                   struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                   Test_I_ControlMessage_t,
-                                   Test_I_Stream_Message,
-                                   Test_I_Stream_SessionMessage,
-                                   Test_I_Stream_SessionData_t,
-                                   struct Test_I_Stream_SessionData,
-                                   struct Test_I_SAXParserContext> Test_I_HTMLParser;
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
-                              enum Stream_SessionMessageType,           // session event type
-                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_html_parser_module_name_string,
-                              Stream_INotify_t,                         // stream notification interface type
-                              Test_I_HTMLParser);                       // writer type
+//typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
+//                                   Common_TimePolicy_t,
+//                                   struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+//                                   Test_I_ControlMessage_t,
+//                                   Test_I_Stream_Message,
+//                                   Test_I_Stream_SessionMessage,
+//                                   Test_I_Stream_SessionData_t,
+//                                   struct Test_I_Stream_SessionData,
+//                                   struct Test_I_SAXParserContext> Test_I_HTMLParser;
+//DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
+//                              enum Stream_SessionMessageType,           // session event type
+//                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+//                              libacestream_default_html_parser_module_name_string,
+//                              Stream_INotify_t,                         // stream notification interface type
+//                              Test_I_HTMLParser);                       // writer type
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,

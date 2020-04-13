@@ -433,7 +433,7 @@ done:
     {
       case MPG123_OK:
       case MPG123_DONE:
-      { ACE_ASSERT (done_u);
+      { //ACE_ASSERT (done_u);
         message_p->wr_ptr (done_u);
         result = inherited::put_next (message_p, NULL);
         if (result == -1)

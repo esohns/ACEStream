@@ -65,9 +65,9 @@ class Branch_SessionMessage
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Branch_SessionMessage (Stream_SessionId_t,
-                          enum Stream_SessionMessageType,
-                          Branch_SessionData_t*&,        // session data container handle
-                          struct Stream_UserData*);
+                         enum Stream_SessionMessageType,
+                         Branch_SessionData_t*&,        // session data container handle
+                         struct Stream_UserData*);
   inline virtual ~Branch_SessionMessage () {}
 
   // overloaded from ACE_Message_Block

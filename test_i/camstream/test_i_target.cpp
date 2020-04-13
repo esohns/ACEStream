@@ -1629,10 +1629,10 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_DIRECTSHOW_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       directshow_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      if (useReactor_in)
-        directshow_configuration.signalHandlerConfiguration.listener =
-          TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
-      else
+      //if (useReactor_in)
+      //  directshow_configuration.signalHandlerConfiguration.listener =
+      //    TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON::instance ();
+      //else
         directshow_configuration.signalHandlerConfiguration.listener =
           TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON::instance ();
       directshow_configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1650,10 +1650,10 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_MEDIAFOUNDATION_TCP_CONNECTIONMANAGER_SINGLETON::instance ();
       mediafoundation_configuration.signalHandlerConfiguration.dispatchState =
         &event_dispatch_state_s;
-      if (useReactor_in)
-        mediafoundation_configuration.signalHandlerConfiguration.listener =
-          TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
-      else
+      //if (useReactor_in)
+      //  mediafoundation_configuration.signalHandlerConfiguration.listener =
+      //    TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON::instance ();
+      //else
         mediafoundation_configuration.signalHandlerConfiguration.listener =
           TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON::instance ();
       mediafoundation_configuration.signalHandlerConfiguration.statisticReportingHandler =
@@ -1816,10 +1816,10 @@ do_work (unsigned int bufferSize_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          if (useReactor_in)
-            ACE_NEW_NORETURN (directshow_iconnector_p,
-                              Test_I_Target_DirectShow_UDPConnector_t (true));
-          else
+          //if (useReactor_in)
+          //  ACE_NEW_NORETURN (directshow_iconnector_p,
+          //                    Test_I_Target_DirectShow_UDPConnector_t (true));
+          //else
             ACE_NEW_NORETURN (directshow_iconnector_p,
                               Test_I_Target_DirectShow_UDPAsynchConnector_t (true));
           result_2 =
@@ -1828,10 +1828,10 @@ do_work (unsigned int bufferSize_in,
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          if (useReactor_in)
-            ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-                              Test_I_Target_MediaFoundation_UDPConnector_t (true));
-          else
+          //if (useReactor_in)
+          //  ACE_NEW_NORETURN (mediafoundation_iconnector_p,
+          //                    Test_I_Target_MediaFoundation_UDPConnector_t (true));
+          //else
             ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                               Test_I_Target_MediaFoundation_UDPAsynchConnector_t (true));
           result_2 =
@@ -2738,11 +2738,9 @@ ACE_TMAIN (int argc_in,
 
   // step1e: pre-initialize signal handling
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                   : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                                                       lock_2);
-  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler ((use_reactor ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                             : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                                                                 lock_2);
 #else
   Test_I_Target_SignalHandler_t signal_handler (COMMON_SIGNAL_DISPATCH_SIGNAL,

@@ -431,34 +431,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-                           ParserContextType>::initializeSAXParser ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::initializeSAXParser"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-
-  ACE_NOTREACHED (return false;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          typename ParserContextType>
-bool
-Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           SessionDataType,
                            ParserContextType>::resetParser ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::resetParser"));

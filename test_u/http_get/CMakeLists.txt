@@ -215,6 +215,10 @@ if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 endif (SSL_SUPPORT)
 
+if (WIN32)
+  # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
@@ -258,9 +262,11 @@ if (UNIX)
 elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ffmpeg/bin FFMPEG_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
  set (RUNTIME_LIBRARY_DIRS ${ACE_LIBRARY_PATH}
                            ${FFMPEG_PATH}
+                           ${SSL_PATH}
                            ${GTK_PATH})
 endif ()
 create_target_launcher (${EXECUTABLE}

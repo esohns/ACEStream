@@ -228,11 +228,15 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  create_target_launcher (${EXECUTABLE_SOURCE}
                          ARGS "-f D:\\\\temp\\\\H264_720p.ts -l -t"
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                         RUNTIME_LIBRARY_DIRS ${GTK_PATH}
+                                              ${SSL_PATH}
+                                              ${ACE_PATH}
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
@@ -374,11 +378,15 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/openssl SSL_PATH)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  create_target_launcher (${EXECUTABLE_TARGET}
                          ARGS "-l -t"
 #                         FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                         RUNTIME_LIBRARY_DIRS ${GTK_PATH}
+                                              ${SSL_PATH}
+                                              ${ACE_PATH}
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug

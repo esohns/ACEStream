@@ -59,8 +59,6 @@ struct Branch_SessionData
 {
   Branch_SessionData ()
    : Stream_SessionData ()
-   //, format (STREAM_COMPRESSION_FORMAT_INVALID)
-   //, targetFileName ()
   {}
 
   struct Branch_SessionData& operator+= (const struct Branch_SessionData& rhs_in)
@@ -68,15 +66,8 @@ struct Branch_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    //format =
-    //targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
-    //                                          : targetFileName);
-
     return *this;
   }
-
-  //enum Stream_Decoder_CompressionFormatType format; // decompressor module
-  //std::string                               targetFileName; // file writer module
 };
 typedef Stream_SessionData_T<struct Branch_SessionData> Branch_SessionData_t;
 
@@ -143,5 +134,11 @@ struct Branch_StreamState
 
   //struct Branch_UserData*    userData;
 };
+
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Common_AllocatorConfiguration,
+                                          Branch_ControlMessage_t,
+                                          Branch_Message,
+                                          Branch_SessionMessage> Branch_MessageAllocator_t;
 
 #endif

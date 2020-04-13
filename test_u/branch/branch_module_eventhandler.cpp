@@ -43,7 +43,7 @@ Branch_Module_EventHandler:: clone ()
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    Branch_Module_EventHandler_Module (const_cast<ISTREAM_T*> (inherited::getP ()),
+                    Branch_Module_EventHandler_Module (NULL,//const_cast<ISTREAM_T*> (inherited::getP ()),
                                                        ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
@@ -68,8 +68,9 @@ Branch_Module_EventHandler:: clone ()
 
       return NULL;
     } // end IF
-    eventHandler_impl->initialize (*inherited::configuration_,
-                                   inherited::allocator_);
+    if (inherited::configuration_)
+      eventHandler_impl->initialize (*inherited::configuration_,
+                                     inherited::allocator_);
   } // end ELSE
 
   return task_p;

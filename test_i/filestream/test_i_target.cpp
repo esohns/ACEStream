@@ -852,7 +852,7 @@ do_work (unsigned int bufferSize_in,
           if (connection_p)
           {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-            configuration.handle =
+            CBData_in.configuration->handle =
               reinterpret_cast<ACE_HANDLE> (connection_p->id ());
 #else
             CBData_in.configuration->handle =

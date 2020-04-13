@@ -94,14 +94,6 @@ do_printUsage (const std::string& programName_in)
 
   std::string path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -111,10 +103,6 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::string configuration_file = path;
-#if defined (DEBUG_DEBUGGER)
-  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -130,10 +118,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   configuration_file = path;
-#if defined (DEBUG_DEBUGGER)
-  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -149,10 +133,6 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   configuration_file = path;
-#if defined (DEBUG_DEBUGGER)
-  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -222,21 +202,9 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string path = Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   bootstrapFileName_out = path;
-#if defined (DEBUG_DEBUGGER)
-  bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  bootstrapFileName_out += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrapFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -245,10 +213,6 @@ do_processArguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   debug_out = COMMON_PARSER_DEFAULT_YACC_TRACE;
   templateFileName_out = path;
-#if defined (DEBUG_DEBUGGER)
-  templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  templateFileName_out += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   templateFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -257,10 +221,6 @@ do_processArguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
   hostName_out = ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST);
   configurationFileName_out = path;
-#if defined (DEBUG_DEBUGGER)
-  configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configurationFileName_out += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configurationFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -367,10 +327,11 @@ do_processArguments (int argc_in,
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
 
         // step1: parse URL
+        std::string hostname_string;
         std::string URI_s;
         bool use_SSL = false;
         if (!HTTP_Tools::parseURL (URI_out,
-                                   hostName_out,
+                                   hostname_string,
                                    URI_s,
                                    use_SSL))
         {
@@ -379,13 +340,15 @@ do_processArguments (int argc_in,
                       ACE_TEXT (URI_out.c_str ())));
           return false;
         } // end IF
-        result = remoteHost_out.set (hostName_out.c_str (),
-                                     AF_INET);
+        result = remoteHost_out.set ((use_SSL ? 443 : 80),
+                                     Net_Common_Tools::getAddress (hostname_string),
+                                     1, // convert to network byte order
+                                     0);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), aborting\n"),
-                      ACE_TEXT (hostName_out.c_str ())));
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
+                      ACE_TEXT (hostname_string.c_str ())));
           return false;
         } // end IF
 
@@ -748,6 +711,8 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
+  struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
   Net_ConnectionConfigurationsIterator_t iterator;
   struct Common_EventDispatchState event_dispatch_state_s;
   struct Net_UserData user_data_s;
@@ -793,7 +758,7 @@ do_work (const std::string& bootstrapFileName_in,
   //connection_configuration.writeOnly = true;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.allocatorConfiguration_.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  connection_configuration.initialize (configuration.streamConfiguration.allocatorConfiguration_,
+  connection_configuration.initialize (allocator_configuration,
                                        configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
@@ -809,7 +774,7 @@ do_work (const std::string& bootstrapFileName_in,
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+    &allocator_configuration;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -843,7 +808,7 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
   stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
   modulehandler_configuration.stockItems.insert (stock_item);
-  //modulehandler_configuration.stream = stream_p;
+  modulehandler_configuration.streamConfiguration = &configuration.streamConfiguration;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   //modulehandler_configuration.hostName = hostName_in;
 
@@ -868,13 +833,13 @@ do_work (const std::string& bootstrapFileName_in,
 
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.printFinalReport = true;
   //configuration.streamConfiguration.configuration_.module = module_p;
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                allocator_configuration,
+                                                stream_configuration);
 
   // step0b: initialize event dispatch
   event_dispatch_configuration_s.numberOfProactorThreads =
@@ -1003,9 +968,9 @@ do_work (const std::string& bootstrapFileName_in,
   // step3: clean up
   connection_manager_p->stop ();
   connection_manager_p->wait ();
-  Common_Tools::finalizeEventDispatch (useReactor_in,
-                                       !useReactor_in,
-                                       group_id);
+  Common_Tools::finalizeEventDispatch (event_dispatch_state_s.proactorGroupId,
+                                       event_dispatch_state_s.reactorGroupId,
+                                       true);
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1110,21 +1075,9 @@ ACE_TMAIN (int argc_in,
   process_profile.start ();
 
   path = Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
   bootstrap_file = path;
-#if defined (DEBUG_DEBUGGER)
-  bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  bootstrap_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrap_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -1133,10 +1086,6 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   debug = COMMON_PARSER_DEFAULT_YACC_TRACE;
   template_file = path;
-#if defined (DEBUG_DEBUGGER)
-  template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  template_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   template_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
@@ -1145,10 +1094,6 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
   host_name.clear ();
   configuration_file = path;
-#if defined (DEBUG_DEBUGGER)
-  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
-#endif
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);

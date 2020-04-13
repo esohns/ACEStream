@@ -148,7 +148,7 @@ class Stream_Module_HTMLParser_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  virtual bool initializeSAXParser ();
+  inline virtual bool initializeSAXParser () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
   bool                               complete_;
   ParserContextType                  parserContext_;

@@ -2508,10 +2508,10 @@ stream_processing_function (void* arg_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      Common_IGetR_T<Test_U_AudioEffect_DirectShow_SessionData_t>* iget_p =
-        dynamic_cast<Common_IGetR_T<Test_U_AudioEffect_DirectShow_SessionData_t>*> (directshow_ui_cb_data_p->CBData->stream);
+      Common_IGetR_2_T<Test_U_AudioEffect_DirectShow_SessionData_t>* iget_p =
+        dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_DirectShow_SessionData_t>*> (directshow_ui_cb_data_p->CBData->stream);
       ACE_ASSERT (iget_p);
-      directshow_session_data_container_p = &iget_p->getR ();
+      directshow_session_data_container_p = &iget_p->getR_2 ();
       directshow_session_data_p =
         &const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->getR ());
       session_data_p = directshow_session_data_p;

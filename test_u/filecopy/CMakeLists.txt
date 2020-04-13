@@ -240,12 +240,16 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- if (GTK3_SUPPORT)
+ file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_LIBRARY_PATH)
+ if (GTK3_USE)
+  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk3/bin GTK_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH}
+                            ${ACE_LIBRARY_PATH})
   create_target_launcher (${EXECUTABLE}
                           ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
 #                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                                G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug
@@ -257,11 +261,14 @@ elseif (WIN32)
                           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
                           ENVIRONMENT foo=bar)
  else ()
+  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/gtk2/bin GTK_PATH)
+  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
+                            ${GTK_PATH}
+                            ${ACE_LIBRARY_PATH})
   create_target_launcher (${EXECUTABLE}
                           ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
 #                        FORWARD_ARGS
-                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                               ${PROJECT_SOURCE_DIR}/../gtk2/bin
+                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                                G:/software/Development/dll
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug
                                                ${PROJECT_SOURCE_DIR}/../Common/cmake/src/err/Debug

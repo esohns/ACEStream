@@ -30,6 +30,8 @@
 
 #include "stream_misc_defines.h"
 
+#include "test_u_defines.h"
+
 #include "branch_eventhandler.h"
 #include "branch_module_eventhandler.h"
 #include "branch_stream.h"
@@ -137,7 +139,7 @@ do_work (int argc_in,
 {
   int result = -1;
   Branch_Message* message_p = NULL;
-  struct Common_ParserConfiguration parser_configuration;
+  //struct Common_ParserConfiguration parser_configuration;
   struct Branch_ModuleHandlerConfiguration modulehandler_configuration;
   struct Common_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
@@ -154,14 +156,26 @@ do_work (int argc_in,
   ACE_NEW_NORETURN (message_p,
                     Branch_Message (STREAM_MESSAGE_DEFAULT_DATA_BUFFER_SIZE));
   ACE_ASSERT (message_p);
+  message_p->initialize (1, NULL);
 
-  // step2: initialize parser
-  parser_configuration.block = true;
-  parser_configuration.messageQueue = NULL;
+  // step2: initialize stream
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
+  Branch_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+                                               &heap_allocator,     // heap allocator handle
+                                               true);               // block ?
+  module_configuration.stream = &branch_stream;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-  modulehandler_configuration.parserConfiguration = &parser_configuration;
+  modulehandler_configuration.messageAllocator = &message_allocator;
   modulehandler_configuration.queue = &message_queue;
   modulehandler_configuration.subscriber = &event_handler;
+  stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module = &module;
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,

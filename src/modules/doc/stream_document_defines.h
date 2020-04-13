@@ -24,6 +24,9 @@
 #include "ace/config-lite.h"
 
 #define MODULE_DOCUMENT_LIBREOFFICE_WRITER_DEFAULT_NAME_STRING        "LibreOfficeWriter"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define MODULE_DOCUMENT_MSOFFICE_WRITER_DEFAULT_NAME_STRING           "MSOfficeWriter"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_HOST               ACE_LOCALHOST
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT               2083
@@ -32,7 +35,7 @@
 #define STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX             ".ini"
 #else
 #define STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX             "rc"
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
 #define STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK                       "_blank"
 #define STREAM_DOCUMENT_LIBREOFFICE_FRAME_SPREADSHEET_NEW             "private:factory/scalc"

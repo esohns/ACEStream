@@ -39,12 +39,6 @@ Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet (ISTREAM_T* stream_in)
 
 }
 
-Test_I_Stream_HTTPGet::~Test_I_Stream_HTTPGet ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTTPGet::~Test_I_Stream_HTTPGet"));
-
-}
-
 void
 Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
                                           bool& passMessageDownstream_out)
@@ -128,7 +122,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (!inherited::sessionData_);
+      //ACE_ASSERT (!inherited::sessionData_);
 
       // *TODO*: remove type inferences
       inherited::sessionData_ =
@@ -159,8 +153,8 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        ACE_ASSERT (!session_data_r.connectionStates.empty ());
-        if ((*session_data_r.connectionStates.begin ()).second->status != NET_CONNECTION_STATUS_OK)
+        if (session_data_r.connectionStates.empty () ||
+            ((*session_data_r.connectionStates.begin ()).second->status != NET_CONNECTION_STATUS_OK))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: no connection, returning\n"),

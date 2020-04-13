@@ -429,7 +429,18 @@ error:
         goto continue_;
 
       // load worksheet collection
-      spreadsheets_p = document_->getSheets ();
+      try {
+        spreadsheets_p = document_->getSheets ();
+      }
+      catch (com::sun::star::uno::Exception& exception_in) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in XSpreadsheetDocument::getSheets(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+                                                        RTL_TEXTENCODING_ASCII_US,
+                                                        OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+        goto error_2;
+      }
       ACE_ASSERT (spreadsheets_p.is ());
       //result_4 = index_p.set (spreadsheets_p,
       //                        uno::UNO_QUERY);
@@ -459,10 +470,7 @@ error:
       for (Test_I_StockRecordsIterator_t iterator_2 = session_data_r.data.begin ();
            iterator_2 != session_data_r.data.end ();
            ++iterator_2)
-      {
-        // sanity check(s)
-        ACE_ASSERT ((*iterator_2).item);
-
+      { ACE_ASSERT ((*iterator_2).item);
         // reference data ?
         is_reference = false;
         if ((*iterator_2).item->ISIN == ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX))

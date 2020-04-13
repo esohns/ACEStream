@@ -256,7 +256,7 @@ target_link_libraries (${EXECUTABLE} CommonTimer)
 if (GUI_SUPPORT)
  if (WIN32)
   # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
-  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  endif (WIN32)
  target_link_libraries (${EXECUTABLE} CommonUI)
  if (GTK_USE)
@@ -289,6 +289,12 @@ if (UNIX)
   endif (WXWIDGETS_USE)
  endif (GUI_SUPPORT)
 endif (UNIX)
+
+if (WIN32)
+ if (MSVC)
+  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
+ endif (MSVC)
+endif (WIN32)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

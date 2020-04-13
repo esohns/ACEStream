@@ -535,6 +535,16 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       //            connection_->id ()));
       notify_connect = true;
 
+      // update session data
+      connection_->info (handle_h,
+                         local_SAP, peer_SAP);
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.connectionStates.insert (std::make_pair (handle_h,
+                                                                &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
+      } // end lock scope
+
 reset:
       inherited::configuration_->streamConfiguration->configuration_.cloneModule =
           clone_module;
@@ -544,20 +554,20 @@ reset:
       if (is_error)
         goto error;
 
-      // *NOTE*: forward the session begin message early; if at all possible, it
-      //         should always be the first session message seen by downstream
-      result = inherited::put_next (message_inout, NULL);
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
+      //// *NOTE*: forward the session begin message early; if at all possible, it
+      ////         should always be the first session message seen by downstream
+      //result = inherited::put_next (message_inout, NULL);
+      //if (result == -1)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+      //              inherited::mod_->name ()));
+      //  goto error;
+      //} // end IF
 
       // clean up
-      message_inout = NULL;
-      passMessageDownstream_out = false;
+      //message_inout = NULL;
+      //passMessageDownstream_out = false;
 
 link:
       // sanity check(s)
@@ -646,18 +656,8 @@ error_2:
       break;
 
 continue_:
-      //// sanity check(s)
-      //ACE_ASSERT (connection_);
-
-      //// update session data
-      //connection_->info (handle_h,
-      //                   local_SAP, peer_SAP);
-      //// *TODO*: remove type inferences
-      //ACE_ASSERT (session_data_r.lock);
-      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-      //  session_data_r.connectionStates.insert (std::make_pair (handle_h,
-      //                                                          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
-      //} // end lock scope
+      // sanity check(s)
+      ACE_ASSERT (connection_);
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
@@ -1534,18 +1534,18 @@ error:
       break;
 
 continue_:
-      //// sanity check(s)
-      //ACE_ASSERT (connection_);
+      // sanity check(s)
+      ACE_ASSERT (connection_);
 
-      //// update session data
-      //connection_->info (handle_h,
-      //                   local_SAP, peer_SAP);
-      //// *TODO*: remove type inferences
-      //ACE_ASSERT (session_data_r.lock);
-      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-      //  session_data_r.connectionStates.insert (std::make_pair (handle_h,
-      //                                                          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
-      //} // end lock scope
+      // update session data
+      connection_->info (handle_h,
+                         local_SAP, peer_SAP);
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.connectionStates.insert (std::make_pair (handle_h,
+                                                                &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ())));
+      } // end lock scope
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);

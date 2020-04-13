@@ -347,8 +347,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end lock scope
 #if defined (_DEBUG)
-//  layout_.dump_state ();
-//  std::cerr << ACE_TEXT_ALWAYS_CHAR ("----------------------\n");
+  //layout_.dump_state ();
+  //std::cout << ACE_TEXT_ALWAYS_CHAR ("\n----------------------\n");
   dump_state ();
 #endif // _DEBUG
 
@@ -1200,7 +1200,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   result = inherited::top (module_p);
   if (unlikely ((result == -1) ||
                 !module_p))
-  {
+  { // connection failed ?
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: failed to ACE_Stream::top(), continuing\n"),
                 ACE_TEXT (StreamName)));

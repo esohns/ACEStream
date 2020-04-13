@@ -200,6 +200,10 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${MPG123_LIBRARY})
 endif ()
 
+if (WIN32)
+ # *WARNING*: linking Common requires "/FORCE:MULTIPLE"
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif (WIN32)
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonLog)
 target_link_libraries (${EXECUTABLE} CommonSignal)
