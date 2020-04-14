@@ -19,19 +19,18 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "parser_eventhandler.h"
+
+//#include "ace/Guard_T.h"
+#include "ace/Log_Msg.h"
+//#include "ace/Synch_Traits.h"
+
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //#include "gtk/gtk.h"
 //#endif // GTK_USE
 //#endif // GUI_SUPPORT
 #include "common_ui_common.h"
-
-//#include "ace/Synch.h"
-#include "parser_eventhandler.h"
-
-//#include "ace/Guard_T.h"
-#include "ace/Log_Msg.h"
-//#include "ace/Synch_Traits.h"
 
 #include "stream_macros.h"
 

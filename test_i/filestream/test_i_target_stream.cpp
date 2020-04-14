@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_i_target_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -80,13 +80,13 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
   bool result = false;
   inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -97,7 +97,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -146,7 +146,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   //             handle to the session data)
   netIO_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -163,7 +163,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 
   return result;
@@ -311,13 +311,13 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
   bool result = false;
   inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in,
@@ -328,7 +328,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -377,7 +377,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
   //             handle to the session data)
   netIO_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -394,7 +394,7 @@ Test_I_Target_UDPStream::initialize (const typename inherited::CONFIGURATION_T& 
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 
   return result;

@@ -44,11 +44,14 @@ class Stream_MessageAllocatorHeapBase_T;
 template <typename DataMessageType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CameraScreen_SessionMessage_T
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                       SessionDataType,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+                                      SessionDataType,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //friend class Stream_AllocatorBase_T<ACE_MT_SYNCH,
@@ -59,16 +62,11 @@ class Stream_CameraScreen_SessionMessage_T
   //                                                                         SessionDataType> >;
 #endif // ACE_WIN32 || ACE_WIN64
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  DataMessageType,
                                                  Stream_CameraScreen_SessionMessage_T<DataMessageType,
                                                                                       SessionDataType> >;
-
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      SessionDataType,
-                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !

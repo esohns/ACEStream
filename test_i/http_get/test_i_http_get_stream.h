@@ -56,12 +56,10 @@ class Test_I_HTTPGet_Stream_T
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_HTTPGet_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_Stream_SessionData,
                         Test_I_Stream_SessionData_t,
-                        Test_I_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
 {
@@ -74,12 +72,10 @@ class Test_I_HTTPGet_Stream_T
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_HTTPGet_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_Stream_SessionData,
                         Test_I_Stream_SessionData_t,
-                        Test_I_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
 
@@ -103,7 +99,7 @@ class Test_I_HTTPGet_Stream_T
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                            Test_I_ControlMessage_t,
+                                            Stream_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage,
                                             Test_I_Stream_InetConnectionManager_t,

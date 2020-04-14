@@ -49,12 +49,10 @@ class Test_U_RIFFDecoder_Stream
                         struct Test_U_RIFFDecoder_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
                         struct Test_U_RIFFDecoder_SessionData, // session data
                         Test_U_RIFFDecoder_SessionData_t,      // session data container (reference counted)
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_RIFFDecoder_Message,
                         Test_U_RIFFDecoder_SessionMessage>
 {
@@ -67,12 +65,10 @@ class Test_U_RIFFDecoder_Stream
                         struct Test_U_RIFFDecoder_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
                         struct Test_U_RIFFDecoder_SessionData,
                         Test_U_RIFFDecoder_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_RIFFDecoder_Message,
                         Test_U_RIFFDecoder_SessionMessage> inherited;
 

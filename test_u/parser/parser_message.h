@@ -42,9 +42,6 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Parser_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_Parser_FlexAllocatorConfiguration> Parser_ControlMessage_t;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -56,19 +53,19 @@ class Stream_MessageAllocatorHeapBase_T;
 
 class Parser_Message
  : public Stream_DataMessageBase_2<Parser_MessageData_t,
-                                   struct Common_Parser_FlexAllocatorConfiguration,
+//                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int>
 {
   typedef Stream_DataMessageBase_2<Parser_MessageData_t,
-                                   struct Common_Parser_FlexAllocatorConfiguration,
+//                                   struct Common_Parser_FlexAllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_Parser_FlexAllocatorConfiguration,
-                                                 Parser_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Parser_Message,
                                                  Parser_SessionMessage>;
 

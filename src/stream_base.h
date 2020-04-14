@@ -91,8 +91,6 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ////////////////////////////////
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType, // module-
           ////////////////////////////////
           typename SessionDataType,
@@ -113,9 +111,7 @@ class Stream_Base_T
                                   StateType>
  , public Stream_ILinkCB
  , public Common_IInitialize_T<Stream_Configuration_T<//StreamName,
-                                                      AllocatorConfigurationType,
                                                       ConfigurationType,
-                                                      ModuleConfigurationType,
                                                       HandlerConfigurationType> >
  , public Common_IStatistic_T<StatisticContainerType>
  , public Common_IGetR_2_T<SessionDataContainerType>
@@ -141,7 +137,7 @@ class Stream_Base_T
                            NotificationType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
-                           ModuleConfigurationType,
+                           struct Stream_ModuleConfiguration,
                            HandlerConfigurationType> IMODULE_T;
   typedef Stream_Miscellaneous_Distributor_T<ACE_SYNCH_USE,
                                              TimePolicyType,
@@ -155,7 +151,7 @@ class Stream_Base_T
                                          Stream_SessionId_t,
                                          SessionDataType,
                                          NotificationType,
-                                         ModuleConfigurationType,
+                                         struct Stream_ModuleConfiguration,
                                          HandlerConfigurationType,
                                          libacestream_default_misc_distributor_module_name_string,
                                          Stream_INotify_T<NotificationType>,
@@ -173,9 +169,7 @@ class Stream_Base_T
                                   StatusType,
                                   StateType> ISTREAM_CONTROL_T;
   typedef Stream_Configuration_T<//StreamName,
-                                 AllocatorConfigurationType,
                                  ConfigurationType,
-                                 ModuleConfigurationType,
                                  HandlerConfigurationType> CONFIGURATION_T;
   typedef Common_IInitialize_T<CONFIGURATION_T> IINITIALIZE_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
@@ -298,7 +292,7 @@ class Stream_Base_T
                             TimePolicyType> QUEUE_T;
   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            ModuleConfigurationType,
+                            struct Stream_ModuleConfiguration,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -306,7 +300,7 @@ class Stream_Base_T
                             enum Stream_SessionMessageType> HEAD_T;
   typedef Stream_TailTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            ModuleConfigurationType,
+                            struct Stream_ModuleConfiguration,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -376,8 +370,6 @@ class Stream_Base_T
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
-                        AllocatorConfigurationType,
-                        ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,

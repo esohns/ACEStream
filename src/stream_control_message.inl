@@ -28,11 +28,9 @@
 #include "stream_macros.h"
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::Stream_ControlMessage_T (ControlType type_in)
+                        MessageType>::Stream_ControlMessage_T (ControlType type_in)
  : inherited (0,                                  // size
               STREAM_MESSAGE_CONTROL,             // type
               NULL,                               // continuation
@@ -55,12 +53,10 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
-                                                                              ACE_Allocator* messageAllocator_in)
+                        MessageType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
+                                                               ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // data block (may be NULL)
               0,                   // pass ownership to base class
               messageAllocator_in) // message block allocator
@@ -76,13 +72,10 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlType,
-                                                                                                            MessageType,
-                                                                                                            AllocatorConfigurationType>& message_in)
+                        MessageType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlType,
+                                                                                             MessageType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
@@ -98,11 +91,9 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::~Stream_ControlMessage_T ()
+                        MessageType>::~Stream_ControlMessage_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::~Stream_ControlMessage_T"));
 
@@ -116,12 +107,10 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 bool
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::initialize (const ControlType& type_in)
+                        MessageType>::initialize (const ControlType& type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::initialize"));
 
@@ -165,12 +154,10 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 ACE_Message_Block*
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::duplicate (void) const
+                        MessageType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::duplicate"));
 
@@ -210,12 +197,10 @@ Stream_ControlMessage_T<ControlType,
 }
 
 template <typename ControlType,
-          typename MessageType,
-          typename AllocatorConfigurationType>
+          typename MessageType>
 std::string
 Stream_ControlMessage_T<ControlType,
-                        MessageType,
-                        AllocatorConfigurationType>::ControlMessageTypeToString (MessageType type_in)
+                        MessageType>::ControlMessageTypeToString (MessageType type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::ControlMessageTypeToString"));
 

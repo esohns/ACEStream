@@ -39,15 +39,20 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<//struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Stream_Filecopy_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<//struct Stream_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Stream_Filecopy_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
 
@@ -58,17 +63,12 @@ class Stream_Filecopy_SessionMessage
                                   enum Stream_SessionMessageType,
                                   Stream_Filecopy_SessionData_t*&, // session data container handle
                                   struct Stream_UserData*);
-  inline virtual ~Stream_Filecopy_SessionMessage () {};
+  inline virtual ~Stream_Filecopy_SessionMessage () {}
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Stream_Filecopy_SessionData_t,
-                                      struct Stream_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Stream_Filecopy_SessionMessage (const Stream_Filecopy_SessionMessage&);
 

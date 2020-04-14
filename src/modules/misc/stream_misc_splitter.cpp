@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_misc_splitter.h"
 
 #include "stream_misc_defines.h"

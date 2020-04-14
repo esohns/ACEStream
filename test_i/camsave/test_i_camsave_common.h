@@ -586,9 +586,7 @@ struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
 struct Stream_CamSave_V4L_StreamConfiguration;
 struct Stream_CamSave_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CamSave_V4L_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CamSave_V4L_ModuleHandlerConfiguration> Stream_CamSave_V4L_StreamConfiguration_t;
 struct Stream_CamSave_V4L_ModuleHandlerConfiguration
  : Stream_CamSave_ModuleHandlerConfiguration
@@ -844,7 +842,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CamSave_Message_t,
                                           Stream_CamSave_V4L_SessionMessage_t> Stream_CamSave_V4L_MessageAllocator_t;

@@ -47,18 +47,18 @@ template <typename DataType,
           typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_CamSave_Message_T
  : public Stream_DataMessageBase_T<DataType,
-                                   struct Stream_AllocatorConfiguration,
+//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int>
 {
   typedef Stream_DataMessageBase_T<DataType,
-                                   struct Stream_AllocatorConfiguration,
+//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Stream_CamSave_Message_T<DataType,
                                                                           SessionDataType>,

@@ -34,17 +34,17 @@ class ACE_Message_Block;
 
 template <typename DataType,
           ////////////////////////////////
-          typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+          //typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_DataMessageBase_T
- : public Stream_MessageBase_T<AllocatorConfigurationType,
+ : public Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType>
  , public Common_IGetR_T<DataType>
  , public Common_ISetPR_T<DataType>
 {
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType> inherited;
 
@@ -70,7 +70,7 @@ class Stream_DataMessageBase_T
  protected:
   // convenient types
   typedef Stream_DataMessageBase_T<DataType,
-                                   AllocatorConfigurationType,
+                                   //AllocatorConfigurationType,
                                    MessageType,
                                    CommandType> OWN_TYPE_T;
 
@@ -111,17 +111,17 @@ class Stream_DataMessageBase_T
 
 template <typename DataType, // *NOTE*: this implements Common_IReferenceCount
           ////////////////////////////////
-          typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+          //typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_DataMessageBase_2
- : public Stream_MessageBase_T<AllocatorConfigurationType,
+ : public Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType>
  , public Common_IGetR_T<DataType>
  , public Common_ISetPR_2_T<DataType>
 {
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType> inherited;
 
@@ -148,7 +148,7 @@ class Stream_DataMessageBase_2
  protected:
   // convenient types
   typedef Stream_DataMessageBase_2<DataType,
-                                   AllocatorConfigurationType,
+                                   //AllocatorConfigurationType,
                                    MessageType,
                                    CommandType> OWN_TYPE_T;
 

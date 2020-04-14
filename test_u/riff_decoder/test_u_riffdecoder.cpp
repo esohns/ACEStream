@@ -30,7 +30,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -198,11 +198,13 @@ do_work (bool debug_in,
   // step0a: initialize configuration
   struct Common_TimerConfiguration timer_configuration;
   struct Test_U_RIFFDecoder_Configuration configuration;
+  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
+  struct Stream_Configuration stream_configuration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -227,12 +229,11 @@ do_work (bool debug_in,
       &configuration.parserConfiguration;
 
   // ********************** stream configuration data **************************
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            std::make_pair (module_configuration,
-                                                                            modulehandler_configuration)));
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.printFinalReport = true;
+  configuration.streamConfiguration.initialize (module_configuration,
+                                                modulehandler_configuration,
+                                                stream_configuration);
 
   Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;
   Stream_Module_t* module_p = NULL;

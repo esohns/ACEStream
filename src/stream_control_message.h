@@ -35,9 +35,12 @@
 class ACE_Allocator;
 
 template <typename ControlType,
-          typename MessageType,
-          ////////////////////////////////
-          typename AllocatorConfigurationType>
+          typename MessageType>
+//          ////////////////////////////////
+//          typename AllocatorConfigurationType,
+//          ////////////////////////////////
+//          typename DataMessageType,
+//          typename SessionMessageType>
 class Stream_ControlMessage_T
  : public ACE_Message_Block
  , public Common_IInitialize_T<ControlType>
@@ -63,8 +66,7 @@ class Stream_ControlMessage_T
   // convenient types
   typedef ControlType CONTROL_T;
   typedef Stream_ControlMessage_T<ControlType,
-                                  MessageType,
-                                  AllocatorConfigurationType> OWN_TYPE_T;
+                                  MessageType> OWN_TYPE_T;
 
   Stream_ControlMessage_T (ControlType);
   // *NOTE*: to be used by message allocators

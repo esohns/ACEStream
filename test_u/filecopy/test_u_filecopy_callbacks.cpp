@@ -27,7 +27,7 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "common_timer_manager.h"
 
 #include "common_ui_gtk_common.h"
@@ -960,11 +960,11 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (spin_button_p);
   gdouble value_d = gtk_spin_button_get_value (spin_button_p);
   if (value_d)
-    data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+    data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
       static_cast<unsigned int> (value_d);
   else
     gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
+                               static_cast<gdouble> (data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize));
   if (!data_p->stream->initialize (data_p->configuration->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,

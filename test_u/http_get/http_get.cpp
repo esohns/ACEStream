@@ -37,7 +37,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -582,9 +582,11 @@ do_work (unsigned int bufferSize_in,
   HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
+  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
+
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize message allocator, returning\n")));
@@ -607,10 +609,10 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
 
+  connection_configuration.allocatorConfiguration = &allocator_configuration;
+  connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
-  connection_configuration.initialize (CBData_in.configuration->allocatorConfiguration,
-                                       CBData_in.configuration->streamConfiguration);
+  connection_configuration.initialize (CBData_in.configuration->streamConfiguration);
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &connection_configuration));
@@ -643,10 +645,6 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName = fileName_in;
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
-  if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      bufferSize_in;
-
   struct Stream_Configuration steam_configuration;
   steam_configuration.messageAllocator = &message_allocator;
   steam_configuration.module =
@@ -655,8 +653,12 @@ do_work (unsigned int bufferSize_in,
   steam_configuration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            modulehandler_configuration,
-                                                           CBData_in.configuration->allocatorConfiguration,
                                                            steam_configuration);
+
+  if (bufferSize_in)
+    CBData_in.configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
+      bufferSize_in;
+
   CBData_in.stream = istream_p;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);

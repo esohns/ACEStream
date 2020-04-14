@@ -47,7 +47,7 @@
 
 // declare module(s)
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     HTTPGet_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      HTTPGet_Message,
                                      HTTPGet_SessionMessage,
                                      struct HTTPGet_ModuleHandlerConfiguration,
@@ -62,7 +62,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      HTTPGet_ConnectionManager_t,
                                      struct Stream_UserData> HTTPGet_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     HTTPGet_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      HTTPGet_Message,
                                      HTTPGet_SessionMessage,
                                      struct HTTPGet_ModuleHandlerConfiguration,
@@ -88,12 +88,12 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct HTTPGet_ModuleHandlerConfiguration,
-                               HTTPGet_ControlMessage_t,
+                               Stream_ControlMessage_t,
                                HTTPGet_Message,
                                HTTPGet_SessionMessage> HTTPGet_HTTPStreamer;
 typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
-                              HTTPGet_ControlMessage_t,
+                              Stream_ControlMessage_t,
                               HTTPGet_Message,
                               HTTPGet_SessionMessage,
                               struct HTTPGet_ModuleHandlerConfiguration,
@@ -117,7 +117,7 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct HTTPGet_ModuleHandlerConfiguration,
-                                                      HTTPGet_ControlMessage_t,
+                                                      Stream_ControlMessage_t,
                                                       HTTPGet_Message,
                                                       HTTPGet_SessionMessage,
                                                       HTTP_Method_t,
@@ -128,7 +128,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct HTTPGet_ModuleHandlerConfiguration,
-                                                      HTTPGet_ControlMessage_t,
+                                                      Stream_ControlMessage_t,
                                                       HTTPGet_Message,
                                                       HTTPGet_SessionMessage,
                                                       HTTP_Method_t,
@@ -148,7 +148,7 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
 typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct HTTPGet_ModuleHandlerConfiguration,
-                                            HTTPGet_ControlMessage_t,
+                                            Stream_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage> HTTPGet_HTTPGet;
 DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // session data type
@@ -161,7 +161,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // sess
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct HTTPGet_ModuleHandlerConfiguration,
-                                   HTTPGet_ControlMessage_t,
+                                   Stream_ControlMessage_t,
                                    HTTPGet_Message,
                                    HTTPGet_SessionMessage> HTTPGet_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // session data type

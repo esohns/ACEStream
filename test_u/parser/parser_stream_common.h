@@ -44,9 +44,6 @@
 struct Parser_AllocatorConfiguration;
 class Parser_Message;
 class Parser_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_Parser_FlexAllocatorConfiguration> Parser_ControlMessage_t;
 
 struct Parser_MessageData
 {
@@ -103,9 +100,7 @@ typedef Parser_Subscribers_t::iterator Parser_SubscribersIterator_t;
 //extern const char stream_name_string_[];
 struct Parser_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_Parser_FlexAllocatorConfiguration,
                                struct Stream_Configuration,
-                               struct Stream_ModuleConfiguration,
                                struct Parser_ModuleHandlerConfiguration> Parser_StreamConfiguration_t;
 //typedef Net_ConnectionConfiguration_T<struct Common_Parser_FlexAllocatorConfiguration,
 //                                      Parser_StreamConfiguration_t,

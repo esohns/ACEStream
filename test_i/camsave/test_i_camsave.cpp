@@ -47,7 +47,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -1102,6 +1102,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 
   // ********************** module configuration data **************************
+  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
@@ -1128,6 +1129,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
 #else
   struct Stream_CamSave_V4L_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_CamSave_V4L_StreamConfiguration stream_configuration;
   Stream_CamSave_V4L_EventHandler_t ui_event_handler (
 #if defined (GUI_SUPPORT)
                                                       &CBData_in
@@ -1208,8 +1210,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #else
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator;
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T v4l_stream_iterator_2;
-  modulehandler_configuration.allocatorConfiguration =
-    &configuration_in.streamConfiguration.allocatorConfiguration_;
+  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers =
     STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier.identifier =
@@ -1238,7 +1239,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Stream_AllocatorConfiguration> heap_allocator;
+                         struct Common_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
@@ -1348,15 +1349,14 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
-  configuration_in.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
+  stream_configuration.messageAllocator = &message_allocator;
 #if defined (GUI_SUPPORT)
-  configuration_in.streamConfiguration.configuration_.module =
+  stream_configuration.module =
       (!UIDefinitionFilename_in.empty () ? &message_handler
                                          : NULL);
 #endif // GUI_SUPPORT
 
-  if (!heap_allocator.initialize (configuration_in.streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -1436,9 +1436,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
+  configuration_in.streamConfiguration.initialize (module_configuration,
+                                                   modulehandler_configuration,
+                                                   stream_configuration);
+
   if (!do_initialize_v4l (captureinterfaceIdentifier_in,
                           modulehandler_configuration.deviceIdentifier,
-                          configuration_in.streamConfiguration.configuration_.format,
+                          configuration_in.streamConfiguration.configuration->format,
                           modulehandler_configuration.outputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1446,10 +1450,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     return;
   } // end IF
 
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
-                                                   configuration_in.streamConfiguration.configuration_);
   modulehandler_configuration.display = displayDevice_in;
   configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11),
                                                                std::make_pair (module_configuration,

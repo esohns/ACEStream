@@ -37,7 +37,7 @@
 // forward declarations
 class ACE_Allocator;
 
-template <typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+template <//typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
           typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_MessageBase_T
@@ -91,7 +91,7 @@ class Stream_MessageBase_T
  protected:
   // convenient types
   typedef ACE_Message_Block MESSAGE_BLOCK_T;
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType> OWN_TYPE_T;
 
@@ -134,19 +134,19 @@ class Stream_MessageBase_T
 
 #include "common_iget.h"
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           ////////////////////////////////
           typename HeaderType,
           typename CommandType = int>
 class Stream_MessageBase_2
- : public Stream_MessageBase_T<AllocatorConfigurationType,
+ : public Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType> inherited;
 

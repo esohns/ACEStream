@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_stat_statistic_analysis.h"
 
 #include "stream_stat_defines.h"

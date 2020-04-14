@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "ace/Log_Msg.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
 #include "gmodule.h"
@@ -254,7 +254,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize);
+                             ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize);
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,

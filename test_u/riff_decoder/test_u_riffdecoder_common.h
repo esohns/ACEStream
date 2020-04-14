@@ -63,9 +63,7 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
 //extern const char stream_name_string_[];
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Test_U_RIFFDecoder_AllocatorConfiguration,
                                struct Stream_Configuration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_U_RIFFDecoder_ModuleHandlerConfiguration> Test_U_RIFFDecoder_StreamConfiguration_t;
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
@@ -111,10 +109,6 @@ struct Test_U_RIFFDecoder_Configuration
   Test_U_RIFFDecoder_StreamConfiguration_t streamConfiguration;
 };
 
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Test_U_RIFFDecoder_AllocatorConfiguration> Test_U_RIFFDecoder_ControlMessage_t;
-
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,
 //          typename ControlMessageType,
@@ -141,8 +135,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                                          Test_U_ControlMessage_t,
+                                          struct Common_AllocatorConfiguration,
+                                          Stream_ControlMessage_t,
                                           Test_U_RIFFDecoder_Message,
                                           Test_U_RIFFDecoder_SessionMessage> Test_U_RIFFDecoder_MessageAllocator_t;
 

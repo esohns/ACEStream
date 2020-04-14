@@ -40,7 +40,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -839,12 +839,12 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Common_ITaskControl_t* itask_control_p = NULL;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Stream_AllocatorConfiguration> heap_allocator;
+                         struct Common_AllocatorConfiguration> heap_allocator;
   ACE_thread_t thread_id = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
@@ -932,7 +932,7 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   allocator_configuration_p =
-    &configuration_in.streamConfiguration.allocatorConfiguration_;
+    configuration_in.streamConfiguration.configuration->allocatorConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (allocator_configuration_p);
 
@@ -963,6 +963,7 @@ do_work (unsigned int bufferSize_in,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_U_AudioEffect_ALSA_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_ASSERT (allocator_configuration_p);
@@ -1098,8 +1099,7 @@ do_work (unsigned int bufferSize_in,
     allocator_configuration_p;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
-                                                   configuration_in.streamConfiguration.allocatorConfiguration_,
-                                                   configuration_in.streamConfiguration.configuration_);
+                                                   stream_configuration);
 
   modulehandler_iterator =
       configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1180,17 +1180,14 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   if (bufferSize_in)
-    configuration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      bufferSize_in;
+    allocator_configuration_p->defaultBufferSize = bufferSize_in;
 
-  configuration_in.streamConfiguration.configuration_.messageAllocator =
-    &message_allocator;
-  configuration_in.streamConfiguration.configuration_.module =
+  stream_configuration.messageAllocator = &message_allocator;
+  stream_configuration.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
-  configuration_in.streamConfiguration.configuration_.printFinalReport = true;
-  configuration_in.streamConfiguration.configuration_.format =
-    configuration_in.ALSAConfiguration.format;
+  stream_configuration.printFinalReport = true;
+  stream_configuration.format = configuration_in.ALSAConfiguration.format;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers

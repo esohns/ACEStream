@@ -525,9 +525,7 @@ struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration
 struct Stream_CameraScreen_V4L_StreamConfiguration;
 struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CameraScreen_V4L_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration> Stream_CameraScreen_StreamConfiguration_t;
 struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration
  : Stream_CameraScreen_ModuleHandlerConfiguration
@@ -718,7 +716,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Stream_CameraScreen_MediaFoundation_SessionMessage_t> Stream_CameraScreen_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CameraScreen_Message_t,
                                           Stream_CameraScreen_SessionMessage_t> Stream_CameraScreen_MessageAllocator_t;

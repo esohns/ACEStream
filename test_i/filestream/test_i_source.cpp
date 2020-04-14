@@ -31,7 +31,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -489,14 +489,12 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  //configuration.userData.connectionConfiguration =
-  //    &configuration.connectionConfiguration;
-  //configuration.userData.streamConfiguration =
-  //  &configuration.streamConfiguration;
+
+  struct Stream_AllocatorConfiguration allocator_configuration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -555,8 +553,8 @@ do_work (unsigned int bufferSize_in,
     statisticReportingInterval_in;
 
 //  connection_configuration.connectionManager = iconnection_manager_p;
+  connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &connection_configuration));
@@ -569,8 +567,7 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.allocatorConfiguration =
-    &CBData_in.configuration->streamConfiguration.allocatorConfiguration_;
+  modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.connectionManager = iconnection_manager_p;
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
   modulehandler_configuration.printProgressDot =
@@ -591,7 +588,6 @@ do_work (unsigned int bufferSize_in,
 #endif // GUI_SUPPORT
 
   // ********************* (sub-)stream configuration data *********************
-  struct Common_AllocatorConfiguration allocator_configuration;
   struct Test_I_Source_StreamConfiguration stream_configuration;
   Test_I_Source_StreamConfiguration_t stream_configuration_2;
   if (bufferSize_in)
@@ -604,16 +600,13 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            modulehandler_configuration,
-                                                           allocator_configuration,
                                                            stream_configuration);
 
   stream_configuration.module = NULL;
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,
-                                     allocator_configuration,
                                      stream_configuration);
-  connection_configuration.initialize (allocator_configuration,
-                                       stream_configuration_2);
+  connection_configuration.initialize (stream_configuration_2);
   //  stream_iterator =
   //    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
   //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());

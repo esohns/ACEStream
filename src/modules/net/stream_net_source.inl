@@ -442,12 +442,12 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_ASSERT (configuration_p);
 
       clone_module =
-        inherited::configuration_->streamConfiguration->configuration_.cloneModule;
+        inherited::configuration_->streamConfiguration->configuration->cloneModule;
       module_p =
-        inherited::configuration_->streamConfiguration->configuration_.module;
-      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+        inherited::configuration_->streamConfiguration->configuration->module;
+      inherited::configuration_->streamConfiguration->configuration->cloneModule =
           false;
-      inherited::configuration_->streamConfiguration->configuration_.module =
+      inherited::configuration_->streamConfiguration->configuration->module =
           NULL;
 
       if (!iconnector_p->initialize (*configuration_p))
@@ -546,9 +546,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       } // end lock scope
 
 reset:
-      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+      inherited::configuration_->streamConfiguration->configuration->cloneModule =
           clone_module;
-      inherited::configuration_->streamConfiguration->configuration_.module =
+      inherited::configuration_->streamConfiguration->configuration->module =
           module_p;
 
       if (is_error)
@@ -1270,16 +1270,16 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //      //         --> temporarily 'hide' the module handle, if any
 //      // *TODO*: remove this ASAP
 //      clone_module =
-//          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
+//          inherited::configuration_->streamConfiguration->configuration->cloneModule;
 //      delete_module =
-//          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
+//          inherited::configuration_->streamConfiguration->configuration->deleteModule;
 //      module_p =
-//          inherited::configuration_->streamConfiguration->configuration_.module;
-//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+//          inherited::configuration_->streamConfiguration->configuration->module;
+//      inherited::configuration_->streamConfiguration->configuration->cloneModule =
 //          false;
-//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+//      inherited::configuration_->streamConfiguration->configuration->deleteModule =
 //          false;
-//      inherited::configuration_->streamConfiguration->configuration_.module =
+//      inherited::configuration_->streamConfiguration->configuration->module =
 //          NULL;
 
       if (!iconnector_p->initialize (*configuration_p))
@@ -1419,11 +1419,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       notify_connect = true;
 
 reset:
-//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+//      inherited::configuration_->streamConfiguration->configuration->cloneModule =
 //          clone_module;
-//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+//      inherited::configuration_->streamConfiguration->configuration->deleteModule =
 //          delete_module;
-//      inherited::configuration_->streamConfiguration->configuration_.module =
+//      inherited::configuration_->streamConfiguration->configuration->module =
 //          module_p;
 
       if (is_error)

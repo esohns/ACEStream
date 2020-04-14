@@ -40,7 +40,7 @@
 #include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 
 // Local Header Files
 #if defined (HAVE_CONFIG_H)
@@ -56,16 +56,16 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
+#if defined (HAVE_CONFIG_H)
+#include "ACENetwork_config.h"
+#endif // HAVE_CONFIG_H
+
 #include "test_i_common.h"
 //#if defined (GUI_SUPPORT)
 //#if defined (GTK_USE)
 //#include "test_i_gtk_common.h"
 //#endif // GTK_USE
 //#endif // GUI_SUPPORT
-
-#if defined (HAVE_CONFIG_H)
-#include "ACENetwork_config.h"
-#endif // HAVE_CONFIG_H
 
 #include "test_i_http_get_common.h"
 

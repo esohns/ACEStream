@@ -410,7 +410,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
+                             static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -1090,7 +1090,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
+                              static_cast<double> (ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize));
 
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2128,7 +2128,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
-  ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+  ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // retrieve loop

@@ -41,7 +41,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -888,9 +888,10 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   struct Test_I_Target_Configuration configuration;
+  struct Stream_AllocatorConfiguration allocator_configuration;
+  struct Test_I_Target_StreamConfiguration stream_configuration;
   CBData_in.configuration = &configuration;
-  serialize_output =
-    configuration.streamConfiguration.configuration_.serializeOutput;
+  serialize_output = stream_configuration.serializeOutput;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_UNUSED_ARG (serialize_output);
   event_dispatch_configuration_s.numberOfProactorThreads =
@@ -941,8 +942,7 @@ do_work (unsigned int bufferSize_in,
 #else
   camstream_configuration_p = &configuration;
   CBData_in.configuration = &configuration;
-  allocator_configuration_p =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+  allocator_configuration_p = &allocator_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
@@ -1077,13 +1077,11 @@ do_work (unsigned int bufferSize_in,
 //  modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = fileName_in;
 
-  Test_I_Target_StreamConfiguration stream_configuration;
   stream_configuration.format.format = AV_PIX_FMT_RGB24;
   stream_configuration.format.resolution.height = 480;
   stream_configuration.format.resolution.width = 640;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
                                                 stream_configuration);
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1442,8 +1440,7 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.initialize (*allocator_configuration_p,
-                                       configuration.streamConfiguration);
+  connection_configuration.initialize (configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -1541,15 +1538,13 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
-  configuration.streamConfiguration.configuration_.cloneModule = true;
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      allocator_p;
+  stream_configuration.cloneModule = true;
+  stream_configuration.messageAllocator = allocator_p;
   if (!UIDefinitionFilename_in.empty ())
-    configuration.streamConfiguration.configuration_.module = &event_handler;
-  configuration.streamConfiguration.configuration_.printFinalReport = true;
+    stream_configuration.module = &event_handler;
+  stream_configuration.printFinalReport = true;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************* listener configuration data *************************

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_i_camsave_signalhandler.h"
 
 #if defined (GUI_SUPPORT)

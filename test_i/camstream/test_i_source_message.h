@@ -54,7 +54,7 @@ class Test_I_Source_DirectShow_Stream_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Source_DirectShow_Stream_Message,
                                                  Test_I_Source_DirectShow_SessionMessage>;
 
@@ -103,7 +103,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Source_MediaFoundation_Stream_Message,
                                                  Test_I_Source_MediaFoundation_SessionMessage>;
 
@@ -145,13 +145,13 @@ class Test_I_Source_MediaFoundation_Stream_Message
 #else
 class Test_I_Source_V4L_Stream_Message
  : public Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
-                                   struct Common_AllocatorConfiguration,
+//                                   struct Common_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
 {
   typedef Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
-                                   struct Common_AllocatorConfiguration,
+//                                   struct Common_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t> inherited;
   typedef Common_ReferenceCounterBase inherited2;
@@ -159,7 +159,7 @@ class Test_I_Source_V4L_Stream_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Source_V4L_Stream_Message,
                                                  Test_I_Source_V4L_SessionMessage>;
 

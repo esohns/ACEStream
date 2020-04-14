@@ -253,7 +253,6 @@ do_work (int argc_in,
   stream_configuration.module = &module;
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,
-                                     allocator_configuration,
                                      stream_configuration);
   if (!parser_stream.initialize (stream_configuration_2))
   {

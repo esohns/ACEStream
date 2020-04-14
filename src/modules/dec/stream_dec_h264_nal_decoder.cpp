@@ -19,5 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_dec_h264_nal_decoder.h"

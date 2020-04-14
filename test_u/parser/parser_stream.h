@@ -48,12 +48,10 @@ class Parser_Stream
                         struct Parser_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Parser_ModuleHandlerConfiguration,
                         struct Parser_SessionData,
                         Parser_SessionData_t,
-                        Parser_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Parser_Message,
                         Parser_SessionMessage>
 {
@@ -66,12 +64,10 @@ class Parser_Stream
                         struct Parser_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Parser_ModuleHandlerConfiguration,
                         struct Parser_SessionData,
                         Parser_SessionData_t,
-                        Parser_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Parser_Message,
                         Parser_SessionMessage> inherited;
 

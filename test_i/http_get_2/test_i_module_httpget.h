@@ -43,14 +43,14 @@ class Test_I_Stream_HTTPGet
  : public Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
                                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                              Test_I_ControlMessage_t,
+                                              Stream_ControlMessage_t,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage>
 {
   typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
                                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                              Test_I_ControlMessage_t,
+                                              Stream_ControlMessage_t,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage> inherited;
 

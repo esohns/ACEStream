@@ -177,9 +177,6 @@ struct Test_I_SAXParserContext
 
 //class Test_I_Stream_Message;
 //class Test_I_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;
 //struct Test_I_HTTPGet_StreamConfiguration;
 //struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 //static constexpr const char stream_name_string_[] =
@@ -204,7 +201,7 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
 //                      struct Test_I_HTTPGet_SessionData,
 //                      Test_I_HTTPGet_SessionData_t,
-//                      Test_I_ControlMessage_t,
+//                      Stream_ControlMessage_t,
 //                      Test_I_Stream_Message,
 //                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration
@@ -293,8 +290,8 @@ struct Test_I_HTTPGet_Configuration
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Common_Parser_FlexAllocatorConfiguration,
-                                          Test_I_ControlMessage_t,
+                                          struct Common_AllocatorConfiguration,
+                                          Stream_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
 

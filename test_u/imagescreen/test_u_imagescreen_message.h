@@ -58,18 +58,18 @@ struct Stream_ImageScreen_MessageData
 template <typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_ImageScreen_Message_T
  : public Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
-                                   struct Stream_AllocatorConfiguration,
+//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int>
 {
   typedef Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
-                                   struct Stream_AllocatorConfiguration,
+//                                   struct Stream_AllocatorConfiguration,
                                    enum Stream_MessageType,
                                    int> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
+                                                 struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Stream_ImageScreen_Message_T<SessionDataType>,
                                                  Stream_ImageScreen_SessionMessage_T<Stream_ImageScreen_Message_T<SessionDataType>,

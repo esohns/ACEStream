@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_u_audioeffect_stream.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1303,7 +1303,8 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  ACE_ASSERT (configuration_in.configuration);
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_U_AudioEffect_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -1314,7 +1315,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
       NULL;
 #else
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p = NULL;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
   Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
   Test_U_Dev_Mic_Source_ALSA* source_impl_p = NULL;
@@ -1334,7 +1335,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
 //  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->format);
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -1344,7 +1345,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -1373,7 +1374,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
   configuration_p =
       dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (configuration_in.useMediaFoundation)
     session_data_p->targetFileName =
@@ -1383,8 +1384,8 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
         directshow_configuration_p->fileIdentifier.identifier;
 #else
   session_data_p->targetFileName = configuration_p->fileIdentifier.identifier;
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
-#endif
+  session_data_p->formats.push_back (configuration_in.configuration->format);
+#endif // ACE_WIN32 || ACE_WIN64
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
@@ -1404,7 +1405,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
     directshow_configuration_p->dispatch = idispatch_p;
 #else
   configuration_p->dispatch = idispatch_p;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   // ---------------------------------------------------------------------------
 
@@ -1445,7 +1446,7 @@ Test_U_AudioEffect_ALSA_Stream::initialize (const typename inherited::CONFIGURAT
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 
   return false;

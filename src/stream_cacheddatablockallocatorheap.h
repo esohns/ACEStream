@@ -28,19 +28,22 @@
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
-#include "stream_exports.h"
+//#include "stream_exports.h"
 #include "stream_iallocator.h"
 
 template <ACE_SYNCH_DECL>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Stream_CachedDataBlockAllocatorHeap_T
 #else
-class Stream_Export Stream_CachedDataBlockAllocatorHeap_T
+class Stream_CachedDataBlockAllocatorHeap_T
 #endif
  : public ACE_Cached_Allocator<ACE_Data_Block,
                                ACE_SYNCH_MUTEX_T>
  , public Stream_IAllocator
 {
+  typedef ACE_Cached_Allocator<ACE_Data_Block,
+                               ACE_SYNCH_MUTEX_T> inherited;
+
  public:
   Stream_CachedDataBlockAllocatorHeap_T (unsigned int,   // number of chunks
                                          ACE_Allocator*, // (heap) memory allocator
@@ -51,17 +54,17 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap_T
   // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this
   //                   NEVER blocks; elements are allocated dynamically when lwm
   //                   is reached (see: ACE_Locked_Free_List)
-  inline virtual bool block () { return false; };
+  inline virtual bool block () { return false; }
   // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees an ACE_Data_Block
-  inline virtual void free (void* handle_in) { inherited::free (handle_in); }; // handle
+  inline virtual void free (void* handle_in) { inherited::free (handle_in); } // handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #in-flight data blocks
 
   // *NOTE*: returns a pointer to ACE_Data_Block
   inline virtual void* calloc (size_t bytes_in,
-                               char = '\0') { return malloc (bytes_in); };
+                               char = '\0') { return malloc (bytes_in); }
 
   // convenience types
   // *NOTE*: serialize access to ACE_Data_Block reference count, which may be
@@ -75,19 +78,18 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap_T
   static DATABLOCK_LOCK_T referenceCountLock_;
 
  private:
-  typedef ACE_Cached_Allocator<ACE_Data_Block,
-                               ACE_SYNCH_MUTEX_T> inherited;
-  typedef Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap_T (const Stream_CachedDataBlockAllocatorHeap_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap_T& operator= (const Stream_CachedDataBlockAllocatorHeap_T&))
+
+  // convenient types
+  typedef Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE> OWN_TYPE_T;
 
   // implement (part of) Stream_IAllocator
   virtual void* calloc ();
 
-  bool                    block_;
-  ACE_Allocator*          heapAllocator_;
-  unsigned int            poolSize_;
+  bool           block_;
+  ACE_Allocator* heapAllocator_;
+  unsigned int   poolSize_;
 };
 
 // include template definition

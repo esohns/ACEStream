@@ -458,9 +458,11 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                                  : NET_TRANSPORTLAYER_TCP);
 
+  struct Stream_AllocatorConfiguration allocator_configuration;
+
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -516,13 +518,13 @@ do_work (unsigned int bufferSize_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
+  tcp_connection_configuration.allocatorConfiguration = &allocator_configuration;
+  tcp_connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
   tcp_connection_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
 //  connection_configuration.connectionManager = connection_manager_p;
   tcp_connection_configuration.messageAllocator = &message_allocator;
-  tcp_connection_configuration.allocatorConfiguration_.defaultBufferSize = bufferSize_in;
-  tcp_connection_configuration.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_,
-                                           CBData_in.configuration->streamConfiguration);
+  tcp_connection_configuration.initialize (CBData_in.configuration->streamConfiguration);
 
   CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             &tcp_connection_configuration));
@@ -538,8 +540,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
   // ********************** module configuration data **************************
   struct Stream_ModuleConfiguration module_configuration;
@@ -565,7 +566,6 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
-  struct Common_AllocatorConfiguration allocator_configuration;
   struct Test_I_Target_StreamConfiguration stream_configuration;
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
@@ -578,7 +578,6 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            modulehandler_configuration,
-                                                           allocator_configuration,
                                                            stream_configuration);
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_3 =
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

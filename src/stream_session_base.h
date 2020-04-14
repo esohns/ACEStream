@@ -21,8 +21,9 @@
 #ifndef STREAM_SESSION_BASE_T_H
 #define STREAM_SESSION_BASE_T_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Condition_Thread_Mutex.h"
+#include "ace/Global_Macros.h"
+#include "ace/Thread_Mutex.h"
 
 #include "stream_isessionnotify.h"
 
@@ -58,14 +59,14 @@ class Stream_SessionBase_T
                      const ACE_Time_Value* = NULL); // timeout (absolute) {NULL: block}
 
  protected:
-  Stream_SessionBase_T (ACE_SYNCH_MUTEX*);
+  Stream_SessionBase_T (ACE_Thread_Mutex*);
 
   // implement Stream_ISession
   virtual void startCB ();
   virtual void endCB ();
 
-  bool                inSession_;
-  ACE_SYNCH_MUTEX*    lock_;
+  bool                       inSession_;
+  ACE_Thread_Mutex*          lock_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T ())
@@ -80,7 +81,7 @@ class Stream_SessionBase_T
   inline virtual void notify (SessionIdType, const MessageType&) {}
   inline virtual void notify (SessionIdType, const SessionMessageType&) {}
 
-  ACE_SYNCH_CONDITION condition_;
+  ACE_Condition_Thread_Mutex condition_;
 };
 
 // include template definition

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_i_camsave_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -116,7 +116,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CamSave_DirectShow_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
@@ -209,7 +209,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second.builder,
                                                          CLSID_VideoInputDeviceCategory,
-                                                         configuration_in.configuration_.format))
+                                                         configuration_in.configuration->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -236,7 +236,7 @@ continue_:
   //direct3D_manager_p->Release (); direct3D_manager_p = NULL;
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                            configuration_in.configuration_.format,
+                                                            configuration_in.configuration->format,
                                                             (*iterator).second.second.outputFormat,
                                                             //(*iterator).second.second.direct3DConfiguration->presentationParameters.hDeviceWindow
                                                             NULL,
@@ -301,7 +301,7 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
-    configuration_in.allocatorConfiguration_.defaultBufferSize;
+    configuration_in.allocatorconfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -401,7 +401,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step3: allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -411,7 +411,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -446,7 +446,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
+  session_data_p->formats.push_back (configuration_in.configuration->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -471,7 +471,7 @@ continue_:
   source_.arg (inherited::sessionData_);
 
   // step7: assemble stream
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -916,7 +916,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CamSave_MediaFoundation_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -925,7 +925,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   Stream_CamSave_MediaFoundation_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -935,7 +935,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1049,7 +1049,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
 
   ACE_ASSERT (configuration_p->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
   if (!Stream_Module_Decoder_Tools::loadVideoRendererTopology (ACE_TEXT_ALWAYS_CHAR (configuration_p->deviceIdentifier.identifier._string),
-                                                               configuration_in.configuration_.format,
+                                                               configuration_in.configuration->format,
                                                                source_impl_p,
                                                                NULL,
                                                                //configuration_p->window,
@@ -1071,7 +1071,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
 
 continue_:
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                              configuration_in.configuration_.format))
+                                                              configuration_in.configuration->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -1082,12 +1082,12 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_.format).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration->format).c_str ())));
 #endif // _DEBUG
 
   ACE_ASSERT (session_data_p->formats.empty ());
   media_type_p =
-    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_.format);
+    Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration->format);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1152,7 +1152,7 @@ continue_:
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1169,7 +1169,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
   if (media_type_p)
     media_type_p->Release ();
@@ -1279,12 +1279,12 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
     {
       layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
-      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+      configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
           dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (configuration_->configuration_.branches);
+      idistributor_p->initialize (configuration_->configuration->branches);
     } // end IF
 
     if (display_b)
@@ -1294,7 +1294,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&resizer_, branch_p, 0); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
-//      if (configuration_->configuration_.renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
+//      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
 //      else
         layout_in->append (&display_2_, branch_p, 0);
@@ -1327,7 +1327,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CamSave_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -1335,7 +1335,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   Stream_CamSave_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -1345,7 +1345,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1368,7 +1368,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
 
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
+  session_data_p->formats.push_back (configuration_in.configuration->format);
 //  if (!Stream_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                       session_data_r.v4l2Format))
 //  {
@@ -1407,7 +1407,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1424,7 +1424,7 @@ Stream_CamSave_V4L_Stream::initialize (const typename inherited::CONFIGURATION_T
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 
   return false;

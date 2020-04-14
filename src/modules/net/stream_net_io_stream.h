@@ -57,8 +57,6 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename TimerManagerType,       // implements Common_ITimer
           ///////////////////////////////
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
           typename SessionDataType,          // session data
@@ -82,8 +80,6 @@ class Stream_Module_Net_IO_Stream_T
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
-                        AllocatorConfigurationType,
-                        ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
@@ -103,8 +99,6 @@ class Stream_Module_Net_IO_Stream_T
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
-                        AllocatorConfigurationType,
-                        ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
@@ -125,8 +119,6 @@ class Stream_Module_Net_IO_Stream_T
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
-                        AllocatorConfigurationType,
-                        ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
@@ -210,17 +202,17 @@ class Stream_Module_Net_IO_Stream_T
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
-  typedef Stream_StreamModule_T<ACE_SYNCH_USE,             // task synch type
-                                TimePolicyType,            // time policy
-                                Stream_SessionId_t,        // session id type
-                                SessionDataType,           // session data type
-                                Stream_SessionMessageType, // session event type
-                                ModuleConfigurationType,   // module configuration type
-                                HandlerConfigurationType,  // module handler configuration type
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,                     // task synch type
+                                TimePolicyType,                    // time policy
+                                Stream_SessionId_t,                // session id type
+                                SessionDataType,                   // session data type
+                                enum Stream_SessionMessageType,    // session event type
+                                struct Stream_ModuleConfiguration, // module configuration type
+                                HandlerConfigurationType,          // module handler configuration type
                                 libacestream_default_net_io_module_name_string, // name
-                                INOTIFY_T,                 // stream notification interface type
-                                READER_T,                  // reader type
-                                WRITER_T> IO_MODULE_T;     // writer type
+                                INOTIFY_T,                         // stream notification interface type
+                                READER_T,                          // reader type
+                                WRITER_T> IO_MODULE_T;             // writer type
 
  ACE_HANDLE  handle_; // socket-
  std::string name_;
@@ -237,8 +229,6 @@ class Stream_Module_Net_IO_Stream_T
                                         ConfigurationType,
                                         StatisticContainerType,
                                         TimerManagerType,
-                                        AllocatorConfigurationType,
-                                        ModuleConfigurationType,
                                         HandlerConfigurationType,
                                         SessionDataType,
                                         SessionDataContainerType,

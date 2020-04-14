@@ -40,20 +40,20 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_Message
- : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+ : public Stream_MessageBase_T<//struct Stream_AllocatorConfiguration,
                                enum Stream_MessageType,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
 
  public:
   Stream_Filecopy_Message (unsigned int); // size
-  inline virtual ~Stream_Filecopy_Message () {};
+  inline virtual ~Stream_Filecopy_Message () {}
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -61,7 +61,7 @@ class Stream_Filecopy_Message
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement Stream_MessageBase_T
-  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; }
   static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
@@ -70,7 +70,7 @@ class Stream_Filecopy_Message
   Stream_Filecopy_Message (const Stream_Filecopy_Message&);
 
  private:
-  typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<//struct Stream_AllocatorConfiguration,
                                enum Stream_MessageType,
                                Stream_CommandType_t> inherited;
 

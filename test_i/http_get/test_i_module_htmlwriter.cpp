@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_common.h"
+//#include "stream_dec_common.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_i_module_htmlwriter.h"
 
 #include <sstream>

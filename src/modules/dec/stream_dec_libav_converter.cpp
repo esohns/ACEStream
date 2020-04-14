@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_dec_libav_converter.h"
 
 #include "stream_dec_defines.h"

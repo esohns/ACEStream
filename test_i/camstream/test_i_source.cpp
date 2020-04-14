@@ -1040,7 +1040,7 @@ do_work (const std::string& deviceIdentifier_in,
   Test_I_Source_V4L_Module_EventHandler_Module event_handler_module ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-//  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
+  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Test_I_Source_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.connectionConfigurations =
       &v4l2CBData_in.configuration->connectionConfigurations;
@@ -1059,7 +1059,6 @@ do_work (const std::string& deviceIdentifier_in,
 
   stream_configuration_2.initialize (module_configuration,
                                      modulehandler_configuration,
-                                     *allocator_configuration_p,
                                      stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                             stream_configuration_2));
@@ -1068,12 +1067,11 @@ do_work (const std::string& deviceIdentifier_in,
   ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
   modulehandler_iterator = (*stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != (*stream_iterator).second.end ());
-  allocator_configuration_p = &(*stream_iterator).second.allocatorConfiguration_;
+  allocator_configuration_p = &allocator_configuration;
 
   stream_configuration.module = NULL;
   stream_configuration_3.initialize (module_configuration,
                                      modulehandler_configuration,
-                                     *allocator_configuration_p,
                                      stream_configuration);
   v4l2CBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                             stream_configuration_3));
@@ -1317,8 +1315,7 @@ do_work (const std::string& deviceIdentifier_in,
 //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 
   result =
-    connection_configuration.initialize (v4l2CBData_in.configuration->allocatorConfiguration,
-                                         (*stream_iterator).second);
+    connection_configuration.initialize ((*stream_iterator).second);
   ACE_ASSERT (result);
   v4l2CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                 &connection_configuration));
@@ -1539,8 +1536,7 @@ do_work (const std::string& deviceIdentifier_in,
   dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
   (*connection_iterator).second->allocatorConfiguration->defaultBufferSize = bufferSize_in;
-  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize (*allocator_configuration_p,
-                                                                                                             (*stream_iterator).second);
+  dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*stream_iterator).second);
 
   connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                              &user_data_s);

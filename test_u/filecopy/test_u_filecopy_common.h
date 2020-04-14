@@ -76,9 +76,7 @@ typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersItera
 //extern const char stream_name_string_[];
 struct Stream_Filecopy_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_Configuration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_Filecopy_ModuleHandlerConfiguration> Stream_Filecopy_StreamConfiguration_t;
 struct Stream_Filecopy_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
@@ -166,12 +164,12 @@ struct Stream_Filecopy_Configuration
   Stream_Filecopy_StreamConfiguration_t             streamConfiguration;
 };
 
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
+//typedef Stream_ControlMessage_T<enum Stream_ControlType,
+//                                enum Stream_ControlMessageType,
+//                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Test_U_ControlMessage_t,
+                                          struct Common_AllocatorConfiguration,
+                                          Stream_ControlMessage_t,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 

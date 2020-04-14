@@ -220,7 +220,8 @@ struct Stream_ModuleConfiguration
 struct Stream_Configuration
 {
   Stream_Configuration ()
-   : branches ()
+   : allocatorConfiguration (NULL)
+   , branches ()
    , cloneModule (false) // *NOTE*: cloneModule ==> delete module
    , finishOnDisconnect (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -238,49 +239,48 @@ struct Stream_Configuration
    , userData (NULL)
   {}
 
-  Stream_Branches_t               branches; // distributor(s) *TODO*
-  bool                            cloneModule; // final-
-  bool                            finishOnDisconnect; // (network) i/o streams
+  struct Common_AllocatorConfiguration* allocatorConfiguration;
+  Stream_Branches_t                     branches; // distributor(s) *TODO*
+  bool                                  cloneModule; // final-
+  bool                                  finishOnDisconnect; // (network) i/o streams
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type mediaFramework;
+  enum Stream_MediaFramework_Type       mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  Stream_IAllocator*              messageAllocator;
-  Stream_Module_t*                module; // final-
-  std::string                     moduleBranch; // final- {"": main branch}
-  ACE_Notification_Strategy*      notificationStrategy;
-  bool                            printFinalReport;
-  bool                            resetSessionData;
+  Stream_IAllocator*                    messageAllocator;
+  Stream_Module_t*                      module; // final-
+  std::string                           moduleBranch; // final- {"": main branch}
+  ACE_Notification_Strategy*            notificationStrategy;
+  bool                                  printFinalReport;
+  bool                                  resetSessionData;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                            serializeOutput;
-  Stream_SessionId_t              sessionId;
-  bool                            setupPipeline;
+  bool                                  serializeOutput;
+  Stream_SessionId_t                    sessionId;
+  bool                                  setupPipeline;
 
-  struct Stream_UserData*         userData;
+  struct Stream_UserData*               userData;
 };
 
 template <//const char* StreamName,
           ////////////////////////////////
-          typename AllocatorConfigurationType,
           typename ConfigurationType,
-          typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 class Stream_Configuration_T
  : public std::map<std::string,                                // key:   module name
-                   std::pair<ModuleConfigurationType,
+                   std::pair<struct Stream_ModuleConfiguration,
                              ModuleHandlerConfigurationType> > // value: (pair of) module/handler configuration
  , public Common_IDumpState
 {
   typedef std::map<std::string,
-                   std::pair<ModuleConfigurationType,
+                   std::pair<struct Stream_ModuleConfiguration,
                              ModuleHandlerConfigurationType> > inherited;
 
  public:
   // convenient types
   typedef std::map<std::string,
-                   std::pair<ModuleConfigurationType,
+                   std::pair<struct Stream_ModuleConfiguration,
                              ModuleHandlerConfigurationType> > MAP_T;
   typedef typename MAP_T::iterator ITERATOR_T;
   typedef typename MAP_T::const_iterator CONST_ITERATOR_T;
@@ -288,16 +288,14 @@ class Stream_Configuration_T
   Stream_Configuration_T ();
   inline virtual ~Stream_Configuration_T () {}
 
-  bool initialize (const ModuleConfigurationType&,        // 'default' module configuration
-                   const ModuleHandlerConfigurationType&, // 'default' module handler configuration
-                   const AllocatorConfigurationType&,
+  bool initialize (const struct Stream_ModuleConfiguration&, // 'default' module configuration
+                   const ModuleHandlerConfigurationType&,    // 'default' module handler configuration
                    const ConfigurationType&);
 
   virtual void dump_state () const;
 
-  AllocatorConfigurationType allocatorConfiguration_;
-  ConfigurationType          configuration_;
-  bool                       isInitialized_;
+  ConfigurationType* configuration;
+  bool               isInitialized_;
 };
 
 // include template definition
@@ -307,13 +305,10 @@ class Stream_Configuration_T
 
 //extern const char empty_string_[];
 typedef Stream_Configuration_T<//empty_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_Configuration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_ModuleHandlerConfiguration> Stream_Configuration_t;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Stream_ControlMessage_t;
+                                enum Stream_ControlMessageType> Stream_ControlMessage_t;
 
 #endif

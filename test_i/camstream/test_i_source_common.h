@@ -224,10 +224,6 @@ class Test_I_Source_V4L_SessionData
 typedef Stream_SessionData_T<Test_I_Source_V4L_SessionData> Test_I_Source_V4L_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_AllocatorConfiguration> Test_I_ControlMessage_t;
-
 struct Stream_Statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamState;
@@ -253,7 +249,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       Test_I_Source_DirectShow_SessionData,
                       Test_I_Source_DirectShow_SessionData_t,
-                      Test_I_ControlMessage_t,
+                      Stream_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -270,7 +266,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       Test_I_Source_MediaFoundation_SessionData,
                       Test_I_Source_MediaFoundation_SessionData_t,
-                      Test_I_ControlMessage_t,
+                      Stream_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
                       Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_StreamBase_t;
 #else
@@ -287,12 +283,10 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_V4L_StreamState,
                       struct Test_I_Source_V4L_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Common_AllocatorConfiguration,
-                      struct Stream_ModuleConfiguration,
                       struct Test_I_Source_V4L_ModuleHandlerConfiguration,
                       Test_I_Source_V4L_SessionData,
                       Test_I_Source_V4L_SessionData_t,
-                      Test_I_ControlMessage_t,
+                      Stream_ControlMessage_t,
                       Test_I_Source_V4L_Stream_Message,
                       Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_StreamBase_t;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -676,9 +670,7 @@ struct Test_I_Source_V4L_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_AllocatorConfiguration,
                                struct Test_I_Source_V4L_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_I_Source_V4L_ModuleHandlerConfiguration> Test_I_Source_V4L_StreamConfiguration_t;
 typedef Test_I_Source_V4L_StreamConfiguration_t::ITERATOR_T Test_I_Source_V4L_StreamConfigurationIterator_t;
 typedef std::map<std::string,
@@ -787,7 +779,7 @@ struct Test_I_Source_V4L_Configuration
 //                                struct Common_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
-                                          Test_I_ControlMessage_t,
+                                          Stream_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
 
@@ -803,7 +795,7 @@ typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_So
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
-                                          Test_I_ControlMessage_t,
+                                          Stream_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
 
@@ -819,7 +811,7 @@ typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
-                                          Test_I_ControlMessage_t,
+                                          Stream_ControlMessage_t,
                                           Test_I_Source_V4L_Stream_Message,
                                           Test_I_Source_V4L_SessionMessage> Test_I_Source_V4L_MessageAllocator_t;
 

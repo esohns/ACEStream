@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_common.h"
+//#include "stream_dec_common.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "http_get_module_eventhandler.h"
 
 #include "ace/Log_Msg.h"

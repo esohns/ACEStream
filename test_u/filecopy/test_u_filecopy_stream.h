@@ -49,12 +49,10 @@ class Stream_Filecopy_Stream
                         struct Stream_Filecopy_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Stream_Filecopy_ModuleHandlerConfiguration,
                         struct Stream_Filecopy_SessionData, // session data
                         Stream_Filecopy_SessionData_t,      // session data container (reference counted)
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage>
 {
@@ -67,12 +65,10 @@ class Stream_Filecopy_Stream
                         struct Stream_Filecopy_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Stream_Filecopy_ModuleHandlerConfiguration,
                         struct Stream_Filecopy_SessionData,
                         Stream_Filecopy_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage> inherited;
 

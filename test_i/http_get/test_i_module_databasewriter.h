@@ -40,7 +40,7 @@ class Test_I_Module_DataBaseWriter
  : public Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                      Test_I_ControlMessage_t,
+                                      Stream_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct Test_I_Stream_SessionData>
@@ -48,7 +48,7 @@ class Test_I_Module_DataBaseWriter
   typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                      Test_I_ControlMessage_t,
+                                      Stream_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct Test_I_Stream_SessionData> inherited;

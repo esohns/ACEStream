@@ -32,7 +32,7 @@ Stream_SessionBase_T<SessionIdType,
                      SessionDataType,
                      SessionEventType,
                      MessageType,
-                     SessionMessageType>::Stream_SessionBase_T (ACE_SYNCH_MUTEX* lock_in)
+                     SessionMessageType>::Stream_SessionBase_T (ACE_Thread_Mutex* lock_in)
  : inSession_ (false)
  , lock_ (lock_in)
  /////////////////////////////////////////

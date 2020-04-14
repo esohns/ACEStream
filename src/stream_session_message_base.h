@@ -46,7 +46,8 @@ class ACE_Data_Block;
 //          typename DataMessageType,
 //          typename SessionMessageType> class Stream_CachedMessageAllocator_T;
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
+          ////////////////////////////////
           typename SessionMessageType,
           typename SessionDataType, // implements Common_IReferenceCount
           ////////////////////////////////
@@ -128,7 +129,7 @@ class Stream_SessionMessageBase_T
 
  protected:
   // convenient types
-  typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
+  typedef Stream_SessionMessageBase_T<//AllocatorConfigurationType,
                                       SessionMessageType,
                                       SessionDataType,
                                       UserDataType> OWN_TYPE_T;

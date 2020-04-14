@@ -55,7 +55,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
                         Test_U_AudioEffect_DirectShow_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage>
 {
@@ -73,7 +73,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
                         Test_U_AudioEffect_DirectShow_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
 
@@ -112,7 +112,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
                         Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
  , public IMFAsyncCallback
@@ -131,7 +131,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
                         Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
 
@@ -182,12 +182,10 @@ class Test_U_AudioEffect_ALSA_Stream
                         struct Test_U_AudioEffect_StreamState,
                         struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                        struct Test_U_AudioEffect_SessionData,
+                        Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage>
 {
@@ -200,12 +198,10 @@ class Test_U_AudioEffect_ALSA_Stream
                         struct Test_U_AudioEffect_StreamState,
                         struct Test_U_AudioEffect_ALSA_StreamConfiguration,
                         struct Test_U_AudioEffect_Statistic,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                        struct Test_U_AudioEffect_SessionData,
+                        Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
-                        Test_U_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage> inherited;
 

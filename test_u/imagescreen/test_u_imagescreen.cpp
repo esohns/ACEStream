@@ -29,7 +29,7 @@
 #include "ace/Init_ACE.h"
 #include "ace/OS.h"
 #include "ace/Profile_Timer.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -372,12 +372,14 @@ do_work (int argc_in,
     struct Stream_ImageScreen_UI_CBData ui_cb_data;
 
   // initialize stream
+  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_ImageScreen_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_ImageScreen_StreamConfiguration stream_configuration;
 
 //  Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator;
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.streamConfiguration.allocatorConfiguration_;
+    &allocator_configuration;
   modulehandler_configuration.codecId = AV_CODEC_ID_PNG;
   modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -402,8 +404,8 @@ do_work (int argc_in,
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -417,10 +419,9 @@ do_work (int argc_in,
   Stream_ImageScreen_MessageHandler_Module message_handler (&stream,
                                                             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  configuration.streamConfiguration.configuration_.messageAllocator =
-      &message_allocator;
+  stream_configuration.messageAllocator = &message_allocator;
 #if defined (GUI_SUPPORT)
-  configuration.streamConfiguration.configuration_.module = &message_handler;
+  stream_configuration.module = &message_handler;
 #endif // GUI_SUPPORT
 
   // X11 requires RGB32
@@ -431,8 +432,7 @@ do_work (int argc_in,
 
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
-                                                configuration.streamConfiguration.configuration_);
+                                                stream_configuration);
 //  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
 //                                                            std::make_pair (module_configuration,
 //                                                                            modulehandler_configuration)));

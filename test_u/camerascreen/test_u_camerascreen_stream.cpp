@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_u_camerascreen_stream.h"
 
 #include "ace/Log_Msg.h"
@@ -1227,7 +1227,8 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  ACE_ASSERT (configuration_in.configuration);
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
@@ -1235,7 +1236,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   Stream_CameraScreen_V4L_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -1245,7 +1246,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -1268,7 +1269,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
 
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
-  session_data_p->formats.push_back (configuration_in.configuration_.format);
+  session_data_p->formats.push_back (configuration_in.configuration->format);
 
   // ---------------------------------------------------------------------------
 
@@ -1289,7 +1290,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1306,7 +1307,7 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 
   return false;

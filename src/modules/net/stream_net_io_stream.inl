@@ -35,8 +35,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -56,8 +54,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -85,8 +81,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -107,8 +101,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -155,8 +147,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -177,8 +167,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -234,8 +222,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -256,8 +242,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -278,7 +262,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   ACE_ASSERT (!inherited::isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 //  HandlerConfigurationType* configuration_p = NULL;
@@ -287,7 +271,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   WRITER_T* IOWriter_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       false;
   reset_setup_pipeline = true;
   if (unlikely (!inherited::initialize (configuration_in)))
@@ -297,15 +281,15 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  if (configuration_in.configuration_.resetSessionData)
+  if (configuration_in.configuration->resetSessionData)
   { ACE_ASSERT (inherited::sessionData_);
 //    SessionDataType* session_data_p =
 //        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
     // *TODO*: remove type inferences
-    //session_data_p->sessionId = configuration_in.configuration_.sessionId;
+    //session_data_p->sessionId = configuration_in.configuration->sessionId;
     //inherited::sessionData_->state =
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
@@ -379,8 +363,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
-    if (unlikely (!inherited::setup (configuration_in.configuration_.notificationStrategy)))
+  if (configuration_in.configuration->setupPipeline)
+    if (unlikely (!inherited::setup (configuration_in.configuration->notificationStrategy)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -396,7 +380,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
 //  if (reset_configuration)
 //  { ACE_ASSERT (configuration_p);
@@ -416,8 +400,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -438,8 +420,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -488,8 +468,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -510,8 +488,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -557,8 +533,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 //          typename ConfigurationType,
 //          typename StatisticContainerType,
 //          typename StatisticHandlerType,
-//          typename AllocatorConfigurationType,
-//          typename ModuleConfigurationType,
 //          typename HandlerConfigurationType,
 //          typename SessionDataType,
 //          typename SessionDataContainerType,
@@ -579,8 +553,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 //                              ConfigurationType,
 //                              StatisticContainerType,
 //                              StatisticHandlerType,
-//                              AllocatorConfigurationType,
-//                              ModuleConfigurationType,
 //                              HandlerConfigurationType,
 //                              SessionDataType,
 //                              SessionDataContainerType,
@@ -638,8 +610,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -660,8 +630,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -721,6 +689,7 @@ retry:
   
   return task_p->msg_queue_->notification_strategy ();
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -731,8 +700,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -753,8 +720,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -835,8 +800,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename StatisticContainerType,
           typename StatisticHandlerType,
-          typename AllocatorConfigurationType,
-          typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -857,8 +820,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConfigurationType,
                               StatisticContainerType,
                               StatisticHandlerType,
-                              AllocatorConfigurationType,
-                              ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,

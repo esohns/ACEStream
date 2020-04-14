@@ -172,9 +172,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 //extern const char stream_name_string_[];
 struct Stream_ImageScreen_StreamConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_ImageScreen_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_ImageScreen_ModuleHandlerConfiguration> Stream_ImageScreen_StreamConfiguration_t;
 
 struct Stream_ImageScreen_StreamState
@@ -240,7 +238,7 @@ struct Stream_ImageScreen_Configuration
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_ImageScreen_Message_t,
                                           Stream_ImageScreen_SessionMessage_t> Stream_ImageScreen_MessageAllocator_t;

@@ -36,17 +36,21 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
-struct Test_U_RIFFDecoder_AllocatorConfiguration;
+//struct Test_U_RIFFDecoder_AllocatorConfiguration;
 
 class Test_U_RIFFDecoder_Message
- : public Stream_MessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
+ : public Stream_MessageBase_T<//struct Test_U_RIFFDecoder_AllocatorConfiguration,
                                enum Stream_MessageType,
                                int>
 {
+  typedef Stream_MessageBase_T<//struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                               enum Stream_MessageType,
+                               int> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Test_U_RIFFDecoder_Message,
                                                  Test_U_RIFFDecoder_SessionMessage>;
 
@@ -69,10 +73,6 @@ class Test_U_RIFFDecoder_Message
   Test_U_RIFFDecoder_Message (const Test_U_RIFFDecoder_Message&);
 
  private:
-  typedef Stream_MessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               int> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Message ())
   // *NOTE*: to be used by message allocators
   Test_U_RIFFDecoder_Message (Stream_SessionId_t, // session id

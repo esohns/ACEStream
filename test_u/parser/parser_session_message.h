@@ -44,20 +44,20 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class Parser_SessionMessage
- : public Stream_SessionMessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<//struct Common_Parser_FlexAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Parser_SessionData_t,
                                       struct Stream_UserData>
 {
-  typedef Stream_SessionMessageBase_T<struct Common_Parser_FlexAllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<//struct Common_Parser_FlexAllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Parser_SessionData_t,
                                       struct Stream_UserData> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Common_Parser_FlexAllocatorConfiguration,
-                                                 Parser_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Parser_Message,
                                                  Parser_SessionMessage>;
 

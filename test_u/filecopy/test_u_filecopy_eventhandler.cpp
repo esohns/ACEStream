@@ -19,13 +19,13 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#if defined (GUI_SUPPORT)
-#if defined (GTK_USE)
-#include "gtk/gtk.h"
-#endif // GTK_USE
-#endif // GUI_SUPPORT
+//#if defined (GUI_SUPPORT)
+//#if defined (GTK_USE)
+//#include "gtk/gtk.h"
+//#endif // GTK_USE
+//#endif // GUI_SUPPORT
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_u_filecopy_eventhandler.h"
 
 #include "ace/Guard_T.h"

@@ -21,7 +21,7 @@
 
 #include <sstream>
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "test_u_imagescreen_gtk_callbacks.h"
 
 #include "ace/config-lite.h"

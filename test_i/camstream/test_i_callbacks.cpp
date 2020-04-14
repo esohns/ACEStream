@@ -43,7 +43,7 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Guard_T.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -1476,12 +1476,12 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
 
       // step1: set capture format
-      Stream_MediaFramework_DirectShow_Tools::free ((*directshow_stream_iterator).second.configuration_.format);
+      Stream_MediaFramework_DirectShow_Tools::free ((*directshow_stream_iterator).second.configuration->format);
       if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_modulehandler_iterator).second.second.builder,
                                                                   media_subtype,
                                                                   width, height,
                                                                   framerate_i,
-                                                                  (*directshow_stream_iterator).second.configuration_.format))
+                                                                  (*directshow_stream_iterator).second.configuration->format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::getVideoCaptureFormat(%s,%ux%u@%ufps), returning\n"),
@@ -1492,7 +1492,7 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
       } // end IF
       if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_modulehandler_iterator).second.second.builder,
                                                              CLSID_VideoInputDeviceCategory,
-                                                             (*directshow_stream_iterator).second.configuration_.format))
+                                                             (*directshow_stream_iterator).second.configuration->format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), returning\n")));
@@ -1501,10 +1501,10 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
 
       // step2: adjust output format
       // sanity check(s)
-      if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration_.format.formattype, FORMAT_VideoInfo))
-      { ACE_ASSERT ((*directshow_stream_iterator).second.configuration_.format.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+      if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration->format.formattype, FORMAT_VideoInfo))
+      { ACE_ASSERT ((*directshow_stream_iterator).second.configuration->format.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
         struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*directshow_stream_iterator).second.configuration_.format.pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*directshow_stream_iterator).second.configuration->format.pbFormat);
         video_info_header_p->bmiHeader.biWidth = width;
         video_info_header_p->bmiHeader.biHeight = height;
         video_info_header_p->bmiHeader.biSizeImage =
@@ -1514,13 +1514,13 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
           (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
           (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-        (*directshow_stream_iterator).second.configuration_.format.lSampleSize =
+        (*directshow_stream_iterator).second.configuration->format.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;
       } // end IF
-      else if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration_.format.formattype, FORMAT_VideoInfo2))
-      { ACE_ASSERT ((*directshow_stream_iterator).second.configuration_.format.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+      else if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration->format.formattype, FORMAT_VideoInfo2))
+      { ACE_ASSERT ((*directshow_stream_iterator).second.configuration->format.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
         struct tagVIDEOINFOHEADER2* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> ((*directshow_stream_iterator).second.configuration_.format.pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> ((*directshow_stream_iterator).second.configuration->format.pbFormat);
         video_info_header_p->bmiHeader.biWidth = width;
         video_info_header_p->bmiHeader.biHeight = height;
         video_info_header_p->bmiHeader.biSizeImage =
@@ -1530,14 +1530,14 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
           (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
           (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
 
-        (*directshow_stream_iterator).second.configuration_.format.lSampleSize =
+        (*directshow_stream_iterator).second.configuration->format.lSampleSize =
           video_info_header_p->bmiHeader.biSizeImage;
       } // end IF
       else
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString ((*directshow_stream_iterator).second.configuration_.format.formattype).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString ((*directshow_stream_iterator).second.configuration->format.formattype).c_str ())));
         return;
       } // end ELSE
 
@@ -1554,10 +1554,10 @@ set_capture_format (struct Test_I_CamStream_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration_.format.format.height = height;
-  (*stream_iterator).second.configuration_.format.format.width = width;
+  (*stream_iterator).second.configuration->format.format.height = height;
+  (*stream_iterator).second.configuration->format.format.width = width;
   Stream_Device_Tools::setFormat (V4L_ui_cb_data_p->fileDescriptor,
-                                  (*stream_iterator).second.configuration_.format.format);
+                                  (*stream_iterator).second.configuration->format.format);
 #endif
 }
 
@@ -1646,19 +1646,19 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       frame_size_i = 
-        Stream_MediaFramework_Tools::frameSize ((*directshow_stream_iterator).second.configuration_.format);
+        Stream_MediaFramework_Tools::frameSize ((*directshow_stream_iterator).second.configuration->format);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
       struct _GUID media_subtype = GUID_NULL;
       HRESULT result =
-        (*mediafoundation_stream_iterator).second.configuration_.format->GetGUID (MF_MT_SUBTYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->GetGUID (MF_MT_SUBTYPE,
                                                                                   &media_subtype);
       ACE_ASSERT (SUCCEEDED (result));
       UINT32 width, height;
       result =
-        MFGetAttributeSize ((*mediafoundation_stream_iterator).second.configuration_.format,
+        MFGetAttributeSize ((*mediafoundation_stream_iterator).second.configuration->format,
                             MF_MT_FRAME_SIZE,
                             &width, &height);
       result = MFCalculateImageSize (media_subtype,
@@ -1685,7 +1685,7 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   frame_size_i =
-      (*stream_iterator).second.configuration_.format.format.sizeimage;
+      (*stream_iterator).second.configuration->format.format.sizeimage;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (frame_size_i));
@@ -2318,7 +2318,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
         (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
-        (*directshow_stream_iterator).second.allocatorConfiguration_.defaultBufferSize;
+        (*directshow_stream_iterator).second.allocatorconfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2335,7 +2335,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
         (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
-        (*mediafoundation_stream_iterator).second.allocatorConfiguration_.defaultBufferSize;
+        (*mediafoundation_stream_iterator).second.allocatorconfiguration->defaultBufferSize;
       break;
     }
     default:
@@ -2360,7 +2360,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   use_loopback =
     (*iterator_2).second->useLoopBackDevice;
   buffer_size =
-    (*stream_iterator).second.allocatorConfiguration_.defaultBufferSize;
+    (*stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize;
 #endif
   ACE_ASSERT (string_p);
   gtk_entry_set_text (entry_p, string_p);
@@ -3451,11 +3451,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       buffer_size =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       buffer_size =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
       break;
     default:
     {
@@ -3467,7 +3467,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   buffer_size =
-    ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+    ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
 #endif
   gtk_spin_button_set_value (spin_button_p,
                               static_cast<double> (buffer_size));
@@ -4886,11 +4886,11 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_stream_iterator).second.allocatorConfiguration_.defaultBufferSize =
+      (*directshow_stream_iterator).second.allocatorconfiguration->defaultBufferSize =
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_stream_iterator).second.allocatorConfiguration_.defaultBufferSize =
+      (*mediafoundation_stream_iterator).second.allocatorconfiguration->defaultBufferSize =
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
     default:
@@ -4902,7 +4902,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.allocatorConfiguration_.defaultBufferSize =
+  (*stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #endif
 
@@ -4924,7 +4924,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
       enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
         MFSESSION_GETFULLTOPOLOGY_CURRENT;
       if ((*mediafoundation_modulehandler_iterator).second.second.session)
@@ -4944,7 +4944,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       ACE_ASSERT (topology_p);
       result_3 =
         Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                               (*mediafoundation_stream_iterator).second.configuration_.format);
+                                                               (*mediafoundation_stream_iterator).second.configuration->format);
       break;
     }
     default:
@@ -4958,7 +4958,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Device_Tools::setFormat ((*modulehandler_iterator).second.second.deviceIdentifier.fileDescriptor,
-                                    (*stream_iterator).second.configuration_.format.format);
+                                    (*stream_iterator).second.configuration->format.format);
 #endif
   if (!result_3)
   {
@@ -6784,7 +6784,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                                                                    (*directshow_modulehandler_iterator).second.second.builder,
                                                                    buffer_negotiation_p,
                                                                    directshow_ui_cb_data_p->streamConfiguration,
-                                                                   (*directshow_stream_iterator).second.configuration_.graphLayout))
+                                                                   (*directshow_stream_iterator).second.configuration->graphLayout))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
@@ -6834,12 +6834,12 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 
-      if ((*mediafoundation_stream_iterator).second.configuration_.format)
+      if ((*mediafoundation_stream_iterator).second.configuration->format)
       {
-        (*mediafoundation_stream_iterator).second.configuration_.format->Release (); (*mediafoundation_stream_iterator).second.configuration_.format = NULL;
+        (*mediafoundation_stream_iterator).second.configuration->format->Release (); (*mediafoundation_stream_iterator).second.configuration->format = NULL;
       } // end IF
       HRESULT result =
-        MFCreateMediaType (&(*mediafoundation_stream_iterator).second.configuration_.format);
+        MFCreateMediaType (&(*mediafoundation_stream_iterator).second.configuration->format);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -6847,10 +6847,10 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                     ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         return;
       } // end IF
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+      ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
 
       result =
-        (*mediafoundation_stream_iterator).second.configuration_.format->SetGUID (MF_MT_MAJOR_TYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->SetGUID (MF_MT_MAJOR_TYPE,
                                                                                   MFMediaType_Video);
       if (FAILED (result))
       {
@@ -6860,7 +6860,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
         return;
       } // end IF
       result =
-        (*mediafoundation_stream_iterator).second.configuration_.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+        (*mediafoundation_stream_iterator).second.configuration->format->SetUINT32 (MF_MT_INTERLACE_MODE,
                                                                                     MFVideoInterlace_Unknown);
       if (FAILED (result))
       {
@@ -6870,7 +6870,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
         return;
       } // end IF
       result =
-        MFSetAttributeRatio ((*mediafoundation_stream_iterator).second.configuration_.format,
+        MFSetAttributeRatio ((*mediafoundation_stream_iterator).second.configuration->format,
                              MF_MT_PIXEL_ASPECT_RATIO,
                              1, 1);
       if (FAILED (result))
@@ -7132,12 +7132,12 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
       //ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.sourceReader);
 
       result_2 =
-        (*mediafoundation_stream_iterator).second.configuration_.format->SetGUID (MF_MT_SUBTYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->SetGUID (MF_MT_SUBTYPE,
                                                                                   GUID_s);
       if (FAILED (result))
       {
@@ -7163,7 +7163,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration_.format.format.pixelformat = format_i;
+  (*stream_iterator).second.configuration->format.format.pixelformat = format_i;
   (*modulehandler_iterator).second.second.outputFormat.format =
       Stream_Device_Tools::v4l2FormatToffmpegFormat (format_i);
 
@@ -7366,23 +7366,23 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       //ACE_ASSERT (media_type_p);
       //if (media_type_p->formattype == FORMAT_VideoInfo)
       //{
-      if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration_.format.formattype, FORMAT_VideoInfo))
+      if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration->format.formattype, FORMAT_VideoInfo))
       {
         struct tagVIDEOINFOHEADER* video_info_header_p =
           //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*directshow_stream_iterator).second.configuration_.format.pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> ((*directshow_stream_iterator).second.configuration->format.pbFormat);
         video_info_header_p->bmiHeader.biWidth = width;
         video_info_header_p->bmiHeader.biHeight = height;
         video_info_header_p->bmiHeader.biSizeImage =
           GetBitmapSize (&video_info_header_p->bmiHeader);
       } // end IF
-      else if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration_.format.formattype, FORMAT_VideoInfo2))
+      else if (InlineIsEqualGUID ((*directshow_stream_iterator).second.configuration->format.formattype, FORMAT_VideoInfo2))
       {
         // *NOTE*: these media subtypes do not work with the Video Renderer
         //         directly --> insert the Overlay Mixer
         struct tagVIDEOINFOHEADER2* video_info_header2_p =
           //reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> ((*directshow_stream_iterator).second.configuration_.format.pbFormat);
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> ((*directshow_stream_iterator).second.configuration->format.pbFormat);
         video_info_header2_p->bmiHeader.biWidth = width;
         video_info_header2_p->bmiHeader.biHeight = height;
         video_info_header2_p->bmiHeader.biSizeImage =
@@ -7392,7 +7392,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString ((*directshow_stream_iterator).second.configuration_.format.formattype).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString ((*directshow_stream_iterator).second.configuration->format.formattype).c_str ())));
         return;
       } // end ELSE
 
@@ -7403,12 +7403,12 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
       //ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.sourceReader);
 
       result_2 =
-        (*mediafoundation_stream_iterator).second.configuration_.format->GetGUID (MF_MT_MAJOR_TYPE, //MF_MT_AM_FORMAT_TYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->GetGUID (MF_MT_MAJOR_TYPE, //MF_MT_AM_FORMAT_TYPE,
                                                                                   &GUID_s);
       if (FAILED (result))
       {
@@ -7422,7 +7422,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       //{
       ACE_ASSERT (InlineIsEqualGUID (GUID_s, MFMediaType_Video));
       result_2 =
-        (*mediafoundation_stream_iterator).second.configuration_.format->GetGUID (MF_MT_SUBTYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->GetGUID (MF_MT_SUBTYPE,
                                                                                   &GUID_s);
       if (FAILED (result_2))
       {
@@ -7433,7 +7433,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
 
       result_2 =
-        (*mediafoundation_stream_iterator).second.configuration_.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+        (*mediafoundation_stream_iterator).second.configuration->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
                                                                                     width * height * 4);
       if (FAILED (result_2))
       {
@@ -7444,7 +7444,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
         return;
       } // end IF
       result_2 =
-        MFSetAttributeSize ((*mediafoundation_stream_iterator).second.configuration_.format,
+        MFSetAttributeSize ((*mediafoundation_stream_iterator).second.configuration->format,
                             MF_MT_FRAME_SIZE,
                             width, height);
       if (FAILED (result_2))
@@ -7473,8 +7473,8 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration_.format.format.width = width;
-  (*stream_iterator).second.configuration_.format.format.height = height;
+  (*stream_iterator).second.configuration->format.format.width = width;
+  (*stream_iterator).second.configuration->format.format.height = height;
 
   result = load_rates (V4L_ui_cb_data_p->fileDescriptor,
                        format_i,
@@ -7661,11 +7661,11 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_UNUSED_ARG (frame_rate_denominator);
       // sanity check(s)
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration_.format);
+      ACE_ASSERT ((*mediafoundation_stream_iterator).second.configuration->format);
 
       struct _GUID format_type = GUID_NULL;
       result =
-        (*mediafoundation_stream_iterator).second.configuration_.format->GetGUID (MF_MT_MAJOR_TYPE,
+        (*mediafoundation_stream_iterator).second.configuration->format->GetGUID (MF_MT_MAJOR_TYPE,
                                                                                   &format_type);
       if (FAILED (result))
       {
@@ -7682,7 +7682,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
       //  mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.format->SetItem (MF_MT_FRAME_RATE,
       //                                                                                     property_s);
       result =
-        MFSetAttributeSize ((*mediafoundation_stream_iterator).second.configuration_.format,
+        MFSetAttributeSize ((*mediafoundation_stream_iterator).second.configuration->format,
                             MF_MT_FRAME_RATE,
                             frame_rate, 1);
       if (FAILED (result))
@@ -7707,9 +7707,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration_.format.frameRate.numerator =
+  (*stream_iterator).second.configuration->format.frameRate.numerator =
       frame_rate;
-  (*stream_iterator).second.configuration_.format.frameRate.denominator =
+  (*stream_iterator).second.configuration->format.frameRate.denominator =
       frame_rate_denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   set_capture_format (ui_cb_data_p);

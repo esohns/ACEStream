@@ -52,12 +52,10 @@ class Test_I_Target_TCPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
                                         Test_I_Target_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Target_ControlMessage_t,
+                                        Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
@@ -74,12 +72,10 @@ class Test_I_Target_TCPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
                                         Test_I_Target_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Target_ControlMessage_t,
+                                        Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
@@ -131,12 +127,10 @@ class Test_I_Target_UDPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
                                         Test_I_Target_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Target_ControlMessage_t,
+                                        Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,
@@ -153,12 +147,10 @@ class Test_I_Target_UDPStream
                                         struct Test_I_Target_StreamConfiguration,
                                         struct Stream_Statistic,
                                         Common_Timer_Manager_t,
-                                        struct Common_AllocatorConfiguration,
-                                        struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData, // session data
                                         Test_I_Target_SessionData_t,      // session data container (reference counted)
-                                        Test_I_Target_ControlMessage_t,
+                                        Stream_ControlMessage_t,
                                         Test_I_Target_Message_t,
                                         Test_I_Target_SessionMessage,
                                         ACE_INET_Addr,

@@ -65,13 +65,23 @@ class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     Test_I_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_HTTPGet_SessionData_t,
                                      struct Test_I_HTTPGet_SessionData,
                                      struct Test_I_SAXParserContext>
 {
+  typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     Test_I_HTTPGet_SessionData_t,
+                                     struct Test_I_HTTPGet_SessionData,
+                                     struct Test_I_SAXParserContext> inherited;
+
  public:
   Test_I_Stream_HTMLParser (ISTREAM_T*); // stream handle
   inline virtual ~Test_I_Stream_HTMLParser () {}
@@ -87,16 +97,6 @@ class Test_I_Stream_HTMLParser
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     Test_I_ControlMessage_t,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     Test_I_HTTPGet_SessionData_t,
-                                     struct Test_I_HTTPGet_SessionData,
-                                     struct Test_I_SAXParserContext> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser& operator= (const Test_I_Stream_HTMLParser&))

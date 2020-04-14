@@ -143,16 +143,11 @@ struct Test_I_Target_SignalHandlerConfiguration
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_AllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
 class Test_I_Target_SessionMessage;
 typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Target_SessionMessage> Test_I_Target_Message_t;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_AllocatorConfiguration> Test_I_Target_ControlMessage_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
@@ -226,7 +221,7 @@ struct Test_I_Target_Configuration
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
-                                          Test_I_Target_ControlMessage_t,
+                                          Stream_ControlMessage_t,
                                           Test_I_Target_Message_t,
                                           Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;
 

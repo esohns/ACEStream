@@ -47,7 +47,7 @@
 
 // outbound
 typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-                                    Test_I_Source_ControlMessage_t,
+                                    Stream_ControlMessage_t,
                                     Test_I_Source_Message_t,
                                     Test_I_Source_SessionMessage,
                                     struct Test_I_Source_ModuleHandlerConfiguration,
@@ -69,7 +69,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
 //                                                      struct Test_I_Source_ModuleHandlerConfiguration,
-//                                                      Test_I_Source_ControlMessage_t,
+//                                                      Stream_ControlMessage_t,
 //                                                      Test_I_Source_Message_t,
 //                                                      Test_I_Source_SessionMessage,
 //                                                      Stream_CommandType_t,
@@ -80,7 +80,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
 //typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
 //                                                      struct Test_I_Source_ModuleHandlerConfiguration,
-//                                                      Test_I_Source_ControlMessage_t,
+//                                                      Stream_ControlMessage_t,
 //                                                      Test_I_Source_Message_t,
 //                                                      Test_I_Source_SessionMessage,
 //                                                      Stream_CommandType_t,
@@ -99,7 +99,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
 
 // outbound
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     Test_I_Source_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      struct Test_I_Source_ModuleHandlerConfiguration,
@@ -114,7 +114,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Source_TCPConnectionManager_t,
                                      struct Stream_UserData> Test_I_Source_Module_TCP_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Test_I_Source_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      struct Test_I_Source_ModuleHandlerConfiguration,
@@ -138,7 +138,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // se
                           Test_I_Source_TCP_IO);                       // name
 
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     Test_I_Source_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      struct Test_I_Source_ModuleHandlerConfiguration,
@@ -153,7 +153,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Source_UDPConnectionManager_t,
                                      struct Stream_UserData> Test_I_Source_Module_UDP_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Test_I_Source_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      struct Test_I_Source_ModuleHandlerConfiguration,
@@ -178,7 +178,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // se
 
 // inbound
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     Test_I_Target_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
                                      struct Test_I_Target_ModuleHandlerConfiguration,
@@ -193,7 +193,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Target_TCPConnectionManager_t,
                                      struct Stream_UserData> Test_I_Target_Module_TCP_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Test_I_Target_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
                                      struct Test_I_Target_ModuleHandlerConfiguration,
@@ -217,7 +217,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // se
                           Test_I_Target_TCP_IO);                           // name
 
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     Test_I_Target_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
                                      struct Test_I_Target_ModuleHandlerConfiguration,
@@ -232,7 +232,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Target_UDPConnectionManager_t,
                                      struct Stream_UserData> Test_I_Target_Module_UDP_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Test_I_Target_ControlMessage_t,
+                                     Stream_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
                                      struct Test_I_Target_ModuleHandlerConfiguration,
@@ -258,7 +258,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // se
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                      Common_TimePolicy_t,
 //                                                      struct Test_I_Target_ModuleHandlerConfiguration,
-//                                                      Test_I_Target_ControlMessage_t,
+//                                                      Stream_ControlMessage_t,
 //                                                      Test_I_Target_Message_t,
 //                                                      Test_I_Target_SessionMessage,
 //                                                      Stream_CommandType_t,
@@ -269,7 +269,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // se
 //typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //                                                   Common_TimePolicy_t,
 //                                                   struct Test_I_Target_ModuleHandlerConfiguration,
-//                                                   Test_I_Target_ControlMessage_t,
+//                                                   Stream_ControlMessage_t,
 //                                                   Test_I_Target_Message_t,
 //                                                   Test_I_Target_SessionMessage,
 //                                                   Stream_CommandType_t,
@@ -289,7 +289,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // se
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_Target_ModuleHandlerConfiguration,
-                                   Test_I_Target_ControlMessage_t,
+                                   Stream_ControlMessage_t,
                                    Test_I_Target_Message_t,
                                    Test_I_Target_SessionMessage> Test_I_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
@@ -301,7 +301,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                /
 
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Source_ModuleHandlerConfiguration,
-                                            Test_I_Source_ControlMessage_t,
+                                            Stream_ControlMessage_t,
                                             Test_I_Source_Message_t,
                                             Test_I_Source_SessionMessage,
                                             struct Test_I_Source_SessionData,
@@ -316,7 +316,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                /
 
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Target_ModuleHandlerConfiguration,
-                                            Test_I_Target_ControlMessage_t,
+                                            Stream_ControlMessage_t,
                                             Test_I_Target_Message_t,
                                             Test_I_Target_SessionMessage,
                                             struct Test_I_Target_SessionData,

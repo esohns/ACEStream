@@ -233,20 +233,20 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (unlikely (!buffer_))
   {
     buffer_ =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize));
+                  inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize,
+                          inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize,
                           &signalInfo_,
                           &encodingInfo_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -287,18 +287,18 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     // output buffer is full --> (dispatch and- ?) allocate another one
 //    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                      : inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                                                                     : inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize);
 
     message_block_2 = NULL;
     message_block_2 =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize));
+                  inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -313,7 +313,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     output_buffer_p = NULL;
     output_buffer_p =
         sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize,
+                            inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize,
                             &signalInfo_,
                             &encodingInfo_,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_SOX_FORMAT_RAW_STRING),
@@ -337,8 +337,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     } // end IF
   } while (true);
 //  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize) ? output_buffer_p->tell_off
-                                                                                                                                                    : inherited::configuration_->streamConfiguration->allocatorConfiguration_.defaultBufferSize);
+  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                                                                   : inherited::configuration_->streamConfiguration->configuration->allocatorConfiguration->defaultBufferSize);
 
   result = inherited::put_next (buffer_, NULL);
   if (unlikely (result == -1))

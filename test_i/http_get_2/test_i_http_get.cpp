@@ -34,7 +34,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -691,10 +691,11 @@ do_work (const std::string& bootstrapFileName_in,
   struct Common_TimerConfiguration timer_configuration;
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
   ACE_thread_t thread_id = 0;
+  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -711,7 +712,6 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_ConnectionConfiguration_t connection_configuration;
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
-  struct Common_Parser_FlexAllocatorConfiguration allocator_configuration;
   struct Test_I_HTTPGet_StreamConfiguration stream_configuration;
   Net_ConnectionConfigurationsIterator_t iterator;
   struct Common_EventDispatchState event_dispatch_state_s;
@@ -757,9 +757,9 @@ do_work (const std::string& bootstrapFileName_in,
     connection_configuration.address.is_loopback ();
   //connection_configuration.writeOnly = true;
   connection_configuration.messageAllocator = &message_allocator;
-  connection_configuration.allocatorConfiguration_.defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  connection_configuration.initialize (allocator_configuration,
-                                       configuration.streamConfiguration);
+  connection_configuration.allocatorConfiguration = &allocator_configuration;
+  connection_configuration.allocatorConfiguration->defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
+  connection_configuration.initialize (configuration.streamConfiguration);
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  &connection_configuration));
@@ -838,7 +838,6 @@ do_work (const std::string& bootstrapFileName_in,
   //configuration.streamConfiguration.configuration_.module = module_p;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
-                                                allocator_configuration,
                                                 stream_configuration);
 
   // step0b: initialize event dispatch

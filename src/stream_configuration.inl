@@ -23,18 +23,13 @@
 #include "stream_macros.h"
 
 template <//const char* StreamName,
-          typename AllocatorConfigurationType,
           typename ConfigurationType,
-          typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 Stream_Configuration_T<//StreamName,
-                       AllocatorConfigurationType,
                        ConfigurationType,
-                       ModuleConfigurationType,
                        ModuleHandlerConfigurationType>::Stream_Configuration_T ()
  : inherited ()
- , allocatorConfiguration_ ()
- , configuration_ ()
+ , configuration (NULL)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::Stream_Configuration_T"));
@@ -42,49 +37,35 @@ Stream_Configuration_T<//StreamName,
 }
 
 template <//const char* StreamName,
-          typename AllocatorConfigurationType,
           typename ConfigurationType,
-          typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 bool
 Stream_Configuration_T<//StreamName,
-                       AllocatorConfigurationType,
                        ConfigurationType,
-                       ModuleConfigurationType,
-                       ModuleHandlerConfigurationType>::initialize (const ModuleConfigurationType& moduleConfiguration_in,
+                       ModuleHandlerConfigurationType>::initialize (const struct Stream_ModuleConfiguration& moduleConfiguration_in,
                                                                     const ModuleHandlerConfigurationType& moduleHandlerConfiguration_in,
-                                                                    const AllocatorConfigurationType& allocatorConfiguration_in,
                                                                     const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::initialize"));
 
-  if (isInitialized_)
-  {
-    inherited::clear ();
-
-    isInitialized_ = false;
-  } // end IF
+  // sanity check(s)
+  ACE_ASSERT (!isInitialized_);
 
   inherited::insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                      std::make_pair (moduleConfiguration_in,
                                                      moduleHandlerConfiguration_in)));
-  allocatorConfiguration_ = allocatorConfiguration_in;
-  configuration_ = configuration_in;
+  configuration = &const_cast<ConfigurationType&> (configuration_in);
   isInitialized_ = true;
 
   return true;
 }
 
 template <//const char* StreamName,
-          typename AllocatorConfigurationType,
           typename ConfigurationType,
-          typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 void
 Stream_Configuration_T<//StreamName,
-                       AllocatorConfigurationType,
                        ConfigurationType,
-                       ModuleConfigurationType,
                        ModuleHandlerConfigurationType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::dump_state"));

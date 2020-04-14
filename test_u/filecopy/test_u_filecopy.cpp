@@ -30,7 +30,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #if defined (HAVE_CONFIG_H)
@@ -418,7 +418,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Stream_AllocatorConfiguration> heap_allocator;
+                         struct Common_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -453,12 +453,10 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
+  stream_configuration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                            moduleheandler_configuration,
-                                                           allocator_configuration,
                                                            stream_configuration);
-  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
-      true;
 
   // step0e: initialize signal handling
   CBData_in.configuration->signalHandlerConfiguration.messageAllocator =

@@ -319,9 +319,9 @@ struct Test_U_ModuleHandlerConfiguration
   bool                            pushStatisticMessages; // statistic module
 };
 
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
+//typedef Stream_ControlMessage_T<enum Stream_ControlType,
+//                                enum Stream_ControlMessageType,
+//                                struct Common_AllocatorConfiguration> Test_U_ControlMessage_t;
 
 struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration

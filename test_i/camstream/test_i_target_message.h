@@ -63,7 +63,7 @@ class Test_I_Target_DirectShow_Stream_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
                                                  Test_I_Target_DirectShow_SessionMessage>;
 
@@ -110,7 +110,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
                                                  Test_I_Target_MediaFoundation_SessionMessage>;
 
@@ -146,18 +146,18 @@ class Test_I_Target_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Target_Stream_Message
- : public Stream_MessageBase_T<struct Common_AllocatorConfiguration,
+ : public Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
                                enum Stream_MessageType,
                                Test_I_CommandType_t>
 {
-  typedef Stream_MessageBase_T<struct Common_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
                                enum Stream_MessageType,
                                Test_I_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_SessionMessage>;
 
