@@ -36,24 +36,24 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 
 template <typename DataType,
-          typename AllocatorConfigurationType,
+          //typename AllocatorConfigurationType,
           typename MessageType>
 class Stream_MediaFramework_MediaFoundation_MessageBase_T
  : public Stream_DataMessageBase_T<DataType,
-                                   AllocatorConfigurationType,
+                                   //AllocatorConfigurationType,
                                    MessageType,
                                    int>
  //, public IMFSample
 {
   typedef Stream_DataMessageBase_T<DataType,
-                                   AllocatorConfigurationType,
+                                   //AllocatorConfigurationType,
                                    MessageType,
                                    int> inherited;
 
  public:
   // convenient types
   typedef Stream_MediaFramework_MediaFoundation_MessageBase_T<DataType,
-                                                              AllocatorConfigurationType,
+                                                              //AllocatorConfigurationType,
                                                               MessageType> OWN_TYPE_T;
   typedef DataType DATA_T;
 

@@ -412,9 +412,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration;
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration> Test_U_AudioEffect_DirectShow_StreamConfiguration_t;
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
@@ -443,9 +441,7 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration;
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration> Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t;
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
@@ -673,8 +669,8 @@ struct Test_U_AudioEffect_MediaFoundation_Configuration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Test_U_ControlMessage_t,
+                                          struct Common_AllocatorConfiguration,
+                                          Stream_ControlMessage_t,
                                           Test_U_AudioEffect_DirectShow_Message,
                                           Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_MessageAllocator_t;
 
@@ -686,8 +682,8 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 typedef Common_ISubscribe_T<Test_U_AudioEffect_DirectShow_ISessionNotify_t> Test_U_AudioEffect_DirectShow_ISubscribe_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Test_U_ControlMessage_t,
+                                          struct Common_AllocatorConfiguration,
+                                          Stream_ControlMessage_t,
                                           Test_U_AudioEffect_MediaFoundation_Message,
                                           Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_MessageAllocator_t;
 

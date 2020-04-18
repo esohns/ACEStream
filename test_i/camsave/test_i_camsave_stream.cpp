@@ -301,7 +301,7 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
-    configuration_in.allocatorconfiguration->defaultBufferSize;
+    configuration_in.configuration->allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     STREAM_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;

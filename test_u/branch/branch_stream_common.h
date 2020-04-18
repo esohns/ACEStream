@@ -40,9 +40,6 @@
 struct Branch_AllocatorConfiguration;
 class Branch_Message;
 class Branch_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_AllocatorConfiguration> Branch_ControlMessage_t;
 
 struct Branch_MessageData
 {
@@ -83,9 +80,7 @@ typedef Branch_Subscribers_t::iterator Branch_SubscribersIterator_t;
 //extern const char stream_name_string_[];
 struct Branch_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_AllocatorConfiguration,
                                struct Stream_Configuration,
-                               struct Stream_ModuleConfiguration,
                                struct Branch_ModuleHandlerConfiguration> Branch_StreamConfiguration_t;
 //typedef Net_ConnectionConfiguration_T<struct Common_AllocatorConfiguration,
 //                                      Branch_StreamConfiguration_t,
@@ -137,7 +132,7 @@ struct Branch_StreamState
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Common_AllocatorConfiguration,
-                                          Branch_ControlMessage_t,
+                                          Stream_ControlMessage_t,
                                           Branch_Message,
                                           Branch_SessionMessage> Branch_MessageAllocator_t;
 

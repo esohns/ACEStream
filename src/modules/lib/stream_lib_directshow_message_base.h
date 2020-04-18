@@ -36,15 +36,19 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType = int>
 class Stream_MediaFramework_DirectShow_MessageBase_T
- : public Stream_MessageBase_T<AllocatorConfigurationType,
+ : public Stream_MessageBase_T<//AllocatorConfigurationType,
                                MessageType,
                                CommandType>
  , public IMediaSample
 {
+  typedef Stream_MessageBase_T<//AllocatorConfigurationType,
+                               MessageType,
+                               CommandType> inherited;
+
   // grant access to specific ctors
   //friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
   //                                              Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
@@ -61,7 +65,7 @@ class Stream_MediaFramework_DirectShow_MessageBase_T
 
  public:
   // convenient types
-  typedef Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+  typedef Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                          MessageType,
                                                          CommandType> OWN_TYPE_T;
 
@@ -111,10 +115,6 @@ class Stream_MediaFramework_DirectShow_MessageBase_T
                                                   bool = true);       // increment running message counter ?
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               MessageType,
-                               CommandType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_MessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_MessageBase_T& operator= (const Stream_MediaFramework_DirectShow_MessageBase_T&))
 

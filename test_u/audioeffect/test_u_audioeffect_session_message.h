@@ -45,15 +45,18 @@ template <ACE_SYNCH_DECL,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_AudioEffect_DirectShow_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                       Test_U_AudioEffect_DirectShow_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+                                      Test_U_AudioEffect_DirectShow_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Test_U_AudioEffect_DirectShow_Message,
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
@@ -70,11 +73,6 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_U_AudioEffect_DirectShow_SessionData_t,
-                                      struct Stream_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Test_U_AudioEffect_DirectShow_SessionMessage (const Test_U_AudioEffect_DirectShow_SessionMessage&);
 
@@ -93,15 +91,18 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
 //////////////////////////////////////////
 
 class Test_U_AudioEffect_MediaFoundation_SessionMessage
- : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
                                       Test_U_AudioEffect_MediaFoundation_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<enum Stream_SessionMessageType,
+                                      Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 struct Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 struct Common_AllocatorConfiguration,
+                                                 Stream_ControlMessage_t,
                                                  Test_U_AudioEffect_MediaFoundation_Message,
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 
@@ -118,11 +119,6 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                                      struct Stream_UserData> inherited;
-
   // copy ctor to be used by duplicate()
   Test_U_AudioEffect_MediaFoundation_SessionMessage (const Test_U_AudioEffect_MediaFoundation_SessionMessage&);
 

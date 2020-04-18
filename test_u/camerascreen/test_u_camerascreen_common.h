@@ -403,9 +403,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 struct Stream_CameraScreen_DirectShow_StreamConfiguration;
 struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CameraScreen_DirectShow_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration> Stream_CameraScreen_DirectShow_StreamConfiguration_t;
 struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
  : Stream_CameraScreen_ModuleHandlerConfiguration
@@ -487,9 +485,7 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
 struct Stream_CameraScreen_MediaFoundation_StreamConfiguration;
 struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CameraScreen_MediaFoundation_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration> Stream_CameraScreen_MediaFoundation_StreamConfiguration_t;
 struct Stream_CameraScreen_MediaFoundation_ModuleHandlerConfiguration
  : Stream_CameraScreen_ModuleHandlerConfiguration
@@ -705,12 +701,12 @@ struct Stream_CameraScreen_Configuration
 //                                         Stream_CameraScreen_Message,
 //                                         Stream_CameraScreen_SessionMessage> Stream_CameraScreen_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CameraScreen_DirectShow_Message_t,
                                           Stream_CameraScreen_DirectShow_SessionMessage_t> Stream_CameraScreen_DirectShow_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CameraScreen_MediaFoundation_Message_t,
                                           Stream_CameraScreen_MediaFoundation_SessionMessage_t> Stream_CameraScreen_MediaFoundation_MessageAllocator_t;

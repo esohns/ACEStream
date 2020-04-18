@@ -42,9 +42,6 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Branch_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_AllocatorConfiguration> Branch_ControlMessage_t;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -55,18 +52,18 @@ class Stream_MessageAllocatorHeapBase_T;
 //////////////////////////////////////////
 
 class Branch_Message
- : public Stream_MessageBase_T<struct Common_AllocatorConfiguration,
+ : public Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
                                enum Stream_MessageType,
                                int>
 {
-  typedef Stream_MessageBase_T<struct Common_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
                                enum Stream_MessageType,
                                int> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Branch_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Branch_Message,
                                                  Branch_SessionMessage>;
 

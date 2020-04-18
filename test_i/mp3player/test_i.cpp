@@ -329,10 +329,11 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration and stream
   struct Test_I_MP3Player_Configuration configuration;
+  struct Stream_AllocatorConfiguration allocator_configuration;
   Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
-                         struct Common_Parser_FlexAllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
+                         struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -353,8 +354,7 @@ do_work (unsigned int bufferSize_in,
   //  statisticReportingInterval_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
-    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-        bufferSize_in;
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 
   struct Test_I_MP3Player_StreamConfiguration stream_configuration;
   stream_configuration.messageAllocator = &message_allocator;
@@ -363,7 +363,6 @@ do_work (unsigned int bufferSize_in,
   stream_configuration.fileIdentifier.identifier = outputFileName_in;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
-                                                configuration.streamConfiguration.allocatorConfiguration_,
                                                 stream_configuration);
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);

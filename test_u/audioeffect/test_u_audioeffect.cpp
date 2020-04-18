@@ -839,6 +839,7 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -862,6 +863,10 @@ do_work (unsigned int bufferSize_in,
   Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Test_U_AudioEffect_DirectShow_StreamConfiguration directshow_stream_configuration;
+  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
   switch (mediaFramework_in)
@@ -907,33 +912,7 @@ do_work (unsigned int bufferSize_in,
   struct Stream_ModuleConfiguration module_configuration;
 
   // step0a: initialize configuration
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_in)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      allocator_configuration_p =
-        &directShowConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      allocator_configuration_p =
-        &mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_in));
-      return;
-    }
-  } // end SWITCH
-#else
-  allocator_configuration_p =
-    configuration_in.streamConfiguration.configuration->allocatorConfiguration;
-#endif // ACE_WIN32 || ACE_WIN64
+  allocator_configuration_p = &allocator_configuration;
   ACE_ASSERT (allocator_configuration_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -979,15 +958,12 @@ do_work (unsigned int bufferSize_in,
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      ACE_ASSERT (directShowCBData_in.configuration);
-      struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+    { ACE_ASSERT (directShowCBData_in.configuration);
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       directShowCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                          directshow_modulehandler_configuration,
-                                                                         directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
-                                                                         directShowConfiguration_in.streamConfiguration.configuration_);
+                                                                         directshow_stream_configuration);
 
       directshow_modulehandler_iterator =
         directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1042,13 +1018,11 @@ do_work (unsigned int bufferSize_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediaFoundationCBData_in.configuration);
-      struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
       mediaFoundationCBData_in.configuration->streamConfiguration.initialize (module_configuration,
                                                                               mediafoundation_modulehandler_configuration,
-                                                                              mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_,
-                                                                              mediaFoundationConfiguration_in.streamConfiguration.configuration_);
+                                                                              mediafoundation_stream_configuration);
 
       mediafoundation_modulehandler_iterator =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1138,36 +1112,29 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
+  if (bufferSize_in)
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (bufferSize_in)
-        directShowConfiguration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-          bufferSize_in;
-      directShowConfiguration_in.streamConfiguration.configuration_.messageAllocator =
-        &directshow_message_allocator;
-      directShowConfiguration_in.streamConfiguration.configuration_.module =
+      directshow_stream_configuration.messageAllocator = &directshow_message_allocator;
+      directshow_stream_configuration.module =
         (!UIDefinitionFile_in.empty () ? &directshow_event_handler
                                        : NULL);
-      directShowConfiguration_in.streamConfiguration.configuration_.printFinalReport =
-        true;
+      directshow_stream_configuration.printFinalReport = true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (bufferSize_in)
-        mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-          bufferSize_in;
-
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.messageAllocator =
+      mediafoundation_stream_configuration.messageAllocator =
         &mediafoundation_message_allocator;
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
+      mediafoundation_stream_configuration.module =
         (!UIDefinitionFile_in.empty () ? &mediafoundation_event_handler
                                        : NULL);
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.printFinalReport =
-        true;
+      mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
     default:
@@ -1208,12 +1175,12 @@ do_work (unsigned int bufferSize_in,
         do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.deviceIdentifier,
                                   (*directshow_modulehandler_iterator).second.second.builder,
                                   directShowCBData_in.streamConfiguration,
-                                  directShowConfiguration_in.streamConfiguration.configuration_.format,
+                                  directshow_stream_configuration.format,
                                   true); // initialize COM ?
       ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
       ACE_ASSERT (directShowCBData_in.streamConfiguration);
       (*directshow_modulehandler_iterator).second.second.outputFormat =
-        directShowConfiguration_in.streamConfiguration.configuration_.format;
+        directshow_stream_configuration.format;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

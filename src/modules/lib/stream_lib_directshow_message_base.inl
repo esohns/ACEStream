@@ -28,10 +28,10 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
@@ -41,14 +41,14 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
-                                               CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (const Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
-                                                                                                             MessageType,
-                                                                                                             CommandType>& message_in)
+                                               CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (const Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
+                                                                                                                                                                  MessageType,
+                                                                                                                                                                  CommandType>& message_in)
  : inherited (message_in)
  , timeStamp_ (0.0)
 {
@@ -56,10 +56,10 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                                                                              ACE_Data_Block* dataBlock_in,
@@ -75,10 +75,10 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::Stream_MediaFramework_DirectShow_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                                                                              ACE_Allocator* messageAllocator_in)
@@ -90,10 +90,10 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::~Stream_MediaFramework_DirectShow_MessageBase_T ()
 {
@@ -123,11 +123,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 //  initialized_ = true;
 //}
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetPointer (BYTE** data_out)
 {
@@ -141,11 +141,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   return S_OK;
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 long STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetSize (void)
 {
@@ -153,11 +153,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   return inherited::capacity ();
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetTime (REFERENCE_TIME* startTime_out,
                                                                       REFERENCE_TIME* endTime_out)
@@ -172,11 +172,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetTime (REFERENCE_TIME* startTime_in,
                                                                       REFERENCE_TIME* endTime_in)
@@ -191,11 +191,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::IsSyncPoint (void)
 {
@@ -206,11 +206,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetSyncPoint (BOOL isSyncPoint_in)
 {
@@ -223,11 +223,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::IsPreroll (void)
 {
@@ -238,11 +238,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetPreroll (BOOL isPreroll_in)
 {
@@ -255,11 +255,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 long STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetActualDataLength (void)
 {
@@ -267,11 +267,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   return inherited::length ();
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetActualDataLength (long length_in)
 {
@@ -281,11 +281,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   return S_OK;
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetMediaType (AM_MEDIA_TYPE** mediaType_out)
 {
@@ -298,11 +298,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetMediaType (AM_MEDIA_TYPE* mediaType_in)
 {
@@ -315,11 +315,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::IsDiscontinuity (void)
 {
@@ -330,11 +330,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetDiscontinuity (BOOL isDiscontinuity_in)
 {
@@ -347,11 +347,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::GetMediaTime (LONGLONG* startTime_out,
                                                                            LONGLONG* endTime_out)
@@ -366,11 +366,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::SetMediaTime (LONGLONG* startTime_in,
                                                                            LONGLONG* endTime_in)
@@ -385,11 +385,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::QueryInterface (REFIID GUID_in,
                                                                              void** interface_out)
@@ -404,11 +404,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 ULONG STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::AddRef (void)
 {
@@ -418,11 +418,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
 
   return inherited::reference_count ();
 }
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 ULONG STDMETHODCALLTYPE
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::Release (void)
 {
@@ -435,11 +435,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
   return --reference_count;
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 void
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::dump_state () const
 {
@@ -451,11 +451,11 @@ Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
 ACE_Message_Block*
-Stream_MediaFramework_DirectShow_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_DirectShow_MessageBase_T<//AllocatorConfigurationType,
                                                MessageType,
                                                CommandType>::duplicate (void) const
 {

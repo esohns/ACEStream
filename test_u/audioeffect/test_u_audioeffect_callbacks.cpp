@@ -2802,13 +2802,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       buffer_size =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       buffer_size =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     default:
@@ -5157,13 +5157,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
-        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
           value_i;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
           value_i;
         break;
       }
@@ -5188,13 +5188,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
         value_i =
-          directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+          directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       {
         value_i =
-          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
+          mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
         break;
       }
       default:

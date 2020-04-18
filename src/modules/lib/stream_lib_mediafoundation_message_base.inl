@@ -28,10 +28,10 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
                                                     DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
@@ -40,24 +40,24 @@ Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
-                                                    DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (const Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
-                                                                                                                    MessageType,
-                                                                                                                    DataType>& message_in)
+                                                    DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (const Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
+                                                                                                                                                                              MessageType,
+                                                                                                                                                                              DataType>& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MessageBase_T::Stream_MediaFramework_MediaFoundation_MessageBase_T"));
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
                                                     DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                                                                                     ACE_Data_Block* dataBlock_in,
@@ -72,10 +72,10 @@ Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
                                                     DataType>::Stream_MediaFramework_MediaFoundation_MessageBase_T (Stream_SessionId_t sessionId_in,
                                                                                                                     ACE_Allocator* messageAllocator_in)
@@ -326,11 +326,11 @@ Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
 //  return --reference_count;
 //}
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
 void
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
                                                     DataType>::dump_state () const
 {
@@ -342,11 +342,11 @@ Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename AllocatorConfigurationType,
+template <//typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
 ACE_Message_Block*
-Stream_MediaFramework_MediaFoundation_MessageBase_T<AllocatorConfigurationType,
+Stream_MediaFramework_MediaFoundation_MessageBase_T<//AllocatorConfigurationType,
                                                     MessageType,
                                                     DataType>::duplicate (void) const
 {

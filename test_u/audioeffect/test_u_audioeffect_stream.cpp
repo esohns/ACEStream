@@ -131,13 +131,13 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -147,7 +147,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -246,7 +246,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
                                                         graphBuilder_,
                                                         buffer_negotiation_p,
                                                         stream_config_p,
-                                                        const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.filterGraphConfiguration))
+                                                        const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->filterGraphConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -284,7 +284,7 @@ continue_:
                                                  log_file_name);
 #endif // _DEBUG
 
-  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (configuration_in.configuration_.format,
+  if (!Stream_Module_Decoder_Tools::loadAudioRendererGraph (configuration_in.configuration->format,
                                                             ((*iterator).second.second.mute ? -1
                                                                                             : (*iterator).second.second.audioOutput),
                                                             graphBuilder_,
@@ -300,7 +300,7 @@ continue_:
 
   graph_entry.filterName = STREAM_DEV_MIC_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   graph_entry.mediaType =
-    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration_.format);
+    Stream_MediaFramework_DirectShow_Tools::copy (configuration_in.configuration->format);
   if (!graph_entry.mediaType)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -362,7 +362,7 @@ continue_:
   allocator_properties.cbAlign = 1;
   //allocator_properties.cbAlign = -1; // <-- use default
   allocator_properties.cbBuffer =
-    configuration_in.allocatorConfiguration_.defaultBufferSize;
+    configuration_in.configuration->allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -521,7 +521,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
@@ -720,12 +720,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   IMFMediaType* media_type_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -735,7 +735,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
 
@@ -846,7 +846,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const inherited::CONFIGUR
 
   TOPOID renderer_node_id = 0;
   if (!Stream_Module_Decoder_Tools::loadAudioRendererTopology ((*iterator).second.second.deviceIdentifier,
-                                                               configuration_in.configuration_.format,
+                                                               configuration_in.configuration->format,
                                                                source_impl_p,
                                                                ((*iterator).second.second.mute ? -1
                                                                                                : (*iterator).second.second.audioOutput),
@@ -885,7 +885,7 @@ continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   ACE_ASSERT (topology_p);
   if (!Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                              configuration_in.configuration_.format))
+                                                              configuration_in.configuration->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
@@ -897,11 +897,11 @@ continue_:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
               ACE_TEXT (stream_name_string_),
-              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration_.format).c_str ())));
+              ACE_TEXT (Stream_MediaFramework_MediaFoundation_Tools::toString (configuration_in.configuration->format).c_str ())));
 #endif // _DEBUG
 
   //media_type_p =
-  //  Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration_.format);
+  //  Stream_MediaFramework_MediaFoundation_Tools::copy (configuration_in.configuration->format);
   //if (!media_type_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -937,7 +937,7 @@ continue_:
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -955,7 +955,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
   if (media_type_p)
     media_type_p->Release ();

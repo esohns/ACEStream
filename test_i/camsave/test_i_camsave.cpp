@@ -1103,9 +1103,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
   // ********************** module configuration data **************************
   struct Stream_AllocatorConfiguration allocator_configuration;
+  //if (bufferSize_in)
+  //  allocator_configuration.defaultBufferSize = bufferSize_in;
+
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+  struct Stream_CamSave_DirectShow_StreamConfiguration directshow_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
 #if defined (GTK_USE)
@@ -1117,6 +1121,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   Stream_CamSave_DirectShow_EventHandler_t directshow_ui_event_handler;
 #endif // GUI_SUPPORT
   struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+  struct Stream_CamSave_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
 #if defined (GUI_SUPPORT)
   Stream_CamSave_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in
 #if defined (GTK_USE)
@@ -1151,7 +1156,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
-        &directShowConfiguration_in.streamConfiguration.allocatorConfiguration_;
+        &allocator_configuration;
       directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
@@ -1177,7 +1182,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
-        &mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_;
+        &allocator_configuration;
       mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
@@ -1240,6 +1245,13 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (allocator_configuration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                                              &heap_allocator,     // heap allocator handle
@@ -1258,18 +1270,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (!heap_allocator.initialize (directShowConfiguration_in.streamConfiguration.allocatorConfiguration_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize heap allocator, returning\n")));
-        return;
-      } // end IF
-
-      //if (bufferSize_in)
-        //directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      //      bufferSize_in;
+      directshow_stream_configuration.messageAllocator =
+        &directshow_message_allocator;
 #if defined (GUI_SUPPORT)
-      directShowConfiguration_in.streamConfiguration.configuration_.module =
+      directshow_stream_configuration.module =
           (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
@@ -1279,8 +1283,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       directshow_modulehandler_configuration.display = displayDevice_in;
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
-                                                                 directShowConfiguration_in.streamConfiguration.allocatorConfiguration_,
-                                                                 directShowConfiguration_in.streamConfiguration.configuration_);
+                                                                 directshow_stream_configuration);
       //directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
       //  Stream_Device_Identifier::STRING;
       //ACE_OS::strcpy (directshow_modulehandler_configuration.deviceIdentifier.identifier._string,
@@ -1298,20 +1301,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!heap_allocator.initialize (mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize heap allocator, returning\n")));
-        return;
-      } // end IF
-
-      //if (bufferSize_in)
-      //  mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      //      bufferSize_in;
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.messageAllocator =
+      mediafoundation_stream_configuration.messageAllocator =
           &mediafoundation_message_allocator;
 #if defined (GUI_SUPPORT)
-      mediaFoundationConfiguration_in.streamConfiguration.configuration_.module =
+      mediafoundation_stream_configuration.module =
           (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
                                              : NULL);
 #endif // GUI_SUPPORT
@@ -1320,8 +1313,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
-                                                                      mediaFoundationConfiguration_in.streamConfiguration.allocatorConfiguration_,
-                                                                      mediaFoundationConfiguration_in.streamConfiguration.configuration_);
+                                                                      mediafoundation_stream_configuration);
       mediafoundation_stream_iterator =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
@@ -1389,7 +1381,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                                      !UIDefinitionFilename_in.empty (), // has UI ?
                                      (*directshow_stream_iterator).second.second.builder,
                                      stream_config_p,
-                                     directShowConfiguration_in.streamConfiguration.configuration_.format,
+                                     directshow_stream_configuration.format,
                                      (*directshow_stream_iterator).second.second.outputFormat))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1468,7 +1460,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Image_Resolution_t resolution_s =
-      Stream_MediaFramework_DirectShow_Tools::toResolution (directShowConfiguration_in.streamConfiguration.configuration_.format);
+      Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
   //struct _D3DDISPLAYMODE display_mode_s =
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
   //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,

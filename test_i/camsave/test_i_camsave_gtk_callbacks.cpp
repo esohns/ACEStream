@@ -1771,7 +1771,7 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
         Stream_MediaFramework_Tools::frameSize (directshow_cb_data_p->configuration->streamConfiguration.configuration->format);
       (*directshow_stream_iterator).second.second.allocatorConfiguration->defaultBufferSize =
         frame_size_i;
-      directshow_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize =
+      directshow_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize =
         frame_size_i;
       break;
     }
@@ -2469,14 +2469,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     { ACE_ASSERT (directshow_cb_data_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       buffer_size_i =
-        directshow_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
+        directshow_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_cb_data_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       buffer_size_i =
-        mediafoundation_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
+        mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     default:

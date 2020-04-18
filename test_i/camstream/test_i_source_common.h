@@ -244,8 +244,6 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_StreamState,
                       struct Test_I_Source_DirectShow_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Common_AllocatorConfiguration,
-                      struct Stream_ModuleConfiguration,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       Test_I_Source_DirectShow_SessionData,
                       Test_I_Source_DirectShow_SessionData_t,
@@ -261,8 +259,6 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_StreamState,
                       struct Test_I_Source_MediaFoundation_StreamConfiguration,
                       struct Stream_Statistic,
-                      struct Common_AllocatorConfiguration,
-                      struct Stream_ModuleConfiguration,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       Test_I_Source_MediaFoundation_SessionData,
                       Test_I_Source_MediaFoundation_SessionData_t,
@@ -619,9 +615,7 @@ struct Test_I_Source_DirectShow_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_AllocatorConfiguration,
                                struct Test_I_Source_DirectShow_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_StreamConfiguration_t;
 typedef Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T Test_I_Source_DirectShow_StreamConfigurationIterator_t;
 typedef std::map<std::string,
@@ -647,9 +641,7 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
 
 //extern const char stream_name_string_[];
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_AllocatorConfiguration,
                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration> Test_I_Source_MediaFoundation_StreamConfiguration_t;
 typedef Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T Test_I_Source_MediaFoundation_StreamConfigurationIterator_t;
 typedef std::map<std::string,

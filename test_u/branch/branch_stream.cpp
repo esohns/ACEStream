@@ -74,19 +74,19 @@ Branch_Stream::load (Stream_ILayout* layout_inout,
   layout_inout->append (module_p, NULL, 0);
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   branch_p = module_p;
-  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR ("1"));
-  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));
-  inherited::configuration_->configuration_.branches.push_back (ACE_TEXT_ALWAYS_CHAR ("3"));
+  inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("1"));
+  inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));
+  inherited::configuration_->configuration->branches.push_back (ACE_TEXT_ALWAYS_CHAR ("3"));
   Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
   ACE_ASSERT (idistributor_p);
-  idistributor_p->initialize (inherited::configuration_->configuration_.branches);
+  idistributor_p->initialize (inherited::configuration_->configuration->branches);
   module_p = NULL;
-  ACE_ASSERT (inherited::configuration_->configuration_.module);
+  ACE_ASSERT (inherited::configuration_->configuration->module);
   Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
                              Common_TimePolicy_t> >* iclone_p =
       dynamic_cast<Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
-                                              Common_TimePolicy_t> >*> (inherited::configuration_->configuration_.module);
+                                              Common_TimePolicy_t> >*> (inherited::configuration_->configuration->module);
   if (unlikely (!iclone_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -126,11 +126,11 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   Branch_Source* source_impl_p = NULL;
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -140,7 +140,7 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
                 ACE_TEXT (default_stream_name_string_)));
     goto failed;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -186,7 +186,7 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.configuration_.setupPipeline)
+  if (configuration_in.configuration->setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -202,7 +202,7 @@ Branch_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,

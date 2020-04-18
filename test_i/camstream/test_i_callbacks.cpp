@@ -2318,7 +2318,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
         (directshow_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
-        (*directshow_stream_iterator).second.allocatorconfiguration->defaultBufferSize;
+        (*directshow_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2335,7 +2335,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
         (mediafoundation_ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0);
       use_loopback = (*iterator_2).second->useLoopBackDevice;
       buffer_size =
-        (*mediafoundation_stream_iterator).second.allocatorconfiguration->defaultBufferSize;
+        (*mediafoundation_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     }
     default:
@@ -3451,11 +3451,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       buffer_size =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       buffer_size =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.allocatorconfiguration->defaultBufferSize;
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration->allocatorConfiguration->defaultBufferSize;
       break;
     default:
     {
@@ -4886,11 +4886,11 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      (*directshow_stream_iterator).second.allocatorconfiguration->defaultBufferSize =
+      (*directshow_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      (*mediafoundation_stream_iterator).second.allocatorconfiguration->defaultBufferSize =
+      (*mediafoundation_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
     default:

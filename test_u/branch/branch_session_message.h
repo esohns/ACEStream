@@ -44,12 +44,12 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class Branch_SessionMessage
- : public Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Branch_SessionData_t,
                                       struct Stream_UserData>
 {
-  typedef Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Branch_SessionData_t,
                                       struct Stream_UserData> inherited;
@@ -57,7 +57,7 @@ class Branch_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
-                                                 Branch_ControlMessage_t,
+                                                 Stream_ControlMessage_t,
                                                  Branch_Message,
                                                  Branch_SessionMessage>;
 

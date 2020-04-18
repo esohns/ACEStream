@@ -858,24 +858,27 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Common_EventDispatchConfiguration event_dispatch_configuration_s;
+  struct Stream_AllocatorConfiguration allocator_configuration;
   bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
+  struct Test_I_Target_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_I_Target_MediaFoundation_Configuration mediafoundation_configuration;
+  struct Test_I_Target_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       directShowCBData_in.configuration = &directshow_configuration;
       serialize_output =
-        directshow_configuration.streamConfiguration.configuration_.serializeOutput;
+        directshow_stream_configuration.serializeOutput;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
       serialize_output =
-        mediafoundation_configuration.streamConfiguration.configuration_.serializeOutput;
+        mediafoundation_stream_configuration.serializeOutput;
       break;
     } // end IF
     default:
@@ -888,7 +891,6 @@ do_work (unsigned int bufferSize_in,
   } // end SWITCH
 #else
   struct Test_I_Target_Configuration configuration;
-  struct Stream_AllocatorConfiguration allocator_configuration;
   struct Test_I_Target_StreamConfiguration stream_configuration;
   CBData_in.configuration = &configuration;
   serialize_output = stream_configuration.serializeOutput;
@@ -911,7 +913,7 @@ do_work (unsigned int bufferSize_in,
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
   struct Common_AllocatorConfiguration* allocator_configuration_p =
-    NULL;
+    &allocator_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -919,16 +921,12 @@ do_work (unsigned int bufferSize_in,
     {
       camstream_configuration_p = &directshow_configuration;
       directShowCBData_in.configuration = &directshow_configuration;
-      allocator_configuration_p =
-        &directshow_configuration.streamConfiguration.allocatorConfiguration_;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       camstream_configuration_p = &mediafoundation_configuration;
       mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
-      allocator_configuration_p =
-        &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_;
       break;
     } // end IF
     default:
@@ -942,7 +940,6 @@ do_work (unsigned int bufferSize_in,
 #else
   camstream_configuration_p = &configuration;
   CBData_in.configuration = &configuration;
-  allocator_configuration_p = &allocator_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->dispatchConfiguration.numberOfReactorThreads =
@@ -988,8 +985,7 @@ do_work (unsigned int bufferSize_in,
 
       directshow_configuration.streamConfiguration.initialize (module_configuration,
                                                                modulehandler_configuration,
-                                                               directshow_configuration.streamConfiguration.allocatorConfiguration_,
-                                                               directshow_configuration.streamConfiguration.configuration_);
+                                                               directshow_stream_configuration);
       directshow_modulehandler_iterator =
         directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
@@ -1024,17 +1020,13 @@ do_work (unsigned int bufferSize_in,
         &mediafoundation_ui_event_handler;
       modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
-      mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                std::make_pair (module_configuration,
-                                                                                                modulehandler_configuration)));
+      mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
+                                                                    modulehandler_configuration,
+                                                                    mediafoundation_stream_configuration);
+
       mediafoundation_modulehandler_iterator =
         mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
-
-      mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
-                                                                    (*mediafoundation_modulehandler_iterator).second.second,
-                                                                    mediafoundation_configuration.streamConfiguration.allocatorConfiguration_,
-                                                                    mediafoundation_configuration.streamConfiguration.configuration_);
       break;
     }
     default:
@@ -1371,8 +1363,7 @@ do_work (unsigned int bufferSize_in,
         statisticReportingInterval_in;
       dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
         &directshow_message_allocator;
-      dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (*allocator_configuration_p,
-                                                                                                                                      directshow_configuration.streamConfiguration);
+      dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (directshow_configuration.streamConfiguration);
 
       directshow_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_DirectShow_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
                                                 &user_data_s);
@@ -1404,8 +1395,7 @@ do_work (unsigned int bufferSize_in,
 
       dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
-      dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (*allocator_configuration_p,
-                                                                                                                                           mediafoundation_configuration.streamConfiguration);
+      dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second)->initialize (mediafoundation_configuration.streamConfiguration);
 
       mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Target_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_configuration_iterator).second),
                                                      &user_data_s);
@@ -1487,45 +1477,33 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ******************** (sub-)stream configuration data **********************
+  if (bufferSize_in)
+    allocator_configuration.defaultBufferSize = bufferSize_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+      allocator_configuration.defaultBufferSize =
         (*directshow_modulehandler_iterator).second.second.sourceFormat.lSampleSize;
-      if (bufferSize_in)
-      { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.sourceFormat.lSampleSize);
-        directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-          bufferSize_in;
-      } // end IF
-      directshow_configuration.streamConfiguration.configuration_.cloneModule =
-        true;
-      directshow_configuration.streamConfiguration.configuration_.messageAllocator =
-        allocator_p;
+      directshow_stream_configuration.cloneModule = true;
+      directshow_stream_configuration.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())
-        directshow_configuration.streamConfiguration.configuration_.module =
+        directshow_stream_configuration.module =
           &directshow_event_handler;
-      directshow_configuration.streamConfiguration.configuration_.printFinalReport =
-        true;
+      directshow_stream_configuration.printFinalReport = true;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (bufferSize_in)
-        mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-          bufferSize_in;
-      mediafoundation_configuration.streamConfiguration.configuration_.cloneModule =
-        true;
-      mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
-        allocator_p;
+      mediafoundation_stream_configuration.cloneModule = true;
+      mediafoundation_stream_configuration.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())
-        mediafoundation_configuration.streamConfiguration.configuration_.module =
+        mediafoundation_stream_configuration.module =
           &mediafoundation_event_handler;
       //mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
       //  &mediafoundation_configuration.mediaFoundationConfiguration;
-      mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
-        true;
+      mediafoundation_stream_configuration.printFinalReport = true;
       break;
     }
     default:
@@ -1537,9 +1515,6 @@ do_work (unsigned int bufferSize_in,
     } // end ELSE
   } // end SWITCH
 #else
-  if (bufferSize_in)
-    allocator_configuration.defaultBufferSize = bufferSize_in;
-
   stream_configuration.cloneModule = true;
   stream_configuration.messageAllocator = allocator_p;
   if (!UIDefinitionFilename_in.empty ())

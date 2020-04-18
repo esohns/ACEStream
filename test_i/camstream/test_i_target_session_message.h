@@ -44,22 +44,22 @@ template <ACE_SYNCH_DECL,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_SessionMessage
- : public Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_DirectShow_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Test_I_Target_DirectShow_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
                                                  Test_I_Target_DirectShow_SessionMessage>;
-
-  typedef Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_I_Target_DirectShow_SessionData_t,
-                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
@@ -90,22 +90,22 @@ class Test_I_Target_DirectShow_SessionMessage
 };
 
 class Test_I_Target_MediaFoundation_SessionMessage
- : public Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
+ : public Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Target_MediaFoundation_SessionData_t,
                                       struct Stream_UserData>
 {
+  typedef Stream_SessionMessageBase_T<//struct Common_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      Test_I_Target_MediaFoundation_SessionData_t,
+                                      struct Stream_UserData> inherited;
+
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Common_AllocatorConfiguration,
                                                  Stream_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
                                                  Test_I_Target_MediaFoundation_SessionMessage>;
-
-  typedef Stream_SessionMessageBase_T<struct Common_AllocatorConfiguration,
-                                      enum Stream_SessionMessageType,
-                                      Test_I_Target_MediaFoundation_SessionData_t,
-                                      struct Stream_UserData> inherited;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !

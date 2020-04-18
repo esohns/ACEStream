@@ -464,9 +464,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 struct Stream_CamSave_DirectShow_StreamConfiguration;
 struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CamSave_DirectShow_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration> Stream_CamSave_DirectShow_StreamConfiguration_t;
 struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
  : Stream_CamSave_ModuleHandlerConfiguration
@@ -548,9 +546,7 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
 struct Stream_CamSave_MediaFoundation_StreamConfiguration;
 struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Stream_AllocatorConfiguration,
                                struct Stream_CamSave_MediaFoundation_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration> Stream_CamSave_MediaFoundation_StreamConfiguration_t;
 struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration
  : Stream_CamSave_ModuleHandlerConfiguration
@@ -831,12 +827,12 @@ struct Stream_CamSave_Configuration
 //                                         Stream_CamSave_Message,
 //                                         Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CamSave_DirectShow_Message_t,
                                           Stream_CamSave_DirectShow_SessionMessage_t> Stream_CamSave_DirectShow_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Common_AllocatorConfiguration,
                                           Stream_ControlMessage_t,
                                           Stream_CamSave_MediaFoundation_Message_t,
                                           Stream_CamSave_MediaFoundation_SessionMessage_t> Stream_CamSave_MediaFoundation_MessageAllocator_t;

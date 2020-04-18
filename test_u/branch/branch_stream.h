@@ -48,12 +48,10 @@ class Branch_Stream
                         struct Branch_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Branch_ModuleHandlerConfiguration,
                         struct Branch_SessionData,
                         Branch_SessionData_t,
-                        Branch_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage>
 {
@@ -66,12 +64,10 @@ class Branch_Stream
                         struct Branch_StreamState,
                         struct Stream_Configuration,
                         struct Stream_Statistic,
-                        struct Common_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Branch_ModuleHandlerConfiguration,
                         struct Branch_SessionData,
                         Branch_SessionData_t,
-                        Branch_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Branch_Message,
                         Branch_SessionMessage> inherited;
 

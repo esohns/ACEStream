@@ -44,15 +44,10 @@
 class Stream_IAllocator;
 struct Test_I_SessionData;
 typedef Stream_SessionData_T<struct Test_I_SessionData> Test_I_SessionData_t;
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Common_Parser_FlexAllocatorConfiguration> Test_I_ControlMessage_t;
 struct Test_I_MP3Player_StreamConfiguration;
 struct Test_I_MP3Player_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<//stream_name_string_,
-                               struct Common_Parser_FlexAllocatorConfiguration,
                                struct Test_I_MP3Player_StreamConfiguration,
-                               struct Stream_ModuleConfiguration,
                                struct Test_I_MP3Player_ModuleHandlerConfiguration> Test_I_StreamConfiguration_t;
 
 extern const char stream_name_string_[];
@@ -67,12 +62,10 @@ class Test_I_Stream
                         struct Test_I_MP3Player_StreamState,
                         struct Test_I_MP3Player_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_I_MP3Player_ModuleHandlerConfiguration,
                         struct Test_I_MP3Player_SessionData,
                         Test_I_MP3Player_SessionData_t,
-                        Test_I_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
 {
@@ -85,12 +78,10 @@ class Test_I_Stream
                         struct Test_I_MP3Player_StreamState,
                         struct Test_I_MP3Player_StreamConfiguration,
                         struct Stream_Statistic,
-                        struct Common_Parser_FlexAllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
                         struct Test_I_MP3Player_ModuleHandlerConfiguration,
                         struct Test_I_MP3Player_SessionData,
                         Test_I_MP3Player_SessionData_t,
-                        Test_I_ControlMessage_t,
+                        Stream_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
 
