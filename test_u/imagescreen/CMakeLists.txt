@@ -305,7 +305,7 @@ install (TARGETS ${EXECUTABLE}
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
  install (FILES ${ui_definition_file}
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}" COMPONENT config)
 elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)

@@ -54,6 +54,10 @@ project (${PROJECT_NAME}
 # directories
 # override the installation directories ?
 #set (CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION OFF)
+if (UNIX)
+ include (GNUInstallDirs)
+# set (INSTALL_SHARE_DIR "share" CACHE PATH "Installation directory for shared files")
+endif (UNIX)
 set (INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
 set (INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 set (INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
