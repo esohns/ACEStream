@@ -1531,7 +1531,7 @@ do_work (const std::string& deviceIdentifier_in,
                 port_in));
     goto clean;
   } // end IF
-  (*connection_iterator).second->bufferSize = static_cast<int> (bufferSize_in);
+//  (*connection_iterator).second->bufferSize = static_cast<int> (bufferSize_in);
   (*connection_iterator).second->useLoopBackDevice =
       NET_SOCKET_CONFIGURATION_TCP_CAST ((*connection_iterator).second)->address.is_loopback ();
 //  (*connection_iterator).second.writeOnly = true;

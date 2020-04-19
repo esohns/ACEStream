@@ -854,7 +854,9 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   bool result = false;
   int result_2 = -1;
   int in_linesize[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (&in_linesize, 0, sizeof (in_linesize));
   int out_linesize[AV_NUM_DATA_POINTERS];
+  ACE_OS::memset (&out_linesize, 0, sizeof (out_linesize));
   result_2 = av_image_fill_linesizes (in_linesize,
                                       pixelFormat_in,
                                       static_cast<int> (sourceWidth_in));

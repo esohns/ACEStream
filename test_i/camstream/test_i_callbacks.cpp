@@ -4902,8 +4902,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
   } // end SWITCH
 #else
-  (*stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
-    static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
+//  (*stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
+//    static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #endif
 
   // sanity check(s)
