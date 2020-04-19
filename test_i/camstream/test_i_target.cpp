@@ -1069,6 +1069,7 @@ do_work (unsigned int bufferSize_in,
 //  modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = fileName_in;
 
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.format.format = AV_PIX_FMT_RGB24;
   stream_configuration.format.resolution.height = 480;
   stream_configuration.format.resolution.width = 640;
@@ -1412,7 +1413,7 @@ do_work (unsigned int bufferSize_in,
 #else
   connection_configuration.address.set_port_number (listeningPortNumber_in,
                                                     1);
-//  connection_configuration.bufferSize = bufferSize_in;
+  connection_configuration.allocatorConfiguration = &allocator_configuration;
   connection_configuration.useLoopBackDevice = useLoopBack_in;
   if (connection_configuration.useLoopBackDevice)
   {

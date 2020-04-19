@@ -1054,6 +1054,8 @@ do_work (const std::string& deviceIdentifier_in,
   struct Test_I_Source_V4L_StreamConfiguration stream_configuration;
   Test_I_Source_V4L_StreamConfiguration_t stream_configuration_2;
   Test_I_Source_V4L_StreamConfiguration_t stream_configuration_3;
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
+  stream_configuration.format.format.pixelformat = V4L2_PIX_FMT_RGB24;
   stream_configuration.format.format.width =
       STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
   stream_configuration.format.format.height =
@@ -1308,16 +1310,18 @@ do_work (const std::string& deviceIdentifier_in,
   } // end SWITCH
 #else
   Test_I_Source_V4L_TCPConnectionConfiguration_t connection_configuration;
+  connection_configuration.allocatorConfiguration = &allocator_configuration;
+//  connection_configuration.allocatorConfiguration->defaultBufferSize = bufferSize_in;
 
-  stream_iterator =
-    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
+//  stream_iterator =
+//    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+//  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 //  stream_iterator =
 //    v4l2CBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
 //  ACE_ASSERT (stream_iterator != v4l2CBData_in.configuration->streamConfigurations.end ());
 
-  result =
-    connection_configuration.initialize ((*stream_iterator).second);
+//  result =
+//    connection_configuration.initialize ((*stream_iterator).second);
   ACE_ASSERT (result);
   v4l2CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                 &connection_configuration));
@@ -1535,7 +1539,6 @@ do_work (const std::string& deviceIdentifier_in,
     statisticReportingInterval_in;
   dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
       &message_allocator;
-  (*connection_iterator).second->allocatorConfiguration->defaultBufferSize = bufferSize_in;
   dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*stream_iterator).second);
 
   connection_manager_p->set (*dynamic_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
@@ -1611,8 +1614,8 @@ do_work (const std::string& deviceIdentifier_in,
   //                                                             : v4l2CBData_in.UDPStream);
 //  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
-  (*modulehandler_iterator).second.second.deviceIdentifier.identifier =
-      interfaceIdentifier_in;
+//  (*modulehandler_iterator).second.second.deviceIdentifier.identifier =
+//      interfaceIdentifier_in;
   // *TODO*: turn these into an option
   (*modulehandler_iterator).second.second.buffers =
       STREAM_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
@@ -1628,7 +1631,12 @@ do_work (const std::string& deviceIdentifier_in,
 #endif // GUI_SUPPORT
   (*modulehandler_iterator).second.second.outputFormat.format =
       STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
-//  (*modulehandler_iterator).second.second.method =
+  (*modulehandler_iterator).second.second.outputFormat.resolution.width =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+  (*modulehandler_iterator).second.second.outputFormat.resolution.height =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+
+  //  (*modulehandler_iterator).second.second.method =
 //      STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   (*modulehandler_iterator).second.second.streamConfiguration =
       &(*stream_iterator).second;

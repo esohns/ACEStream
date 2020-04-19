@@ -191,7 +191,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->window);
+      if (!inherited::configuration_->window)
+        goto continue_;
       ACE_ASSERT (!buffer_);
 
       gint width_i, height_i;
@@ -242,6 +243,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       gdk_threads_leave ();
 
+continue_:
       break;
 
 error:
