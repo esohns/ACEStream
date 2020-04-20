@@ -235,7 +235,7 @@ do_processArguments (int argc_in,
   useReactor_out =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   traceInformation_out = false;
-  URI_out.clear ();
+  URI_out = TEST_I_DEFAULT_URL;
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
@@ -326,81 +326,6 @@ do_processArguments (int argc_in,
       {
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
 
-        // step1: parse URL
-        std::string hostname_string;
-        std::string URI_s;
-        bool use_SSL = false;
-        if (!HTTP_Tools::parseURL (URI_out,
-                                   hostname_string,
-                                   URI_s,
-                                   use_SSL))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
-                      ACE_TEXT (URI_out.c_str ())));
-          return false;
-        } // end IF
-        result = remoteHost_out.set ((use_SSL ? 443 : 80),
-                                     Net_Common_Tools::getAddress (hostname_string),
-                                     1, // convert to network byte order
-                                     0);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                      ACE_TEXT (hostname_string.c_str ())));
-          return false;
-        } // end IF
-
-        // step2: validate address/verify host name exists
-        //        --> resolve
-        ACE_TCHAR buffer[HOST_NAME_MAX];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = remoteHost_out.get_host_name (buffer,
-                                               sizeof (buffer));
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
-          return false;
-        } // end IF
-        std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
-        std::string dotted_decimal_string;
-        if (!Net_Common_Tools::getAddress (hostname,
-                                           dotted_decimal_string))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Net_Common_Tools::getAddress(), aborting\n")));
-          return false;
-        } // end IF
-
-        //// step3: validate URI
-        //std::string regex_string =
-        //    ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        ////regex_string =
-        ////    ACE_TEXT_ALWAYS_CHAR ("^(?:http(?:s)?://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        //std::regex regex;
-        //regex.assign (regex_string,
-        //              (std::regex_constants::ECMAScript |
-        //               std::regex_constants::icase));
-        //std::smatch match_results_3;
-        //if (!std::regex_match (URI_out,
-        //                       match_results_3,
-        //                       regex,
-        //                       std::regex_constants::match_default))
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("invalid URI (was: \"%s\"), aborting\n"),
-        //              ACE_TEXT (URI_out.c_str ())));
-        //  return false;
-        //} // end IF
-        //ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
-
-        //if (!match_results_3[2].matched)
-        //  URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);
-        ////else if (!match_results_3[3].matched)
-        ////  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
-
         break;
       }
       case 'v':
@@ -446,6 +371,81 @@ do_processArguments (int argc_in,
       }
     } // end SWITCH
   } // end WHILE
+
+  // step2: parse URL
+  std::string hostname_string;
+  std::string URI_s;
+  bool use_SSL = false;
+  if (!HTTP_Tools::parseURL (URI_out,
+                             hostname_string,
+                             URI_s,
+                             use_SSL))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
+                ACE_TEXT (URI_out.c_str ())));
+    return false;
+  } // end IF
+  result = remoteHost_out.set ((use_SSL ? 443 : 80),
+                               Net_Common_Tools::getAddress (hostname_string),
+                               1, // convert to network byte order
+                               0);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (hostname_string.c_str ())));
+    return false;
+  } // end IF
+
+  // step2: validate address/verify host name exists
+  //        --> resolve
+  ACE_TCHAR buffer[HOST_NAME_MAX];
+  ACE_OS::memset (buffer, 0, sizeof (buffer));
+  result = remoteHost_out.get_host_name (buffer,
+                                         sizeof (buffer));
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
+  std::string dotted_decimal_string;
+  if (!Net_Common_Tools::getAddress (hostname,
+                                     dotted_decimal_string))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_Common_Tools::getAddress(), aborting\n")));
+    return false;
+  } // end IF
+
+  //// step3: validate URI
+  //std::string regex_string =
+  //    ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
+  ////regex_string =
+  ////    ACE_TEXT_ALWAYS_CHAR ("^(?:http(?:s)?://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
+  //std::regex regex;
+  //regex.assign (regex_string,
+  //              (std::regex_constants::ECMAScript |
+  //               std::regex_constants::icase));
+  //std::smatch match_results_3;
+  //if (!std::regex_match (URI_out,
+  //                       match_results_3,
+  //                       regex,
+  //                       std::regex_constants::match_default))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("invalid URI (was: \"%s\"), aborting\n"),
+  //              ACE_TEXT (URI_out.c_str ())));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
+
+  //if (!match_results_3[2].matched)
+  //  URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);
+  ////else if (!match_results_3[3].matched)
+  ////  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
 
   return true;
 }
@@ -1169,7 +1169,7 @@ ACE_TMAIN (int argc_in,
        !Common_File_Tools::isReadable (configuration_file))                 ||
       output_file.empty ()                                                  ||
       host_name.empty ()                                                    ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
+      //(use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
       URL.empty ())
   {
     ACE_DEBUG ((LM_ERROR,

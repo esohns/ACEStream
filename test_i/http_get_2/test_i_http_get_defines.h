@@ -42,13 +42,13 @@
 #define TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE    "sofficerc"
 #endif
 #define TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE  "symbols.ini"
-#define TEST_I_DEFAULT_INPUT_FILE                    "table.ods"
+#define TEST_I_DEFAULT_INPUT_FILE                    "template.ods"
 #define TEST_I_DEFAULT_OUTPUT_FILE                   "output.ods"
 
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 
 #define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
-#define TEST_I_DEFAULT_URL                           "http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+#define TEST_I_DEFAULT_URL                           "https://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #define TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING        "suchbegriff"
 
 #endif

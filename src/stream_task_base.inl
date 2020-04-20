@@ -342,12 +342,12 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         sessionDataLock_ = session_data_2->lock; // retain handle to originals
         const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_2)->lock =
           session_data_p->lock;
-//#if defined (_DEBUG)
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: stream has been linked, using downstream session data lock (is: %@)\n"),
-//                  inherited::mod_->name (),
-//                  session_data_p->lock));
-//#endif // _DEBUG
+#if defined (_DEBUG)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: stream has been linked, using downstream session data lock (is: %@)\n"),
+                    inherited::mod_->name (),
+                    session_data_p->lock));
+#endif // _DEBUG
 
         // *NOTE*: the idea here is to 'merge' the two datasets
         *session_data_2 += *session_data_p;
@@ -418,7 +418,8 @@ continue_:
 
       // --> 'downstream'
       ACE_ASSERT (session_data_p->lock && session_data_2->lock);
-      ACE_ASSERT (session_data_p->lock == session_data_2->lock);
+      if (session_data_p->lock != session_data_2->lock)
+          goto continue_2; // <-- already 'reset' by head module ?
       ACE_ASSERT (sessionDataLock_);
       ACE_ASSERT (session_data_p->lock != sessionDataLock_);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);

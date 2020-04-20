@@ -896,8 +896,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       codec_context_p->codec_id = codec_id;
 //      codec_context_p->codec_tag = MKTAG ('B', 'G', 'R', '8');
-      codec_context_p->bit_rate = frameSize_ * format_.frameRate.num * 8;
-//      codec_context_p->bit_rate_tolerance = 0;
+//      codec_context_p->bit_rate = frameSize_; //* format_.frameRate.num * 8;
+//      codec_context_p->bit_rate_tolerance = 5000000;
 //      codec_context_p->global_quality = 0;
 //      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
 //      codec_context_p->flags = 0;
@@ -972,7 +972,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //      codec_context_p->rc_max_available_vbv_use = 0.0F;
 //      codec_context_p->rc_min_vbv_overflow_use = 0.0F;
 //      codec_context_p->rc_initial_buffer_occupancy = 0;
-      codec_context_p->coder_type = 2;
+//      codec_context_p->coder_type = 2;
 //      codec_context_p->context_model = 0;
 //      codec_context_p->frame_skip_threshold = 0;
 //      codec_context_p->frame_skip_factor = 0;

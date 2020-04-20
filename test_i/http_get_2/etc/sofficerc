@@ -12,7 +12,6 @@
 #ConfigFile = ${SYSUSERCONFIG}/.sversionrc
 #ConfigDir = ${$ConfigFile:versions:${ProductKey}}
 
-UNO_SERVICES=/usr/lib/ure/share/misc/services.rdb
-UNO_TYPES=/usr/lib/libreoffice/program/types/offapi.rdb /usr/lib/ure/share/misc/types.rdb
+UNO_SERVICES=/usr/lib64/libreoffice/program/services.rdb
+UNO_TYPES=/usr/lib64/libreoffice/program/types/offapi.rdb /usr/lib64/libreoffice/program/types.rdb
 #UNO_WRITERDB=$ConfigDir/user.rdb
-

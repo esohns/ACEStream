@@ -1268,7 +1268,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 0;
+  unsigned int index_i = 1;
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
@@ -1290,17 +1290,17 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
     if (display_b)
     { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
       //            native endianness)
-      layout_in->append (&converter_, branch_p, 0); // output is uncompressed 24-bit RGB
-      layout_in->append (&resizer_, branch_p, 0); // output is window size/fullscreen
+      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GUI_SUPPORT)
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
 //        layout_in->append (&display_, branch_p, 0);
 //      else
-        layout_in->append (&display_2_, branch_p, 0);
+        layout_in->append (&display_2_, branch_p, index_i);
 //      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
 #elif defined (WXWIDGETS_USE)
-      layout_in->append (&display_, branch_p, 0);
+      layout_in->append (&display_, branch_p, index_i);
 #endif
 #else
       ACE_ASSERT ((*iterator).second.second.fullScreen && !(*iterator).second.second.display.identifier.empty ());

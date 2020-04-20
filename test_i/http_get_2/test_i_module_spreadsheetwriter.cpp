@@ -376,6 +376,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+        goto error;
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"), aborting\n"),
@@ -605,8 +606,18 @@ error_2:
         inherited::component_->dispose ();
       if (inherited::componentContext_.is ())
       {
-        uno::Reference<lang::XComponent> component_p =
+        uno::Reference<lang::XComponent> component_p = NULL;
+        try {
+          component_p =
             uno::Reference<lang::XComponent>::query (inherited::componentContext_);
+        } catch (com::sun::star::uno::Exception& exception_in) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in XComponentComtext::query(XComponent): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
+                        ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+                                                            RTL_TEXTENCODING_ASCII_US,
+                                                            OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+        }
         if (component_p.is ())
           component_p->dispose ();
         inherited::componentContext_.clear ();

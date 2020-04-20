@@ -1229,7 +1229,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   modulehandler_configuration.outputFormat =
       Stream_Device_Tools::convert (Stream_Device_Tools::defaultCaptureFormat (captureinterfaceIdentifier_in));
-
+  modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   if (statisticReportingInterval_in)
   {
     modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1341,6 +1341,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
   //      bufferSize_in;
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.messageAllocator = &message_allocator;
 #if defined (GUI_SUPPORT)
   stream_configuration.module =
