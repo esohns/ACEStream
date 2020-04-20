@@ -865,10 +865,16 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                                       pixelFormat_in,
                                       static_cast<int> (targetWidth_in));
   ACE_ASSERT (result_2 >= 0);
-  result_2 = sws_scale (context_p,
-                        sourceBuffers_in, in_linesize,
-                        0, sourceHeight_in,
-                        targetBuffers_in, out_linesize);
+//  try {
+      result_2 = sws_scale (context_p,
+                            sourceBuffers_in, in_linesize,
+                            0, sourceHeight_in,
+                            targetBuffers_in, out_linesize);
+//  } catch (...) {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("caught exception in sws_scale(), aborting\n")));
+//    result_2 = -1;
+//  }
   if (unlikely (result_2 <= 0))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -1430,8 +1430,8 @@ load_formats (struct _snd_pcm* handle_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-//                        0, snd_pcm_format_name (*iterator_2),
-                        0, snd_pcm_format_description (*iterator_2),
+                        0, snd_pcm_format_name (*iterator_2),
+//                        0, snd_pcm_format_description (*iterator_2),
                         2, *iterator_2,
                         -1);
   } // end FOR
@@ -2448,7 +2448,7 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Stream_IStream_t*> (data_p->CBData->stream);
   istream_control_p =
     dynamic_cast<Stream_IStreamControlBase*> (data_p->CBData->stream);
-  Common_IGetR_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
+  Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>* iget_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -2540,9 +2540,9 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   iget_p =
-    dynamic_cast<Common_IGetR_T<Test_U_AudioEffect_SessionData_t>*> (data_p->CBData->stream);
+    dynamic_cast<Common_IGetR_2_T<Test_U_AudioEffect_SessionData_t>*> (data_p->CBData->stream);
   ACE_ASSERT (iget_p);
-  session_data_container_p = &iget_p->getR ();
+  session_data_container_p = &iget_p->getR_2 ();
   session_data_p =
       &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->getR ());
   data_p->sessionId = session_data_p->sessionId;
@@ -5275,15 +5275,15 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
-//                                       ui_cb_data_p->configuration->ALSAConfiguration.format))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
-//      ui_cb_data_p->handle;
+  if (!Stream_Device_Tools::setFormat (ui_cb_data_p->handle,
+                                       ui_cb_data_p->configuration->ALSAConfiguration.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Tools::setFormat(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+      ui_cb_data_p->handle;
 #endif
 
   combo_box_p =
@@ -5339,8 +5339,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->configuration->streamConfiguration.configuration->format.format =
-    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+//  ui_cb_data_p->configuration->streamConfiguration.configuration->format.format =
+//    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
 #endif
   g_value_unset (&value);
 

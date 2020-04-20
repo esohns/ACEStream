@@ -122,8 +122,9 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
         goto recover;
 
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to snd_pcm_readi(): \"%s\", returning\n"),
-                  ACE_TEXT (snd_strerror (result))));
+                  ACE_TEXT ("%s: failed to snd_pcm_readi(): \"%s\", returning\n"),
+                  ACE_TEXT (snd_pcm_name (handle_p)),
+                  ACE_TEXT (snd_strerror (frames_read))));
       goto error;
     } // end IF
     message_block_p->wr_ptr (static_cast<unsigned int> (frames_read) * data_p->sampleSize);

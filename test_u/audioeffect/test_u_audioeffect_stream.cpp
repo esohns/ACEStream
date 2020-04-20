@@ -1255,7 +1255,7 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
-//  if (!configuration_p->mute)
+  if (!configuration_p->mute)
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (this,

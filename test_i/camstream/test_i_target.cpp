@@ -1777,7 +1777,7 @@ do_work (unsigned int bufferSize_in,
     Test_I_Target_MediaFoundation_IUDPConnector_t* mediafoundation_iconnector_p =
       NULL;
 #else
-    Test_I_Target_ITCPConnector_t* i_tcp_connector_p = NULL;
+//    Test_I_Target_ITCPConnector_t* i_tcp_connector_p = NULL;
     Test_I_Target_IUDPConnector_t* i_udp_connector_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
     if (useUDP_in)

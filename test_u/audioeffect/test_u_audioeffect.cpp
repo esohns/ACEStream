@@ -1071,6 +1071,7 @@ do_work (unsigned int bufferSize_in,
 #else
   modulehandler_configuration.allocatorConfiguration =
     allocator_configuration_p;
+  stream_configuration.allocatorConfiguration = allocator_configuration_p;
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);

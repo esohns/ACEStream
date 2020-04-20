@@ -90,6 +90,7 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
       break;
     }
     case SIGCHLD:
+    case SIGIO:
     //case SIGPOLL:
       break;
     default:
