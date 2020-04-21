@@ -1231,13 +1231,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     }
   } // end SWITCH
 #else
-  configuration_in.streamConfiguration.initialize (module_configuration,
-                                                   modulehandler_configuration,
-                                                   stream_configuration);
-
   if (!do_initialize_v4l (captureinterfaceIdentifier_in,
                           modulehandler_configuration.deviceIdentifier,
-                          configuration_in.streamConfiguration.configuration->format,
+                          stream_configuration.format,
                           modulehandler_configuration.outputFormat))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1245,7 +1241,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     return;
   } // end IF
 
-//  modulehandler_configuration.display = displayDevice_in;
+  configuration_in.streamConfiguration.initialize (module_configuration,
+                                                   modulehandler_configuration,
+                                                   stream_configuration);
+  //  modulehandler_configuration.display = displayDevice_in;
 
   // *IMPORTANT NOTE*: i have not found a way to feed RGB24 data to Xlib;
   //                   XCreateImage() only 'likes' 32-bit data, regardless of

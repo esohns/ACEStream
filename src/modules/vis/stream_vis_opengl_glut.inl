@@ -188,6 +188,9 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
       glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
       COMMON_GL_ASSERT;
 
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
       glutDisplayFunc (libacestream_glut_draw);
       glutReshapeFunc (libacestream_glut_reshape);
       glutVisibilityFunc (libacestream_glut_visible);
@@ -210,8 +213,7 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
 //      break;
 //    }
     case STREAM_SESSION_MESSAGE_END:
-    {
-      ACE_ASSERT (inSession_);
+    { ACE_ASSERT (inSession_);
       inSession_ = false;
 
       if (window_)
@@ -264,7 +266,8 @@ Stream_Visualization_OpenGL_GLUT_T<ACE_SYNCH_USE,
   myargv[0] = strdup ("Myappname");
   glutInit (&myargc, myargv);
 
-  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);
+//  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);
+  glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
