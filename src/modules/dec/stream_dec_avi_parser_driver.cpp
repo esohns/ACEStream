@@ -66,7 +66,7 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
 #if YYDEBUG
   //parser_.set_debug_level (traceParsing_in ? 1
   //                                         : 0); // binary (see bison manual)
-  yydebug = (traceParsing_in ? 1 : 0);
+  avi_debug = (traceParsing_in ? 1 : 0);
 #endif
 }
 
@@ -122,7 +122,7 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
 #if YYDEBUG
   //parser_.set_debug_level (traceParsing_in ? 1
   //                                         : 0); // binary (see bison manual)
-  yydebug = (traceParsing_in ? 1 : 0);
+  avi_debug = (traceParsing_in ? 1 : 0);
 #endif
   messageQueue_ = messageQueue_in;
   useYYScanBuffer_ = useYYScanBuffer_in;
@@ -167,7 +167,7 @@ Stream_Decoder_AVIParserDriver::parse (ACE_Message_Block* data_in)
     int debug_level = 0;
 #if YYDEBUG
     //debug_level = parser_.debug_level ();
-    debug_level = yydebug;
+    debug_level = avi_debug;
 #endif
     ACE_UNUSED_ARG (debug_level);
 

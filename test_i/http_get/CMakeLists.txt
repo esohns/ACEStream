@@ -277,7 +277,7 @@ target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 
 if (UNIX)
 # target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML_LIBRARIES})
 endif (UNIX)
 

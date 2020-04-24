@@ -516,7 +516,7 @@ yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
 
 # define YYDPRINTF(Args)                        \
   do {                                          \
-    if (yydebug)                                \
+    if (avi_debug)                                \
       YYFPRINTF Args;                           \
   } while (0)
 
@@ -662,7 +662,7 @@ yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYL
 
 # define YY_SYMBOL_PRINT(Title, Type, Value, Location)                  \
   do {                                                                  \
-    if (yydebug)                                                        \
+    if (avi_debug)                                                        \
       {                                                                 \
         YYFPRINTF (stderr, "%s ", Title);                               \
         yy_symbol_print (stderr, Type, Value, Location, driver, yyscanner);        \
@@ -672,7 +672,7 @@ yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYL
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
-int yydebug;
+int avi_debug;
 
 struct yyGLRStack;
 static void yypstack (struct yyGLRStack* yystackp, size_t yyk)
@@ -1250,7 +1250,7 @@ yydestroyGLRState (char const *yymsg, yyGLRState *yys, Stream_Decoder_AVIParserD
   else
     {
 #if YYDEBUG
-      if (yydebug)
+      if (avi_debug)
         {
           if (yys->yysemantics.yyfirstVal)
             YYFPRINTF (stderr, "%s unresolved", yymsg);
@@ -1639,7 +1639,7 @@ yyglrShiftDefer (yyGLRStack* yystackp, size_t yyk, yyStateNum yylrState,
 #else
 # define YY_REDUCE_PRINT(Args)          \
 do {                                    \
-  if (yydebug)                          \
+  if (avi_debug)                          \
     yy_reduce_print Args;               \
 } while (0)
 
@@ -2998,7 +2998,7 @@ yy_debug (int debug_in)
 {
   STREAM_TRACE (ACE_TEXT ("::yy_debug"));
 
-  yydebug = debug_in;
+  avi_debug = debug_in;
 }
 
 void

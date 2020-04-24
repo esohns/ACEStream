@@ -70,7 +70,7 @@ struct YYSTYPE
 typedef void* yyscan_t;
 
 #define YYDEBUG 1
-extern int yydebug;
+extern int avi_debug;
 //#define YYERROR_VERBOSE
 //#define YYPRINT 1
 //#define YYTOKEN_TABLE 1
