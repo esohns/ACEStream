@@ -52,9 +52,10 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
   {
     case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGQUIT:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     {
 //       // *PORTABILITY*: tracing in a signal handler context is not portable
 //       // *TODO*
@@ -67,21 +68,22 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     }
 // *PORTABILITY*: on Windows SIGUSRx are not defined
 // --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
-#endif
+#else
+    case SIGUSR1:
+#endif // ACE_WIN32 || ACE_WIN64
     {
       // print statistic
       statistic = true;
 
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     case SIGTERM:
     {
       // print statistic
@@ -90,8 +92,11 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
       break;
     }
     case SIGCHLD:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGIO:
-    //case SIGPOLL:
+#endif // ACE_WIN32 || ACE_WIN64
+      //case SIGPOLL:
       break;
     default:
     {

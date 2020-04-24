@@ -402,7 +402,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       break;
 
 error:
-      notify (STREAM_SESSION_MESSAGE_ABORT);
+//      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
     }

@@ -176,8 +176,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (HTTP_PRT_HEADER_LOCATION_STRING)));
         goto error;
       } // end IF
-
-      // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("%s: \"%s\" has been redirected to \"%s\" (status was: %d)\n"),
                   inherited::mod_->name (),

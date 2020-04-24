@@ -256,14 +256,14 @@ elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-SAFESEH:NO>")
 
- if (SSL_USE)
+ if (SSL_SUPPORT)
   target_link_libraries (${EXECUTABLE} ${SSL_LIBRARIES})
- endif (SSL_USE)
+ endif (SSL_SUPPORT)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
-if (SSL_USE)
+if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
-endif (SSL_USE)
+endif (SSL_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${ZLIB_LIBRARIES})
 # target_link_libraries (${EXECUTABLE} ${PKG_Z_LIBRARIES})
@@ -372,7 +372,7 @@ elseif (WIN32)
                            ${SSL_LIBRARY_PATH}
                            ${ZLIB_LIBRARY_PATH})
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\etc\\\\soffice.ini -d -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
+                         ARGS "-c.\\\\etc\\\\soffice.ini -d -f.\\\\etc\\\\template.ods -h localhost -i.\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u https://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                                               ${PROJECT_SOURCE_DIR}/../Common/cmake/src/Debug

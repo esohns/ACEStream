@@ -431,13 +431,6 @@ body:
           data_p->state = SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT;
           break;
         } // end IF
-        else if (xmlStrEqual (attributes_p[1],
-                              BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("vwd_infobox vertical_gap_2"))))
-        {
-          data_p->accumulate = true;
-          data_p->state = SAXPARSER_STATE_READ_ISIN_WKN;
-          break;
-        } // end IF
       } // end IF
 
       attributes_p = &attributes_p[2];
@@ -483,14 +476,14 @@ body:
         ACE_ASSERT (attributes_p[1]);
 
         if (xmlStrEqual (attributes_p[1],
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big positive vertical_gap_1"))))
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("leftfloat bottom_aligned positive vertical_gap_1"))))
         {
           data_p->accumulate = true;
           data_p->state = SAXPARSER_STATE_READ_CHANGE;
           break;
         } // end IF
         if (xmlStrEqual (attributes_p[1],
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big negative vertical_gap_1"))))
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("leftfloat bottom_aligned negative vertical_gap_1"))))
         {
           data_p->accumulate = true;
           data_p->state = SAXPARSER_STATE_READ_CHANGE;
@@ -498,6 +491,13 @@ body:
         } // end IF
         else if (xmlStrEqual (attributes_p[1],
                               BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("leftfloat bottom_aligned"))))
+        {
+          data_p->accumulate = true;
+          data_p->state = SAXPARSER_STATE_READ_ISIN_WKN;
+          break;
+        } // end IF
+        else if (xmlStrEqual (attributes_p[1],
+                              BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat bottom_aligned"))))
         {
           data_p->accumulate = true;
           data_p->state = SAXPARSER_STATE_READ_DATE;
@@ -535,7 +535,7 @@ test_i_libxml2_sax_end_element_cb (void* userData_in,
     case SAXPARSER_STATE_READ_CHANGE:
     {
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^([+\\-]{1})([[:digit:]]+),([[:digit:]]+)%$");
+        ACE_TEXT_ALWAYS_CHAR ("^([+\\-]{1})([[:digit:]]+),([[:digit:]]+)(.*)$");
       //try
       //{
       regex.assign (regex_string, flags);
@@ -632,10 +632,7 @@ test_i_libxml2_sax_end_element_cb (void* userData_in,
       break;
     }
     case SAXPARSER_STATE_READ_ISIN_WKN:
-    {
-      // sanity check(s)
-      ACE_ASSERT (data_p->record->item);
-
+    { ACE_ASSERT (data_p->record->item);
       regex_string =
         ACE_TEXT_ALWAYS_CHAR ("^(?:[[:space:]]*)ISIN ([[:alnum:]]+) \\| WKN ([[:alnum:]]+)(?:[[:space:]]*)$");
       //try
@@ -705,10 +702,7 @@ test_i_libxml2_sax_end_element_cb (void* userData_in,
       break;
     }
     case SAXPARSER_STATE_READ_SYMBOL:
-    {
-      // sanity check(s)
-      ACE_ASSERT (data_p->record->item);
-
+    { ACE_ASSERT (data_p->record->item);
       regex_string = ACE_TEXT_ALWAYS_CHAR ("^(?:[[:space:]]*)([[:print:]]+)(?:.*)$");
       //try {
       regex.assign (regex_string, flags);
@@ -796,24 +790,16 @@ test_i_libxml2_sax_end_element_cb (void* userData_in,
 
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("html"))))
-  {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HTML);
-
+  { ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HTML);
     data_p->state = SAXPARSER_STATE_INVALID;
-
     return;
   } // end IF
 
   // ------------------------------- head --------------------------------------
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("head"))))
-  {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HEAD);
-
+  { ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HEAD);
     data_p->state = SAXPARSER_STATE_IN_HTML;
-
     return;
   } // end IF
 
@@ -822,7 +808,6 @@ test_i_libxml2_sax_end_element_cb (void* userData_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("body"))))
   {
     data_p->state = SAXPARSER_STATE_IN_HTML;
-
     return;
   } // end IF
 }

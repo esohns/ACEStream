@@ -250,7 +250,7 @@ Test_I_MSOffice_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMe
       break;
 
 error:
-      notify (STREAM_SESSION_MESSAGE_ABORT);
+      //notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
     }

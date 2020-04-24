@@ -31,6 +31,10 @@
 
 #include "stream_net_source.h"
 
+#if defined (SSL_SUPPORT)
+#include "net_client_ssl_connector.h"
+#endif // SSL_SUPPORT
+
 #include "http_module_parser.h"
 
 #include "test_i_common.h"
@@ -42,6 +46,7 @@
 #include "test_i_session_message.h"
 
 #include "test_i_http_get_common.h"
+#include "test_i_http_get_connection_common.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -128,9 +133,24 @@ class Test_I_HTTPGet_Stream_T
 //////////////////////////////////////////
 
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPConnector_t> Test_I_HTTPGet_Stream_t;
-#if defined (SSL_USE)
+#if defined (SSL_SUPPORT)
+typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
+                                Net_SSLSocketHandler_t,
+                                Test_I_HTTPGet_ConnectionConfiguration_t,
+                                struct Net_StreamConnectionState,
+                                Net_StreamStatistic_t,
+                                Test_I_NetStream_t,
+                                struct Net_UserData> Test_I_SSLConnection_t;
+typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
+                                   ACE_SSL_SOCK_Connector,
+                                   ACE_INET_Addr,
+                                   Test_I_HTTPGet_ConnectionConfiguration_t,
+                                   struct Net_StreamConnectionState,
+                                   Net_StreamStatistic_t,
+                                   Test_I_NetStream_t,
+                                   struct Net_UserData> Test_I_HTTPGet_SSLConnector_t;
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_SSLConnector_t> Test_I_HTTPGet_SSL_Stream_t;
-#endif // SSL_USE
+#endif // SSL_SUPPORT
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
 
 #endif

@@ -235,10 +235,10 @@ do_processArguments (int argc_in,
   useReactor_out =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   traceInformation_out = false;
-  URI_out = TEST_I_DEFAULT_URL;
+  URI_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_URL);
   printVersionAndExit_out = false;
-  numberOfDispatchThreads_out =
-    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  numberOfDispatchThreads_out = 1;
+//    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   int result =
     remoteHost_out.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                         static_cast<ACE_UINT32> (INADDR_LOOPBACK),
@@ -375,18 +375,17 @@ do_processArguments (int argc_in,
   // step2: parse URL
   std::string hostname_string;
   std::string URI_s;
-  bool use_SSL = false;
   if (!HTTP_Tools::parseURL (URI_out,
                              hostname_string,
                              URI_s,
-                             use_SSL))
+                             useSSL_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                 ACE_TEXT (URI_out.c_str ())));
     return false;
   } // end IF
-  result = remoteHost_out.set ((use_SSL ? 443 : 80),
+  result = remoteHost_out.set ((useSSL_out ? 443 : 80),
                                Net_Common_Tools::getAddress (hostname_string),
                                1, // convert to network byte order
                                0);
@@ -721,12 +720,12 @@ do_work (const std::string& bootstrapFileName_in,
   if (useReactor_in)
   {
     if (useSSL_in)
-#if defined (SSL_USE)
+#if defined (SSL_SUPPORT)
       ACE_NEW_NORETURN (stream_p,
                         Test_I_HTTPGet_SSL_Stream_t ());
 #else
       ;
-#endif // SSL_USE
+#endif // SSL_SUPPORT
     else
       ACE_NEW_NORETURN (stream_p,
                         Test_I_HTTPGet_Stream_t ());
@@ -1107,10 +1106,10 @@ ACE_TMAIN (int argc_in,
   use_reactor =
           (COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR);
   trace_information = false;
-  URL.clear ();
+  URL = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_URL);
   print_version_and_exit = false;
   number_of_dispatch_threads =
-    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+    1;
   result = remote_host.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                             static_cast<ACE_UINT32> (INADDR_LOOPBACK),
                             1,

@@ -595,6 +595,7 @@ link:
         goto error;
       } // end IF
       unlink_ = true;
+      stream_p->dump_state ();
 
       //// update session data in the current session message
       //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has
@@ -732,6 +733,7 @@ continue_2:
             const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
         ACE_ASSERT (istream_p);
         istream_p->_unlink ();
+        istream_p->dump_state ();
 
         unlink_ = false;
       } // end IF
