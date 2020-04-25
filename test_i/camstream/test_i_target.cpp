@@ -1056,8 +1056,10 @@ do_work (unsigned int bufferSize_in,
   //modulehandler_configuration.format.fmt.pix.width = 320;
   modulehandler_configuration.outputFormat.format =
       AV_PIX_FMT_RGB24;
-  modulehandler_configuration.outputFormat.resolution.height = 480;
-  modulehandler_configuration.outputFormat.resolution.width = 640;
+  modulehandler_configuration.outputFormat.resolution.height =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+  modulehandler_configuration.outputFormat.resolution.width =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH ;
 
   modulehandler_configuration.inbound = true;
   modulehandler_configuration.printProgressDot =
@@ -1071,14 +1073,19 @@ do_work (unsigned int bufferSize_in,
 
   stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.format.format = AV_PIX_FMT_RGB24;
-  stream_configuration.format.resolution.height = 480;
-  stream_configuration.format.resolution.width = 640;
+  stream_configuration.format.resolution.height =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
+  stream_configuration.format.resolution.width =
+      STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH ;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
                                                 stream_configuration);
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_SPLITTER_DEFAULT_NAME_STRING),
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

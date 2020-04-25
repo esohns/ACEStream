@@ -1609,7 +1609,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       const_cast<struct Common_UI_wxWidgets_State&> (iapplication_in->getR ());
     state_r.resources[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<wxObject*> (NULL));
-#endif
+#endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1652,7 +1652,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
                   ACE_TEXT ("failed to Common_UI_wxWidgets_IApplicationBase_T::run(), returning\n")));
       goto clean;
     } // end IF
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
   } // end IF
   else
   {

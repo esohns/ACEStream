@@ -44,20 +44,10 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
-//#include "stream_module_db_common.h"
-
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 
-//#include "stream_module_htmlparser.h"
-
-//#include "http_common.h"
-//#include "http_defines.h"
-
 #include "test_i_configuration.h"
-//#include "test_i_defines.h"
-
-//#include "test_i_http_get_network.h"
 
 // forward declarations
 class Stream_IAllocator;

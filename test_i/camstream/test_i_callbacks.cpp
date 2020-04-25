@@ -6372,9 +6372,9 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   //GtkAllocation allocation;
   //gtk_widget_get_allocation (widget_in,
   //                           &allocation);
-  gdk_cairo_set_source_pixbuf (context_in,
-                               ui_cb_data_p->pixelBuffer,
-                               0.0, 0.0);
+//  gdk_cairo_set_source_pixbuf (context_in,
+//                               ui_cb_data_p->pixelBuffer,
+//                               0.0, 0.0);
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, FALSE);
     // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an
@@ -6383,7 +6383,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
     //                 ui_cb_data_p->pixelBuffer,
     //                 0, 0, 0, 0, allocation.width, allocation.height,
     //                 GDK_RGB_DITHER_NONE, 0, 0);
-    cairo_paint (context_in);
+//    cairo_paint (context_in);
   } // end lock scope
 
   return TRUE;

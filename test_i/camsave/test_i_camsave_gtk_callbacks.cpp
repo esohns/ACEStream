@@ -410,8 +410,9 @@ error_2:
       goto close;
     } // end IF
 
-    listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
-                                                 device_filename));
+    if (device_capabilities.device_caps & V4L2_CAP_VIDEO_CAPTURE)
+      listbox_entries_a.push_back (std::make_pair (reinterpret_cast<char*> (device_capabilities.card),
+                                                   device_filename));
 
 close:
     result_2 = v4l2_close (file_descriptor);

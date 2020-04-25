@@ -26,7 +26,7 @@
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.glade"
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
 
-#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             1228800 // bytes
+#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             921600 // bytes
 // *NOTE*: 640x480 RGB(A) --> 307200 * 1+1+1(+1) = 921600 (1228800)
 // *TODO*: implement a format negotiation handshake protocol
 #define TEST_I_DEFAULT_FRAME_SIZE                                 CAMSTREAM_DEFAULT_BUFFER_SIZE // bytes
