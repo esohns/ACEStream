@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+//#include "ace/Synch.h"
 #include "stream_lib_directdraw_tools.h"
 
 // *NOTE*: uuids.h doesn't have double include protection
@@ -28,6 +28,7 @@
 #define UUIDS_H
 #include <uuids.h>
 #endif // UUIDS_H
+#include <mfapi.h>
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
@@ -203,15 +204,22 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectDraw_Tools::getDevice"));
 
   HRESULT result = E_FAIL;
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+  IDirect3D9Ex* interface_p = NULL;
+#else
   IDirect3D9* interface_p = NULL;
+#endif
 
   // initialize return value(s)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#else
   if (configuration_inout.handle)
   {
     result = configuration_inout.handle->GetDirect3D (&interface_p);
     ACE_ASSERT (SUCCEEDED (result) && interface_p);
   } // end IF
   else
+#endif // _WIN32_WINNT_VISTA
     interface_p = Stream_MediaFramework_DirectDraw_Tools::handle ();
   ACE_ASSERT (interface_p);
   if (configuration_inout.handle)
@@ -335,7 +343,8 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
                                  configuration_inout.focusWindow,             // focus window handle
                                  configuration_inout.behaviorFlags,           // behavior flags
                                  &configuration_inout.presentationParameters, // presentation parameters
-                                 configuration_inout.fullScreenDisplayMode,   // (fullscreen) display mode
+                                 (configuration_inout.presentationParameters.Windowed ? NULL 
+                                                                                      : &configuration_inout.fullScreenDisplayMode),  // (fullscreen) display mode
                                  &configuration_inout.handle);                // return value: device handle
 #else
     interface_p->CreateDevice (configuration_inout.adapter,                 // adapter
@@ -350,7 +359,7 @@ Stream_MediaFramework_DirectDraw_Tools::getDevice (struct Stream_MediaFramework_
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::CreateDeviceEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9::CreateDevice(): \"%s\", aborting\n"),

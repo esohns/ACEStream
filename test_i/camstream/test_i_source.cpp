@@ -968,6 +968,7 @@ do_work (const std::string& deviceIdentifier_in,
       struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
       Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
       struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_4;
+      directshow_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
       directshow_stream_configuration_2.messageAllocator = allocator_p;
       if (!UIDefinitionFilename_in.empty ())
         directshow_stream_configuration_2.module = &directshow_event_handler;
@@ -1004,10 +1005,24 @@ do_work (const std::string& deviceIdentifier_in,
       ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
                       deviceIdentifier_in.c_str ());
 
+      mediafoundation_modulehandler_configuration.allocatorConfiguration =
+        allocator_configuration_p;
+      mediafoundation_modulehandler_configuration.configuration =
+        mediaFoundationCBData_in.configuration;
+      mediafoundation_modulehandler_configuration.connectionConfigurations =
+        &mediaFoundationCBData_in.configuration->connectionConfigurations;
+      mediafoundation_modulehandler_configuration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
+      //(*mediafoundation_modulehandler_iterator).second.second.stream =
+      //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
+      //                                                                      : mediaFoundationCBData_in.UDPStream);
+
       Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration;
       struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_2;
       Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
       struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_4;
+      mediafoundation_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
+
       mediafoundation_stream_configuration.initialize (module_configuration,
                                                        mediafoundation_modulehandler_configuration,
                                                        mediafoundation_stream_configuration_2);
@@ -1016,15 +1031,16 @@ do_work (const std::string& deviceIdentifier_in,
       mediafoundation_stream_iterator =
         mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
-      mediafoundation_stream_iterator =
-        mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
-      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
+      mediafoundation_stream_configuration_4.allocatorConfiguration = allocator_configuration_p;
       mediafoundation_stream_configuration_3.initialize (module_configuration,
                                                          mediafoundation_modulehandler_configuration,
                                                          mediafoundation_stream_configuration_4);
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING),
                                                                                            mediafoundation_stream_configuration_3));
+      //mediafoundation_stream_iterator =
+      //  mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
       break;
     }
@@ -1281,6 +1297,7 @@ do_work (const std::string& deviceIdentifier_in,
         directShowCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directShowCBData_in.configuration->streamConfigurations.end ());
 
+      directshow_tcp_connection_configuration.allocatorConfiguration = allocator_configuration_p;
       result =
         directshow_tcp_connection_configuration.initialize ((*directshow_stream_iterator).second);
       ACE_ASSERT (result);
@@ -1298,6 +1315,11 @@ do_work (const std::string& deviceIdentifier_in,
         mediafoundation_tcp_connection_configuration.initialize ((*mediafoundation_stream_iterator).second);
       mediaFoundationCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                                &mediafoundation_tcp_connection_configuration));
+
+      mediafoundation_stream_iterator =
+        mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
+
       break;
     }
     default:
@@ -1372,6 +1394,11 @@ do_work (const std::string& deviceIdentifier_in,
                                                             ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
       mediafoundation_tcp_connection_manager_p->set (*dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
                                                      &user_data_s);
+
+      mediafoundation_modulehandler_iterator =
+        (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
+
       (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
         mediafoundation_tcp_connection_manager_p;
       iconnection_manager_p = mediafoundation_tcp_connection_manager_p;
@@ -1472,7 +1499,7 @@ do_work (const std::string& deviceIdentifier_in,
       dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &directshow_message_allocator;
       //(*connection_iterator).second->PDUSize = bufferSize_in;
-      dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*directshow_stream_iterator).second);
+      //dynamic_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*directshow_stream_iterator).second);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1506,7 +1533,7 @@ do_work (const std::string& deviceIdentifier_in,
       dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->messageAllocator =
         &mediafoundation_message_allocator;
       //(*connection_iterator).second->PDUSize = bufferSize_in;
-      dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*mediafoundation_stream_iterator).second);
+      //dynamic_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->initialize ((*mediafoundation_stream_iterator).second);
       break;
     }
     default:
@@ -1574,19 +1601,11 @@ do_work (const std::string& deviceIdentifier_in,
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
 
-      (*mediafoundation_modulehandler_iterator).second.second.allocatorConfiguration =
-        allocator_configuration_p;
-      (*mediafoundation_modulehandler_iterator).second.second.configuration =
-        mediaFoundationCBData_in.configuration;
-      (*mediafoundation_modulehandler_iterator).second.second.connectionConfigurations =
-        &mediaFoundationCBData_in.configuration->connectionConfigurations;
-      (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval =
-          ACE_Time_Value (statisticReportingInterval_in, 0);
-      //(*mediafoundation_modulehandler_iterator).second.second.stream =
-      //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
-      //                                                                      : mediaFoundationCBData_in.UDPStream);
+      (*mediafoundation_modulehandler_iterator).second.second.direct3DConfiguration =
+        &mediaFoundationCBData_in.configuration->direct3DConfiguration;
       (*mediafoundation_modulehandler_iterator).second.second.subscriber =
         &mediafoundation_ui_event_handler;
+
       break;
     }
     default:

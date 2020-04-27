@@ -41,6 +41,11 @@ class Stream_Device_MediaFoundation_Tools
 
   // -------------------------------------
 
+  // *NOTE*: argument must be MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID or
+  //                          MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
+  static std::string getDefaultCaptureDevice (REFGUID); // device category
+  static Stream_Device_List_t getCaptureDevices (REFGUID); // device category
+
   //static bool getCaptureFormat (IMFSourceReader*, // source handle
   //                              IMFMediaType*&);  // return value: media type
   //static bool setCaptureFormat (IMFSourceReaderEx*,   // source handle

@@ -1140,19 +1140,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   if (unlikely (!GetMonitorInfo (display_device_s.handle,
                                  reinterpret_cast<struct tagMONITORINFO*> (&monitor_info_ex_s))))
   {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Net_Common_Tools::interfaceToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
-#else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to GetMonitorInfo(\"%s\"): \"%s\", returning\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->deviceIdentifier.identifier._string),
                 ACE_TEXT (Common_Error_Tools::errorToString (GetLastError ()).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     goto error;
   } // end IF
   // *NOTE*: center new windows on the display device

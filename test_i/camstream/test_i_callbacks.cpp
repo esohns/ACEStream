@@ -34,6 +34,7 @@
 #include <mferror.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
+#include <wmcodecdsp.h>
 
 #include "gdk/gdkwin32.h"
 #else
@@ -3817,8 +3818,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     { ACE_ASSERT (!(*directshow_modulehandler_iterator).second.second.window);
       // *TODO*: find out why the DirectShow video renderers do not draw onto
       //         GtkDrawingAreas (e.g. missing overlay function ?)
-      (*directshow_modulehandler_iterator).second.second.window =
-        gdk_win32_window_get_impl_hwnd (window_p);
+      (*directshow_modulehandler_iterator).second.second.window = NULL;
+        //gdk_win32_window_get_impl_hwnd (window_p);
       //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
       break;
     }
@@ -6687,13 +6688,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   switch (ui_cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      //module_name =
-      //  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING);
-      //module_p =
-      //  const_cast<Stream_Module_t*> (directshow_ui_cb_data_p->stream->find (module_name));
       break;
-    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       //if (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader)
@@ -6712,17 +6707,18 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-      if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier,
-                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                (*mediafoundation_modulehandler_iterator).second.second.mediaSource))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
-                    ACE_TEXT ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier.c_str ())));
-        return;
-      } // end IF
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+      HRESULT result_3 = MFTRegisterLocalByCLSID (
+        __uuidof(CColorConvertDMO),
+        MFT_CATEGORY_VIDEO_PROCESSOR,
+        L"",
+        MFT_ENUM_FLAG_SYNCMFT,
+        0,
+        NULL,
+        0,
+        NULL
+      );
+#endif // _WIN32_WINNT_WIN7
+
       //if (!Stream_Device_Tools::getSourceReader (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.mediaSource,
       //                                                  symbolic_link_p,
       //                                                  symbolic_link_size,
@@ -6739,7 +6735,20 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       //  return;
       //} // end IF
       //ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->moduleHandlerConfiguration.sourceReader);
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+      if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier.identifier._string,
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                (*mediafoundation_modulehandler_iterator).second.second.mediaSource))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                    ACE_TEXT ((*mediafoundation_modulehandler_iterator).second.second.deviceIdentifier.identifier._string)));
+        return;
+      } // end IF
+      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
+      mediafoundation_ui_cb_data_p->stream->initialize ((*mediafoundation_stream_iterator).second);
       module_name =
         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
       module_p =
@@ -6780,11 +6789,11 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
 
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier_string,
-                                                                   CLSID_VideoInputDeviceCategory,
-                                                                   (*directshow_modulehandler_iterator).second.second.builder,
-                                                                   buffer_negotiation_p,
-                                                                   directshow_ui_cb_data_p->streamConfiguration,
-                                                                   (*directshow_stream_iterator).second.configuration->graphLayout))
+                                                            CLSID_VideoInputDeviceCategory,
+                                                            (*directshow_modulehandler_iterator).second.second.builder,
+                                                            buffer_negotiation_p,
+                                                            directshow_ui_cb_data_p->streamConfiguration,
+                                                            (*directshow_stream_iterator).second.configuration->graphLayout))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
@@ -6806,10 +6815,10 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
-                                                                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                           (*mediafoundation_modulehandler_iterator).second.second.mediaSource,
-                                                                           mediafoundation_source_impl_p,
-                                                                           topology_p))
+                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                    (*mediafoundation_modulehandler_iterator).second.second.mediaSource,
+                                                                    mediafoundation_source_impl_p,
+                                                                    topology_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(), returning\n")));

@@ -10,7 +10,7 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
-//#include "targetver.h"
+#include "targetver.h"
 
 // Windows Header Files
 #include <windows.h>

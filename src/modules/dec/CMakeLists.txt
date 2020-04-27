@@ -52,7 +52,7 @@ if (UNIX)
  add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
 elseif (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
- add_definitions (-DWIN32)
+ #add_definitions (-DWIN32)
 # *TODO*: this is a work-around for opencv support with vs2010 (requires __cplusplus >= 201103L)
 #         --> remove ASAP
  #add_definitions (-DCV_CXX11)
@@ -175,6 +175,8 @@ elseif (WIN32)
 endif ()
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison>)
+target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../include>)
 target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 

@@ -3423,10 +3423,10 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
     if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (deviceIdentifier_in,
-                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                         media_source_p,
-                                                                         NULL, // do not load a dummy sink
-                                                                         topology_inout))
+                                                                  MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                  media_source_p,
+                                                                  NULL, // do not load a dummy sink
+                                                                  topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
@@ -3482,7 +3482,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  if (!item_count)
+  if (!item_count || (item_count == 4))
   {
     if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
                                                                 media_type_p))
@@ -3563,7 +3563,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const std::string& devic
     ACE_ASSERT (SUCCEEDED (result));
 
 clean:
-    for (UINT32 i = 0; i < number_of_decoders; i++)
+    for (UINT32 i = 0; i < item_count; i++)
       decoders_p[i]->Release ();
     CoTaskMemFree (decoders_p); decoders_p = NULL;
 
@@ -3879,7 +3879,8 @@ clean_2:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
   result =
     transform_p->QueryInterface (IID_PPV_ARGS (&video_processor_control_p));
-  ACE_ASSERT (SUCCEEDED (result));
+  if (FAILED (result))
+    goto continue_near;
   ACE_ASSERT (video_processor_control_p);
   //result = video_processor_control_p->SetRotation (ROTATION_NORMAL);
   //ACE_ASSERT (SUCCEEDED (result));
@@ -3891,6 +3892,7 @@ clean_2:
     video_processor_control_p->SetRotationOverride (MFVideoRotationFormat_180);
   ACE_ASSERT (SUCCEEDED (result));
   video_processor_control_p->Release (); video_processor_control_p = NULL;
+continue_near:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   transform_p->Release (); transform_p = NULL;
 
@@ -4130,11 +4132,8 @@ continue_3:
   source_node_p->Release (); source_node_p = NULL;
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (topology_inout))
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration(), aborting\n")));
-    goto error;
-  } // end IF
+                ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration(), continuing\n")));
 
 continue_4:
   return true;
@@ -4319,7 +4318,7 @@ Stream_Module_Decoder_Tools::loadVideoRendererTopology (const IMFMediaType* medi
     ACE_ASSERT (SUCCEEDED (result));
 
 clean:
-    for (UINT32 i = 0; i < number_of_decoders; i++)
+    for (UINT32 i = 0; i < item_count; i++)
       decoders_p[i]->Release ();
     CoTaskMemFree (decoders_p); decoders_p = NULL;
 
@@ -4588,17 +4587,17 @@ clean_2:
   //result = media_type_p->DeleteAllItems ();
   //ACE_ASSERT (SUCCEEDED (result));
   Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
-                                                             media_type_p,
-                                                             MF_MT_FRAME_RATE);
+                                                     media_type_p,
+                                                     MF_MT_FRAME_RATE);
   Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
-                                                             media_type_p,
-                                                             MF_MT_FRAME_SIZE);
+                                                     media_type_p,
+                                                     MF_MT_FRAME_SIZE);
   Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
-                                                             media_type_p,
-                                                             MF_MT_INTERLACE_MODE);
+                                                     media_type_p,
+                                                     MF_MT_INTERLACE_MODE);
   Stream_MediaFramework_MediaFoundation_Tools::copy (mediaType_in,
-                                                             media_type_p,
-                                                             MF_MT_PIXEL_ASPECT_RATIO);
+                                                     media_type_p,
+                                                     MF_MT_PIXEL_ASPECT_RATIO);
   result = transform_p->SetOutputType (0,
                                        media_type_p,
                                        0);
@@ -4917,7 +4916,7 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (sub_type, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ())));
-      goto clean;
+      goto error;
     } // end IF
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7

@@ -158,7 +158,7 @@ class Stream_Layout_T
              const std::string&,          // module name
              Stream_ModuleList_t&) const; // return value
 
-  inline bool is_distributor (MODULE_T* module_in) const { return dynamic_cast<Stream_IDistributorModule*> (module_in->writer ()); }
+  inline bool is_distributor (MODULE_T* module_in) const { return !!dynamic_cast<Stream_IDistributorModule*> (module_in->writer ()); }
   // *NOTE*: the return index value is correct as long as:
   //         - the module has been initialize()d
   //         - the corresponding head module has not been push()ed yet

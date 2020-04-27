@@ -171,11 +171,11 @@ class Stream_Vis_Target_MediaFoundation_T
                            const struct tagRECT&,     // (target) window area
                            TOPOID,                    // renderer node id
                            IMFMediaSink*&,            // return value: media sink handle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-                           IMFVideoDisplayControl2*&, // return value: video display control handle
-#else
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+//                           IMFVideoDisplayControl2*&, // return value: video display control handle
+//#else
                            IMFVideoDisplayControl*&,  // return value: video display control handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                            //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
                            IMFMediaSession*);         // media session handle
 

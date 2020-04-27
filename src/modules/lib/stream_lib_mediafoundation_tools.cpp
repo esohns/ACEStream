@@ -72,6 +72,80 @@ Stream_MediaFramework_MediaFoundation_Tools::initialize ()
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
 }
 
+struct _GUID
+Stream_MediaFramework_MediaFoundation_Tools::toFormat (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toFormat"));
+
+  struct _GUID result = GUID_NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  HRESULT result_2 =
+    const_cast<IMFMediaType*> (mediaType_in)->GetGUID (MF_MT_SUBTYPE,
+                                                       &result);
+  if (FAILED (result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+
+  return result;
+}
+
+Common_Image_Resolution_t
+Stream_MediaFramework_MediaFoundation_Tools::toResolution (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toResolution"));
+
+  Common_Image_Resolution_t result;
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  UINT32 width = 0, height = 0;
+  HRESULT result_2 = MFGetAttributeSize (const_cast<IMFMediaType*> (mediaType_in),
+                                         MF_MT_FRAME_SIZE,
+                                         &width, &height);
+  if (FAILED (result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+  else
+  {
+    result.cx = static_cast<LONG> (width);
+    result.cy = static_cast<LONG> (height);
+  } // end ELSE
+
+  return result;
+}
+
+unsigned int
+Stream_MediaFramework_MediaFoundation_Tools::toFramerate (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::toFramerate"));
+
+  unsigned int result = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  UINT32 numerator = 0, denominator = 1;
+  HRESULT result_2 = MFGetAttributeRatio (const_cast<IMFMediaType*> (mediaType_in),
+                                          MF_MT_FRAME_RATE,
+                                          &numerator, &denominator);
+  if (FAILED (result_2))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+  else
+  { ACE_ASSERT (denominator == 1);
+    result = numerator;
+  } // end ELSE
+
+  return result;
+}
+
 //void
 //Stream_MediaFramework_MediaFoundation_Tools::dump (IMFSourceReader* IMFSourceReader_in)
 //{
@@ -1288,7 +1362,7 @@ Stream_MediaFramework_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopol
     topology_node_p->Release (); topology_node_p = NULL;
   } // end FOR
   collection_p->Release (); collection_p = NULL;
-  topology_node_p->Release (); topology_node_p = NULL;
+  //topology_node_p->Release (); topology_node_p = NULL;
   if (!device_manager_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1735,9 +1809,9 @@ error:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
 bool
 Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_in,
-                                                         IMFMediaSession*& mediaSession_inout,
-                                                         bool isPartial_in,
-                                                         bool waitForCompletion_in)
+                                                          IMFMediaSession*& mediaSession_inout,
+                                                          bool isPartial_in,
+                                                          bool waitForCompletion_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::setTopology"));
 
@@ -1823,7 +1897,7 @@ Stream_MediaFramework_MediaFoundation_Tools::setTopology (IMFTopology* topology_
   ACE_ASSERT (topology_p);
 
   result = mediaSession_inout->SetTopology (topology_flags,
-                                               topology_p);
+                                            topology_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1883,7 +1957,7 @@ error:
 
 bool
 Stream_MediaFramework_MediaFoundation_Tools::append (IMFTopology* topology_in,
-                                                    TOPOID nodeId_in)
+                                                     TOPOID nodeId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_Tools::append"));
 
@@ -3091,9 +3165,9 @@ Stream_MediaFramework_MediaFoundation_Tools::toString (IMFMediaSource* mediaSour
   } // end IF
   result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a));
 #else
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP_RETURN (false);
-  ACE_NOTREACHED (return false;)
+  // *TODO*
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("cannot convert IMFMediaSource to string on this platform, aborting\n")));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
@@ -3111,7 +3185,7 @@ Stream_MediaFramework_MediaFoundation_Tools::load (REFGUID category_in,
                                                    const MFT_REGISTER_TYPE_INFO* inputMediaType_in,
                                                    const MFT_REGISTER_TYPE_INFO* outputMediaType_in,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
-                                                   IMFActivate**& handles_out)
+                                                   IMFActivate**& handles_out,
 #else
                                                    IMFAttributes* attributes_in,
                                                    CLSID*& handles_out,

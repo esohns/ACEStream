@@ -21,13 +21,19 @@
 #ifndef TEST_I_CAMSTREAM_DEFINES_H
 #define TEST_I_CAMSTREAM_DEFINES_H
 
+#include "ace/config-lite.h"
+
 #define TEST_I_DEFAULT_GTK_RC_FILE                                "resources.rc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                          "target.glade"
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
 
-#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             921600 // bytes
 // *NOTE*: 640x480 RGB(A) --> 307200 * 1+1+1(+1) = 921600 (1228800)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             1228800 // bytes
+#else
+#define CAMSTREAM_DEFAULT_BUFFER_SIZE                             921600 // bytes
+#endif // ACE_WIN32 || ACE_WIN64
 // *TODO*: implement a format negotiation handshake protocol
 #define TEST_I_DEFAULT_FRAME_SIZE                                 CAMSTREAM_DEFAULT_BUFFER_SIZE // bytes
 

@@ -547,17 +547,19 @@ continue_:
   result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
   ACE_ASSERT (result_2);
 
-  // *NOTE*: 320x240 * 4 * 30 * 8
+  // *NOTE*: 640x480 * 4 * 30 * 8
   // *TODO*: this formula applies to RGB format(s) only
-  video_info_header_p->dwBitRate = 73728000;
+  video_info_header_p->dwBitRate =
+    (STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH *
+     STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT * 4 * 30 * 8);
   //video_info_header_p->dwBitErrorRate = 0;
   video_info_header_p->AvgTimePerFrame =
     MILLISECONDS_TO_100NS_UNITS (1000 / 30); // --> 30 fps
 
   // *TODO*: make this configurable (and part of a protocol)
   video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_header_p->bmiHeader.biWidth = 320;
-  video_info_header_p->bmiHeader.biHeight = 240;
+  video_info_header_p->bmiHeader.biWidth = STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH;
+  video_info_header_p->bmiHeader.biHeight = STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT;
   video_info_header_p->bmiHeader.biPlanes = 1;
   video_info_header_p->bmiHeader.biBitCount = 32;
   video_info_header_p->bmiHeader.biCompression = BI_RGB;
@@ -983,6 +985,8 @@ do_work (unsigned int bufferSize_in,
         &directshow_ui_event_handler;
       modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
+      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
+
       directshow_configuration.streamConfiguration.initialize (module_configuration,
                                                                modulehandler_configuration,
                                                                directshow_stream_configuration);
@@ -1233,6 +1237,7 @@ do_work (unsigned int bufferSize_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directshow_tcp_connection_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                 &directshow_tcp_connection_configuration));
       connection_configuration_iterator =

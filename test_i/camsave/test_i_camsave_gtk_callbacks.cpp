@@ -38,6 +38,7 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <uuids.h>
+#include <wmcodecdsp.h>
 
 #include "gdk/gdkwin32.h"
 #else
@@ -268,9 +269,7 @@ error:
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
         goto error_2;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       result_2 = MFEnumDeviceSources (attributes_p,
                                       &devices_pp,
                                       &count);
@@ -282,7 +281,7 @@ error:
         goto error_2;
       } // end IF
 #else
-      ACE_ASSERT (false);
+      ACE_ASSERT (false); // *TODO*
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
@@ -293,7 +292,7 @@ error:
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
@@ -324,10 +323,10 @@ error:
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
                                                      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a))));
 #else
-        ACE_ASSERT (false);
+        ACE_ASSERT (false); // *TODO*
         ACE_NOTSUP_RETURN (false);
         ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // _WIN32_WINNT_WIN7
       } // end FOR
 
 error_2:
@@ -444,6 +443,10 @@ clean:
                         0, ACE_TEXT ((*iterator_2).first.c_str ()),
                         1, ACE_TEXT ((*iterator_2).second.c_str ()),
                         -1);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("found video capture device \"%s\" at \"%s\"...\n"),
+                ACE_TEXT ((*iterator_2).first.c_str ()),
+                ACE_TEXT ((*iterator_2).second.c_str ())));
   } // end FOR
 
   return result;
@@ -1788,7 +1791,9 @@ update_buffer_size (struct Stream_CamSave_UI_CBData* CBData_in)
         MFGetAttributeSize (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format,
                             MF_MT_FRAME_SIZE,
                             &width, &height);
-      result = MFCalculateImageSize (media_subtype,
+      // *IMPORTANT NOTE*: no matter what the capture device outputs, the format captured by the sample grabber is
+      //                   always MFVideoFormat_RGB32
+      result = MFCalculateImageSize (MFVideoFormat_RGB32,
                                      width, height,
                                      &frame_size_i);
       if (FAILED (result))
@@ -2197,7 +2202,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      format_s = 
+      format_s =
         directshow_cb_data_p->configuration->streamConfiguration.configuration->format.subtype;
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_cb_data_p->configuration->streamConfiguration.configuration->format);
@@ -2219,6 +2224,12 @@ idle_initialize_UI_cb (gpointer userData_in)
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator_2 != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
 
+      format_s =
+        Stream_MediaFramework_MediaFoundation_Tools::toFormat (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format);
+      resolution_s =
+        Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format);
+      framerate_i =
+        Stream_MediaFramework_MediaFoundation_Tools::toFramerate (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format);
       filename_string =
         (*mediafoundation_stream_iterator).second.second.targetFileName;
       break;
@@ -2893,7 +2904,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                          value,
                                          1);
-  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+  //ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
   gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
 
   combo_box_p =
@@ -2946,7 +2957,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   index_i = Common_UI_GTK_Tools::valueToIndex (GTK_TREE_MODEL (list_store_p),
                                                value,
                                                0);
-  ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
+  //ACE_ASSERT (index_i != std::numeric_limits<unsigned int>::max ());
   gtk_combo_box_set_active (combo_box_p, static_cast<gint> (index_i));
   g_value_unset (&value);
 
@@ -4666,6 +4677,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+  IMFMediaSourceEx* media_source_p = NULL;
+#else
+  IMFMediaSource* media_source_p = NULL;
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -4713,20 +4729,19 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT (directshow_cb_data_p->configuration->direct3DConfiguration.handle);
+      if (direct3D_manager_p)
+      {
+        direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+      } // end IF
 
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-      IMFMediaSourceEx* media_source_p = NULL;
-#else
-      IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier_string,
-                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                       media_source_p))
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
@@ -4736,8 +4751,18 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (media_source_p);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
+      if ((*mediafoundation_stream_iterator).second.second.session)
+      {
+        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+      } // end IF
+      if (!mediafoundation_cb_data_p->stream->initialize (mediafoundation_cb_data_p->configuration->streamConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize stream, aborting\n")));
+        return;
+      } // end IF
       std::string module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_NULL_DEFAULT_NAME_STRING);
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
       Stream_Module_t* module_p =
         const_cast<Stream_Module_t*> (stream_p->find (module_name));
       if (!module_p)
@@ -4748,18 +4773,28 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         media_source_p->Release (); media_source_p = NULL;
         return;
       } // end IF
-      Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull* display_impl_p =
-        dynamic_cast<Stream_CamSave_MediaFoundation_MediaFoundationDisplayNull*> (module_p->writer ());
-      ACE_ASSERT (display_impl_p);
+      Stream_CamSave_MediaFoundation_Source* source_impl_p =
+        dynamic_cast<Stream_CamSave_MediaFoundation_Source*> (module_p->writer ());
+      ACE_ASSERT (source_impl_p);
 
       IMFTopology* topology_p = NULL;
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+      HRESULT result_3 = MFTRegisterLocalByCLSID (__uuidof(CColorConvertDMO),
+                                                  MFT_CATEGORY_VIDEO_PROCESSOR,
+                                                  L"",
+                                                  MFT_ENUM_FLAG_SYNCMFT,
+                                                  0,
+                                                  NULL,
+                                                  0,
+                                                  NULL);
+
       if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
-                                                                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                                           media_source_p,
-                                                                           display_impl_p,
-                                                                           topology_p))
+                                                                    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                    media_source_p,
+                                                                    //NULL,
+                                                                    source_impl_p,
+                                                                    topology_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::loadDeviceTopology(), returning\n")));
@@ -4768,11 +4803,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
       ACE_ASSERT (topology_p);
-      media_source_p->Release (); media_source_p = NULL;
+      //media_source_p->Release (); media_source_p = NULL;
 
       // sanity check(s)
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
-
+      if ((*mediafoundation_stream_iterator).second.second.session)
+      {
+        (*mediafoundation_stream_iterator).second.second.session->Release (); (*mediafoundation_stream_iterator).second.second.session = NULL;
+      } // end IF
+      ACE_ASSERT (!(*mediafoundation_stream_iterator).second.second.session);
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_stream_iterator).second.second.session,
@@ -4849,19 +4887,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-      IMFMediaSourceEx* media_source_p = NULL;
-#else
-      IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
-                                                                        media_source_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
-        return;
-      } // end IF
+      if (!media_source_p)
+        if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+                                                                          media_source_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
+          return;
+        } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       ACE_ASSERT (media_source_p);
 
@@ -5017,8 +5051,12 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #endif
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
   GtkTreeIter iterator_3;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+  if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_3))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -5027,12 +5065,36 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string device_identifier_string = g_value_get_string (&value);
+  g_value_unset (&value);
+
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  value = G_VALUE_INIT;
+#else
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
@@ -5050,7 +5112,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   std::istringstream converter;
   converter.str (format_string);
   converter >> format_i;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
@@ -5069,7 +5131,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format);
-
       result_2 =
         mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format->SetGUID (MF_MT_SUBTYPE,
                                                                                                       GUID_s);
@@ -5112,15 +5173,25 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #else
       IMFMediaSource* media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
-                                                                        media_source_p))
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+      if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
+                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                    ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      ACE_ASSERT (media_source_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+      //if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+      //                                                                  media_source_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
+      //  return;
+      //} // end IF
       ACE_ASSERT (media_source_p);
 
       //if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -5234,8 +5305,37 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  GtkTreeIter iterator_3;
   GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkTreeIter iterator_3;
+  if (!gtk_combo_box_get_active_iter (combo_box_p,
+                                      &iterator_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION(2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  g_value_init (&value, G_TYPE_STRING);
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string device_identifier_string = g_value_get_string (&value);
+  g_value_unset (&value);
+
+  combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
@@ -5246,14 +5346,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
-  GtkListStore* list_store_p =
+  list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION(2,30,0)
-  GValue value = G_VALUE_INIT;
+  value = G_VALUE_INIT;
 #else
-  GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
   g_value_init (&value, G_TYPE_STRING);
 #endif // GTK_CHECK_VERSION (2,30,0)
@@ -5272,11 +5371,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   converter >> format_i;
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
+
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_3))
   {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
   list_store_p =
@@ -5339,8 +5439,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     { ACE_ASSERT (mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format);
-      ACE_ASSERT ((*mediafoundation_stream_iterator).second.second.session);
-
       result_2 =
         mediafoundation_cb_data_p->configuration->streamConfiguration.configuration->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
                                                                                                         width * height * 3);
@@ -5401,15 +5499,25 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #else
       IMFMediaSource* media_source_p = NULL;
 #endif // _WIN32_WINNT) && (_WIN32_WINNT >= 0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
-                                                                        media_source_p))
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+      if (!Stream_Device_MediaFoundation_Tools::getMediaSource (device_identifier_string,
+                                                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                media_source_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
+                    ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
+                    ACE_TEXT (device_identifier_string.c_str ())));
         return;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+      ACE_ASSERT (media_source_p);
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+//      if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second.session,
+//                                                                        media_source_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
+//        return;
+//      } // end IF
       ACE_ASSERT (media_source_p);
 
       //if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
@@ -5531,8 +5639,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_3))
   {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
     return;
   } // end IF
   GtkListStore* list_store_p =

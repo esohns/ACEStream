@@ -102,7 +102,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
 endif ()
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 
@@ -115,7 +115,10 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
 
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
+
 
 ############## next target ################
 set (EXECUTABLE_SOURCE camsource)

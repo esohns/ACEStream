@@ -259,11 +259,11 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
 
       ULONG reference_count = 0;
       IMFMediaSink* media_sink_p = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
-      IMFVideoDisplayControl2* video_display_control_p = NULL;
-#else
+//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+//      IMFVideoDisplayControl2* video_display_control_p = NULL;
+//#else
       IMFVideoDisplayControl* video_display_control_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
       DWORD count = 0;
 
       result_2 = CoInitializeEx (NULL,

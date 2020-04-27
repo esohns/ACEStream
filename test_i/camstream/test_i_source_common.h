@@ -711,13 +711,11 @@ struct Test_I_Source_DirectShow_Configuration
 {
   Test_I_Source_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
-   , direct3DConfiguration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
    , streamConfigurations ()
   {}
 
-  struct Stream_MediaFramework_Direct3D_Configuration        direct3DConfiguration;
   // **************************** signal data **********************************
   struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************

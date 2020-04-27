@@ -153,7 +153,11 @@ class Stream_MediaFramework_MediaFoundation_Source_T
   // helper methods
   bool initialize_MediaFoundation (HWND,                           // (target) window handle [NULL: NullRenderer]
                                    const IMFMediaType*,            // media type handle
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+                                   IMFMediaSourceEx*&,             // media source handle (in/out)
+#else
                                    IMFMediaSource*&,               // media source handle (in/out)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
                                    WCHAR*&,                        // return value: symbolic link
                                    UINT32&,                        // return value: symbolic link size
                                    IDirect3DDeviceManager9*,       // Direct3D device manager handle

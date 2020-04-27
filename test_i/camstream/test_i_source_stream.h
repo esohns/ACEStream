@@ -203,8 +203,8 @@ class Test_I_Source_MediaFoundation_Stream_T
                      bool = true); // locked access ?
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  virtual bool load (Stream_ILayout*, // return value: module list
+                     bool&);          // return value: delete modules ?
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
   virtual bool initialize (const CONFIGURATION_T&);

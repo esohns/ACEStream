@@ -36,30 +36,7 @@ struct Stream_MediaFramework_Direct3D_Configuration
 {
   Stream_MediaFramework_Direct3D_Configuration ()
    : adapter (D3DADAPTER_DEFAULT)
-   , behaviorFlags (//D3DCREATE_ADAPTERGROUP_DEVICE          |
-                    //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
-                    //D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX |
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                    //D3DCREATE_DISABLE_PRINTSCREEN          |
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                    //D3DCREATE_DISABLE_PSGP_THREADING       |
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-#if defined (_DEBUG)
-                    D3DCREATE_ENABLE_PRESENTSTATS          |
-#endif // _DEBUG
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                    D3DCREATE_FPU_PRESERVE                 |
-                    //D3DCREATE_HARDWARE_VERTEXPROCESSING    |
-                    //D3DCREATE_MIXED_VERTEXPROCESSING       |
-                    //D3DCREATE_SOFTWARE_VERTEXPROCESSING    |
-                    D3DCREATE_MULTITHREADED)//                |
-                    //D3DCREATE_NOWINDOWCHANGES              |
-                    //D3DCREATE_PUREDEVICE                   |
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
-                    D3DCREATE_SCREENSAVER)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+   , behaviorFlags (0)
    , deviceType (D3DDEVTYPE_HAL)
    , focusWindow (NULL)
    , handle (NULL)
@@ -71,6 +48,32 @@ struct Stream_MediaFramework_Direct3D_Configuration
    //, usage (0)
    , threadId (0)
   {
+    behaviorFlags = //D3DCREATE_ADAPTERGROUP_DEVICE          |
+                    //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
+                    //D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX |
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                    //D3DCREATE_DISABLE_PRINTSCREEN          |
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                    //D3DCREATE_DISABLE_PSGP_THREADING       |
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if defined (_DEBUG)
+                    D3DCREATE_ENABLE_PRESENTSTATS |
+#endif // _DEBUG
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                    D3DCREATE_FPU_PRESERVE                   |
+      //D3DCREATE_HARDWARE_VERTEXPROCESSING                  |
+      //D3DCREATE_MIXED_VERTEXPROCESSING                     |
+      //D3DCREATE_SOFTWARE_VERTEXPROCESSING                  |
+                    D3DCREATE_MULTITHREADED//                  |
+      //D3DCREATE_NOWINDOWCHANGES                            |
+      //D3DCREATE_PUREDEVICE                                 |
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+                    | D3DCREATE_SCREENSAVER
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                    ;
+
     ACE_OS::memset (&presentationParameters, 0, sizeof (struct _D3DPRESENT_PARAMETERS_));
     //presentationParameters.BackBufferWidth = 0;
     //presentationParameters.BackBufferHeight = 0;

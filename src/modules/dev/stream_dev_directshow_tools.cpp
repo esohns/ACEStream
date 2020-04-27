@@ -1209,7 +1209,7 @@ Stream_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devicePath_i
   STREAM_TRACE (ACE_TEXT ("Stream_Device_DirectShow_Tools::loadDeviceGraph"));
 
   // initialize return value(s)
-  graphLayout_out.clear ();
+  ACE_ASSERT (graphLayout_out.empty ());
 
   // sanity check(s)
   if (IAMBufferNegotiation_out)

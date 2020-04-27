@@ -1813,7 +1813,7 @@ loop:
 
 bool
 Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* builder_in,
-                                                             const std::list<std::wstring>& graph_in)
+                                                             const Stream_MediaFramework_DirectShow_Graph_t& graph_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect"));
 
@@ -1822,7 +1822,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
   ACE_ASSERT (!graph_in.empty ());
 
   IBaseFilter* filter_p = NULL;
-  std::list<std::wstring>::const_iterator iterator = graph_in.begin ();
+  Stream_MediaFramework_DirectShow_GraphConstIterator_t iterator = graph_in.begin ();
   HRESULT result =
     builder_in->FindFilterByName ((*iterator).c_str (),
       &filter_p);
@@ -1925,7 +1925,7 @@ Stream_MediaFramework_DirectShow_Tools::graphBuilderConnect (IGraphBuilder* buil
   IPin* pin_2 = NULL;
   //struct _PinInfo pin_info;
   //ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
-  std::list<std::wstring>::const_iterator iterator_2;
+  Stream_MediaFramework_DirectShow_GraphConstIterator_t iterator_2;
   for (++iterator;
        iterator != graph_in.end ();
        ++iterator)

@@ -11,9 +11,9 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
-#define D3D_DEBUG_INFO
+//#define D3D_DEBUG_INFO
 
-//#include "targetver.h"
+#include "targetver.h"
 
 // Windows Header Files
 #include <windows.h>

@@ -446,7 +446,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
   // step5: update session data
-  session_data_p->formats.push_back (configuration_in.configuration->format);
+  session_data_p->formats.push_front (configuration_in.configuration->format);
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat ((*iterator).second.second.builder,
                                                                 STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -987,12 +987,13 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
                 ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-    goto error;
+    //goto error;
   } // end IF
-  COM_initialized = true;
+  else
+    COM_initialized = true;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (configuration_p->session)
@@ -1036,7 +1037,7 @@ Stream_CamSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATIO
                                                                               configuration_p->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Device_MediaFoundation_Tools::clear(), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_MediaFoundation_Tools::getSampleGrabberNodeId(), aborting\n"),
                   ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF

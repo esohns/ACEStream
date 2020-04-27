@@ -20,6 +20,7 @@
 
 #include <amvideo.h>
 #include <d3d9types.h>
+#include <dvdmedia.h>
 #include <mferror.h>
 #include <mfidl.h>
 #include <vfwmsgs.h>
@@ -1455,13 +1456,21 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   presentationParameters_inout.BackBufferFormat =
     Stream_MediaFramework_DirectDraw_Tools::toFormat (mediaType_in.subtype);
 
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo));
-  ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-  struct tagVIDEOINFOHEADER* video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
-
-  stride_out =
-    ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+  if (likely (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo)))
+  { ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
+    stride_out =
+      ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+  } // end IF
+  else
+  { ACE_ASSERT (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2));
+    ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+    struct tagVIDEOINFOHEADER2* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
+    stride_out =
+      ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+  } // end ELSE
   // *NOTE*: see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd318229(v=vs.85).aspx
   // *NOTE*: "...A bottom-up image has a negative stride, because stride is
   //         defined as the number of bytes need to move down a row of pixels,

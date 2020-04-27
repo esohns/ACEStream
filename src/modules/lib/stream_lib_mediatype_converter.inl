@@ -168,6 +168,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   ACE_ASSERT (mediaType_in);
 
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   getMediaType (mediaType_in,
                 media_type_s);
   getMediaType (media_type_s,

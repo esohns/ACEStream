@@ -291,13 +291,18 @@ struct Test_I_CamStream_Configuration
    : Test_I_Configuration ()
 #endif // GUI_SUPPORT
    , allocatorConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , direct3DConfiguration ()
+#endif // ACE_WIN32 || ACE_WIN64
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {}
 
-  struct Common_AllocatorConfiguration            allocatorConfiguration;
-
+  struct Common_AllocatorConfiguration                allocatorConfiguration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_MediaFramework_Direct3D_Configuration direct3DConfiguration;
+#endif // ACE_WIN32 || ACE_WIN64
   // *************************** protocol data *********************************
-  enum Net_TransportLayerType                     protocol;
+  enum Net_TransportLayerType                         protocol;
 };
 
 //////////////////////////////////////////

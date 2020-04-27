@@ -276,30 +276,7 @@ do_processArguments (int argc_in,
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (mediaFramework_out)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      captureinterfaceIdentifier_out =
-        Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      // *TODO*
-      ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (false);
-      ACE_NOTREACHED (return false;)
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  mediaFramework_out));
-      return false;
-    }
-  } // end SWITCH
+  captureinterfaceIdentifier_out.clear ();
   showConsole_out = false;
 #else
   captureinterfaceIdentifier_out =
@@ -755,10 +732,11 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
 bool
 do_initialize_mediafoundation (const std::string& captureinterfaceIdentifier_in,
                                HWND windowHandle_in,
+                               IMFMediaType*& captureFormat_out,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                               bool loadDevice_in,
+                               //bool loadDevice_in,
                                bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
@@ -806,22 +784,8 @@ continue_:
   Stream_MediaFramework_Tools::initialize (STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
   Stream_Device_Tools::initialize (true); // initialize media frameworks ?
 
-  if (!loadDevice_in)
-    goto continue_2;
-
-  //if (!Stream_Device_Tools::loadDeviceGraph (deviceName_in,
-  //                                                  IGraphBuilder_out,
-  //                                                  IAMBufferNegotiation_out,
-  //                                                  IAMStreamConfig_out))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-  //              ACE_TEXT (deviceName_in.c_str ())));
-  //  return false;
-  //} // end IF
-  //ACE_ASSERT (IGraphBuilder_out);
-  //ACE_ASSERT (IAMBufferNegotiation_out);
-  //ACE_ASSERT (IAMStreamConfig_out);
+  //if (!loadDevice_in)
+  //  goto continue_2;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
   if (!Stream_Device_MediaFoundation_Tools::getMediaSource (captureinterfaceIdentifier_in,
@@ -834,7 +798,14 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (media_source_p);
-
+  if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+                                                              captureFormat_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(\"%s\"), aborting\n"),
+                ACE_TEXT (captureinterfaceIdentifier_in.c_str ())));
+    goto error;
+  } // end IF
   if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (captureinterfaceIdentifier_in,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p,
@@ -849,7 +820,7 @@ continue_:
   media_source_p->Release (); media_source_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
-continue_2:
+//continue_2:
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
@@ -881,22 +852,24 @@ continue_2:
     goto error;
   } // end IF
   attributes_p->Release (); attributes_p = NULL;
-
-  ACE_ASSERT (topology_p);
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
-                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-  result = IMFMediaSession_out->SetTopology (topology_flags,
-                                             topology_p);
-  if (FAILED (result))
+  ACE_ASSERT (IMFMediaSession_out);
+  if (topology_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-    goto error;
+    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                            //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                            //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+    result = IMFMediaSession_out->SetTopology (topology_flags,
+                                               topology_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    topology_p->Release (); topology_p = NULL;
   } // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-  topology_p->Release (); topology_p = NULL;
 
 //continue_3:
   return true;
@@ -906,6 +879,10 @@ error:
     media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
+  if (captureFormat_out)
+  {
+    captureFormat_out->Release (); captureFormat_out = NULL;
+  } // end IF
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
   if (IMFMediaSession_out)
   {
@@ -1183,6 +1160,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         &allocator_configuration;
+      mediafoundation_modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
         Stream_Device_Identifier::STRING;
       ACE_OS::strcpy (mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._string,
@@ -1200,6 +1179,8 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       } // end IF
       mediafoundation_modulehandler_configuration.subscriber =
         &mediafoundation_ui_event_handler;
+      mediafoundation_modulehandler_configuration.subscribers =
+        &mediaFoundationCBData_in.subscribers;
       mediafoundation_modulehandler_configuration.targetFileName =
         targetFilename_in;
       break;
@@ -1281,6 +1262,9 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       //  renderer_in;
 
       directshow_modulehandler_configuration.display = displayDevice_in;
+
+      directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
+
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
@@ -1310,6 +1294,7 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 #endif // GUI_SUPPORT
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
+      mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
@@ -1317,6 +1302,11 @@ do_work (const std::string& captureinterfaceIdentifier_in,
       mediafoundation_stream_iterator =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+
+      mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (module_configuration,
+                                                                                                  mediafoundation_modulehandler_configuration)));
+
       mediafoundation_stream_iterator_2 =
         mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
@@ -1370,7 +1360,6 @@ do_work (const std::string& captureinterfaceIdentifier_in,
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   IMFMediaSession* media_session_p = NULL;
-  bool load_device = UIDefinitionFilename_in.empty ();
   bool initialize_COM = UIDefinitionFilename_in.empty ();
   switch (mediaFramework_in)
   {
@@ -1405,10 +1394,10 @@ do_work (const std::string& captureinterfaceIdentifier_in,
     {
       if (!do_initialize_mediafoundation (captureinterfaceIdentifier_in,
                                           window_handle,
+                                          mediafoundation_stream_configuration.format,
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
                                           (*mediafoundation_stream_iterator).second.second.session,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
-                                          load_device,     // load device ?
                                           initialize_COM)) // initialize COM ?
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1460,34 +1449,57 @@ do_work (const std::string& captureinterfaceIdentifier_in,
 
 #if defined (GUI_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Image_Resolution_t resolution_s =
-      Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
+  Common_Image_Resolution_t resolution_s;
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      resolution_s =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_stream_configuration.format);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      resolution_s =
+        Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediafoundation_stream_configuration.format);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  mediaFramework_in));
+      return;
+    }
+  } // end SWITCH
   //struct _D3DDISPLAYMODE display_mode_s =
   //  Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (directShowConfiguration_in.direct3DConfiguration.adapter,
   //                                                          STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
   //                                                          resolution_s);
   ACE_ASSERT (!directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow);
-  directShowConfiguration_in.direct3DConfiguration.focusWindow =
-      GetConsoleWindow ();
+  //directShowConfiguration_in.direct3DConfiguration.focusWindow =
+  //    GetConsoleWindow ();
   directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
       resolution_s.cx;
   directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
       resolution_s.cy;
+  directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
+    GetConsoleWindow ();
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   UINT reset_token = 0;
   if (!Stream_MediaFramework_DirectDraw_Tools::getDevice (directShowConfiguration_in.direct3DConfiguration,
                                                           direct3D_manager_p,
                                                           reset_token))
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), returning\n")));
-    return;
-  } // end IF
-  ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
-  ACE_ASSERT (direct3D_manager_p);
-  ACE_ASSERT (reset_token);
-  direct3D_manager_p->Release (); direct3D_manager_p = NULL;
-  reset_token = 0;
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectDraw_Tools::getDevice(), continuing\n")));
+  else
+  {
+    ACE_ASSERT (directShowConfiguration_in.direct3DConfiguration.handle);
+    ACE_ASSERT (direct3D_manager_p);
+    ACE_ASSERT (reset_token);
+    direct3D_manager_p->Release (); direct3D_manager_p = NULL;
+    reset_token = 0;
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // GUI_SUPPORT
 
@@ -1945,30 +1957,6 @@ ACE_TMAIN (int argc_in,
   //unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
   std::string capture_device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      capture_device_identifier =
-        Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      // *TODO*
-      ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (false);
-      ACE_NOTREACHED (return false;)
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  STREAM_LIB_DEFAULT_MEDIAFRAMEWORK));
-      return false;
-    }
-  } // end SWITCH
   bool show_console = false;
 #else
   capture_device_identifier =
@@ -2040,6 +2028,39 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (capture_device_identifier.empty ())
+    switch (media_framework_e)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      {
+        capture_device_identifier =
+          Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      {
+        capture_device_identifier =
+          Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    media_framework_e));
+        // *PORTABILITY*: on Windows, finalize ACE...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        result = ACE::fini ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif // ACE_WIN32 || ACE_WIN64
+        return EXIT_FAILURE;
+      }
+    } // end SWITCH
+#endif // ACE_WIN32 || ACE_WIN64
+
   // step1c: validate arguments
   // *IMPORTANT NOTE*: iff the number of message buffers is limited, the
   //                   reactor/proactor thread could (dead)lock on the
@@ -2051,10 +2072,9 @@ ACE_TMAIN (int argc_in,
   if (
 #if defined (GUI_SUPPORT)
       (!UI_definition_filename.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_filename))
-#else
-      false
+       !Common_File_Tools::isReadable (UI_definition_filename)) ||
 #endif // GUI_SUPPORT
+      capture_device_identifier.empty ()
      )
   {
     ACE_DEBUG ((LM_ERROR,

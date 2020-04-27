@@ -193,11 +193,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     if (unlikely (FAILED (result_2)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
-      goto error;
+      //goto error;
     } // end IF
-    COM_initialized = true;
+    else
+      COM_initialized = true;
   } // end IF
 
   if (unlikely (inherited::isInitialized_))

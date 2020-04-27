@@ -22,8 +22,8 @@
 #define STREAM_LIB_DIRECTSHOW_COMMON_H
 
 #include <deque>
-#include <list>
 #include <string>
+#include <vector>
 
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
 //            incompatible versions of the IKsPropertySet interface.
@@ -97,7 +97,7 @@ struct Stream_MediaFramework_DirectShow_FilterConfiguration
   struct _AllocatorProperties allocatorProperties;
 };
 
-typedef std::list<std::wstring> Stream_MediaFramework_DirectShow_Graph_t;
+typedef std::vector<std::wstring> Stream_MediaFramework_DirectShow_Graph_t;
 typedef Stream_MediaFramework_DirectShow_Graph_t::iterator Stream_MediaFramework_DirectShow_GraphIterator_t;
 typedef Stream_MediaFramework_DirectShow_Graph_t::const_iterator Stream_MediaFramework_DirectShow_GraphConstIterator_t;
 struct Stream_MediaFramework_DirectShow_GraphConfigurationEntry

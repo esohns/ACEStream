@@ -349,7 +349,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
 
       bool COM_initialized = false;
-      bool release_session_data_format = false;
       bool is_running = false;
       bool remove_from_ROT = false;
 
@@ -369,6 +368,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       ULONG reference_count = 0;
       IBaseFilter* filter_p = NULL;
       struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      bool release_media_type = false;
       if (inherited::configuration_->builder)
       {
         reference_count = inherited::configuration_->builder->AddRef ();
@@ -487,10 +488,22 @@ continue_:
                                                              session_data_r.formats.back ()))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), continuing\n"),
                     inherited::mod_->name ()));
+        //goto error;
+      } // end IF
+
+      if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (builder_p,
+                                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                                    media_type_s))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getCaptureFormat(\"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
         goto error;
       } // end IF
+      release_media_type = true;
       if (Stream_Device_DirectShow_Tools::isMediaTypeBottomUp (media_type_s))
       {
         result_2 =
@@ -534,20 +547,8 @@ continue_:
                       ACE_TEXT (Stream_Device_DirectShow_Tools::devicePathToString (ACE_TEXT_ALWAYS_CHAR (inherited::configuration_->deviceIdentifier.identifier._string)).c_str ())));
         pin_p->Release (); pin_p = NULL;
       } // end IF
-
-      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-      if (!Stream_MediaFramework_DirectShow_Tools::getOutputFormat (builder_p,
-                                                                    STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                                    media_type_s))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Tools::getCaptureFormat(\"%s\"), aborting\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_GRAB)));
-        goto error;
-      } // end IF
-      session_data_r.formats.push_back (media_type_s);
-      release_session_data_format = true;
+      session_data_r.formats.push_front (media_type_s);
+      release_media_type = false;
 
 #if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
@@ -655,8 +656,8 @@ error:
       if (sample_grabber_p)
         sample_grabber_p->Release ();
 
-      if (release_session_data_format)
-        Stream_MediaFramework_DirectShow_Tools::free (session_data_r.formats);
+      if (release_media_type)
+        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
       if (COM_initialized)
         CoUninitialize ();

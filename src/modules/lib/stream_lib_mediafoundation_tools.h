@@ -33,6 +33,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_image_common.h"
+
 #include "stream_lib_common.h"
 #include "stream_lib_mediafoundation_common.h"
 
@@ -42,6 +44,10 @@ class Stream_MediaFramework_MediaFoundation_Tools
 
  public:
   static void initialize ();
+
+  static struct _GUID toFormat (const IMFMediaType*);
+  static Common_Image_Resolution_t toResolution (const IMFMediaType*);
+  static unsigned int toFramerate (const IMFMediaType*);
 
   // *NOTE*: 'tees' the upstream node of the first output node (if any); else,
   //         starting from the first source node, 'tee' the last connected node

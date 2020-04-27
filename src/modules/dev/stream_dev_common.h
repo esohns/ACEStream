@@ -82,16 +82,17 @@ enum Stream_Device_Mode
 struct Stream_Device_Identifier
 {
   Stream_Device_Identifier ()
+   : description ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   : identifier ()
+   , identifier ()
    , identifierDiscriminator (Stream_Device_Identifier::GUID)
 #else
-   : description ()
    , fileDescriptor (-1)
    , identifier ()
 #endif // ACE_WIN32 || ACE_WIN64
   {}
 
+  std::string            description;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   union identifierType
   {
@@ -134,7 +135,6 @@ struct Stream_Device_Identifier
     } // end SWITCH
   }
 #else
-  std::string            description;
   int                    fileDescriptor;
   std::string            identifier;
 #endif // ACE_WIN32 || ACE_WIN64
