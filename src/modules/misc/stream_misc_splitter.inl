@@ -459,6 +459,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (configuration_in.outputFormat,
                             media_type_s);
   PDUSize_ = media_type_s.lSampleSize;

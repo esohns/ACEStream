@@ -1096,7 +1096,7 @@ continue_:
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  session_data_p->formats.push_back (media_type_p);
+  session_data_p->formats.push_front (media_type_p);
   media_type_p = NULL;
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::getOutputFormat (topology_p,
@@ -1109,7 +1109,7 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
-  session_data_p->formats.push_back (media_type_p);
+  session_data_p->formats.push_front (media_type_p);
   media_type_p = NULL;
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA

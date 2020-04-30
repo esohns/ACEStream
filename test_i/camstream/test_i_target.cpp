@@ -653,6 +653,7 @@ do_initialize_mediafoundation (IMFMediaType*& sourceMediaType_out,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 
+continue_:
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
   if (FAILED (result))
@@ -663,7 +664,6 @@ do_initialize_mediafoundation (IMFMediaType*& sourceMediaType_out,
     goto error;
   } // end IF
 
-continue_:
   Stream_Device_Tools::initialize ();
 
   //// work out the GUID for the subtype from the header info
@@ -693,17 +693,18 @@ continue_:
   ACE_ASSERT (SUCCEEDED (result_2));
   result_2 = sourceMediaType_out->SetGUID (MF_MT_SUBTYPE, subTypeGUID);
   ACE_ASSERT (SUCCEEDED (result_2));
-  result_2 = sourceMediaType_out->SetUINT32 (MF_MT_DEFAULT_STRIDE, 320 * 4);
-  ACE_ASSERT (SUCCEEDED (result_2));
+  //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_DEFAULT_STRIDE,
+  //                                           STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH * 4);
+  //ACE_ASSERT (SUCCEEDED (result_2));
   result_2 = MFSetAttributeSize (sourceMediaType_out,
                                  MF_MT_FRAME_RATE,
-                                 30, 1);
+                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_RATE, 1);
   ACE_ASSERT (SUCCEEDED (result_2));
   //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_AVG_BITRATE, 10000000);
   //ACE_ASSERT (SUCCEEDED (result_2));
   result_2 = MFSetAttributeSize (sourceMediaType_out,
                                  MF_MT_FRAME_SIZE,
-                                 320, 240);
+                                 STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT);
   ACE_ASSERT (SUCCEEDED (result_2));
   //result_2 = MFSetAttributeSize (sourceMediaType_out,
   //                               MF_MT_FRAME_RATE_RANGE_MAX,
@@ -727,14 +728,14 @@ continue_:
   //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_FIXED_SIZE_SAMPLES,
   //                                           1);
   //ACE_ASSERT (SUCCEEDED (result_2));
-  //UINT32 frame_size = 0;
-  //result_2 = MFCalculateImageSize (SubTypeGUID,
-  //                                 320, 240,
-  //                                 &frame_size);
-  //ACE_ASSERT (SUCCEEDED (result_2));
-  //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_SAMPLE_SIZE,
-  //                                           frame_size);
-  //ACE_ASSERT (SUCCEEDED (result_2));
+  UINT32 frame_size = 0;
+  result_2 = MFCalculateImageSize (subTypeGUID,
+                                   STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH, STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT,
+                                   &frame_size);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  result_2 = sourceMediaType_out->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                             frame_size);
+  ACE_ASSERT (SUCCEEDED (result_2));
   //result_2 = sourceMediaType_out->SetUINT32 (MF_MT_MPEG2_PROFILE,
   //                                           eAVEncH264VProfile_Main);
   //ACE_ASSERT (SUCCEEDED (result_2));
@@ -1024,6 +1025,8 @@ do_work (unsigned int bufferSize_in,
         &mediafoundation_ui_event_handler;
       modulehandler_configuration.fileIdentifier.identifier = fileName_in;
 
+      mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
+
       mediafoundation_configuration.streamConfiguration.initialize (module_configuration,
                                                                     modulehandler_configuration,
                                                                     mediafoundation_stream_configuration);
@@ -1114,7 +1117,7 @@ do_work (unsigned int bufferSize_in,
         mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.sourceFormat);
-      ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.outputFormat);
+      //ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.outputFormat);
       result =
         do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.sourceFormat,
                                        (*mediafoundation_modulehandler_iterator).second.second.outputFormat,
@@ -2653,6 +2656,15 @@ ACE_TMAIN (int argc_in,
       //  &mediafoundation_ui_cb_data;
       ui_cb_data_p = &mediafoundation_ui_cb_data;
       mediafoundation_ui_cb_data.configuration = &mediafoundation_configuration;
+      mediafoundation_configuration.GTKConfiguration.argc = argc_in;
+      mediafoundation_configuration.GTKConfiguration.argv = argv_in;
+      mediafoundation_configuration.GTKConfiguration.CBData = ui_cb_data_p;
+      mediafoundation_configuration.GTKConfiguration.eventHooks.finiHook =
+        idle_finalize_target_UI_cb;
+      mediafoundation_configuration.GTKConfiguration.eventHooks.initHook =
+        idle_initialize_target_UI_cb;
+      mediafoundation_configuration.GTKConfiguration.definition = &gtk_ui_definition;
+      mediafoundation_configuration.GTKConfiguration.RCFiles.push_back (gtk_rc_file);
       break;
     }
     default:
@@ -2669,6 +2681,7 @@ ACE_TMAIN (int argc_in,
       return EXIT_FAILURE;
     }
   } // end SWITCH
+  ui_cb_data_p->mediaFramework = media_framework_e;
 #else
   struct Test_I_Target_UI_CBData ui_cb_data;
   struct Test_I_Target_Configuration configuration;

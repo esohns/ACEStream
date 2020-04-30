@@ -1030,6 +1030,9 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
   if (!mediaSource_inout)
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+    DWORD flags = MF_RESOLUTION_MEDIASOURCE;
+    enum MF_OBJECT_TYPE object_type = MF_OBJECT_INVALID;
+    IUnknown* unknown_p = NULL;
     IMFSourceResolver* source_resolver_p = NULL;
     result = MFCreateSourceResolver (&source_resolver_p);
     if (FAILED (result))
@@ -1039,22 +1042,22 @@ Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology (const std::stri
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
-    DWORD flags = MF_RESOLUTION_MEDIASOURCE;
-    IPropertyStore* properties_p = NULL;
-    enum MF_OBJECT_TYPE object_type = MF_OBJECT_INVALID;
-    IUnknown* unknown_p = NULL;
     result =
       source_resolver_p->CreateObjectFromURL (ACE_TEXT_ALWAYS_WCHAR (URL_in.c_str ()),
                                               flags,
-                                              properties_p,
+                                              NULL, // properties
                                               &object_type,
                                               &unknown_p);
-    if (FAILED (result))
+    if (FAILED (result)) // 0xc00d36c3: MF_E_UNSUPPORTED_SCHEME
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (URL_in.c_str ()),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+      PROPVARIANT prop_s;
+      PropVariantInit (&prop_s);
+      MFGetSupportedSchemes (&prop_s);
+      PropVariantClear (&prop_s);
       source_resolver_p->Release (); source_resolver_p = NULL;
       goto error;
     } // end IF
@@ -2320,13 +2323,21 @@ Stream_MediaFramework_MediaFoundation_Tools::clear (IMFMediaSession* mediaSessio
   { // *TODO*: this shouldn't block
     media_event_p = NULL;
     result = mediaSession_in->GetEvent (0,
-                                           &media_event_p);
+                                        &media_event_p);
     if (FAILED (result))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-      return false;
+      if (result != MF_E_MULTIPLE_SUBSCRIBERS) // 0xc00d36da
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+        return false;
+      } // end IF
+      else
+      {
+        received_topology_event = true;
+        continue;
+      } // end ELSE
     } // end IF
     ACE_ASSERT (media_event_p);
     result = media_event_p->GetType (&event_type);

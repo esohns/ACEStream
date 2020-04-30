@@ -4788,6 +4788,9 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
   struct _GUID sub_type = GUID_NULL;
   MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
   IMFActivate* activate_p = NULL;
+  IMFMediaType* media_type_p = NULL;
+  IMFTopologyNode* source_node_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL;
 
   // initialize return value(s)
   rendererNodeId_out = 0;
@@ -4800,7 +4803,8 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
                                                                           topology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology(\"%s\"), aborting\n")));
+                  ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::loadSourceTopology(\"%s\"), aborting\n"),
+                  ACE_TEXT (URL_in.c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (media_source_p);
@@ -4810,7 +4814,6 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
   ACE_ASSERT (topology_inout);
 
   // step1: retrieve source node
-  IMFTopologyNode* source_node_p = NULL;
   IMFCollection* collection_p = NULL;
   HRESULT result =
     topology_inout->GetSourceNodeCollection (&collection_p);
@@ -4858,16 +4861,14 @@ Stream_Module_Decoder_Tools::loadTargetRendererTopology (const std::string& URL_
   CLSID* decoders_p = NULL;
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
   IMFTransform* transform_p = NULL;
-  IMFTopologyNode* topology_node_p = NULL;
   if (!media_source_p)
   {
     result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
                                         IID_PPV_ARGS (&media_source_p));
     ACE_ASSERT (SUCCEEDED (result));
   } // end IF
-  IMFMediaType* media_type_p = NULL;
   if (!Stream_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-                                                                     media_type_p))
+                                                              media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));

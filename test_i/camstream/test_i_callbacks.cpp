@@ -282,7 +282,7 @@ error:
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a, sizeof (WCHAR[BUFSIZ]),
@@ -312,7 +312,7 @@ error:
         } // end IF
         listbox_entries_a.push_back (std::make_pair (friendly_name_string,
                                                      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a))));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // _WIN32_WINNT_WIN7
       } // end FOR
 
 error_2:
@@ -1662,18 +1662,23 @@ update_buffer_size (struct Test_I_CamStream_UI_CBData* CBData_in)
         MFGetAttributeSize ((*mediafoundation_stream_iterator).second.configuration->format,
                             MF_MT_FRAME_SIZE,
                             &width, &height);
+      ACE_ASSERT (SUCCEEDED (result));
       result = MFCalculateImageSize (media_subtype,
                                      width, height,
                                      &frame_size_i);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to MFCalculateImageSize(\"%s\",%u,%u): \"%s\", aborting\n"),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_subtype, STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION).c_str ()),
-                    width, height,
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-        return;
-      } // end IF
+      result =
+        (*mediafoundation_stream_iterator).second.configuration->format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                                                    frame_size_i);
+      ACE_ASSERT (SUCCEEDED (result));
+
+      // *IMPORTANT NOTE*: no matter what the capture device outputs, the format captured by the sample grabber is
+      //                   always MFVideoFormat_RGB32
+      result = MFCalculateImageSize (MFVideoFormat_RGB32,
+                                     width, height,
+                                     &frame_size_i);
+      ACE_ASSERT (SUCCEEDED (result));
+      (*mediafoundation_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
+        frame_size_i;
       break;
     }
     default:
@@ -2733,7 +2738,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.window);
       (*mediafoundation_modulehandler_iterator).second.second.window =
         gdk_win32_window_get_impl_hwnd (window_p);
-      //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
+      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
+      ACE_ASSERT (IsWindow ((*mediafoundation_modulehandler_iterator).second.second.window));
+      ACE_DEBUG ((LM_DEBUG,
+        ACE_TEXT ("drawing area window handle: 0x%@\n"),
+        (*mediafoundation_modulehandler_iterator).second.second.window));
+
+      ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+      //mediafoundation_ui_cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
+      //  gdk_win32_window_get_impl_hwnd (window_p);
+
       break;
     }
     default:
@@ -4891,9 +4905,11 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
       (*mediafoundation_stream_iterator).second.configuration->allocatorConfiguration->defaultBufferSize =
         static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
       break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -4942,10 +4958,10 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
           goto error;
         } // end IF
       } // end IF
-      ACE_ASSERT (topology_p);
-      result_3 =
-        Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                               (*mediafoundation_stream_iterator).second.configuration->format);
+      //ACE_ASSERT (topology_p);
+      result_3 = true;
+      //  Stream_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+      //                                                         (*mediafoundation_stream_iterator).second.configuration->format);
       break;
     }
     default:
@@ -4986,7 +5002,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      topology_p->Release ();
+      //topology_p->Release ();
       //struct _AMMediaType* media_type_p = NULL;
       //Stream_Device_Tools::getCaptureFormat (ui_cb_data_p->configuration->moduleHandlerConfiguration.builder,
       //                                              media_type_p);
@@ -6748,18 +6764,22 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second.mediaSource);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
 
-      mediafoundation_ui_cb_data_p->stream->initialize ((*mediafoundation_stream_iterator).second);
-      module_name =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
-      module_p =
-        const_cast<Stream_Module_t*> (mediafoundation_ui_cb_data_p->stream->find (module_name));
-      if (!module_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Base_T::find(\"%s\"), returning\n"),
-                    ACE_TEXT (module_name.c_str ())));
-        return;
-      } // end IF
+      //if ((*mediafoundation_modulehandler_iterator).second.second.session)
+      //{
+      //  (*mediafoundation_modulehandler_iterator).second.second.session->Release (); (*mediafoundation_modulehandler_iterator).second.second.session = NULL;
+      //} // end IF
+      //mediafoundation_ui_cb_data_p->stream->initialize ((*mediafoundation_stream_iterator).second);
+      //module_name =
+      //  ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+      //module_p =
+      //  const_cast<Stream_Module_t*> (mediafoundation_ui_cb_data_p->stream->find (module_name));
+      //if (!module_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Base_T::find(\"%s\"), returning\n"),
+      //              ACE_TEXT (module_name.c_str ())));
+      //  return;
+      //} // end IF
       break;
     }
     default:
@@ -6807,17 +6827,18 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (module_p);
-      mediafoundation_source_impl_p =
-        dynamic_cast<Test_I_Stream_MediaFoundation_CamSource*> (module_p->writer ());
-      ACE_ASSERT (mediafoundation_source_impl_p);
+    { //ACE_ASSERT (module_p);
+      //mediafoundation_source_impl_p =
+      //  dynamic_cast<Test_I_Stream_MediaFoundation_CamSource*> (module_p->writer ());
+      //ACE_ASSERT (mediafoundation_source_impl_p);
 
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology (device_identifier_string,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                     (*mediafoundation_modulehandler_iterator).second.second.mediaSource,
-                                                                    mediafoundation_source_impl_p,
+                                                                    NULL,
+                                                                    //mediafoundation_source_impl_p,
                                                                     topology_p))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -6831,15 +6852,15 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       // sanity check(s)
       ACE_ASSERT (!(*mediafoundation_modulehandler_iterator).second.second.session);
 
-      if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
-                                                                     (*mediafoundation_modulehandler_iterator).second.second.session,
-                                                                     true))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), returning\n")));
-        topology_p->Release (); topology_p = NULL;
-        return;
-      } // end IF
+      //if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
+      //                                                               (*mediafoundation_modulehandler_iterator).second.second.session,
+      //                                                               true))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), returning\n")));
+      //  topology_p->Release (); topology_p = NULL;
+      //  return;
+      //} // end IF
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
       topology_p->Release (); topology_p = NULL;
 

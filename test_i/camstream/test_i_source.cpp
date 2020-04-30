@@ -723,6 +723,7 @@ do_initialize_mediafoundation (bool useUncompressedFormat_in,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
 
+continue_:
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
   if (FAILED (result))
@@ -733,7 +734,6 @@ do_initialize_mediafoundation (bool useUncompressedFormat_in,
     goto error;
   } // end IF
 
-continue_:
   Stream_Device_MediaFoundation_Tools::initialize ();
 
   return true;
@@ -1007,6 +1007,8 @@ do_work (const std::string& deviceIdentifier_in,
 
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+      mediafoundation_modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
       mediafoundation_modulehandler_configuration.configuration =
         mediaFoundationCBData_in.configuration;
       mediafoundation_modulehandler_configuration.connectionConfigurations =
@@ -1022,17 +1024,34 @@ do_work (const std::string& deviceIdentifier_in,
       Test_I_Source_MediaFoundation_StreamConfiguration_t mediafoundation_stream_configuration_3;
       struct Test_I_Source_MediaFoundation_StreamConfiguration mediafoundation_stream_configuration_4;
       mediafoundation_stream_configuration_2.allocatorConfiguration = allocator_configuration_p;
-
+      mediafoundation_stream_configuration_2.mediaFoundationConfiguration =
+        &mediaFoundationCBData_in.configuration->mediaFoundationConfiguration;
+      mediafoundation_stream_configuration_2.messageAllocator = allocator_p;
+      if (!UIDefinitionFilename_in.empty ())
+      {
+        mediafoundation_stream_configuration_2.cloneModule = true;
+        mediafoundation_stream_configuration_2.module = &mediafoundation_event_handler;
+      } // end IF
+      mediafoundation_stream_configuration_2.printFinalReport = true;
       mediafoundation_stream_configuration.initialize (module_configuration,
                                                        mediafoundation_modulehandler_configuration,
                                                        mediafoundation_stream_configuration_2);
+      mediafoundation_modulehandler_configuration.deviceIdentifier.clear ();
+      mediafoundation_modulehandler_configuration.direct3DConfiguration =
+        &mediaFoundationCBData_in.configuration->direct3DConfiguration;
+
+      mediafoundation_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (module_configuration,
+                                                                                   mediafoundation_modulehandler_configuration)));
+
       mediaFoundationCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                            mediafoundation_stream_configuration));
       mediafoundation_stream_iterator =
         mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
-      mediafoundation_stream_configuration_4.allocatorConfiguration = allocator_configuration_p;
+      mediafoundation_stream_configuration_4 = mediafoundation_stream_configuration_2;
+      mediafoundation_stream_configuration_4.module = NULL;
       mediafoundation_stream_configuration_3.initialize (module_configuration,
                                                          mediafoundation_modulehandler_configuration,
                                                          mediafoundation_stream_configuration_4);
@@ -1311,6 +1330,7 @@ do_work (const std::string& deviceIdentifier_in,
         mediaFoundationCBData_in.configuration->streamConfigurations.find (ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationCBData_in.configuration->streamConfigurations.end ());
 
+      mediafoundation_tcp_connection_configuration.allocatorConfiguration = allocator_configuration_p;
       result =
         mediafoundation_tcp_connection_configuration.initialize ((*mediafoundation_stream_iterator).second);
       mediaFoundationCBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
@@ -1601,8 +1621,8 @@ do_work (const std::string& deviceIdentifier_in,
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_iterator != (*mediafoundation_stream_iterator).second.end ());
 
-      (*mediafoundation_modulehandler_iterator).second.second.direct3DConfiguration =
-        &mediaFoundationCBData_in.configuration->direct3DConfiguration;
+      //(*mediafoundation_modulehandler_iterator).second.second.direct3DConfiguration =
+      //  &mediaFoundationCBData_in.configuration->direct3DConfiguration;
       (*mediafoundation_modulehandler_iterator).second.second.subscriber =
         &mediafoundation_ui_event_handler;
 
@@ -2237,6 +2257,8 @@ ACE_TMAIN (int argc_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      device_identifier =
+        Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
       mediafoundation_ui_cb_data.mediaFramework = media_framework_e;
       //mediafoundation_ui_cb_data.progressData.state =
       //  &mediafoundation_ui_cb_data;

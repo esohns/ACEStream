@@ -4300,14 +4300,14 @@ Stream_MediaFramework_DirectShow_Tools::toResolution (const struct _AMMediaType&
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
     result.cx = video_info_header_p->bmiHeader.biWidth;
-    result.cy = video_info_header_p->bmiHeader.biHeight;
+    result.cy = ::abs (video_info_header_p->bmiHeader.biHeight);
   } // end IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
   {
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result.cx = video_info_header2_p->bmiHeader.biWidth;
-    result.cy = video_info_header2_p->bmiHeader.biHeight;
+    result.cy = ::abs (video_info_header2_p->bmiHeader.biHeight);
   } // end ELSE IF
   else
   {

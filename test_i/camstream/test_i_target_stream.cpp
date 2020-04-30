@@ -581,7 +581,8 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  std::string url_string = ACE_TEXT_ALWAYS_CHAR ("camstream");
+  std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
+  //url_string += ACE_TEXT_ALWAYS_CHAR ("//test");
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
@@ -701,6 +702,7 @@ Test_I_Target_MediaFoundation_TCPStream::initialize (const CONFIGURATION_T& conf
 
   if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                  mediaSession_,
+                                                                 true,
                                                                  true))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -829,7 +831,7 @@ Test_I_Target_MediaFoundation_UDPStream::initialize (const CONFIGURATION_T& conf
   bool setup_pipeline = configuration_in.configuration->setupPipeline;
   bool reset_setup_pipeline = false;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  std::string url_string = ACE_TEXT_ALWAYS_CHAR ("camstream");
+  std::string url_string = ACE_TEXT_ALWAYS_CHAR (CAMSTREAM_TARGET_DEFAULT_SCHEME_HANDLER_URL);
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =

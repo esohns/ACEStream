@@ -1017,7 +1017,10 @@ continue_:
                 inherited::mod_->name (),
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     configuration_inout.handle->Release (); configuration_inout.handle = NULL;
-    handle_inout->Release (); handle_inout = NULL;
+    if (handle_inout)
+    {
+      handle_inout->Release (); handle_inout = NULL;
+    } // end IF
     goto error;
   } // end IF
 
@@ -1542,31 +1545,31 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
        i < libacestream_vis_number_of_format_transformations;
        ++i)
   {
-    switch (mediaFramework_)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      {
+    //switch (mediaFramework_)
+    //{
+    //  case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    //  {
         if (InlineIsEqualGUID (subType_in, libacestream_vis_directshow_format_transformations[i].subType))
           transformation_ =
             libacestream_vis_directshow_format_transformations[i].transformationCB;
-        break;
-      }
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      {
-        if (InlineIsEqualGUID (subType_in, libacestream_vis_mediafoundation_format_transformations[i].subType))
-          transformation_ =
-            libacestream_vis_mediafoundation_format_transformations[i].transformationCB;
-        break;
-      }
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    mediaFramework_));
-        return E_FAIL;
-      }
-    } // end SWITCH
+    //    break;
+    //  }
+    //  case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    //  {
+    //    if (InlineIsEqualGUID (subType_in, libacestream_vis_mediafoundation_format_transformations[i].subType))
+    //      transformation_ =
+    //        libacestream_vis_mediafoundation_format_transformations[i].transformationCB;
+    //    break;
+    //  }
+    //  default:
+    //  {
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
+    //                inherited::mod_->name (),
+    //                mediaFramework_));
+    //    return E_FAIL;
+    //  }
+    //} // end SWITCH
     if (transformation_)
       return S_OK;
   } // end FOR
@@ -1680,46 +1683,46 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   if (unlikely (index_in >= libacestream_vis_number_of_format_transformations))
   {
-    switch (mediaFramework_)
-    {
-      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    //switch (mediaFramework_)
+    //{
+      //case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         return VFW_E_NO_MORE_TYPES;
-      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-        return MF_E_NO_MORE_TYPES;
-      default:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    mediaFramework_));
-        return E_FAIL;
-      }
-    } // end SWITCH
+    //  case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    //    return MF_E_NO_MORE_TYPES;
+    //  default:
+    //  {
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
+    //                inherited::mod_->name (),
+    //                mediaFramework_));
+    //    return E_FAIL;
+    //  }
+    //} // end SWITCH
   } // end IF
 
-  switch (mediaFramework_)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+  //switch (mediaFramework_)
+  //{
+  //  case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+  //  {
       subType_out =
         libacestream_vis_directshow_format_transformations[index_in].subtype;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      subType_out =
-        libacestream_vis_mediafoundation_format_transformations[index_in].subtype;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
-                  inherited::mod_->name (),
-                  mediaFramework_));
-      return E_FAIL;
-    }
-  } // end SWITCH
+  //    break;
+  //  }
+  //  case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+  //  {
+  //    subType_out =
+  //      libacestream_vis_mediafoundation_format_transformations[index_in].subtype;
+  //    break;
+  //  }
+  //  default:
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: invalid/unknown media framework (was: %d), aborting\n"),
+  //                inherited::mod_->name (),
+  //                mediaFramework_));
+  //    return E_FAIL;
+  //  }
+  //} // end SWITCH
 
   return S_OK;
 }
@@ -2473,10 +2476,12 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (media_type_p);
       MediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       inherited::getMediaType (media_type_p,
                                media_type_s);
-      session_data_r.formats.push_back (media_type_s);
+      session_data_r.formats.push_front (media_type_s);
       struct _AMMediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (struct _AMMediaType));
       inherited::getMediaType (media_type_s,
                                media_type_2);
 
@@ -2489,7 +2494,8 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       resolution_s.cx = static_cast<LONG> (width_i);
       resolution_s.cy = static_cast<LONG> (height_i);
       ACE_ASSERT (SUCCEEDED (result));
-      ACE_ASSERT ((resolution_s.cx == inherited::direct3DConfiguration_->presentationParameters.BackBufferWidth) && (resolution_s.cy == inherited::direct3DConfiguration_->presentationParameters.BackBufferHeight));
+      inherited::direct3DConfiguration_->presentationParameters.BackBufferWidth = resolution_s.cx;
+      inherited::direct3DConfiguration_->presentationParameters.BackBufferHeight = resolution_s.cy;
       media_type_p->Release (); media_type_p = NULL;
       HWND window_handle_p =
         (inherited::direct3DConfiguration_->presentationParameters.Windowed ? inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow
@@ -2609,6 +2615,9 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       {
         // sanity check(s)
         ACE_ASSERT (!inherited::direct3DConfiguration_->handle);
+
+        Stream_MediaFramework_DirectDraw_Tools::initialize (false);
+
         if (unlikely (!initialize_Direct3D (*inherited::direct3DConfiguration_,
                                             media_type_2,
                                             inherited::direct3DConfiguration_->handle,

@@ -37,19 +37,20 @@ template <typename TimePolicyType,
           typename ConfigurationType,
           typename MediaType>
 class Stream_MediaFramework_MediaFoundation_MediaSource_T
+ : public IMFSchemeHandler
 #if defined (_WIN32_WINNT) && (_WIN32_WINNT > 0x0602) // _WIN32_WINNT_WIN8
- : public IMFMediaSourceEx
+ , public IMFMediaSourceEx
 #else
- : public IMFMediaSource
+ , public IMFMediaSource
 #endif // _WIN32_WINNT && (_WIN32_WINNT >= 0x0602)
  , public Common_IInitialize_T<ConfigurationType>
 {
  public:
   typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
-                                                    SessionMessageType,
-                                                    ProtocolMessageType,
-                                                    ConfigurationType,
-                                                    MediaType> OWN_TYPE_T;
+                                                              SessionMessageType,
+                                                              ProtocolMessageType,
+                                                              ConfigurationType,
+                                                              MediaType> OWN_TYPE_T;
 
   //// *NOTE*: the non-COM (!) ctor
   //Stream_MediaFramework_MediaFoundation_MediaSource_T ();
@@ -58,6 +59,18 @@ class Stream_MediaFramework_MediaFoundation_MediaSource_T
   static HRESULT CreateInstance (IUnknown*, // parent
                                  REFIID,    // interface id
                                  void**);   // return value: instance handle
+
+  // implement IMFSchemeHandler
+  STDMETHODIMP BeginCreateObject (LPCWSTR,           // pwszURL
+                                  DWORD,             // dwFlags
+                                  IPropertyStore*,   // pProps
+                                  IUnknown**,        // ppIUnknownCancelCookie
+                                  IMFAsyncCallback*, // pCallback
+                                  IUnknown*);        // punkState
+  STDMETHODIMP CancelObjectCreation (IUnknown*); // pIUnknownCancelCookie
+  STDMETHODIMP EndCreateObject (IMFAsyncResult*, // pResult
+                                MF_OBJECT_TYPE*, // pObjectType
+                                IUnknown**);     // ppObject
 
   // implement IMFMediaSourceEx
   // IUnknown

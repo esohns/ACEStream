@@ -726,8 +726,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::start"));
 
-  inherited::start ();
-
   // sanity check(s)
   ACE_ASSERT (mediaSession_);
 
@@ -759,6 +757,8 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
+
+  inherited::start ();
 }
 template <typename StreamStateType,
           typename ConfigurationType,
@@ -826,6 +826,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::load"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
 
   // *TODO*: remove type inference
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
@@ -902,13 +905,23 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::initialize"));
 
   // allocate a new session state, reset stream
+  bool setup_pipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline;
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    false;
+  bool reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Test_I_Source_MediaFoundation_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+      setup_pipeline;
     return false;
   } // end IF
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->getR ());

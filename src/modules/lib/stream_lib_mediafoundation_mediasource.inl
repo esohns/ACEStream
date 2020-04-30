@@ -158,6 +158,68 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
                                                     SessionMessageType,
                                                     ProtocolMessageType,
                                                     ConfigurationType,
+                                                    MediaType>::BeginCreateObject (LPCWSTR pwszURL,
+                                                                                   DWORD dwFlags,
+                                                                                   IPropertyStore* pProps,
+                                                                                   IUnknown** ppIUnknownCancelCookie,
+                                                                                   IMFAsyncCallback* pCallback,
+                                                                                   IUnknown* punkState)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::BeginCreateObject"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL);
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::CancelObjectCreation (IUnknown* pIUnknownCancelCookie)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::CancelObjectCreation"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL);
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
+                                                    MediaType>::EndCreateObject (IMFAsyncResult* pResult,
+                                                                                 MF_OBJECT_TYPE* pObjectType,
+                                                                                 IUnknown** ppObject)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaFoundation_MediaSource_T::EndCreateObject"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL);
+}
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename MediaType>
+HRESULT
+Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
+                                                    SessionMessageType,
+                                                    ProtocolMessageType,
+                                                    ConfigurationType,
                                                     MediaType>::QueryInterface (REFIID IID_in,
                                                                                 void** interface_out)
 {
@@ -165,6 +227,7 @@ Stream_MediaFramework_MediaFoundation_MediaSource_T<TimePolicyType,
 
   static const QITAB query_interface_table[] =
   {
+    QITABENT (OWN_TYPE_T, IMFSchemeHandler),
     QITABENT (OWN_TYPE_T, IMFMediaEventGenerator),
     QITABENT (OWN_TYPE_T, IMFMediaSource),
     { 0 },
